@@ -1,31 +1,49 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Soluciones Digitales Comayagua – SDComayagua</title>
-  <link rel="stylesheet" href="assets/css/styles.css" />
-</head>
-<body>
+<main class="layout">
+  <aside class="filters-panel">
+    <h3>Filtros</h3>
 
-<header class="header">
-  <div class="header-left">
-    <div class="brand">SDComayagua</div>
-  </div>
+    <div class="filter-block">
+      <label>Categoría</label>
+      <select id="filterCategory">
+        <option value="">Todas</option>
+        <option value="Artículos Gamer">Artículos Gamer</option>
+        <option value="Tecnología">Tecnología</option>
+        <option value="Accesorios">Accesorios</option>
+      </select>
+    </div>
 
-  <div class="header-center">
-    <input id="searchInput" class="search-input" placeholder="Buscar productos..." />
-  </div>
+    <div class="filter-block">
+      <label>Subcategoría</label>
+      <select id="filterSubcategory">
+        <option value="">Todas</option>
+      </select>
+    </div>
 
-  <div class="header-right">
-    <button id="cartToggle" class="btn cart-btn">
-      🛒 <span>Carrito</span> (<span id="cartCount">0</span>)
-    </button>
-  </div>
-</header>
+    <div class="filter-block">
+      <label>Sub-subcategoría</label>
+      <select id="filterSubsubcategory">
+        <option value="">Todas</option>
+      </select>
+    </div>
 
-<main>
-  <section>
+    <div class="filter-block">
+      <label>Variante</label>
+      <select id="filterVariant">
+        <option value="">Todas</option>
+      </select>
+    </div>
+
+    <div class="filter-block">
+      <label>Filtros rápidos</label>
+      <div class="filters-row">
+        <button id="filterOffer" class="chip">Ofertas</button>
+        <button id="filterLowStock" class="chip">Pocos inventarios</button>
+        <button id="clearAllFilters" class="chip chip-clear">Limpiar todo</button>
+      </div>
+    </div>
+  </aside>
+
+  <section class="products-panel">
     <div class="filters-row">
       <button id="filterOfertas" class="chip">Ofertas</button>
       <button id="filterPocos" class="chip">Pocos inventarios</button>
@@ -37,82 +55,8 @@
 
   <aside>
     <div class="cart" id="cartPanel">
-      <h3>Tu carrito</h3>
-
-      <div id="cartItems"></div>
-
-      <div class="shipping">
-        <h4>Datos de envío</h4>
-
-        <label>Departamento
-          <select id="departamentoSelect"></select>
-        </label>
-
-        <label>Municipio
-          <select id="municipioSelect">
-            <option value="">Elige departamento</option>
-          </select>
-        </label>
-
-        <label>Empresa de envío
-          <select id="courierSelect"></select>
-        </label>
-
-        <label>Dirección
-          <input id="direccionInput" placeholder="Calle, colonia, referencia" />
-        </label>
-      </div>
-
-      <div class="total" id="cartTotal">Total: L. 0.00</div>
-
-      <div class="cart-actions">
-        <button id="whatsappBtn" class="btn">Enviar por WhatsApp</button>
-        <button id="clearCart" class="btn ghost">Vaciar</button>
-      </div>
+      <!-- (tu carrito igual que antes) -->
+      <!-- no lo repito aquí para no hacer ruido, solo mantén lo que ya tienes -->
     </div>
   </aside>
 </main>
-
-<!-- Modal producto -->
-<div id="modalBackdrop" class="modal-backdrop">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modalTitle"></h3>
-      <button id="closeModal" class="btn ghost">Cerrar</button>
-    </div>
-
-    <img id="modalMainImg" class="gallery-main" />
-
-    <div id="modalThumbs" class="thumbs"></div>
-
-    <p id="modalDesc"></p>
-
-    <div class="modal-actions">
-      <button id="modalAdd" class="btn">Añadir al carrito</button>
-      <button id="modalConsult" class="btn ghost">Consultar disponibilidad</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal confirmación -->
-<div id="confirmBackdrop" class="modal-backdrop">
-  <div class="modal small-modal">
-    <h3>Producto añadido</h3>
-    <p>Gracias por comprar en SDComayagua</p>
-
-    <div class="modal-actions">
-      <button id="goToCart" class="btn">Ir al carrito</button>
-      <button id="continueShopping" class="btn ghost">Seguir viendo</button>
-    </div>
-  </div>
-</div>
-
-<script src="assets/js/config.js"></script>
-<script src="assets/js/utils.js"></script>
-script src="assets/js/cart.js"></script>
-<script src="assets/js/shipping.js"></script>
-<script src="assets/js/whatsapp.js"></script>
-<script src="assets/js/api/fetchProducts.js"></script>
-<script src="assets/js/app.js"></script>
-</body>
-</html>
