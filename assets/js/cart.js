@@ -19,7 +19,12 @@ window.Cart = (function(){
     if(existing){
       existing.qty += 1;
     }else{
-      items.push({id:product.id,name:product.name,price:product.price,qty:1});
+      items.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        qty: 1
+      });
     }
     save();
   }
