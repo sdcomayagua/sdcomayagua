@@ -1,45 +1,48 @@
 window.Cart = (function(){
-  const state = { items: Utils.loadCart() };
+  let items = [];
 
-  function getItems(){ return state.items; }
-  function getCount(){ return Object.values(state.items).reduce((s,i)=>s+i.qty,0); }
-
-  function add(product, qty=1){
-    if(product.stock === 0) return;
-    if(!state.items[product.id]){
-      state.items[product.id] = {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.images[0],
-        qty: 0
-      };
+  function load(){
+    try{
+      const raw = localStorage.getItem("sd_cart");
+      if(raw) items = JSON.parse(raw);
+    }catch(e){
+      items = [];
     }
-    state.items[product.id].qty += qty;
-    Utils.saveCart(state.items);
   }
 
-  function changeQty(id, delta){
-    if(!state.items[id]) return;
-    state.items[id].qty += delta;
-    if(state.items[id].qty <= 0) delete state.items[id];
-    Utils.saveCart(state.items);
+  function save(){
+    localStorage.setItem("sd_cart", JSON.stringify(items));
+  }
+
+  function add(product){
+    const existing = items.find(i=>i.id===product.id);
+    if(existing){
+      existing.qty += 1;
+    }else{
+      items.push({id:product.id,name:product.name,price:product.price,qty:1});
+    }
+    save();
+  }
+
+  function remove(id){
+    items = items.filter(i=>i.id!==id);
+    save();
   }
 
   function clear(){
-    state.items = {};
-    Utils.saveCart(state.items);
+    items = [];
+    save();
   }
 
-  function totals(shippingCalculator){
-    let subtotal = 0;
-    for(const id in state.items){
-      const it = state.items[id];
-      subtotal += it.price * it.qty;
-    }
-    const shipping = shippingCalculator ? shippingCalculator(subtotal) : 0;
-    return { subtotal, shipping, total: subtotal + shipping };
+  function getItems(){
+    return items;
   }
 
-  return { getItems, getCount, add, changeQty, clear, totals };
+  function getTotal(){
+    return items.reduce((sum,i)=>sum + i.price*i.qty,0);
+  }
+
+  load();
+
+  return {add,remove,clear,getItems,getTotal};
 })();
