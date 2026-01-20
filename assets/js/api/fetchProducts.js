@@ -1,7 +1,7 @@
-window.API = {
-  async fetchProducts(){
-    const res = await fetch("_data/products.json");
-    if(!res.ok) throw new Error("No se pudo cargar products.json");
-    return await res.json();
-  }
+window.API = window.API || {};
+
+window.API.fetchProducts = async function(){
+  const res = await fetch("_data/products.json");
+  const data = await res.json();
+  return data;
 };
