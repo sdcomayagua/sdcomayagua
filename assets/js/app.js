@@ -1,5 +1,6 @@
 (function(){
   let products = [];
+
   const filters = {
     category:"",
     subcategory:"",
@@ -13,6 +14,7 @@
   const searchInput = document.getElementById("searchInput");
   const productsGrid = document.getElementById("productsGrid");
   const productsCount = document.getElementById("productsCount");
+
   const cartPanel = document.getElementById("cartPanel");
   const cartToggle = document.getElementById("cartToggle");
   const closeCart = document.getElementById("closeCart");
@@ -25,6 +27,7 @@
   const subcategorySelect = document.getElementById("filterSubcategory");
   const subsubcategorySelect = document.getElementById("filterSubsubcategory");
   const variantSelect = document.getElementById("filterVariant");
+
   const filterOfferBtn = document.getElementById("filterOffer");
   const filterLowStockBtn = document.getElementById("filterLowStock");
   const clearAllFiltersBtn = document.getElementById("clearAllFilters");
@@ -71,6 +74,7 @@
   function renderProducts(){
     const list = filteredProducts();
     productsGrid.innerHTML = "";
+
     list.forEach(p=>{
       const card = document.createElement("article");
       card.className = "product-card";
@@ -127,6 +131,7 @@
   function renderCart(){
     const items = Cart.getItems();
     cartItemsEl.innerHTML = "";
+
     items.forEach(i=>{
       const row = document.createElement("div");
       row.className = "cart-item";
@@ -136,6 +141,7 @@
       `;
       cartItemsEl.appendChild(row);
     });
+
     const total = Cart.getTotal();
     cartTotalEl.textContent = `L. ${total}`;
     cartCountEl.textContent = items.reduce((s,i)=>s+i.qty,0);
@@ -167,6 +173,7 @@
   function initTheme(){
     const saved = localStorage.getItem("sd_theme");
     const root = document.documentElement;
+
     if(saved==="dark"){
       root.setAttribute("data-theme","dark");
       themeIcon.textContent = "☀️";
@@ -180,8 +187,10 @@
     const root = document.documentElement;
     const current = root.getAttribute("data-theme") || "light";
     const next = current==="light" ? "dark" : "light";
+
     root.setAttribute("data-theme",next);
     localStorage.setItem("sd_theme",next);
+
     themeIcon.textContent = next==="dark" ? "☀️" : "🌙";
   }
 
@@ -245,11 +254,13 @@
       filters.offer = false;
       filters.lowStock = false;
       filters.search = "";
+
       searchInput.value = "";
       categorySelect.value = "";
       subcategorySelect.value = "";
       subsubcategorySelect.value = "";
       variantSelect.value = "";
+
       renderProducts();
     });
 
@@ -266,6 +277,7 @@
     modal.addEventListener("click", e=>{
       if(e.target.classList.contains("modal-backdrop")) closeModal();
     });
+
     closeModalBtn.addEventListener("click", closeModal);
 
     themeToggle.addEventListener("click", toggleTheme);
