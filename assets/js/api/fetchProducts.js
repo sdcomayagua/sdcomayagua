@@ -3,6 +3,7 @@ window.API = window.API || {};
 window.API.fetchProducts = async function () {
   try {
     const res = await fetch("https://opensheet.elk.sh/1aEH4P7T8vLLk0I9pU8AicyeQ8lnBnHp18AhU74X484U/catalogo");
+    
     if (!res.ok) {
       console.error("Error al cargar el catálogo desde Google Sheets:", res.status);
       return [];
