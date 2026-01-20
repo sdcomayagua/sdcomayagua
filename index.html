@@ -8,34 +8,28 @@
 </head>
 <body>
 
-<header>
-  <div class="brand">SDComayagua</div>
+<header class="header">
+  <div class="header-left">
+    <div class="brand">SDComayagua</div>
+  </div>
 
-  <div class="controls">
-    <label>Departamento
-      <select id="departamentoSelect"></select>
-    </label>
+  <div class="header-center">
+    <input id="searchInput" class="search-input" placeholder="Buscar productos..." />
+  </div>
 
-    <label>Municipio
-      <select id="municipioSelect">
-        <option value="">Elige departamento</option>
-      </select>
-    </label>
-
-    <button id="cartToggle" class="btn">Carrito (<span id="cartCount">0</span>)</button>
+  <div class="header-right">
+    <button id="cartToggle" class="btn cart-btn">
+      🛒 <span>Carrito</span> (<span id="cartCount">0</span>)
+    </button>
   </div>
 </header>
 
 <main>
   <section>
-    <div class="top-bar">
-      <h2>Productos</h2>
-
-      <div class="filters">
-        <button id="filterOfertas" class="btn ghost">Ofertas</button>
-        <button id="filterPocos" class="btn ghost">Pocos inventarios</button>
-        <button id="clearFilters" class="btn ghost">Limpiar</button>
-      </div>
+    <div class="filters-row">
+      <button id="filterOfertas" class="chip">Ofertas</button>
+      <button id="filterPocos" class="chip">Pocos inventarios</button>
+      <button id="clearFilters" class="chip chip-clear">Limpiar filtros</button>
     </div>
 
     <div class="grid" id="productsGrid"></div>
@@ -48,6 +42,18 @@
       <div id="cartItems"></div>
 
       <div class="shipping">
+        <h4>Datos de envío</h4>
+
+        <label>Departamento
+          <select id="departamentoSelect"></select>
+        </label>
+
+        <label>Municipio
+          <select id="municipioSelect">
+            <option value="">Elige departamento</option>
+          </select>
+        </label>
+
         <label>Empresa de envío
           <select id="courierSelect"></select>
         </label>
@@ -103,7 +109,7 @@
 
 <script src="assets/js/config.js"></script>
 <script src="assets/js/utils.js"></script>
-<script src="assets/js/cart.js"></script>
+script src="assets/js/cart.js"></script>
 <script src="assets/js/shipping.js"></script>
 <script src="assets/js/whatsapp.js"></script>
 <script src="assets/js/api/fetchProducts.js"></script>
