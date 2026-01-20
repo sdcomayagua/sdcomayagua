@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Soluciones Digitales Comayagua – SDComayagua</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+
+<header>
+  <div class="brand">SDComayagua</div>
+
+  <div class="controls">
+    <label>Departamento
+      <select id="departamentoSelect"></select>
+    </label>
+
+    <label>Municipio
+      <select id="municipioSelect">
+        <option value="">Elige departamento</option>
+      </select>
+    </label>
+
+    <button id="cartToggle" class="btn">Carrito (<span id="cartCount">0</span>)</button>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="top-bar">
+      <h2>Productos</h2>
+
+      <div class="filters">
+        <button id="filterOfertas" class="btn ghost">Ofertas</button>
+        <button id="filterPocos" class="btn ghost">Pocos inventarios</button>
+        <button id="clearFilters" class="btn ghost">Limpiar</button>
+      </div>
+    </div>
+
+    <div class="grid" id="productsGrid"></div>
+  </section>
+
+  <aside>
+    <div class="cart" id="cartPanel">
+      <h3>Tu carrito</h3>
+
+      <div id="cartItems"></div>
+
+      <div class="shipping">
+        <label>Empresa de envío
+          <select id="courierSelect"></select>
+        </label>
+
+        <label>Dirección
+          <input id="direccionInput" placeholder="Calle, colonia, referencia" />
+        </label>
+      </div>
+
+      <div class="total" id="cartTotal">Total: L. 0.00</div>
+
+      <div class="cart-actions">
+        <button id="whatsappBtn" class="btn">Enviar por WhatsApp</button>
+        <button id="clearCart" class="btn ghost">Vaciar</button>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- Modal producto -->
+<div id="modalBackdrop" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle"></h3>
+      <button id="closeModal" class="btn ghost">Cerrar</button>
+    </div>
+
+    <img id="modalMainImg" class="gallery-main" />
+
+    <div id="modalThumbs" class="thumbs"></div>
+
+    <p id="modalDesc"></p>
+
+    <div class="modal-actions">
+      <button id="modalAdd" class="btn">Añadir al carrito</button>
+      <button id="modalConsult" class="btn ghost">Consultar disponibilidad</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmación -->
+<div id="confirmBackdrop" class="modal-backdrop">
+  <div class="modal small-modal">
+    <h3>Producto añadido</h3>
+    <p>Gracias por comprar en SDComayagua</p>
+
+    <div class="modal-actions">
+      <button id="goToCart" class="btn">Ir al carrito</button>
+      <button id="continueShopping" class="btn ghost">Seguir viendo</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/cart.js"></script>
+<script src="assets/js/shipping.js"></script>
+<script src="assets/js/whatsapp.js"></script>
+<script src="assets/js/api/fetchProducts.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
