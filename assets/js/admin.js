@@ -19,10 +19,12 @@ const subcategoriesByCategory = {
 const subsubBySubcategory = {
   "Artículos Gamer para Celular":["Dedales","Gamepads","Triggers","Coolers","Accesorios Gamer"],
   "Artículos Gamer para Laptop":["Mouse Gamer","Teclados Mecánicos","Audífonos Gamer","Alfombrillas XL","Coolers para Laptop"],
+
   "Cables":["Cables para Celular","Cables para Laptop"],
   "Audio":["Bocinas","Audífonos In-Ear","Audífonos Over-Ear","Micrófonos"],
   "Cargadores":["Cargadores Rápidos","Cargadores de Pared","Power Banks"],
   "Smart Devices":["Lámparas LED","Smartwatch","Smart Plugs"],
+
   "Accesorios para Celular":["Soportes","Anillos 360°","Protectores","Limpiadores"],
   "Accesorios para Laptop":["Hubs USB","Bases","Adaptadores"],
   "Accesorios Universales":["Lámparas LED","Organizadores","Kits de limpieza"]
@@ -34,6 +36,7 @@ function populateSelect(select, values, placeholder){
   opt.value = "";
   opt.textContent = placeholder || "Elige...";
   select.appendChild(opt);
+
   (values || []).forEach(v=>{
     const o = document.createElement("option");
     o.value = v;
@@ -47,11 +50,13 @@ function generateId(category, subcategory, subsubcategory){
     (category?.[0] || "x") +
     (subcategory?.[0] || "x") +
     (subsubcategory?.[0] || "x");
+
   const rand = Math.floor(Math.random()*900 + 100);
   return (prefix + rand).toLowerCase();
 }
 
 window.addEventListener("DOMContentLoaded", ()=>{
+
   const categorySelect = document.getElementById("categorySelect");
   const subcategorySelect = document.getElementById("subcategorySelect");
   const subsubcategorySelect = document.getElementById("subsubcategorySelect");
@@ -69,6 +74,7 @@ window.addEventListener("DOMContentLoaded", ()=>{
   const previewMeta = document.getElementById("previewMeta");
   const previewShort = document.getElementById("previewShort");
   const previewLong = document.getElementById("previewLong");
+
   const csvOutput = document.getElementById("csvOutput");
   const generateBtn = document.getElementById("generateBtn");
 
@@ -89,10 +95,12 @@ window.addEventListener("DOMContentLoaded", ()=>{
     const name = nameInput.value || "Nombre del producto";
     const price = priceInput.value || "0";
     const stock = stockInput.value || "0";
+
     const cat = categorySelect.value || "Sin categoría";
     const sub = subcategorySelect.value || "Sin subcategoría";
     const subsub = subsubcategorySelect.value || "Sin sub-subcategoría";
     const variant = variantInput.value || "Sin variante";
+
     const short = shortInput.value || "";
     const long = longInput.value || "";
 
@@ -103,17 +111,19 @@ window.addEventListener("DOMContentLoaded", ()=>{
   }
 
   [
-    nameInput,priceInput,stockInput,variantInput,
-    shortInput,longInput,categorySelect,subcategorySelect,subsubcategorySelect
+    nameInput, priceInput, stockInput, variantInput,
+    shortInput, longInput, categorySelect, subcategorySelect, subsubcategorySelect
   ].forEach(el=>{
     el.addEventListener("input", updatePreview);
     el.addEventListener("change", updatePreview);
   });
 
   generateBtn.addEventListener("click", ()=>{
+
     const category = categorySelect.value.trim();
     const subcategory = subcategorySelect.value.trim();
     const subsubcategory = subsubcategorySelect.value.trim();
+
     const variant = variantInput.value.trim();
     const name = nameInput.value.trim();
     const price = priceInput.value.trim();
