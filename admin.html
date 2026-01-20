@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="assets/css/admin.css" />
 </head>
 <body>
+
 <header class="admin-header">
   <div class="brand">
     <span class="brand-mark">SD</span>
@@ -15,6 +16,8 @@
 </header>
 
 <main class="admin-layout">
+
+  <!-- FORMULARIO -->
   <section class="admin-form">
     <h2>Nuevo producto</h2>
 
@@ -88,6 +91,7 @@
     <button id="generateBtn" class="btn">Generar fila CSV</button>
   </section>
 
+  <!-- PREVIEW -->
   <section class="admin-output">
     <h2>Vista previa</h2>
 
@@ -100,10 +104,12 @@
 
     <h3>Fila CSV generada</h3>
     <textarea id="csvOutput" rows="6" readonly></textarea>
+
     <p class="hint">
       Copia esta fila y pégala en tu Google Sheets (debajo de los demás productos).
     </p>
   </section>
+
 </main>
 
 <script src="assets/js/admin.js"></script>
