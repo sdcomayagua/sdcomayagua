@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
+
+<!-- HEADER -->
 <header class="site-header">
   <div class="header-left">
     <div class="brand">
@@ -29,7 +31,10 @@
   </div>
 </header>
 
+<!-- LAYOUT PRINCIPAL -->
 <main class="layout">
+
+  <!-- PANEL DE FILTROS -->
   <aside class="filters-panel">
     <h3>Filtros</h3>
 
@@ -71,20 +76,25 @@
     </div>
   </aside>
 
+  <!-- PRODUCTOS -->
   <section class="products-panel">
     <div class="products-header">
       <h2>Productos</h2>
       <span id="productsCount" class="products-count"></span>
     </div>
+
     <div class="grid" id="productsGrid"></div>
   </section>
 
+  <!-- CARRITO -->
   <aside class="cart-panel" id="cartPanel">
     <div class="cart-header">
       <h3>Carrito</h3>
       <button id="closeCart" class="icon-btn">✕</button>
     </div>
+
     <div id="cartItems" class="cart-items"></div>
+
     <div class="cart-footer">
       <div class="cart-row">
         <span>Total:</span>
@@ -93,8 +103,10 @@
       <button id="checkoutBtn" class="btn-primary">Finalizar compra</button>
     </div>
   </aside>
+
 </main>
 
+<!-- MODAL DE PRODUCTO -->
 <div id="productModal" class="modal hidden">
   <div class="modal-backdrop"></div>
   <div class="modal-dialog">
@@ -103,10 +115,12 @@
   </div>
 </div>
 
+<!-- SCRIPTS -->
 <script src="assets/js/api/fetchProducts.js"></script>
 <script src="assets/js/cart.js"></script>
 <script src="assets/js/shipping.js"></script>
 <script src="assets/js/whatsapp.js"></script>
 <script src="assets/js/app.js"></script>
+
 </body>
 </html>
