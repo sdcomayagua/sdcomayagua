@@ -1,177 +1,117 @@
-:root{
-  --bg:#f5f5f5;
-  --bg-elevated:#ffffff;
-  --text:#111111;
-  --text-soft:#555555;
-  --border:#e1e4ea;
-  --accent:#111111;
-  --shadow:0 1px 6px rgba(0,0,0,.06);
-}
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Panel Admin – SDComayagua</title>
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body>
 
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-}
+<header class="admin-header">
+  <div class="brand">
+    <span class="brand-mark">SD</span>
+    <span class="brand-text">Comayagua – Admin</span>
+  </div>
+</header>
 
-body{
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
+<main class="admin-layout">
 
-/* HEADER */
+  <!-- FORMULARIO -->
+  <section class="admin-form">
+    <h2>Nuevo producto</h2>
 
-.admin-header{
-  background:var(--bg-elevated);
-  padding:10px 16px;
-  box-shadow:var(--shadow);
-}
+    <div class="field">
+      <label>Nombre del producto</label>
+      <input id="nameInput" />
+    </div>
 
-.brand{
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
+    <div class="field-row">
+      <div class="field">
+        <label>Precio</label>
+        <input id="priceInput" type="number" min="0" />
+      </div>
+      <div class="field">
+        <label>Stock</label>
+        <input id="stockInput" type="number" min="0" />
+      </div>
+    </div>
 
-.brand-mark{
-  width:26px;
-  height:26px;
-  border-radius:8px;
-  border:1px solid var(--accent);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:13px;
-  font-weight:700;
-}
+    <div class="field">
+      <label>Categoría</label>
+      <select id="categorySelect">
+        <option value="">Elige...</option>
+        <option value="Artículos Gamer">Artículos Gamer</option>
+        <option value="Tecnología">Tecnología</option>
+        <option value="Accesorios">Accesorios</option>
+      </select>
+    </div>
 
-.brand-text{
-  font-weight:600;
-  letter-spacing:.03em;
-}
+    <div class="field">
+      <label>Subcategoría</label>
+      <select id="subcategorySelect">
+        <option value="">Elige...</option>
+      </select>
+    </div>
 
-/* LAYOUT */
+    <div class="field">
+      <label>Sub-subcategoría</label>
+      <select id="subsubcategorySelect">
+        <option value="">Elige...</option>
+      </select>
+    </div>
 
-.admin-layout{
-  max-width:1100px;
-  margin:16px auto;
-  padding:0 12px 24px;
-  display:grid;
-  grid-template-columns:1.2fr 1fr;
-  gap:16px;
-}
+    <div class="field">
+      <label>Variante</label>
+      <input id="variantInput" placeholder="Ej: Versión 1, Bluetooth, 6 Ventiladores..." />
+    </div>
 
-/* FORMULARIO */
+    <div class="field">
+      <label>Imágenes (URLs separadas por |)</label>
+      <textarea id="imagesInput" rows="2"></textarea>
+    </div>
 
-.admin-form,
-.admin-output{
-  background:var(--bg-elevated);
-  padding:14px;
-  border-radius:8px;
-  box-shadow:var(--shadow);
-}
+    <div class="field">
+      <label>Descripción corta</label>
+      <input id="shortInput" />
+    </div>
 
-.admin-form h2,
-.admin-output h2{
-  margin-bottom:10px;
-}
+    <div class="field">
+      <label>Descripción larga (SEO)</label>
+      <textarea id="longInput" rows="4"></textarea>
+    </div>
 
-.field{
-  margin-bottom:10px;
-}
+    <div class="field">
+      <label>
+        <input type="checkbox" id="offerInput" />
+        Producto en oferta
+      </label>
+    </div>
 
-.field label{
-  display:block;
-  font-size:13px;
-  margin-bottom:4px;
-}
+    <button id="generateBtn" class="btn">Generar fila CSV</button>
+  </section>
 
-.field input,
-.field select,
-.field textarea{
-  width:100%;
-  padding:6px 8px;
-  border-radius:6px;
-  border:1px solid var(--border);
-  font-size:13px;
-  background:var(--bg);
-  color:var(--text);
-}
+  <!-- PREVIEW -->
+  <section class="admin-output">
+    <h2>Vista previa</h2>
 
-.field-row{
-  display:flex;
-  gap:8px;
-}
+    <div class="preview-card" id="previewCard">
+      <div class="preview-title">Nombre del producto</div>
+      <div class="preview-meta" id="previewMeta"></div>
+      <div class="preview-short" id="previewShort"></div>
+      <div class="preview-long" id="previewLong"></div>
+    </div>
 
-.btn{
-  background:var(--accent);
-  color:#ffffff;
-  border:0;
-  padding:8px 12px;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:13px;
-  margin-top:6px;
-}
+    <h3>Fila CSV generada</h3>
+    <textarea id="csvOutput" rows="6" readonly></textarea>
 
-.btn:hover{
-  opacity:.85;
-}
+    <p class="hint">
+      Copia esta fila y pégala en tu Google Sheets (debajo de los demás productos).
+    </p>
+  </section>
 
-/* PREVIEW */
+</main>
 
-.preview-card{
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:10px;
-  margin-bottom:10px;
-}
-
-.preview-title{
-  font-weight:700;
-  margin-bottom:4px;
-}
-
-.preview-meta{
-  font-size:12px;
-  color:var(--text-soft);
-  margin-bottom:4px;
-}
-
-.preview-short{
-  font-size:13px;
-  margin-bottom:4px;
-}
-
-.preview-long{
-  font-size:12px;
-  color:var(--text-soft);
-}
-
-/* CSV OUTPUT */
-
-#csvOutput{
-  width:100%;
-  padding:6px 8px;
-  border-radius:6px;
-  border:1px solid var(--border);
-  font-family:monospace;
-  font-size:12px;
-  background:var(--bg);
-  color:var(--text);
-}
-
-.hint{
-  font-size:12px;
-  color:var(--text-soft);
-  margin-top:4px;
-}
-
-/* RESPONSIVE */
-
-@media (max-width:900px){
-  .admin-layout{
-    grid-template-columns:1fr;
-  }
-}
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
