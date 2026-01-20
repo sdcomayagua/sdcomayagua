@@ -8,13 +8,19 @@
   --shadow:0 1px 6px rgba(0,0,0,.06);
 }
 
-*{box-sizing:border-box;margin:0;padding:0;}
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
 
 body{
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:var(--bg);
   color:var(--text);
 }
+
+/* HEADER */
 
 .admin-header{
   background:var(--bg-elevated);
@@ -45,6 +51,8 @@ body{
   letter-spacing:.03em;
 }
 
+/* LAYOUT */
+
 .admin-layout{
   max-width:1100px;
   margin:16px auto;
@@ -53,6 +61,8 @@ body{
   grid-template-columns:1.2fr 1fr;
   gap:16px;
 }
+
+/* FORMULARIO */
 
 .admin-form,
 .admin-output{
@@ -85,6 +95,8 @@ body{
   border-radius:6px;
   border:1px solid var(--border);
   font-size:13px;
+  background:var(--bg);
+  color:var(--text);
 }
 
 .field-row{
@@ -100,7 +112,14 @@ body{
   border-radius:6px;
   cursor:pointer;
   font-size:13px;
+  margin-top:6px;
 }
+
+.btn:hover{
+  opacity:.85;
+}
+
+/* PREVIEW */
 
 .preview-card{
   border:1px solid var(--border);
@@ -130,6 +149,8 @@ body{
   color:var(--text-soft);
 }
 
+/* CSV OUTPUT */
+
 #csvOutput{
   width:100%;
   padding:6px 8px;
@@ -137,6 +158,8 @@ body{
   border:1px solid var(--border);
   font-family:monospace;
   font-size:12px;
+  background:var(--bg);
+  color:var(--text);
 }
 
 .hint{
@@ -144,6 +167,8 @@ body{
   color:var(--text-soft);
   margin-top:4px;
 }
+
+/* RESPONSIVE */
 
 @media (max-width:900px){
   .admin-layout{
