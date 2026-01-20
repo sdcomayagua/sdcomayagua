@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Panel Admin – SDComayagua</title>
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body>
+<header class="admin-header">
+  <div class="brand">
+    <span class="brand-mark">SD</span>
+    <span class="brand-text">Comayagua – Admin</span>
+  </div>
+</header>
+
+<main class="admin-layout">
+  <section class="admin-form">
+    <h2>Nuevo producto</h2>
+
+    <div class="field">
+      <label>Nombre del producto</label>
+      <input id="nameInput" />
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Precio</label>
+        <input id="priceInput" type="number" min="0" />
+      </div>
+      <div class="field">
+        <label>Stock</label>
+        <input id="stockInput" type="number" min="0" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Categoría</label>
+      <select id="categorySelect">
+        <option value="">Elige...</option>
+        <option value="Artículos Gamer">Artículos Gamer</option>
+        <option value="Tecnología">Tecnología</option>
+        <option value="Accesorios">Accesorios</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Subcategoría</label>
+      <select id="subcategorySelect">
+        <option value="">Elige...</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Sub-subcategoría</label>
+      <select id="subsubcategorySelect">
+        <option value="">Elige...</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Variante</label>
+      <input id="variantInput" placeholder="Ej: Versión 1, Bluetooth, 6 Ventiladores..." />
+    </div>
+
+    <div class="field">
+      <label>Imágenes (URLs separadas por |)</label>
+      <textarea id="imagesInput" rows="2"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Descripción corta</label>
+      <input id="shortInput" />
+    </div>
+
+    <div class="field">
+      <label>Descripción larga (SEO)</label>
+      <textarea id="longInput" rows="4"></textarea>
+    </div>
+
+    <div class="field">
+      <label>
+        <input type="checkbox" id="offerInput" />
+        Producto en oferta
+      </label>
+    </div>
+
+    <button id="generateBtn" class="btn">Generar fila CSV</button>
+  </section>
+
+  <section class="admin-output">
+    <h2>Vista previa</h2>
+
+    <div class="preview-card" id="previewCard">
+      <div class="preview-title">Nombre del producto</div>
+      <div class="preview-meta" id="previewMeta"></div>
+      <div class="preview-short" id="previewShort"></div>
+      <div class="preview-long" id="previewLong"></div>
+    </div>
+
+    <h3>Fila CSV generada</h3>
+    <textarea id="csvOutput" rows="6" readonly></textarea>
+    <p class="hint">
+      Copia esta fila y pégala en tu Google Sheets (debajo de los demás productos).
+    </p>
+  </section>
+</main>
+
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
