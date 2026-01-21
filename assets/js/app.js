@@ -191,3 +191,28 @@ document.addEventListener("DOMContentLoaded", () => {
   initFilters(productsData);
   renderCart();
 });
+
+
+// ===========================
+// MODO DÍA / NOCHE
+// ===========================
+const themeToggle = document.getElementById("themeToggle");
+
+function applyTheme() {
+  const saved = localStorage.getItem("theme") || "light";
+  if (saved === "dark") {
+    document.body.classList.add("dark");
+    themeToggle.textContent = "☀️";
+  } else {
+    document.body.classList.remove("dark");
+    themeToggle.textContent = "🌙";
+  }
+}
+
+themeToggle.onclick = () => {
+  const isDark = document.body.classList.toggle("dark");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+  themeToggle.textContent = isDark ? "☀️" : "🌙";
+};
+
+applyTheme();
