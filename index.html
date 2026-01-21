@@ -1,141 +1,124 @@
-<!doctype html>
-<html lang="es" data-theme="light">
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SDComayagua – Tienda Digital</title>
-  <link rel="stylesheet" href="assets/css/styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SD Comayagua</title>
+
+  <!-- ESTILOS -->
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
+
 <body>
 
-<!-- HEADER -->
-<header class="site-header">
-  <div class="header-left">
-    <div class="brand">
-      <span class="brand-mark">SD</span>
-      <span class="brand-text">Comayagua</span>
-    </div>
-  </div>
+  <!-- ===========================
+       ENCABEZADO
+  ============================ -->
+  <header class="header">
+    <h1 class="logo">SD Comayagua</h1>
 
-  <div class="header-center">
-    <input id="searchInput" class="search-input" placeholder="Buscar productos, categorías, variantes..." />
-  </div>
-
-  <div class="header-right">
-    <button id="themeToggle" class="icon-btn" aria-label="Cambiar tema">
-      <span id="themeIcon">🌙</span>
-    </button>
-    <button id="cartToggle" class="icon-btn" aria-label="Ver carrito">
-      🛒 <span id="cartCount" class="badge">0</span>
-    </button>
-  </div>
-</header>
-
-<!-- LAYOUT PRINCIPAL -->
-<main class="layout">
-
-  <!-- PANEL DE FILTROS -->
-  <aside class="filters-panel">
-    <h3>Filtros</h3>
-
-    <div class="filter-block">
-      <label>Categoría</label>
-      <select id="filterCategory">
-        <option value="">Todas</option>
-      </select>
+    <div class="search-container">
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="Buscar productos, categorías, variantes..."
+      />
     </div>
 
-    <div class="filter-block">
-      <label>Subcategoría</label>
-      <select id="filterSubcategory">
-        <option value="">Todas</option>
-      </select>
+    <div class="cart-icon" onclick="toggleCart()">
+      🛒 <span id="cartCount">0</span>
+    </div>
+  </header>
+
+  <!-- ===========================
+       FILTROS
+  ============================ -->
+  <section class="filters container">
+
+    <h2>Filtros</h2>
+
+    <label>Categoría</label>
+    <select id="filterCategory"></select>
+
+    <label>Subcategoría</label>
+    <select id="filterSubcategory"></select>
+
+    <label>Sub-subcategoría</label>
+    <select id="filterSubsubcategory"></select>
+
+    <label>Variante</label>
+    <select id="filterVariant"></select>
+
+    <div class="quick-filters">
+      <button onclick="applyOfferFilter()">Ofertas</button>
+      <button onclick="applyLowStockFilter()">Pocos inventarios</button>
+      <button onclick="clearFilters()">Limpiar</button>
     </div>
 
-    <div class="filter-block">
-      <label>Sub-subcategoría</label>
-      <select id="filterSubsubcategory">
-        <option value="">Todas</option>
-      </select>
-    </div>
-
-    <div class="filter-block">
-      <label>Variante</label>
-      <select id="filterVariant">
-        <option value="">Todas</option>
-      </select>
-    </div>
-
-    <div class="filter-block">
-      <label>Filtros rápidos</label>
-      <div class="filters-row">
-        <button id="filterOffer" class="chip">Ofertas</button>
-        <button id="filterLowStock" class="chip">Pocos inventarios</button>
-        <button id="clearAllFilters" class="chip chip-clear">Limpiar</button>
-      </div>
-    </div>
-  </aside>
-
-  <!-- PRODUCTOS -->
-  <section class="products-panel">
-    <div class="products-header">
-      <h2>Productos</h2>
-      <span id="productsCount" class="products-count"></span>
-    </div>
-
-    <div class="grid" id="productsGrid"></div>
   </section>
 
-  <!-- CARRITO -->
-  <aside class="cart-panel" id="cartPanel">
+  <!-- ===========================
+       PRODUCTOS
+  ============================ -->
+  <section class="container">
+    <h2>Productos</h2>
+    <div id="products" class="products-grid"></div>
+  </section>
+
+  <!-- ===========================
+       CARRITO
+  ============================ -->
+  <section id="cartPanel" class="cart-panel">
     <div class="cart-header">
-      <h3>Carrito</h3>
-      <button id="closeCart" class="icon-btn">✕</button>
+      <h2>Carrito</h2>
+      <button onclick="toggleCart()">X</button>
     </div>
 
-    <div id="cartItems" class="cart-items"></div>
+    <div id="cartItems"></div>
 
     <div class="cart-footer">
-      <div class="cart-row">
-        <span>Total:</span>
-        <span id="cartTotal"></span>
+      <p>Total: L <span id="cartTotal">0</span></p>
+      <button onclick="checkout()">Finalizar compra</button>
+    </div>
+  </section>
+
+  <!-- ===========================
+       MODAL DE DETALLES
+  ============================ -->
+  <div id="productModal" class="modal">
+    <div class="modal-content">
+
+      <span class="modal-close" id="modalClose">&times;</span>
+
+      <img id="modalMainImg" class="modal-main-img" src="" alt="Producto" />
+
+      <div id="modalThumbs" class="modal-thumbs"></div>
+
+      <h2 id="modalTitle" class="modal-title"></h2>
+      <p id="modalPrice" class="modal-price"></p>
+
+      <div id="modalVideos" class="modal-videos"></div>
+
+      <div class="modal-buttons">
+        <button id="modalAddCart" class="modal-btn modal-btn-add">Añadir al carrito</button>
+        <button id="modalBack" class="modal-btn modal-btn-back">Seguir viendo productos</button>
       </div>
-      <button id="checkoutBtn" class="btn-primary">Finalizar compra</button>
-    </div>
-  </aside>
 
-</main>
-
-<!-- MODAL DE PRODUCTO -->
-<div id="productModal" class="modal hidden">
-  <div class="modal-backdrop"></div>
-  <div class="modal-dialog">
-    <button id="closeModal" class="icon-btn modal-close">✕</button>
-    <div id="modalContent"></div>
-  </div>
-</div>
-
-<!-- SCRIPTS -->
-<script src="assets/js/api/fetchProducts.js"></script>
-<script src="assets/js/cart.js"></script>
-<script src="assets/js/shipping.js"></script>
-<script src="assets/js/whatsapp.js"></script>
-<script src="assets/js/app.js"></script>
-
-<!-- MODAL DE DETALLES -->
-<div id="productModal" class="modal">
-  <div class="modal-content">
-    <span class="modal-close" id="modalClose">&times;</span>
-    <img id="modalMainImg" class="modal-main-img" src="" alt="Producto" />
-    <div id="modalThumbs" class="modal-thumbs"></div>
-    <h2 id="modalTitle" class="modal-title"></h2>
-    <p id="modalPrice" class="modal-price"></p>
-    <div id="modalVideos" class="modal-videos"></div>
-    <div class="modal-buttons">
-      <button id="modalAddCart" class="modal-btn modal-btn-add">Añadir al carrito</button>
-      <button id="modalBack" class="modal-btn modal-btn-back">Seguir viendo productos</button>
     </div>
   </div>
-</div>
+
+  <!-- ===========================
+       SCRIPTS
+  ============================ -->
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/whatsapp.js"></script>
+  <script src="assets/js/shipping.js"></script>
+  <script src="assets/js/admin.js"></script>
+
+  <!-- APP PRINCIPAL (AQUÍ VA EL MODAL Y EL RENDER) -->
+  <script src="assets/js/app.js"></script>
+
 </body>
 </html>
