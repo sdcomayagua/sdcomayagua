@@ -4,121 +4,61 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SD Comayagua</title>
-
-  <!-- ESTILOS -->
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
-
 <body>
 
-  <!-- ===========================
-       ENCABEZADO
-  ============================ -->
-  <header class="header">
+  <header class="header container">
     <h1 class="logo">SD Comayagua</h1>
-
-    <div class="search-container">
-      <input 
-        type="text" 
-        id="searchInput" 
-        placeholder="Buscar productos, categorías, variantes..."
-      />
-    </div>
-
-    <div class="cart-icon" onclick="toggleCart()">
-      🛒 <span id="cartCount">0</span>
-    </div>
+    <input type="text" id="searchInput" placeholder="Buscar productos, categorías, variantes..." />
+    <div class="cart-icon" onclick="toggleCart()">🛒 <span id="cartCount">0</span></div>
   </header>
 
-  <!-- ===========================
-       FILTROS
-  ============================ -->
   <section class="filters container">
-
     <h2>Filtros</h2>
-
-    <label>Categoría</label>
     <select id="filterCategory"></select>
-
-    <label>Subcategoría</label>
     <select id="filterSubcategory"></select>
-
-    <label>Sub-subcategoría</label>
     <select id="filterSubsubcategory"></select>
-
-    <label>Variante</label>
     <select id="filterVariant"></select>
-
     <div class="quick-filters">
       <button onclick="applyOfferFilter()">Ofertas</button>
       <button onclick="applyLowStockFilter()">Pocos inventarios</button>
       <button onclick="clearFilters()">Limpiar</button>
     </div>
-
   </section>
 
-  <!-- ===========================
-       PRODUCTOS
-  ============================ -->
   <section class="container">
     <h2>Productos</h2>
     <div id="products" class="products-grid"></div>
   </section>
 
-  <!-- ===========================
-       CARRITO
-  ============================ -->
   <section id="cartPanel" class="cart-panel">
     <div class="cart-header">
       <h2>Carrito</h2>
       <button onclick="toggleCart()">X</button>
     </div>
-
     <div id="cartItems"></div>
-
     <div class="cart-footer">
       <p>Total: L <span id="cartTotal">0</span></p>
       <button onclick="checkout()">Finalizar compra</button>
     </div>
   </section>
 
-  <!-- ===========================
-       MODAL DE DETALLES
-  ============================ -->
   <div id="productModal" class="modal">
     <div class="modal-content">
-
       <span class="modal-close" id="modalClose">&times;</span>
-
       <img id="modalMainImg" class="modal-main-img" src="" alt="Producto" />
-
       <div id="modalThumbs" class="modal-thumbs"></div>
-
       <h2 id="modalTitle" class="modal-title"></h2>
       <p id="modalPrice" class="modal-price"></p>
-
       <div id="modalVideos" class="modal-videos"></div>
-
       <div class="modal-buttons">
         <button id="modalAddCart" class="modal-btn modal-btn-add">Añadir al carrito</button>
         <button id="modalBack" class="modal-btn modal-btn-back">Seguir viendo productos</button>
       </div>
-
     </div>
   </div>
 
-  <!-- ===========================
-       SCRIPTS
-  ============================ -->
-  <script src="assets/js/config.js"></script>
-  <script src="assets/js/utils.js"></script>
-  <script src="assets/js/cart.js"></script>
-  <script src="assets/js/whatsapp.js"></script>
-  <script src="assets/js/shipping.js"></script>
-  <script src="assets/js/admin.js"></script>
-
-  <!-- APP PRINCIPAL (AQUÍ VA EL MODAL Y EL RENDER) -->
   <script src="assets/js/app.js"></script>
-
 </body>
 </html>
