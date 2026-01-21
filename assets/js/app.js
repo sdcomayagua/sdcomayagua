@@ -18,22 +18,24 @@ let currentProduct = null;
 function openProductModal(product) {
   currentProduct = product;
 
-  modalMainImg.src = product.images[0] || "";
-  modalTitle.textContent = product.name;
-  modalPrice.textContent = "L " + product.price;
+  modalMainImg.src = (product.images && product.images[0]) || "";
+  modalTitle.textContent = product.name || "";
+  modalPrice.textContent = "L " + (product.price || 0);
 
   // Miniaturas
   modalThumbs.innerHTML = "";
-  product.images.slice(0, 5).forEach(img => {
-    const thumb = document.createElement("img");
-    thumb.src = img;
-    thumb.onclick = () => modalMainImg.src = img;
-    modalThumbs.appendChild(thumb);
-  });
+  if (product.images && product.images.length) {
+    product.images.slice(0, 5).forEach(img => {
+      const thumb = document.createElement("img");
+      thumb.src = img;
+      thumb.onclick = () => (modalMainImg.src = img);
+      modalThumbs.appendChild(thumb);
+    });
+  }
 
   // Videos opcionales
   modalVideos.innerHTML = "";
-  if (product.videos) {
+  if (product.videos && product.videos.length) {
     product.videos.forEach(v => {
       const link = document.createElement("a");
       link.href = v;
@@ -53,7 +55,7 @@ modalClose.onclick = () => modal.classList.remove("active");
 modalBack.onclick = () => modal.classList.remove("active");
 
 modalAddCart.onclick = () => {
-  addToCart(currentProduct);
+  if (currentProduct) addToCart(currentProduct);
   modal.classList.remove("active");
 };
 
@@ -66,20 +68,22 @@ modal.onclick = (e) => {
 // RENDER DE PRODUCTOS
 // ===========================
 function renderProductCard(product) {
+  const safeProduct = encodeURIComponent(JSON.stringify(product));
+
   return `
     <div class="product-card">
 
-      <img src="${product.images[0] || ''}" 
-           onclick='openProductModal(${JSON.stringify(product)})' />
+      <img src="${(product.images && product.images[0]) || ''}" 
+           onclick='openProductModal(JSON.parse(decodeURIComponent("${safeProduct}")))' />
 
-      <div class="product-name">${product.name}</div>
-      <div class="product-price">L ${product.price}</div>
+      <div class="product-name">${product.name || ""}</div>
+      <div class="product-price">L ${product.price || 0}</div>
 
       <div class="product-buttons">
-        <button class="btn btn-details" onclick='openProductModal(${JSON.stringify(product)})'>
+        <button class="btn btn-details" onclick='openProductModal(JSON.parse(decodeURIComponent("${safeProduct}")))'>
           Detalles
         </button>
-        <button class="btn btn-add" onclick='addToCart(${JSON.stringify(product)})'>
+        <button class="btn btn-add" onclick='addToCart(JSON.parse(decodeURIComponent("${safeProduct}")))'>
           Agregar
         </button>
       </div>
