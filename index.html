@@ -10,16 +10,31 @@
 
   <header class="header container">
     <h1 class="logo">SD Comayagua</h1>
-    <input type="text" id="searchInput" placeholder="Buscar productos, categorías, variantes..." />
-    <div class="cart-icon" onclick="toggleCart()">🛒 <span id="cartCount">0</span></div>
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Buscar productos, categorías, variantes..."
+    />
+    <div class="cart-icon" onclick="toggleCart()">
+      🛒 <span id="cartCount">0</span>
+    </div>
   </header>
 
   <section class="filters container">
     <h2>Filtros</h2>
+
+    <label>Categoría</label>
     <select id="filterCategory"></select>
+
+    <label>Subcategoría</label>
     <select id="filterSubcategory"></select>
+
+    <label>Sub-subcategoría</label>
     <select id="filterSubsubcategory"></select>
+
+    <label>Variante</label>
     <select id="filterVariant"></select>
+
     <div class="quick-filters">
       <button onclick="applyOfferFilter()">Ofertas</button>
       <button onclick="applyLowStockFilter()">Pocos inventarios</button>
@@ -59,6 +74,12 @@
     </div>
   </div>
 
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/shipping.js"></script>
+  <script src="assets/js/whatsapp.js"></script>
+  <script src="assets/js/admin.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>
