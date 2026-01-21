@@ -1,4 +1,44 @@
-// ===== MODAL =====
+/* ============================================================
+   PRODUCTOS DE EJEMPLO (puedes reemplazar por Google Sheets)
+============================================================ */
+const productsData = [
+  {
+    id: 1,
+    name: "Audífonos Gamer RGB",
+    price: 499,
+    images: [
+      "https://via.placeholder.com/400x300?text=Audifono+1",
+      "https://via.placeholder.com/400x300?text=Audifono+2",
+      "https://via.placeholder.com/400x300?text=Audifono+3"
+    ],
+    videos: [],
+    category: "Audio",
+    subcategory: "Gamer",
+    subsubcategory: "",
+    variant: "RGB",
+    offer: true,
+    stock: 5
+  },
+  {
+    id: 2,
+    name: "Mouse Gamer",
+    price: 350,
+    images: [
+      "https://via.placeholder.com/400x300?text=Mouse+1"
+    ],
+    videos: [],
+    category: "Periféricos",
+    subcategory: "Gamer",
+    subsubcategory: "",
+    variant: "Inalámbrico",
+    offer: false,
+    stock: 2
+  }
+];
+
+/* ============================================================
+   MODAL DE DETALLES
+============================================================ */
 const modal = document.getElementById("productModal");
 const modalClose = document.getElementById("modalClose");
 const modalMainImg = document.getElementById("modalMainImg");
@@ -14,97 +54,63 @@ let currentProduct = null;
 function openProductModal(product) {
   currentProduct = product;
 
-  modalMainImg.src = (product.images && product.images[0]) || "";
-  modalTitle.textContent = product.name || "";
-  modalPrice.textContent = formatPrice(product.price);
+  modalMainImg.src = product.images?.[0] || "";
+  modalTitle.textContent = product.name;
+  modalPrice.textContent = `L ${product.price}`;
 
   modalThumbs.innerHTML = "";
-  if (product.images && product.images.length) {
-    product.images.slice(0, 5).forEach(img => {
-      const thumb = document.createElement("img");
-      thumb.src = img;
-      thumb.onclick = () => (modalMainImg.src = img);
-      modalThumbs.appendChild(thumb);
-    });
-  }
+  product.images?.slice(0, 5).forEach(img => {
+    const thumb = document.createElement("img");
+    thumb.src = img;
+    thumb.onclick = () => (modalMainImg.src = img);
+    modalThumbs.appendChild(thumb);
+  });
 
   modalVideos.innerHTML = "";
-  if (product.videos && product.videos.length) {
-    product.videos.forEach(v => {
-      const link = document.createElement("a");
-      link.href = v;
-      link.target = "_blank";
-      link.textContent = "Ver video";
-      link.style.display = "block";
-      link.style.marginTop = "6px";
-      modalVideos.appendChild(link);
-    });
-  }
+  product.videos?.forEach(v => {
+    const link = document.createElement("a");
+    link.href = v;
+    link.target = "_blank";
+    link.textContent = "Ver video";
+    modalVideos.appendChild(link);
+  });
 
   modal.classList.add("active");
 }
 
 modalClose.onclick = () => modal.classList.remove("active");
 modalBack.onclick = () => modal.classList.remove("active");
+modal.onclick = e => {
+  if (e.target === modal) modal.classList.remove("active");
+};
+
 modalAddCart.onclick = () => {
   if (currentProduct) addToCart(currentProduct);
   modal.classList.remove("active");
 };
-modal.onclick = (e) => {
-  if (e.target === modal) modal.classList.remove("active");
-};
 
-// ===== PRODUCTOS DEMO (luego los conectas a Sheets) =====
-const productsData = [
-  {
-    id: 1,
-    name: "Audífonos Gamer RGB",
-    price: 499,
-    images: [
-      "https://via.placeholder.com/400x300?text=Audifono+1",
-      "https://via.placeholder.com/400x300?text=Audifono+2",
-    ],
-    videos: [],
-    category: "Audio",
-    subcategory: "Gamer",
-    subsubcategory: "",
-    variant: "RGB",
-    offer: true,
-    stock: 5,
-  },
-  {
-    id: 2,
-    name: "Mouse Gamer",
-    price: 350,
-    images: [
-      "https://via.placeholder.com/400x300?text=Mouse+1",
-    ],
-    videos: [],
-    category: "Periféricos",
-    subcategory: "Gamer",
-    subsubcategory: "",
-    variant: "Inalámbrico",
-    offer: false,
-    stock: 2,
-  },
-];
-
-// ===== RENDER =====
+/* ============================================================
+   RENDER DE PRODUCTOS
+============================================================ */
 function renderProductCard(product) {
-  const safeProduct = encodeURIComponent(JSON.stringify(product));
+  const safe = encodeURIComponent(JSON.stringify(product));
+
   return `
     <div class="product-card">
-      <img src="${(product.images && product.images[0]) || ''}"
-           onclick='openProductModal(JSON.parse(decodeURIComponent("${safeProduct}")))' />
-      <div class="product-name">${product.name || ""}</div>
-      <div class="product-price">${formatPrice(product.price)}</div>
+      <img src="${product.images?.[0] || ''}"
+           onclick='openProductModal(JSON.parse(decodeURIComponent("${safe}")))' />
+
+      <div class="product-name">${product.name}</div>
+      <div class="product-price">L ${product.price}</div>
+
       <div class="product-buttons">
         <button class="btn btn-details"
-          onclick='openProductModal(JSON.parse(decodeURIComponent("${safeProduct}")))'>
+          onclick='openProductModal(JSON.parse(decodeURIComponent("${safe}")))'>
           Detalles
         </button>
+
         <button class="btn btn-add"
-          onclick='addToCart(JSON.parse(decodeURIComponent("${safeProduct}")))'>
+          onclick='addToCart(JSON.parse(decodeURIComponent("${safe}")))'>
           Agregar
         </button>
       </div>
@@ -113,11 +119,13 @@ function renderProductCard(product) {
 }
 
 function renderProducts(list) {
-  const container = document.getElementById("products");
-  container.innerHTML = list.map(renderProductCard).join("");
+  document.getElementById("products").innerHTML =
+    list.map(renderProductCard).join("");
 }
 
-// ===== FILTROS BÁSICOS =====
+/* ============================================================
+   FILTROS
+============================================================ */
 function initFilters(products) {
   const catSel = document.getElementById("filterCategory");
   const subSel = document.getElementById("filterSubcategory");
@@ -129,10 +137,10 @@ function initFilters(products) {
   const subsubcategories = ["Todas", ...new Set(products.map(p => p.subsubcategory).filter(Boolean))];
   const variants = ["Todas", ...new Set(products.map(p => p.variant).filter(Boolean))];
 
-  catSel.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join("");
-  subSel.innerHTML = subcategories.map(c => `<option value="${c}">${c}</option>`).join("");
-  subSubSel.innerHTML = subsubcategories.map(c => `<option value="${c}">${c}</option>`).join("");
-  varSel.innerHTML = variants.map(c => `<option value="${c}">${c}</option>`).join("");
+  catSel.innerHTML = categories.map(c => `<option>${c}</option>`).join("");
+  subSel.innerHTML = subcategories.map(c => `<option>${c}</option>`).join("");
+  subSubSel.innerHTML = subsubcategories.map(c => `<option>${c}</option>`).join("");
+  varSel.innerHTML = variants.map(c => `<option>${c}</option>`).join("");
 
   function applyFilters() {
     const cat = catSel.value;
@@ -150,10 +158,10 @@ function initFilters(products) {
 
     if (search) {
       filtered = filtered.filter(p =>
-        (p.name || "").toLowerCase().includes(search) ||
-        (p.category || "").toLowerCase().includes(search) ||
-        (p.subcategory || "").toLowerCase().includes(search) ||
-        (p.variant || "").toLowerCase().includes(search)
+        p.name.toLowerCase().includes(search) ||
+        p.category.toLowerCase().includes(search) ||
+        p.subcategory.toLowerCase().includes(search) ||
+        p.variant.toLowerCase().includes(search)
       );
     }
 
@@ -166,15 +174,13 @@ function initFilters(products) {
   varSel.onchange = applyFilters;
   document.getElementById("searchInput").oninput = applyFilters;
 
-  window.applyOfferFilter = function () {
+  window.applyOfferFilter = () =>
     renderProducts(products.filter(p => p.offer));
-  };
 
-  window.applyLowStockFilter = function () {
+  window.applyLowStockFilter = () =>
     renderProducts(products.filter(p => p.stock > 0 && p.stock <= 3));
-  };
 
-  window.clearFilters = function () {
+  window.clearFilters = () => {
     catSel.value = "Todas";
     subSel.value = "Todas";
     subSubSel.value = "Todas";
@@ -186,16 +192,66 @@ function initFilters(products) {
   renderProducts(products);
 }
 
-// ===== INIT =====
-document.addEventListener("DOMContentLoaded", () => {
-  initFilters(productsData);
+/* ============================================================
+   CARRITO
+============================================================ */
+let cart = [];
+
+function addToCart(product) {
+  const existing = cart.find(p => p.id === product.id);
+  if (existing) existing.qty++;
+  else cart.push({ ...product, qty: 1 });
+
   renderCart();
-});
+}
 
+function removeFromCart(id) {
+  cart = cart.filter(p => p.id !== id);
+  renderCart();
+}
 
-// ===========================
-// MODO DÍA / NOCHE
-// ===========================
+function toggleCart() {
+  document.getElementById("cartPanel").classList.toggle("active");
+}
+
+function renderCart() {
+  const cartItems = document.getElementById("cartItems");
+  const cartTotal = document.getElementById("cartTotal");
+  const cartCount = document.getElementById("cartCount");
+
+  let total = 0;
+  let count = 0;
+
+  cartItems.innerHTML = cart
+    .map(item => {
+      const subtotal = item.price * item.qty;
+      total += subtotal;
+      count += item.qty;
+
+      return `
+        <div class="cart-item">
+          <span>${item.name} x${item.qty}</span>
+          <span>L ${subtotal}</span>
+        </div>
+      `;
+    })
+    .join("");
+
+  cartTotal.textContent = total.toFixed(2);
+  cartCount.textContent = count;
+}
+
+function checkout() {
+  if (!cart.length) {
+    alert("Tu carrito está vacío.");
+    return;
+  }
+  alert("Aquí iría el flujo de checkout / WhatsApp.");
+}
+
+/* ============================================================
+   MODO DÍA / NOCHE
+============================================================ */
 const themeToggle = document.getElementById("themeToggle");
 
 function applyTheme() {
@@ -216,3 +272,11 @@ themeToggle.onclick = () => {
 };
 
 applyTheme();
+
+/* ============================================================
+   INICIALIZACIÓN
+============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+  initFilters(productsData);
+  renderCart();
+});
