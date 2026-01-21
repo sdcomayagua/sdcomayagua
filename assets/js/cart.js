@@ -1,53 +1,55 @@
-window.Cart = (function(){
-  let items = [];
+let cart = [];
 
-  function load(){
-    try{
-      const raw = localStorage.getItem("sd_cart");
-      if(raw) items = JSON.parse(raw);
-    }catch(e){
-      items = [];
-    }
+function addToCart(product) {
+  const existing = cart.find(p => p.id === product.id);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({ ...product, qty: 1 });
   }
+  renderCart();
+}
 
-  function save(){
-    localStorage.setItem("sd_cart", JSON.stringify(items));
+function removeFromCart(id) {
+  cart = cart.filter(p => p.id !== id);
+  renderCart();
+}
+
+function toggleCart() {
+  const panel = document.getElementById("cartPanel");
+  panel.classList.toggle("active");
+}
+
+function renderCart() {
+  const cartItems = document.getElementById("cartItems");
+  const cartTotal = document.getElementById("cartTotal");
+  const cartCount = document.getElementById("cartCount");
+
+  let total = 0;
+  let count = 0;
+
+  cartItems.innerHTML = cart
+    .map(item => {
+      const subtotal = item.price * item.qty;
+      total += subtotal;
+      count += item.qty;
+      return `
+        <div class="cart-item">
+          <span>${item.name} x${item.qty}</span>
+          <span>L ${subtotal}</span>
+        </div>
+      `;
+    })
+    .join("");
+
+  cartTotal.textContent = total.toFixed(2);
+  cartCount.textContent = count;
+}
+
+function checkout() {
+  if (!cart.length) {
+    alert("Tu carrito está vacío.");
+    return;
   }
-
-  function add(product){
-    const existing = items.find(i=>i.id===product.id);
-    if(existing){
-      existing.qty += 1;
-    }else{
-      items.push({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        qty: 1
-      });
-    }
-    save();
-  }
-
-  function remove(id){
-    items = items.filter(i=>i.id!==id);
-    save();
-  }
-
-  function clear(){
-    items = [];
-    save();
-  }
-
-  function getItems(){
-    return items;
-  }
-
-  function getTotal(){
-    return items.reduce((sum,i)=>sum + i.price*i.qty,0);
-  }
-
-  load();
-
-  return {add,remove,clear,getItems,getTotal};
-})();
+  alert("Aquí iría el flujo de checkout / WhatsApp.");
+}
