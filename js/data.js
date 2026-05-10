@@ -7,10 +7,10 @@ window.SDC_CONFIG = {
   codPercent: 6,
   lowStockLimit: 3,
   currency: 'Lps.',
-  sheetId: '1ISLGulvbwZuTYhI0pyuLiIq0Ntl_x5y0K0Um1gOb32U',
+  sheetId: '1A3unHNlFBrbi2GNmD7NOEk_JlWciEE2PE5Wxx4-X0ZY',
   productSheet: 'productos_pos',
   autoSheetSync: true,
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbzZKAqIR_u-rmcdDUodffpLtZb5zFXOXms8MEcbN0zkfvXhEUe_MQE49dyAtDzaTkWY/exec'
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbzpDU58SprO2SG4uW7pfXOwnvu7ICIFpsGbxz9-Cmvd58CgWHVHFklJOzxTwEpcVZRa/exec'
 };
 
 window.SDC_DEPARTMENTS = [

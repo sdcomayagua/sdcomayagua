@@ -40,6 +40,11 @@
     out.closings = Array.isArray(out.closings)?out.closings:[];
     out.expenses = Array.isArray(out.expenses)?out.expenses:[];
     out.settings = Object.assign({}, window.SDC_CONFIG||{}, out.settings||{});
+    // La conexión oficial se toma siempre desde js/data.js para que el navegador no use IDs viejos guardados en caché/localStorage.
+    const cfg = window.SDC_CONFIG || {};
+    ['sheetId','productSheet','webAppUrl','autoSheetSync'].forEach(k=>{
+      if(cfg[k] !== undefined && cfg[k] !== null && cfg[k] !== '') out.settings[k] = cfg[k];
+    });
     return out;
   }
   function load(){return normalizeState(safeJSON(localStorage.getItem(KEY), null) || defaultState())}

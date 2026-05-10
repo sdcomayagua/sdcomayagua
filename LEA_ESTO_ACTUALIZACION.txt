@@ -1,0 +1,18 @@
+SD COMAYAGUA - Actualización de conexión Google Sheets / Apps Script
+
+Reemplace estos archivos en su repositorio de GitHub Pages:
+
+- js/data.js
+- js/storage.js
+- js/app.js
+- apps-script/Code.gs
+- apps-script/README_APPS_SCRIPT.txt
+
+Datos actualizados:
+- SHEET_ID: 1A3unHNlFBrbi2GNmD7NOEk_JlWciEE2PE5Wxx4-X0ZY
+- WEB_APP_URL: https://script.google.com/macros/s/AKfycbzpDU58SprO2SG4uW7pfXOwnvu7ICIFpsGbxz9-Cmvd58CgWHVHFklJOzxTwEpcVZRa/exec
+
+Importante:
+- Pegue el contenido de apps-script/Code.gs en Apps Script si todavía no está actualizado.
+- Publique / implemente como Aplicación web con acceso: Cualquier usuario con el enlace.
+- La página fuerza estos datos desde js/data.js para evitar que el navegador use el SHEET_ID anterior guardado en localStorage.
