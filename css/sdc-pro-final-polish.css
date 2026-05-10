@@ -1,0 +1,885 @@
+/* =========================================================
+   SD COMAYAGUA · CAPA FINAL PRO
+   Limpieza visual, mejor uso en celular y confirmación clara
+   de productos seleccionados. Este archivo debe cargar al final.
+   ========================================================= */
+:root{
+  --sdc-final-bg:#040b16;
+  --sdc-final-card:#07182a;
+  --sdc-final-card2:#0b2036;
+  --sdc-final-line:rgba(142,226,255,.20);
+  --sdc-final-cyan:#41e8ff;
+  --sdc-final-blue:#1677ff;
+  --sdc-final-green:#3dffb5;
+  --sdc-final-text:#f2fbff;
+  --sdc-final-muted:#a8bdd0;
+  --sdc-final-radius:26px;
+  --sdc-final-safe:env(safe-area-inset-bottom,0px);
+}
+
+html,body{max-width:100%!important;overflow-x:hidden!important;}
+body.sdc-polished,
+body.sdc-mobile-pro.sdc-polished{
+  background:
+    radial-gradient(circle at 8% -8%,rgba(65,232,255,.18),transparent 30%),
+    radial-gradient(circle at 96% 4%,rgba(61,255,181,.11),transparent 27%),
+    linear-gradient(180deg,#061321 0%,#030913 48%,#02060d 100%)!important;
+  color:var(--sdc-final-text)!important;
+}
+body.sdc-polished *{box-sizing:border-box!important;}
+
+body.sdc-polished .app{
+  width:min(980px,100%)!important;
+  max-width:100%!important;
+  padding-bottom:calc(104px + var(--sdc-final-safe))!important;
+}
+body.sdc-polished .topbar{
+  border:1px solid rgba(142,226,255,.16)!important;
+  border-radius:26px!important;
+  margin:8px 0 12px!important;
+  background:linear-gradient(135deg,rgba(9,27,46,.92),rgba(5,15,28,.86))!important;
+  box-shadow:0 18px 46px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.075)!important;
+}
+body.sdc-polished .top-logo{
+  border:1px solid rgba(142,226,255,.20)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.28)!important;
+}
+body.sdc-polished .top-title h1{letter-spacing:.06em!important;}
+body.sdc-polished .top-title p{color:#b9d6e8!important;font-weight:700!important;}
+
+/* Evita duplicar demasiados controles arriba. La navegación principal queda abajo y el panel rápido en una fila. */
+body.sdc-polished .sdc-mobile-control{display:none!important;}
+body.sdc-polished .sdc-command.sdc-control-clean{display:none!important;}
+
+/* Hero ejecutivo más sobrio y profesional */
+body.sdc-polished .hero{
+  margin:10px 0 14px!important;
+  padding:22px 18px!important;
+  border-radius:32px!important;
+  border:1px solid var(--sdc-final-line)!important;
+  background:
+    radial-gradient(circle at 90% 0%,rgba(65,232,255,.16),transparent 32%),
+    linear-gradient(145deg,rgba(10,32,54,.96),rgba(4,13,25,.96))!important;
+  box-shadow:0 20px 54px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.07)!important;
+}
+body.sdc-polished .private-hero-head h2,
+body.sdc-polished .hero h2{
+  text-align:left!important;
+  letter-spacing:.035em!important;
+  text-shadow:0 14px 38px rgba(65,232,255,.16)!important;
+}
+body.sdc-polished .private-hero-head p,
+body.sdc-polished .hero p{
+  text-align:left!important;
+  margin-left:0!important;
+  color:#b8ccdc!important;
+  font-weight:700!important;
+}
+body.sdc-polished .pill{
+  border-color:rgba(61,255,181,.32)!important;
+  background:rgba(61,255,181,.10)!important;
+  color:#9fffd7!important;
+}
+body.sdc-polished .stats{gap:10px!important;}
+body.sdc-polished .stat{
+  border:1px solid rgba(142,226,255,.14)!important;
+  background:linear-gradient(160deg,rgba(255,255,255,.075),rgba(255,255,255,.035))!important;
+  border-radius:22px!important;
+  min-width:0!important;
+}
+body.sdc-polished .stat b{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+
+/* Acciones rápidas: fila horizontal tipo app, sin cortar tarjetas */
+body.sdc-polished .quick-panel{display:block!important;margin:10px 0 12px!important;overflow:visible!important;}
+body.sdc-polished .quick-panel .quick-grid,
+body.sdc-polished .quick-private .quick-grid{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  gap:10px!important;
+  width:100%!important;
+  max-width:100%!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  padding:4px 2px 14px!important;
+  margin:0!important;
+  -webkit-overflow-scrolling:touch!important;
+  scroll-snap-type:x proximity!important;
+  scrollbar-width:none!important;
+}
+body.sdc-polished .quick-panel .quick-grid::-webkit-scrollbar,
+body.sdc-polished .quick-private .quick-grid::-webkit-scrollbar{display:none!important;}
+body.sdc-polished .quick-panel .quick-btn,
+body.sdc-polished .quick-private .quick-btn,
+body.sdc-polished .quick-private button{
+  flex:0 0 134px!important;
+  width:134px!important;
+  min-width:134px!important;
+  max-width:134px!important;
+  min-height:96px!important;
+  padding:14px 13px!important;
+  border-radius:24px!important;
+  scroll-snap-align:start!important;
+  background:
+    radial-gradient(circle at 92% 8%,rgba(65,232,255,.16),transparent 32%),
+    linear-gradient(150deg,rgba(11,36,60,.96),rgba(6,18,32,.96))!important;
+  border:1px solid rgba(142,226,255,.17)!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.06)!important;
+  color:#f2fbff!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:7px!important;
+  overflow:hidden!important;
+}
+body.sdc-polished .quick-panel .quick-btn b,
+body.sdc-polished .quick-private button b{
+  font-size:17px!important;
+  line-height:1.02!important;
+  letter-spacing:.015em!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  width:100%!important;
+}
+body.sdc-polished .quick-panel .quick-btn small,
+body.sdc-polished .quick-private button small,
+body.sdc-polished .quick-private button span{
+  color:#a9c0d3!important;
+  font-size:9.5px!important;
+  line-height:1.15!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+  white-space:normal!important;
+  overflow:hidden!important;
+  display:-webkit-box!important;
+  -webkit-line-clamp:2!important;
+  -webkit-box-orient:vertical!important;
+}
+body.sdc-polished .quick-panel .quick-btn:nth-child(1),
+body.sdc-polished .quick-panel .quick-btn:nth-child(2),
+body.sdc-polished .quick-panel .quick-btn:nth-child(3){
+  border-color:rgba(65,232,255,.30)!important;
+  background:linear-gradient(150deg,rgba(11,49,80,.98),rgba(6,22,39,.96))!important;
+}
+
+/* Alertas compactas y elegantes */
+body.sdc-polished .alert-row{display:block!important;margin:8px 0 14px!important;overflow:visible!important;}
+body.sdc-polished .alert-row .alert-grid{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  gap:10px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  padding:2px 2px 14px!important;
+  margin:0!important;
+  -webkit-overflow-scrolling:touch!important;
+  scrollbar-width:none!important;
+}
+body.sdc-polished .alert-row .alert-grid::-webkit-scrollbar{display:none!important;}
+body.sdc-polished .alert-card{
+  flex:0 0 238px!important;
+  min-width:238px!important;
+  max-width:238px!important;
+  display:grid!important;
+  grid-template-columns:1fr auto!important;
+  gap:12px!important;
+  align-items:center!important;
+  padding:14px!important;
+  border-radius:24px!important;
+  border:1px solid rgba(142,226,255,.16)!important;
+  background:linear-gradient(145deg,rgba(9,30,50,.94),rgba(5,16,29,.92))!important;
+}
+body.sdc-polished .alert-card b{font-size:18px!important;line-height:1.06!important;white-space:normal!important;}
+body.sdc-polished .alert-card span{font-size:12px!important;line-height:1.25!important;color:#a9c0d3!important;}
+body.sdc-polished .alert-card .btn{width:auto!important;min-width:72px!important;min-height:42px!important;padding:8px 12px!important;border-radius:16px!important;}
+
+/* Modo de trabajo */
+body.sdc-polished .view-mode-panel{
+  margin:8px 0 14px!important;
+  padding:13px!important;
+  border-radius:26px!important;
+  border:1px solid rgba(142,226,255,.17)!important;
+  background:linear-gradient(135deg,rgba(9,28,48,.92),rgba(5,17,30,.90))!important;
+}
+body.sdc-polished .view-mode-buttons{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+body.sdc-polished .view-mode-buttons button{
+  min-width:0!important;
+  min-height:46px!important;
+  padding:8px 6px!important;
+  border-radius:17px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  font-size:11px!important;
+}
+
+/* Buscador y categorías */
+body.sdc-polished .search-panel,
+body.sdc-polished .category-gallery{
+  border-radius:28px!important;
+  border:1px solid rgba(142,226,255,.16)!important;
+  background:linear-gradient(145deg,rgba(8,26,45,.88),rgba(5,15,28,.88))!important;
+  box-shadow:0 14px 34px rgba(0,0,0,.20)!important;
+}
+body.sdc-polished .search-title b{font-size:18px!important;}
+body.sdc-polished .searchbar{border-color:rgba(142,226,255,.20)!important;border-radius:22px!important;background:rgba(3,10,19,.76)!important;}
+body.sdc-polished .searchbar input{min-width:0!important;}
+body.sdc-polished .category-grid{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  gap:10px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  padding-bottom:14px!important;
+  -webkit-overflow-scrolling:touch!important;
+  scrollbar-width:none!important;
+}
+body.sdc-polished .category-grid::-webkit-scrollbar{display:none!important;}
+body.sdc-polished .category-card{
+  flex:0 0 112px!important;
+  min-width:112px!important;
+  border-radius:23px!important;
+  border-color:rgba(142,226,255,.16)!important;
+  background:linear-gradient(150deg,rgba(255,255,255,.07),rgba(255,255,255,.035))!important;
+}
+
+/* Inventario y productos */
+body.sdc-polished .section-head{align-items:flex-end!important;}
+body.sdc-polished .section-head h2{font-size:clamp(30px,8vw,42px)!important;letter-spacing:.055em!important;}
+body.sdc-polished .count-pill{font-size:12px!important;padding:10px 13px!important;}
+body.sdc-polished .product-card{
+  border-radius:30px!important;
+  border:1px solid rgba(142,226,255,.17)!important;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(65,232,255,.09),transparent 33%),
+    linear-gradient(160deg,rgba(10,31,53,.96),rgba(5,14,25,.97))!important;
+  box-shadow:0 18px 44px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.055)!important;
+}
+body.sdc-polished .product-card:before{opacity:.22!important;}
+body.sdc-polished .product-media{
+  border-radius:25px!important;
+  border:1px solid rgba(142,226,255,.18)!important;
+  background:linear-gradient(145deg,#071323,#030912)!important;
+}
+body.sdc-polished .product-media img{object-fit:contain!important;}
+body.sdc-polished .product-title{
+  font-size:clamp(21px,6vw,27px)!important;
+  line-height:1.12!important;
+  margin:14px 0 12px!important;
+  letter-spacing:.012em!important;
+}
+body.sdc-polished .price-badge{
+  font-size:clamp(20px,5.8vw,27px)!important;
+  border-radius:20px!important;
+  background:linear-gradient(135deg,rgba(6,34,29,.95),rgba(5,21,36,.95))!important;
+  color:#9dffd7!important;
+}
+body.sdc-polished .tag-pill,
+body.sdc-polished .code-pill,
+body.sdc-polished .stock-badge{font-size:10px!important;min-height:34px!important;padding:8px 10px!important;}
+body.sdc-polished .metrics.admin-metrics{gap:8px!important;}
+body.sdc-polished .metric{border-radius:18px!important;border-color:rgba(142,226,255,.12)!important;}
+body.sdc-polished .card-actions{gap:8px!important;}
+body.sdc-polished .card-actions .btn{min-height:50px!important;border-radius:18px!important;padding:10px 8px!important;font-size:11px!important;}
+body.sdc-polished .client-description{text-align:left!important;line-height:1.35!important;}
+
+/* Producto seleccionado desde tarjeta */
+body.sdc-polished .product-card.sdc-just-selected{
+  border-color:rgba(61,255,181,.55)!important;
+  box-shadow:0 0 0 2px rgba(61,255,181,.18),0 22px 52px rgba(0,0,0,.32)!important;
+}
+body.sdc-polished .product-card.sdc-just-selected:after{
+  content:'✓ Artículo seleccionado';
+  position:absolute;
+  left:14px;
+  right:14px;
+  top:14px;
+  z-index:8;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:42px;
+  border-radius:18px;
+  color:#031018;
+  background:linear-gradient(135deg,var(--sdc-final-green),var(--sdc-final-cyan));
+  font-weight:1000;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+  font-size:11px;
+  box-shadow:0 16px 30px rgba(0,0,0,.28);
+}
+
+/* Cotización y modales: los botones ya no quedan escondidos */
+body.sdc-polished .modal-backdrop{padding:10px!important;align-items:center!important;}
+body.sdc-polished .modal{
+  border-radius:30px!important;
+  border:1px solid rgba(142,226,255,.22)!important;
+  background:#06111f!important;
+  max-height:calc(100dvh - 20px)!important;
+}
+body.sdc-polished .modal-head{border-bottom:1px solid rgba(142,226,255,.12)!important;}
+body.sdc-polished .quote-body{
+  max-height:none!important;
+  padding-bottom:calc(24px + var(--sdc-final-safe))!important;
+}
+body.sdc-polished .quote-grid{gap:14px!important;}
+body.sdc-polished .card-box{
+  border-radius:25px!important;
+  border-color:rgba(142,226,255,.15)!important;
+  background:linear-gradient(145deg,rgba(8,25,43,.92),rgba(5,15,28,.92))!important;
+}
+body.sdc-polished .cart-notice{
+  display:flex!important;
+  gap:6px!important;
+  padding:12px 13px!important;
+  border-radius:18px!important;
+  border:1px solid rgba(61,255,181,.35)!important;
+  background:linear-gradient(135deg,rgba(61,255,181,.15),rgba(65,232,255,.10))!important;
+  color:#eaffff!important;
+}
+body.sdc-polished .cart-notice.hide{display:none!important;}
+body.sdc-polished .cart-notice b{color:#9dffd7!important;}
+body.sdc-polished .picker-item{border-radius:22px!important;border-color:rgba(142,226,255,.14)!important;}
+body.sdc-polished .picker-item.is-selected{border-color:rgba(61,255,181,.50)!important;}
+body.sdc-polished .quote-actions.premium-actions,
+body.sdc-polished .modal-actions.quote-actions{
+  position:static!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:9px!important;
+  padding:12px 0 0!important;
+  margin-top:10px!important;
+  border-radius:0!important;
+  background:transparent!important;
+  overflow:visible!important;
+}
+body.sdc-polished .quote-actions .btn{
+  min-height:56px!important;
+  border-radius:18px!important;
+  padding:9px 7px!important;
+}
+body.sdc-polished .quote-actions .btn b{font-size:11px!important;line-height:1.05!important;}
+body.sdc-polished .quote-actions .btn small{font-size:8px!important;line-height:1.05!important;}
+body.sdc-polished .quote-actions #waPhoto,
+body.sdc-polished .quote-actions #sendCompleteQuote,
+body.sdc-polished .quote-actions .main-wide{grid-column:1/-1!important;}
+
+/* Barra inferior más limpia */
+body.sdc-polished .sdc-v3-bottom{
+  width:min(560px,calc(100% - 18px))!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:max(8px,var(--sdc-final-safe))!important;
+  transform:translateX(-50%)!important;
+  border-radius:24px!important;
+  border:1px solid rgba(142,226,255,.22)!important;
+  background:rgba(4,13,24,.88)!important;
+  box-shadow:0 18px 54px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.07)!important;
+}
+body.sdc-polished .sdc-v3-bottom button{min-height:52px!important;border-radius:17px!important;}
+body.sdc-polished .sdc-v3-bottom button.primary{background:linear-gradient(135deg,var(--sdc-final-green),var(--sdc-final-cyan))!important;}
+body.sdc-polished .toast{
+  border:1px solid rgba(61,255,181,.28)!important;
+  background:linear-gradient(135deg,rgba(5,22,31,.96),rgba(5,35,33,.96))!important;
+  box-shadow:0 18px 46px rgba(0,0,0,.34)!important;
+}
+body.sdc-polished #goTop{bottom:calc(92px + var(--sdc-final-safe))!important;right:12px!important;}
+
+@media(max-width:720px){
+  body.sdc-polished .app{padding-left:10px!important;padding-right:10px!important;}
+  body.sdc-polished .topbar{top:6px!important;padding:9px!important;gap:8px!important;}
+  body.sdc-polished .top-logo{width:46px!important;height:46px!important;border-radius:16px!important;}
+  body.sdc-polished .top-title h1{font-size:16px!important;line-height:1!important;}
+  body.sdc-polished .top-title p{font-size:10.5px!important;max-width:150px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+  body.sdc-polished .topbar .btn.small{min-height:38px!important;border-radius:15px!important;padding:7px 8px!important;font-size:9.5px!important;}
+  body.sdc-polished .sync-btn{display:none!important;}
+
+  body.sdc-polished .hero{padding:18px 14px!important;}
+  body.sdc-polished .private-hero-head h2,
+  body.sdc-polished .hero h2{font-size:clamp(32px,10vw,46px)!important;line-height:.95!important;}
+  body.sdc-polished .private-hero-head p,
+  body.sdc-polished .hero p{font-size:13px!important;line-height:1.35!important;}
+  body.sdc-polished .stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  body.sdc-polished .stat{padding:10px!important;min-height:76px!important;}
+  body.sdc-polished .stat:nth-child(5){grid-column:1/-1!important;}
+  body.sdc-polished .stat b{font-size:clamp(18px,5.2vw,24px)!important;}
+  body.sdc-polished .stat span{font-size:9px!important;letter-spacing:.08em!important;}
+
+  body.sdc-polished .quick-panel .quick-btn,
+  body.sdc-polished .quick-private .quick-btn,
+  body.sdc-polished .quick-private button{
+    flex-basis:126px!important;
+    width:126px!important;
+    min-width:126px!important;
+    max-width:126px!important;
+    min-height:90px!important;
+  }
+  body.sdc-polished .alert-card{flex-basis:226px!important;min-width:226px!important;max-width:226px!important;}
+  body.sdc-polished .view-mode-copy span{font-size:11px!important;line-height:1.25!important;}
+  body.sdc-polished .search-panel{padding:13px!important;}
+  body.sdc-polished .searchbar input{height:56px!important;font-size:15.5px!important;}
+  body.sdc-polished .category-card{flex-basis:104px!important;min-width:104px!important;}
+  body.sdc-polished .grid{grid-template-columns:1fr!important;gap:14px!important;}
+  body.sdc-polished .product-card{padding:13px!important;}
+  body.sdc-polished .product-card:before{display:none!important;}
+  body.sdc-polished .card-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  body.sdc-polished .card-actions .quote{grid-column:1/-1!important;}
+  body.sdc-polished .client-actions-v23{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+  body.sdc-polished .client-actions-v23 .quote{grid-column:auto!important;}
+  body.sdc-polished .client-actions-v23 .btn{font-size:10px!important;padding-inline:4px!important;}
+
+  body.sdc-polished .modal-backdrop{padding:0!important;align-items:stretch!important;}
+  body.sdc-polished .modal{width:100%!important;max-height:100dvh!important;border-radius:0!important;border-left:0!important;border-right:0!important;}
+  body.sdc-polished .modal-body{padding:13px!important;}
+  body.sdc-polished .quote-body{padding-bottom:calc(112px + var(--sdc-final-safe))!important;}
+  body.sdc-polished .picker-item{grid-template-columns:54px minmax(0,1fr)!important;gap:10px!important;}
+  body.sdc-polished .picker-item img{width:54px!important;height:54px!important;}
+  body.sdc-polished .picker-item .add-pick-btn,
+  body.sdc-polished .picker-item button{grid-column:1/-1!important;width:100%!important;min-height:48px!important;}
+  body.sdc-polished .qtybox{grid-template-columns:54px 1fr 54px!important;gap:8px!important;}
+  body.sdc-polished .sdc-v3-bottom{width:calc(100% - 16px)!important;gap:5px!important;padding:7px!important;}
+  body.sdc-polished .sdc-v3-bottom button{min-height:50px!important;}
+  body.sdc-polished .toast{left:10px!important;right:10px!important;bottom:calc(82px + var(--sdc-final-safe))!important;width:auto!important;text-align:center!important;}
+}
+
+@media(max-width:380px){
+  body.sdc-polished .quick-panel .quick-btn,
+  body.sdc-polished .quick-private .quick-btn,
+  body.sdc-polished .quick-private button{flex-basis:118px!important;width:118px!important;min-width:118px!important;min-height:86px!important;}
+  body.sdc-polished .quick-panel .quick-btn b,
+  body.sdc-polished .quick-private button b{font-size:15px!important;}
+  body.sdc-polished .quick-panel .quick-btn small,
+  body.sdc-polished .quick-private button small,
+  body.sdc-polished .quick-private button span{font-size:8.6px!important;}
+  body.sdc-polished .alert-card{flex-basis:214px!important;min-width:214px!important;}
+  body.sdc-polished .view-mode-buttons button{font-size:10px!important;}
+}
+
+/* =========================================================
+   SD COMAYAGUA · REFINAMIENTO PRO EXTRA
+   Acabados visuales, navegación con una mano y cotización
+   más clara sin cambiar la estructura principal.
+   ========================================================= */
+:root{
+  --sdc-glow:0 18px 46px rgba(65,232,255,.16),0 10px 24px rgba(0,0,0,.26);
+  --sdc-metal:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.035));
+}
+
+body.sdc-polished .topbar{
+  position:sticky!important;
+  top:max(6px,env(safe-area-inset-top,0px))!important;
+  z-index:70!important;
+  backdrop-filter:blur(18px)!important;
+  -webkit-backdrop-filter:blur(18px)!important;
+}
+body.sdc-polished.sdc-scrolled .topbar,
+body.sdc-polished.sdc-pro-scrolled .topbar{
+  transform:translateY(0)!important;
+  box-shadow:0 14px 42px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.08)!important;
+  border-color:rgba(65,232,255,.28)!important;
+}
+
+/* Iconos limpios en acciones rápidas, sin meter más botones */
+body.sdc-polished .quick-panel .quick-btn,
+body.sdc-polished .quick-private .quick-btn{position:relative!important;padding-top:46px!important;}
+body.sdc-polished .quick-panel .quick-btn::before,
+body.sdc-polished .quick-private .quick-btn::before{
+  content:attr(data-sdc-icon);
+  position:absolute;
+  left:12px;
+  top:11px;
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:linear-gradient(135deg,rgba(65,232,255,.18),rgba(61,255,181,.12));
+  border:1px solid rgba(142,226,255,.20);
+  color:#eaffff;
+  font-size:14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+body.sdc-polished .quick-panel .quick-btn[data-action="quote"]::before,
+body.sdc-polished .quick-panel .quick-btn[data-action="sell"]::before,
+body.sdc-polished .quick-panel .quick-btn[data-action="cardClient"]::before{
+  background:linear-gradient(135deg,rgba(61,255,181,.30),rgba(65,232,255,.22));
+  color:#061321;
+  font-weight:1000;
+}
+body.sdc-polished .quick-panel .quick-btn::after{
+  content:'';
+  position:absolute;
+  inset:auto 12px 10px 12px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(65,232,255,.22),transparent);
+  opacity:.75;
+}
+
+/* Guía pequeña del flujo, aparece solo como ayuda visual compacta */
+body.sdc-polished .sdc-flow-guide{
+  margin:8px 0 14px!important;
+  display:flex!important;
+  gap:8px!important;
+  overflow-x:auto!important;
+  padding:2px 2px 12px!important;
+  scrollbar-width:none!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+body.sdc-polished .sdc-flow-guide::-webkit-scrollbar{display:none!important;}
+body.sdc-polished .sdc-flow-step{
+  flex:0 0 auto!important;
+  min-width:118px!important;
+  border-radius:18px!important;
+  border:1px solid rgba(142,226,255,.15)!important;
+  background:linear-gradient(145deg,rgba(9,29,49,.88),rgba(4,13,25,.88))!important;
+  color:#eaf8ff!important;
+  padding:10px 12px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  gap:3px!important;
+  box-shadow:0 10px 22px rgba(0,0,0,.20)!important;
+}
+body.sdc-polished .sdc-flow-step b{font-size:12px!important;text-transform:uppercase!important;letter-spacing:.08em!important;}
+body.sdc-polished .sdc-flow-step span{font-size:10px!important;color:#a9c0d3!important;line-height:1.2!important;}
+body.sdc-polished .sdc-flow-step.primary{
+  border-color:rgba(61,255,181,.32)!important;
+  background:linear-gradient(145deg,rgba(11,50,54,.95),rgba(4,18,30,.92))!important;
+}
+body.capture-clean .sdc-flow-guide{display:none!important;}
+
+/* Tarjetas de producto: mejor lectura y toque más premium */
+body.sdc-polished .product-card{
+  isolation:isolate!important;
+  transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease!important;
+}
+body.sdc-polished .product-card:active{transform:scale(.992)!important;}
+body.sdc-polished .product-card:hover{border-color:rgba(65,232,255,.27)!important;box-shadow:var(--sdc-glow)!important;}
+body.sdc-polished .product-media{
+  aspect-ratio:1/1!important;
+  overflow:hidden!important;
+  display:grid!important;
+  place-items:center!important;
+}
+body.sdc-polished .product-media img{
+  width:100%!important;
+  height:100%!important;
+  max-height:100%!important;
+  filter:drop-shadow(0 12px 22px rgba(0,0,0,.24));
+}
+body.sdc-polished .product-title{
+  max-width:100%!important;
+  overflow-wrap:anywhere!important;
+}
+body.sdc-polished .price-badge{
+  width:max-content!important;
+  max-width:100%!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 12px 26px rgba(61,255,181,.10)!important;
+}
+body.sdc-polished .stock-line{
+  height:9px!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.07)!important;
+  overflow:hidden!important;
+}
+body.sdc-polished .stock-line i{
+  border-radius:999px!important;
+  background:linear-gradient(90deg,var(--sdc-final-green),var(--sdc-final-cyan))!important;
+}
+
+/* Modo cliente: totales más claros para mandar captura o texto */
+body.sdc-polished .client-card-panel{
+  border:1px solid rgba(142,226,255,.13)!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025))!important;
+  border-radius:24px!important;
+  padding:13px!important;
+}
+body.sdc-polished .client-qty-card,
+body.sdc-polished .client-totals-card{
+  border-radius:20px!important;
+  border:1px solid rgba(142,226,255,.13)!important;
+  background:rgba(3,10,19,.38)!important;
+}
+body.sdc-polished .inline-qty button,
+body.sdc-polished .qtybox button,
+body.sdc-polished .qty-control button{
+  touch-action:manipulation!important;
+}
+body.sdc-polished .inline-qty input,
+body.sdc-polished .qtybox input,
+body.sdc-polished .qty-control input{
+  font-variant-numeric:tabular-nums!important;
+}
+body.sdc-polished .client-totals-card b,
+body.sdc-polished .summary-total b,
+body.sdc-polished .receipt-total-pro b{font-variant-numeric:tabular-nums!important;}
+
+/* Modal de cotización: cabecera y acciones siempre claras */
+body.sdc-polished .modal-head{
+  position:sticky!important;
+  top:0!important;
+  z-index:16!important;
+  background:linear-gradient(180deg,rgba(6,17,31,.98),rgba(6,17,31,.92))!important;
+  backdrop-filter:blur(16px)!important;
+  -webkit-backdrop-filter:blur(16px)!important;
+}
+body.sdc-polished .modal-head .close,
+body.sdc-polished .close{
+  min-width:46px!important;
+  min-height:46px!important;
+  border-radius:16px!important;
+  border:1px solid rgba(142,226,255,.20)!important;
+  background:rgba(255,255,255,.07)!important;
+  color:#f2fbff!important;
+  font-size:22px!important;
+}
+body.sdc-polished .quote-actions.premium-actions,
+body.sdc-polished .modal-actions.quote-actions{
+  position:sticky!important;
+  bottom:0!important;
+  z-index:15!important;
+  padding:12px!important;
+  margin:12px -13px -13px!important;
+  border-top:1px solid rgba(142,226,255,.14)!important;
+  background:linear-gradient(180deg,rgba(6,17,31,.72),rgba(3,9,18,.98) 42%)!important;
+  backdrop-filter:blur(18px)!important;
+  -webkit-backdrop-filter:blur(18px)!important;
+}
+body.sdc-polished .selected-count-pill{
+  border-radius:999px!important;
+  border:1px solid rgba(61,255,181,.30)!important;
+  background:rgba(61,255,181,.12)!important;
+  color:#9dffd7!important;
+  font-weight:1000!important;
+}
+body.sdc-polished.sdc-has-doc-items .selected-count-pill{
+  animation:sdcPulsePill 1.4s ease-in-out infinite alternate;
+}
+@keyframes sdcPulsePill{from{box-shadow:0 0 0 rgba(61,255,181,0)}to{box-shadow:0 0 0 4px rgba(61,255,181,.10)}}
+body.sdc-polished .cart-row-v24{
+  border-radius:20px!important;
+  border:1px solid rgba(142,226,255,.13)!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025))!important;
+}
+body.sdc-polished .remove-item{background:rgba(255,95,143,.12)!important;color:#ffd9e4!important;border-color:rgba(255,95,143,.28)!important;}
+body.sdc-polished .summary{
+  border-radius:22px!important;
+  border:1px solid rgba(142,226,255,.14)!important;
+  background:linear-gradient(145deg,rgba(7,25,42,.92),rgba(4,13,25,.92))!important;
+}
+
+/* Barra inferior v3 más fina y profesional */
+body.sdc-polished .sdc-v3-bottom button{
+  position:relative!important;
+  overflow:hidden!important;
+  color:#dcefff!important;
+}
+body.sdc-polished .sdc-v3-bottom button.primary{
+  color:#031018!important;
+  box-shadow:0 14px 28px rgba(61,255,181,.16)!important;
+}
+body.sdc-polished .sdc-v3-bottom button::after{
+  content:'';
+  position:absolute;
+  left:18%;right:18%;bottom:6px;height:2px;border-radius:999px;
+  background:rgba(65,232,255,.35);
+  transform:scaleX(0);
+  transition:transform .18s ease;
+}
+body.sdc-polished .sdc-v3-bottom button:active::after,
+body.sdc-polished .sdc-v3-bottom button.primary::after{transform:scaleX(1);}
+
+/* Captura limpia: que se entienda cómo volver */
+body.sdc-polished.capture-clean .view-mode-panel.no-print,
+body.sdc-polished.capture-clean .view-mode-panel{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  background:rgba(3,10,20,.94)!important;
+  border:1px solid rgba(65,232,255,.20)!important;
+}
+body.sdc-polished.capture-clean .view-mode-buttons button[data-action="captureClean"],
+body.sdc-polished.capture-clean .view-mode-buttons .capture-live{
+  background:linear-gradient(135deg,var(--sdc-final-green),var(--sdc-final-cyan))!important;
+  color:#031018!important;
+  font-weight:1000!important;
+}
+body.sdc-polished.capture-clean .view-mode-buttons button[data-action="captureClean"]::after,
+body.sdc-polished.capture-clean .view-mode-buttons .capture-live::after{
+  content:' PARA VOLVER';
+}
+
+@media(max-width:720px){
+  body.sdc-polished .sdc-flow-step{min-width:112px!important;padding:9px 10px!important;}
+  body.sdc-polished .sdc-flow-step b{font-size:11px!important;}
+  body.sdc-polished .sdc-flow-step span{font-size:9.4px!important;}
+  body.sdc-polished .topbar{margin-top:4px!important;}
+  body.sdc-polished .product-title{font-size:clamp(20px,5.6vw,25px)!important;}
+  body.sdc-polished .client-totals-card{grid-template-columns:1fr!important;gap:8px!important;}
+  body.sdc-polished .client-totals-card>div{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;}
+  body.sdc-polished .quote-actions.premium-actions,
+  body.sdc-polished .modal-actions.quote-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    padding:10px!important;
+    margin:10px -13px -13px!important;
+  }
+  body.sdc-polished .quote-actions .btn{min-height:52px!important;}
+  body.sdc-polished .quote-actions .btn small{display:none!important;}
+  body.sdc-polished .current-card-head{gap:8px!important;align-items:center!important;}
+  body.sdc-polished .selected-count-pill{font-size:10px!important;padding:8px 10px!important;white-space:nowrap!important;}
+}
+
+@media(max-width:360px){
+  body.sdc-polished .top-title p{display:none!important;}
+  body.sdc-polished .topbar .btn.small{padding:7px!important;font-size:9px!important;}
+  body.sdc-polished .sdc-v3-bottom button span{font-size:8px!important;}
+}
+
+/* =========================================================
+   SDC HOTFIX COTIZAR V3
+   Problema: en celular el botón "Seleccionar" quedaba cortado/oculto.
+   Solución: toda la tarjeta del producto ahora sirve como botón para agregar.
+   ========================================================= */
+body.sdc-polished .quote-body #pickerList{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:12px!important;
+  max-height:none!important;
+  overflow:visible!important;
+  padding:2px 0 4px!important;
+}
+body.sdc-polished .quote-body #pickerList .picker-item{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:64px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:12px!important;
+  min-height:102px!important;
+  height:auto!important;
+  padding:12px 14px 48px!important;
+  overflow:hidden!important;
+  border-radius:24px!important;
+  cursor:pointer!important;
+  touch-action:manipulation!important;
+}
+body.sdc-polished .quote-body #pickerList .picker-item::after{
+  content:'TOCAR PARA AGREGAR';
+  position:absolute!important;
+  left:14px!important;
+  right:14px!important;
+  bottom:10px!important;
+  min-height:30px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:999px!important;
+  background:linear-gradient(135deg,var(--sdc-final-green),var(--sdc-final-cyan))!important;
+  color:#031018!important;
+  font-size:10px!important;
+  font-weight:1000!important;
+  letter-spacing:.13em!important;
+  box-shadow:0 10px 22px rgba(65,232,255,.16)!important;
+  pointer-events:none!important;
+}
+body.sdc-polished .quote-body #pickerList .picker-item.is-selected::after,
+body.sdc-polished .quote-body #pickerList .picker-item.sdc-row-picked::after{
+  content:'✓ AGREGADO A LA COTIZACIÓN';
+  background:linear-gradient(135deg,#8dffd6,#45eaff)!important;
+}
+body.sdc-polished .quote-body #pickerList .picker-item img{
+  width:64px!important;
+  height:64px!important;
+  min-width:64px!important;
+  border-radius:18px!important;
+}
+body.sdc-polished .quote-body #pickerList .picker-item > div{
+  min-width:0!important;
+  padding-right:0!important;
+  overflow:visible!important;
+}
+body.sdc-polished .quote-body #pickerList .picker-item b{
+  display:block!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:unset!important;
+  line-height:1.12!important;
+  font-size:17px!important;
+}
+body.sdc-polished .quote-body #pickerList .picker-item span{
+  display:block!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:unset!important;
+  line-height:1.15!important;
+  font-size:13.5px!important;
+}
+body.sdc-polished .quote-body #pickerList .picker-item .add-pick-btn{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  min-width:1px!important;
+  min-height:1px!important;
+  max-width:1px!important;
+  max-height:1px!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+}
+body.sdc-polished .quote-body .picker-head-compact small::after{
+  content:' También puede tocar la tarjeta completa.';
+  color:#8dffd6!important;
+  font-weight:900!important;
+}
+body.sdc-polished .quote-body .picker-card{
+  overflow:visible!important;
+}
+body.sdc-polished .quote-body .current-card{
+  scroll-margin-top:86px!important;
+}
+@media(max-width:720px){
+  body.sdc-polished .quote-body{padding-bottom:calc(152px + var(--sdc-final-safe))!important;}
+  body.sdc-polished .quote-body #pickerList .picker-item{
+    grid-template-columns:58px minmax(0,1fr)!important;
+    min-height:100px!important;
+    padding:11px 12px 46px!important;
+    border-radius:23px!important;
+  }
+  body.sdc-polished .quote-body #pickerList .picker-item img{
+    width:58px!important;
+    height:58px!important;
+    min-width:58px!important;
+  }
+  body.sdc-polished .quote-body #pickerList .picker-item b{font-size:16px!important;}
+  body.sdc-polished .quote-body #pickerList .picker-item span{font-size:12.5px!important;}
+  body.sdc-polished .quote-body #pickerList .picker-item::after{
+    left:12px!important;
+    right:12px!important;
+    bottom:9px!important;
+    min-height:29px!important;
+    font-size:9.3px!important;
+  }
+  body.sdc-polished .quote-actions.premium-actions,
+  body.sdc-polished .modal-actions.quote-actions{
+    max-height:42dvh!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+}
+@media(max-width:360px){
+  body.sdc-polished .quote-body #pickerList .picker-item{
+    grid-template-columns:52px minmax(0,1fr)!important;
+    gap:9px!important;
+  }
+  body.sdc-polished .quote-body #pickerList .picker-item img{
+    width:52px!important;
+    height:52px!important;
+    min-width:52px!important;
+  }
+}

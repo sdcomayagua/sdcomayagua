@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
+  <defs><linearGradient id="a" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#050b16"/><stop offset=".55" stop-color="#08243b"/><stop offset="1" stop-color="#063733"/></linearGradient><radialGradient id="b" cx="70%" cy="22%" r="60%"><stop stop-color="#16f4d370"/><stop offset="1" stop-color="#16f4d300"/></radialGradient></defs>
+  <rect width="1200" height="1200" rx="96" fill="url(#a)"/>
+  <rect width="1200" height="1200" rx="96" fill="url(#b)"/>
+  <path d="M260 640c15-120 80-205 170-205h340c90 0 155 85 170 205l25 170c12 82-62 146-137 105l-130-72H502l-130 72c-75 41-149-23-137-105l25-170Z" fill="#07111f" stroke="#22f4c8" stroke-width="16"/>
+  <path d="M390 620h120M450 560v120" stroke="#eaf8ff" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="730" cy="585" r="28" fill="#22f4c8"/><circle cx="810" cy="660" r="28" fill="#20d8ff"/>
+  <text x="600" y="1000" text-anchor="middle" font-family="Arial Black, Arial" font-size="66" fill="#eaf8ff" letter-spacing="8">PRODUCTO GAMER</text>
+</svg>
