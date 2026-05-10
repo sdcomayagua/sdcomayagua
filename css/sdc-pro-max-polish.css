@@ -1,0 +1,571 @@
+/* =========================================================
+   SD COMAYAGUA · PRO MAX POLISH
+   Capa final: mejoras de cotización, móvil y acabado visual.
+   Se carga al final para no romper la lógica principal.
+   ========================================================= */
+:root{
+  --sdc-max-safe: env(safe-area-inset-bottom, 0px);
+  --sdc-max-cyan:#32ecff;
+  --sdc-max-mint:#4fffc9;
+  --sdc-max-blue:#0a2036;
+  --sdc-max-deep:#03101e;
+  --sdc-max-card:#101f31;
+  --sdc-max-line:rgba(120,230,255,.22);
+  --sdc-max-soft:rgba(255,255,255,.065);
+  --sdc-max-danger:#ff6b91;
+  --sdc-max-warn:#ffd166;
+}
+html{scroll-padding-bottom:calc(96px + var(--sdc-max-safe));}
+body.sdc-max-polished{
+  -webkit-tap-highlight-color:transparent;
+}
+body.sdc-max-polished button,
+body.sdc-max-polished .btn,
+body.sdc-max-polished .chip,
+body.sdc-max-polished .picker-item{
+  -webkit-user-select:none;
+  user-select:none;
+}
+
+/* Modal más compacto y más elegante en teléfono */
+body.sdc-max-polished .modal-head.quote-head{
+  min-height:72px!important;
+  padding:14px 16px!important;
+  gap:12px!important;
+  box-shadow:0 18px 42px rgba(0,0,0,.24)!important;
+}
+body.sdc-max-polished .modal-head.quote-head h3{
+  font-size:clamp(24px,6.3vw,38px)!important;
+  letter-spacing:.035em!important;
+  line-height:1.05!important;
+  text-shadow:0 2px 0 rgba(0,0,0,.42),0 0 18px rgba(50,236,255,.12)!important;
+}
+body.sdc-max-polished .modal-head.quote-head .close{
+  flex:0 0 auto!important;
+  width:56px!important;
+  height:56px!important;
+  min-width:56px!important;
+  min-height:56px!important;
+  border-radius:20px!important;
+  font-size:28px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 12px 26px rgba(0,0,0,.24)!important;
+}
+body.sdc-max-polished .quote-body{
+  scroll-behavior:smooth;
+}
+body.sdc-max-polished .quote-status{
+  margin-bottom:10px!important;
+}
+
+/* Barra inteligente dentro de cotización */
+body.sdc-max-polished .sdc-smart-docbar{
+  position:sticky;
+  top:78px;
+  z-index:14;
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:8px;
+  align-items:center;
+  margin:10px 0 12px;
+  padding:10px;
+  border:1px solid rgba(79,255,201,.24);
+  border-radius:22px;
+  background:linear-gradient(135deg,rgba(6,22,38,.96),rgba(3,12,24,.92));
+  box-shadow:0 16px 36px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+body.sdc-max-polished .sdc-smart-docbar-main{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+body.sdc-max-polished .sdc-smart-docbar-main b{
+  color:#f4fbff;
+  font-size:13px;
+  font-weight:1000;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+body.sdc-max-polished .sdc-smart-docbar-main span{
+  color:#9eb4c9;
+  font-size:12px;
+  font-weight:850;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+body.sdc-max-polished .sdc-smart-docbar button{
+  min-height:42px;
+  border:1px solid rgba(50,236,255,.22);
+  border-radius:16px;
+  background:rgba(255,255,255,.065);
+  color:#eaf8ff;
+  font-size:11px;
+  font-weight:1000;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:0 12px;
+}
+body.sdc-max-polished .sdc-smart-docbar button.primary{
+  color:#03111f;
+  border-color:transparent;
+  background:linear-gradient(135deg,var(--sdc-max-mint),var(--sdc-max-cyan));
+  box-shadow:0 12px 24px rgba(50,236,255,.16);
+}
+body.sdc-max-polished .sdc-smart-docbar[data-empty="1"] button.primary{
+  opacity:.58;
+  pointer-events:none;
+}
+
+/* Buscador y categorías con mejor tacto */
+body.sdc-max-polished .quote-body .picker-card{
+  border-color:rgba(50,236,255,.17)!important;
+}
+body.sdc-max-polished .quote-body .picker-head-compact{
+  gap:10px!important;
+}
+body.sdc-max-polished .quote-body .picker-head-compact b{
+  letter-spacing:.02em!important;
+}
+body.sdc-max-polished .quote-body .searchbar{
+  position:relative!important;
+  border-radius:22px!important;
+  border:1px solid rgba(50,236,255,.22)!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.03))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+body.sdc-max-polished #pickSearch{
+  min-height:50px!important;
+  font-size:16px!important;
+}
+body.sdc-max-polished #pickChips{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  gap:9px!important;
+  overflow-x:auto!important;
+  padding:4px 2px 8px!important;
+  scroll-snap-type:x proximity!important;
+  -webkit-overflow-scrolling:touch!important;
+  scrollbar-width:none!important;
+}
+body.sdc-max-polished #pickChips::-webkit-scrollbar{display:none;}
+body.sdc-max-polished #pickChips .chip{
+  flex:0 0 auto!important;
+  scroll-snap-align:start!important;
+  min-height:44px!important;
+  border-radius:18px!important;
+  padding:0 16px!important;
+}
+
+/* Productos de cotización: estado, stock y selección más clara */
+body.sdc-max-polished .quote-body #pickerList .picker-item{
+  isolation:isolate!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.07)!important;
+  transition:transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease!important;
+}
+body.sdc-max-polished .quote-body #pickerList .picker-item:active{
+  transform:scale(.985)!important;
+}
+body.sdc-max-polished .quote-body #pickerList .picker-item.sdc-picker-selected{
+  border-color:rgba(79,255,201,.55)!important;
+  background:linear-gradient(145deg,rgba(79,255,201,.12),rgba(17,31,49,.94))!important;
+  box-shadow:0 18px 38px rgba(0,0,0,.26),0 0 0 1px rgba(79,255,201,.08)!important;
+}
+body.sdc-max-polished .quote-body #pickerList .picker-item.sdc-picker-selected::after{
+  content:'✓ EN LISTA · CANT. ' attr(data-picked-qty)!important;
+  background:linear-gradient(135deg,#a0ffdf,#46eaff)!important;
+}
+body.sdc-max-polished .quote-body #pickerList .picker-item.sdc-low-stock{
+  border-color:rgba(255,209,102,.34)!important;
+}
+body.sdc-max-polished .quote-body #pickerList .picker-item.sdc-low-stock::before{
+  content:'POCO STOCK';
+  position:absolute;
+  top:9px;
+  right:10px;
+  z-index:3;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(255,209,102,.16);
+  border:1px solid rgba(255,209,102,.28);
+  color:#ffe5a3;
+  font-size:8px;
+  font-weight:1000;
+  letter-spacing:.08em;
+}
+body.sdc-max-polished .quote-body #pickerList .picker-item.sdc-out-stock{
+  opacity:.72!important;
+  filter:saturate(.82)!important;
+  border-color:rgba(255,107,145,.35)!important;
+}
+body.sdc-max-polished .quote-body #pickerList .picker-item.sdc-out-stock::before{
+  content:'AGOTADO';
+  position:absolute;
+  top:9px;
+  right:10px;
+  z-index:3;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(255,107,145,.16);
+  border:1px solid rgba(255,107,145,.32);
+  color:#ffd7e2;
+  font-size:8px;
+  font-weight:1000;
+  letter-spacing:.08em;
+}
+body.sdc-max-polished .quote-body #pickerList .picker-item.sdc-out-stock::after{
+  content:'SIN STOCK DISPONIBLE'!important;
+  background:linear-gradient(135deg,#ff88a6,#ff5f8f)!important;
+  color:#fff!important;
+}
+body.sdc-max-polished .quote-body #pickerList .picker-item.sdc-out-stock .add-pick-btn{
+  pointer-events:none!important;
+}
+body.sdc-max-polished .quote-body #pickerList .picker-item img{
+  box-shadow:0 12px 26px rgba(0,0,0,.28),0 0 0 1px rgba(50,236,255,.16)!important;
+}
+
+/* Cotización actual más visible */
+body.sdc-max-polished .current-card{
+  border-color:rgba(79,255,201,.18)!important;
+  box-shadow:0 16px 40px rgba(0,0,0,.24)!important;
+}
+body.sdc-max-polished .current-card-head{
+  position:sticky;
+  top:132px;
+  z-index:4;
+  margin:-2px -2px 12px;
+  padding:2px 2px 10px;
+  background:linear-gradient(180deg,rgba(5,17,31,.97),rgba(5,17,31,.80));
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+body.sdc-max-polished .cart-notice:not(.hide){
+  animation:sdcNoticePop .22s ease both;
+}
+@keyframes sdcNoticePop{from{transform:translateY(-6px);opacity:.2}to{transform:translateY(0);opacity:1}}
+body.sdc-max-polished .cart-row-v24{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding:12px!important;
+}
+body.sdc-max-polished .cart-row-v24 .cart-info b{
+  font-size:15px!important;
+  line-height:1.15!important;
+}
+body.sdc-max-polished .cart-row-v24 .cart-info span{
+  line-height:1.25!important;
+}
+body.sdc-max-polished .qtybox{
+  border-radius:16px!important;
+  overflow:hidden!important;
+  background:rgba(255,255,255,.055)!important;
+}
+body.sdc-max-polished .qtybox button{
+  min-width:36px!important;
+}
+body.sdc-max-polished .qtybox input{
+  width:46px!important;
+  min-width:42px!important;
+}
+
+/* Barra inferior de acciones: una sola fila desplazable para que nada quede oculto */
+body.sdc-max-polished .quote-actions.premium-actions,
+body.sdc-max-polished .modal-actions.quote-actions{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  align-items:stretch!important;
+  gap:9px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  max-height:none!important;
+  min-height:78px!important;
+  padding:10px 12px calc(10px + var(--sdc-max-safe))!important;
+  margin:10px -13px -13px!important;
+  scroll-snap-type:x proximity!important;
+  scrollbar-width:none!important;
+}
+body.sdc-max-polished .quote-actions.premium-actions::-webkit-scrollbar,
+body.sdc-max-polished .modal-actions.quote-actions::-webkit-scrollbar{display:none;}
+body.sdc-max-polished .quote-actions.premium-actions .btn,
+body.sdc-max-polished .modal-actions.quote-actions .btn{
+  flex:0 0 124px!important;
+  min-width:124px!important;
+  min-height:56px!important;
+  scroll-snap-align:start!important;
+  border-radius:18px!important;
+  padding:8px 10px!important;
+}
+body.sdc-max-polished .quote-actions.premium-actions .btn.main-wide,
+body.sdc-max-polished .modal-actions.quote-actions .btn.main-wide{
+  flex-basis:158px!important;
+  min-width:158px!important;
+  background:linear-gradient(135deg,var(--sdc-max-mint),var(--sdc-max-cyan))!important;
+  color:#03111f!important;
+}
+body.sdc-max-polished .quote-actions.premium-actions .btn b,
+body.sdc-max-polished .modal-actions.quote-actions .btn b{
+  display:block!important;
+  font-size:12px!important;
+  line-height:1.05!important;
+}
+body.sdc-max-polished .quote-actions.premium-actions .btn small,
+body.sdc-max-polished .modal-actions.quote-actions .btn small{
+  display:block!important;
+  margin-top:2px!important;
+  font-size:9px!important;
+  opacity:.78!important;
+}
+body.sdc-max-polished .quote-body{
+  padding-bottom:calc(92px + var(--sdc-max-safe))!important;
+}
+
+/* Vista de captura más limpia y lista para foto */
+body.sdc-max-polished.capture-clean .sdc-smart-docbar,
+body.sdc-max-polished.capture-clean #pickChips,
+body.sdc-max-polished.capture-clean .quote-actions,
+body.sdc-max-polished.capture-clean .picker-card,
+body.sdc-max-polished.capture-clean .calc-card,
+body.sdc-max-polished.capture-clean .current-card{
+  display:none!important;
+}
+body.sdc-max-polished.capture-clean .preview-card{
+  grid-column:1 / -1!important;
+}
+body.sdc-max-polished.capture-clean .quote-body{
+  padding-bottom:22px!important;
+}
+
+/* Producto principal: micro-acabado visual */
+body.sdc-max-polished .product-card{
+  transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease!important;
+}
+body.sdc-max-polished .product-card:active{
+  transform:scale(.992)!important;
+}
+body.sdc-max-polished .product-card.sdc-just-selected{
+  border-color:rgba(79,255,201,.58)!important;
+  box-shadow:0 0 0 3px rgba(79,255,201,.10),0 18px 46px rgba(0,0,0,.28)!important;
+}
+
+@media(max-width:720px){
+  body.sdc-max-polished .modal-head.quote-head{
+    min-height:68px!important;
+    padding:12px 14px!important;
+  }
+  body.sdc-max-polished .modal-head.quote-head h3{
+    font-size:clamp(22px,6vw,30px)!important;
+    letter-spacing:.025em!important;
+  }
+  body.sdc-max-polished .modal-head.quote-head .close{
+    width:52px!important;
+    height:52px!important;
+    min-width:52px!important;
+    min-height:52px!important;
+    border-radius:19px!important;
+    font-size:26px!important;
+  }
+  body.sdc-max-polished .sdc-smart-docbar{
+    top:70px;
+    grid-template-columns:1fr auto;
+    padding:9px;
+    border-radius:20px;
+  }
+  body.sdc-max-polished .sdc-smart-docbar .sdc-mini-preview{
+    display:none;
+  }
+  body.sdc-max-polished .sdc-smart-docbar-main b{font-size:12px;}
+  body.sdc-max-polished .sdc-smart-docbar-main span{font-size:11px;}
+  body.sdc-max-polished .sdc-smart-docbar button{min-height:40px;padding:0 10px;font-size:10px;}
+  body.sdc-max-polished .quote-body #pickerList{gap:10px!important;}
+  body.sdc-max-polished .current-card-head{top:122px;}
+  body.sdc-max-polished .cart-row-v24{
+    grid-template-columns:1fr!important;
+    gap:9px!important;
+  }
+  body.sdc-max-polished .cart-row-v24 .qtybox,
+  body.sdc-max-polished .cart-row-v24 .remove-item{
+    width:100%!important;
+  }
+  body.sdc-max-polished .cart-row-v24 .qtybox{
+    display:grid!important;
+    grid-template-columns:46px 1fr 46px!important;
+  }
+  body.sdc-max-polished .qtybox input{
+    width:100%!important;
+  }
+  body.sdc-max-polished .quote-actions.premium-actions .btn,
+  body.sdc-max-polished .modal-actions.quote-actions .btn{
+    flex-basis:112px!important;
+    min-width:112px!important;
+  }
+  body.sdc-max-polished .quote-actions.premium-actions .btn.main-wide,
+  body.sdc-max-polished .modal-actions.quote-actions .btn.main-wide{
+    flex-basis:150px!important;
+    min-width:150px!important;
+  }
+}
+@media(max-width:380px){
+  body.sdc-max-polished .modal-head.quote-head h3{font-size:21px!important;}
+  body.sdc-max-polished .modal-head.quote-head .close{
+    width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;
+  }
+  body.sdc-max-polished .sdc-smart-docbar button{font-size:9px;padding:0 8px;}
+}
+@media(min-width:900px){
+  body.sdc-max-polished .quote-actions.premium-actions,
+  body.sdc-max-polished .modal-actions.quote-actions{
+    justify-content:center!important;
+  }
+  body.sdc-max-polished .sdc-smart-docbar{
+    top:84px;
+  }
+}
+
+
+/* =========================================================
+   SDC V28 · Ajustes solicitados por Gabriel (10 mayo 2026)
+   - Alertas/toast centradas
+   - Barra de artículos sin tapar contenido
+   - Lista de cotización visible
+   - Acciones al final, sin cubrir la vista previa
+   - Recibo más compacto y logo legible
+   ========================================================= */
+
+/* La barra "X artículos seleccionados" queda como aviso normal, no pegada sobre el contenido. */
+body.sdc-max-polished .sdc-smart-docbar{
+  position:static!important;
+  top:auto!important;
+  z-index:2!important;
+  margin:8px 0 12px!important;
+  transform:none!important;
+}
+body.sdc-max-polished .sdc-smart-docbar-main b,
+body.sdc-max-polished .sdc-smart-docbar-main span{
+  text-align:left!important;
+}
+
+/* El encabezado de Cotización actual ya no se queda flotando encima del primer producto. */
+body.sdc-max-polished .current-card-head{
+  position:static!important;
+  top:auto!important;
+  z-index:1!important;
+  margin:0 0 12px!important;
+  padding:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+body.sdc-max-polished .current-card{
+  scroll-margin-top:86px!important;
+}
+body.sdc-max-polished .cart-list{
+  position:relative!important;
+  z-index:1!important;
+}
+
+/* Las acciones rápidas del documento deben aparecer al final y no encima del recibo. */
+body.sdc-max-polished .quote-actions.premium-actions,
+body.sdc-max-polished .modal-actions.quote-actions{
+  position:static!important;
+  bottom:auto!important;
+  z-index:2!important;
+  margin:14px 0 0!important;
+  padding:12px!important;
+  border-radius:24px!important;
+  border:1px solid rgba(50,236,255,.16)!important;
+  background:linear-gradient(135deg,rgba(8,25,42,.92),rgba(3,12,24,.94))!important;
+  overflow:visible!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+body.sdc-max-polished .quote-body{
+  padding-bottom:28px!important;
+}
+
+/* Toast/alertas de bajo stock, sin stock, sin costo, etc. centradas correctamente en celular. */
+@media(max-width:720px){
+  body.sdc-polished #toast.toast,
+  body.sdc-max-polished #toast.toast,
+  #toast.toast{
+    left:50%!important;
+    right:auto!important;
+    width:min(92vw,460px)!important;
+    max-width:min(92vw,460px)!important;
+    bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;
+    transform:translateX(-50%) translateY(18px)!important;
+    text-align:center!important;
+    display:block!important;
+    line-height:1.28!important;
+    font-weight:900!important;
+  }
+  body.sdc-polished #toast.toast.show,
+  body.sdc-max-polished #toast.toast.show,
+  #toast.toast.show{
+    transform:translateX(-50%) translateY(0)!important;
+  }
+  body.sdc-max-polished .sdc-smart-docbar{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    padding:9px!important;
+    border-radius:20px!important;
+  }
+  body.sdc-max-polished .sdc-smart-docbar .sdc-mini-preview{display:none!important;}
+  body.sdc-max-polished .sdc-smart-docbar-main b{font-size:12px!important;}
+  body.sdc-max-polished .sdc-smart-docbar-main span{font-size:10.5px!important;white-space:normal!important;line-height:1.25!important;}
+  body.sdc-max-polished .sdc-smart-docbar button{min-height:40px!important;padding:0 10px!important;font-size:10px!important;}
+}
+
+/* Recibo/cotización descargada: datos en 2 columnas y cliente en fila completa. */
+.receipt-client-pro{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+.receipt-client-pro article.wide{
+  grid-column:1 / -1!important;
+}
+.receipt-client-pro article{
+  min-height:58px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+}
+.receipt-process-pro{
+  grid-template-columns:1fr!important;
+  gap:6px!important;
+  padding:11px 13px!important;
+}
+.receipt-process-pro p{
+  line-height:1.25!important;
+}
+.receipt-footer-pro{
+  align-items:flex-start!important;
+}
+.receipt-footer-pro b{
+  text-wrap:pretty!important;
+}
+
+/* Logo en recibo más claro: contenedor blanco para que no parezca un cuadro oscuro. */
+.receipt-brand-pro .doc-logo,
+.doc-wrap .doc-logo{
+  background:#ffffff!important;
+  padding:4px!important;
+  border:1px solid #d8e8f1!important;
+  box-shadow:0 0 0 1px rgba(8,31,50,.06),0 10px 24px rgba(8,31,50,.12)!important;
+}
+
+@media(max-width:390px){
+  .receipt-client-pro{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  .receipt-client-pro article{padding:8px!important;border-radius:13px!important;}
+  .receipt-client-pro span{font-size:7.8px!important;letter-spacing:.09em!important;}
+  .receipt-client-pro b{font-size:10.4px!important;line-height:1.18!important;}
+  .receipt-process-pro b{font-size:13px!important;}
+  .receipt-process-pro p{font-size:10.8px!important;}
+}
