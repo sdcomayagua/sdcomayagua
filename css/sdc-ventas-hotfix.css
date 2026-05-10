@@ -392,3 +392,325 @@ body.sdc-ventas-hotfix .receipt-footer-pro b{display:block!important;color:#0716
   body.sdc-ventas-hotfix .modal-actions,
   body.sdc-ventas-hotfix .no-print{display:none!important;}
 }
+
+
+/* =========================================================
+   SD COMAYAGUA · CORRECCIÓN V2 · 2026-05-10
+   Ajustes por capturas: sin barras tapando contenido, acciones
+   más limpias, cotización/factura más legible en móvil.
+   ========================================================= */
+body.sdc-ventas-hotfix,
+body.sdc-v3-app{
+  --sdc-actions-safe: calc(108px + env(safe-area-inset-bottom,0px));
+}
+
+/* Más aire al final para que el menú inferior no tape el editor/productos */
+body.sdc-ventas-hotfix .app,
+body.sdc-v3-app .app,
+body.sdc-polished .app,
+body.sdc-max-polished .app{
+  padding-bottom:calc(var(--navH,92px) + 82px + var(--safe-bottom,0px))!important;
+}
+body.sdc-ventas-hotfix .product-editor,
+body.sdc-ventas-hotfix .editor-form,
+body.sdc-ventas-hotfix .product-form,
+body.sdc-v3-app .product-editor,
+body.sdc-v3-app .editor-form,
+body.sdc-v3-app .product-form{
+  padding-bottom:calc(var(--navH,92px) + 58px + var(--safe-bottom,0px))!important;
+}
+
+/* Modal de cotización/venta: que todo sea parte del scroll, nada flotando sobre la factura */
+body.sdc-ventas-hotfix .modal{
+  position:relative!important;
+}
+body.sdc-ventas-hotfix .quote-body{
+  padding-bottom:18px!important;
+}
+body.sdc-ventas-hotfix .modal-actions.quote-actions,
+body.sdc-ventas-hotfix .quote-actions.premium-actions,
+body.sdc-max-polished .modal-actions.quote-actions,
+body.sdc-max-polished .quote-actions.premium-actions{
+  position:static!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:none!important;
+  z-index:auto!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+  min-height:0!important;
+  margin:16px 0 0!important;
+  padding:12px!important;
+  overflow:visible!important;
+  border-radius:24px!important;
+  border:1px solid rgba(32,223,255,.18)!important;
+  background:linear-gradient(155deg,rgba(8,28,45,.96),rgba(4,13,25,.98))!important;
+  box-shadow:0 16px 34px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06)!important;
+}
+body.sdc-ventas-hotfix .quote-actions.premium-actions:before,
+body.sdc-max-polished .quote-actions.premium-actions:before{
+  display:none!important;
+  content:none!important;
+}
+body.sdc-ventas-hotfix .modal-actions.quote-actions .btn,
+body.sdc-ventas-hotfix .quote-actions.premium-actions .btn,
+body.sdc-max-polished .modal-actions.quote-actions .btn,
+body.sdc-max-polished .quote-actions.premium-actions .btn{
+  width:100%!important;
+  min-width:0!important;
+  flex-basis:auto!important;
+  min-height:58px!important;
+  border-radius:18px!important;
+  padding:10px 8px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  line-height:1.05!important;
+  white-space:normal!important;
+}
+body.sdc-ventas-hotfix .modal-actions.quote-actions .main-wide,
+body.sdc-ventas-hotfix .quote-actions.premium-actions .main-wide,
+body.sdc-max-polished .modal-actions.quote-actions .main-wide,
+body.sdc-max-polished .quote-actions.premium-actions .main-wide{
+  grid-column:1/-1!important;
+  min-width:0!important;
+  flex-basis:auto!important;
+}
+body.sdc-ventas-hotfix .modal-actions.quote-actions .btn b,
+body.sdc-ventas-hotfix .quote-actions.premium-actions .btn b{
+  font-size:12px!important;
+  letter-spacing:.06em!important;
+}
+body.sdc-ventas-hotfix .modal-actions.quote-actions .btn small,
+body.sdc-ventas-hotfix .quote-actions.premium-actions .btn small{
+  font-size:9.5px!important;
+  letter-spacing:.06em!important;
+}
+
+/* La barra de artículos seleccionados ya no queda pegada encima del documento */
+body.sdc-max-polished .sdc-smart-docbar,
+body.sdc-ventas-hotfix .sdc-smart-docbar{
+  position:static!important;
+  top:auto!important;
+  z-index:1!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  margin:8px 0 12px!important;
+  padding:9px!important;
+  border-radius:20px!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.07)!important;
+}
+body.sdc-max-polished .sdc-smart-docbar .sdc-mini-preview,
+body.sdc-ventas-hotfix .sdc-smart-docbar .sdc-mini-preview{
+  display:none!important;
+}
+body.sdc-max-polished .sdc-smart-docbar-main b,
+body.sdc-ventas-hotfix .sdc-smart-docbar-main b{
+  font-size:12px!important;
+  letter-spacing:.06em!important;
+}
+body.sdc-max-polished .sdc-smart-docbar-main span,
+body.sdc-ventas-hotfix .sdc-smart-docbar-main span{
+  font-size:11px!important;
+}
+body.sdc-max-polished .sdc-smart-docbar button,
+body.sdc-ventas-hotfix .sdc-smart-docbar button{
+  min-height:40px!important;
+  border-radius:15px!important;
+  padding:0 12px!important;
+}
+
+/* Orden estable: título primero, productos después, resumen al final */
+body.sdc-ventas-hotfix .current-card,
+body.sdc-max-polished .current-card{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:10px!important;
+}
+body.sdc-ventas-hotfix .current-card-head,
+body.sdc-max-polished .current-card-head{
+  order:0!important;
+  position:static!important;
+  top:auto!important;
+  z-index:auto!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+}
+body.sdc-ventas-hotfix .current-card-head h4,
+body.sdc-max-polished .current-card-head h4{
+  font-size:clamp(20px,5.8vw,30px)!important;
+  line-height:1.08!important;
+  letter-spacing:.04em!important;
+}
+body.sdc-ventas-hotfix #cartNotice{order:1!important;}
+body.sdc-ventas-hotfix #cartList,
+body.sdc-max-polished #cartList{order:2!important;}
+body.sdc-ventas-hotfix #totalsMini,
+body.sdc-max-polished #totalsMini{order:3!important;}
+body.sdc-ventas-hotfix .cart-row-v24,
+body.sdc-max-polished .cart-row-v24{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:10px!important;
+  align-items:center!important;
+  border-radius:18px!important;
+}
+body.sdc-ventas-hotfix .cart-row-v24 .cart-info,
+body.sdc-max-polished .cart-row-v24 .cart-info{grid-column:1/-1!important;}
+body.sdc-ventas-hotfix .cart-row-v24 .qtybox,
+body.sdc-max-polished .cart-row-v24 .qtybox{
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:42px minmax(54px,1fr) 42px!important;
+}
+body.sdc-ventas-hotfix .cart-row-v24 .remove-item,
+body.sdc-max-polished .cart-row-v24 .remove-item{
+  width:auto!important;
+  min-width:96px!important;
+  min-height:42px!important;
+  border-radius:15px!important;
+}
+
+/* Vista previa de factura/cotización: centrada, sin salirse ni cortarse */
+body.sdc-ventas-hotfix .preview-card,
+body.sdc-max-polished .preview-card{
+  padding:10px!important;
+  overflow:visible!important;
+}
+body.sdc-ventas-hotfix #docPreview,
+body.sdc-max-polished #docPreview{
+  overflow:visible!important;
+}
+body.sdc-ventas-hotfix #docPreview .doc-wrap,
+body.sdc-ventas-hotfix #docPreview .receipt-pro-v4,
+body.sdc-max-polished #docPreview .doc-wrap,
+body.sdc-max-polished #docPreview .receipt-pro-v4{
+  width:100%!important;
+  max-width:100%!important;
+  margin-inline:auto!important;
+}
+
+/* Productos e imágenes: evita fondos blancos gigantes y mejora el encuadre */
+body.sdc-ventas-hotfix .product-media,
+body.sdc-v3-app .product-media,
+body.sdc-polished .product-media,
+body.sdc-max-polished .product-media{
+  aspect-ratio:1/1!important;
+  border-radius:24px!important;
+  background:linear-gradient(180deg,#ffffff,#edf7ff)!important;
+  display:grid!important;
+  place-items:center!important;
+}
+body.sdc-ventas-hotfix .product-media img,
+body.sdc-v3-app .product-media img,
+body.sdc-polished .product-media img,
+body.sdc-max-polished .product-media img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  padding:6px!important;
+  background:#fff!important;
+}
+
+@media(max-width:760px){
+  body.sdc-ventas-hotfix .modal-backdrop{
+    padding:6px!important;
+    align-items:flex-start!important;
+  }
+  body.sdc-ventas-hotfix .modal{
+    width:calc(100vw - 12px)!important;
+    max-width:calc(100vw - 12px)!important;
+    max-height:calc(100dvh - 12px)!important;
+    border-radius:24px!important;
+  }
+  body.sdc-ventas-hotfix .modal-head.quote-head{
+    min-height:64px!important;
+    padding:12px!important;
+  }
+  body.sdc-ventas-hotfix .modal-head.quote-head h3{
+    font-size:clamp(22px,7.8vw,32px)!important;
+    letter-spacing:.02em!important;
+    max-width:calc(100% - 62px)!important;
+  }
+  body.sdc-ventas-hotfix .modal-head.quote-head .close{
+    width:50px!important;
+    height:50px!important;
+    min-width:50px!important;
+    min-height:50px!important;
+  }
+  body.sdc-ventas-hotfix .quote-grid{
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+  }
+  body.sdc-ventas-hotfix .quote-grid .picker-card,
+  body.sdc-ventas-hotfix .quote-grid .calc-card,
+  body.sdc-ventas-hotfix .quote-grid .current-card,
+  body.sdc-ventas-hotfix .quote-grid .preview-card{
+    grid-column:1!important;
+  }
+  body.sdc-ventas-hotfix .quote-grid .picker-card{order:1!important;}
+  body.sdc-ventas-hotfix .quote-grid .current-card{order:2!important;}
+  body.sdc-ventas-hotfix .quote-grid .calc-card{order:3!important;}
+  body.sdc-ventas-hotfix .quote-grid .preview-card{order:4!important;}
+  body.sdc-ventas-hotfix #pickerList{
+    max-height:none!important;
+    overflow:visible!important;
+  }
+  body.sdc-ventas-hotfix #pickerList .picker-item{
+    grid-template-columns:58px minmax(0,1fr)!important;
+  }
+  body.sdc-ventas-hotfix #pickerList .add-pick-btn{
+    grid-column:1/-1!important;
+    width:100%!important;
+  }
+  body.sdc-ventas-hotfix .modal-actions.quote-actions,
+  body.sdc-ventas-hotfix .quote-actions.premium-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+    padding:10px!important;
+    margin-top:14px!important;
+  }
+  body.sdc-ventas-hotfix .modal-actions.quote-actions .btn,
+  body.sdc-ventas-hotfix .quote-actions.premium-actions .btn{
+    min-height:58px!important;
+    border-radius:17px!important;
+  }
+  body.sdc-ventas-hotfix .quote-actions #sendCompleteQuote,
+  body.sdc-ventas-hotfix .quote-actions #saveQuote,
+  body.sdc-ventas-hotfix .quote-actions #toSale,
+  body.sdc-ventas-hotfix .quote-actions #finishSale,
+  body.sdc-ventas-hotfix .quote-actions #printDoc{
+    grid-column:1/-1!important;
+  }
+  body.sdc-ventas-hotfix .sdc-modal-steps{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+  body.sdc-ventas-hotfix .sdc-modal-steps button{
+    min-height:38px!important;
+    border-radius:14px!important;
+    font-size:10px!important;
+  }
+  body.sdc-ventas-hotfix .cart-row-v24,
+  body.sdc-max-polished .cart-row-v24{
+    grid-template-columns:1fr 102px!important;
+  }
+}
+
+@media(max-width:390px){
+  body.sdc-ventas-hotfix .modal-actions.quote-actions,
+  body.sdc-ventas-hotfix .quote-actions.premium-actions{
+    grid-template-columns:1fr!important;
+  }
+  body.sdc-ventas-hotfix .cart-row-v24,
+  body.sdc-max-polished .cart-row-v24{
+    grid-template-columns:1fr!important;
+  }
+  body.sdc-ventas-hotfix .cart-row-v24 .remove-item,
+  body.sdc-max-polished .cart-row-v24 .remove-item{
+    width:100%!important;
+  }
+}

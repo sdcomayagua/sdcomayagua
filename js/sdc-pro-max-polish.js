@@ -85,7 +85,8 @@
     var main = $('.sdc-smart-docbar-main', bar);
     if(main){
       if(count > 0){
-        main.innerHTML = '<b>' + pill + ' seleccionados</b><span>Total actual: ' + total + ' · toque “Ver lista” para revisar.</span>';
+        var selectedText = count === 1 ? '1 artículo seleccionado' : pill + ' seleccionados';
+        main.innerHTML = '<b>' + selectedText + '</b><span>Total: ' + total + ' · Ver lista para revisar.</span>';
       }else{
         main.innerHTML = '<b>Sin productos seleccionados</b><span>Toque una tarjeta para agregarla a la cotización.</span>';
       }
