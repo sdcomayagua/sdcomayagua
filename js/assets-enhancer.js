@@ -1,43 +1,48 @@
-// Recursos visuales SD COMAYAGUA: logo global e imágenes predeterminadas por categoría.
-// Versión estable 1.3.1: optimizada para no bloquear la página.
+// SD COMAYAGUA POS - cargador visual seguro v1.3.7
 (function () {
-  const VERSION = '1.3.1';
+  const VERSION = '1.3.7';
   const LOGO = `assets/logo-sdc.svg?v=${VERSION}`;
   const RECEIPT_LOGO = `assets/logo-sdc-receipt.svg?v=${VERSION}`;
-  const GENERAL = `assets/categorias/general.svg?v=${VERSION}`;
 
-  const rules = [
-    ['dedal', 'dedales'], ['guante', 'guantes'], ['gatillo', 'gatillo'], ['trigger', 'trigger'],
-    ['gamer', 'gamer-movil'], ['gaming', 'gamer'], ['gamepad', 'gamer'], ['control', 'gamer'],
-    ['audifono', 'audifonos'], ['auricular', 'auriculares'], ['audio', 'audio'], ['tipo c', 'tipo-c'],
-    ['adaptador', 'adaptador'], ['microsd', 'microsd'], ['micro sd', 'micro-sd'], ['memoria', 'memoria'], ['usb', 'memoria'],
-    ['cable', 'cable'], ['cargador', 'cargador'], ['cooler', 'cooler'], ['enfriador', 'enfriador'],
-    ['belleza', 'belleza'], ['cocina', 'cocina'], ['herramienta', 'herramientas'], ['hogar', 'hogar'],
-    ['termo', 'termo'], ['zapato', 'zapatos'], ['secador', 'secador-zapatos'], ['limpieza', 'limpieza'],
-    ['celular', 'celulares'], ['tecnologia', 'tecnologia'], ['accesorio', 'accesorios']
+  const cssFiles = [
+    'css/mobile-fix.css',
+    'css/final-polish.css',
+    'css/catalog-mode.css',
+    'css/mobile-redesign.css'
+  ];
+  const jsFiles = [
+    'js/document-actions.js',
+    'js/catalog-mode.js'
   ];
 
-  const normalize = (value = '') => String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-
-  const escapeHtml = (text = '') => String(text || '').replace(/[&<>'"]/g, c => ({
-    '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#039;', '"':'&quot;'
-  }[c]));
-
-  function categoryImage(product = {}) {
-    const source = normalize(`${product.categoria || ''} ${product.nombre || ''}`);
-    const found = rules.find(([keyword]) => source.includes(keyword));
-    return `assets/categorias/${found ? found[1] : 'general'}.svg?v=${VERSION}`;
+  function loadCss(path) {
+    if ([...document.styleSheets].some(s => s.href && s.href.includes(path))) return;
+    if (document.querySelector(`link[href*="${path}"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `${path}?v=${VERSION}`;
+    document.head.appendChild(link);
   }
 
-  function injectStyle() {
+  function loadScript(path) {
+    if (document.querySelector(`script[src*="${path}"]`)) return;
+    const script = document.createElement('script');
+    script.src = `${path}?v=${VERSION}`;
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
+  function injectAssets() {
+    cssFiles.forEach(loadCss);
+    jsFiles.forEach(loadScript);
+  }
+
+  function injectBaseStyle() {
     if (document.getElementById('sdcAssetsStyle')) return;
     const style = document.createElement('style');
     style.id = 'sdcAssetsStyle';
     style.textContent = `
+      html,body{max-width:100%;overflow-x:hidden!important;}
       .logo-mark{overflow:hidden;background:rgba(255,255,255,.06)!important;border:1px solid var(--line)!important;}
       .logo-mark img,.topbar-logo{width:100%;height:100%;object-fit:contain;display:block;padding:4px;}
       .topbar-brandline{display:flex;align-items:center;gap:14px;min-width:0;}
@@ -45,65 +50,18 @@
       .product-img img.default-product-img{object-fit:contain!important;padding:18px;filter:drop-shadow(0 12px 20px rgba(0,0,0,.24));}
       .receipt-logo{width:74px;height:74px;object-fit:contain;display:block;margin:0 auto 8px;}
       .receipt-header{text-align:center;border-bottom:1px solid #e2e8f0;padding-bottom:10px;margin-bottom:10px;}
-      @media(max-width:620px){.topbar-brandline{gap:10px}.topbar-logo{width:42px;height:42px}}
+      @media(max-width:620px){.topbar{position:static!important;top:auto!important}.topbar .btn[data-open-product],.top-actions .btn[data-open-product]{display:none!important}.topbar-logo{width:42px;height:42px}.view-root{overflow-x:hidden!important}.status-strip{grid-template-columns:repeat(2,minmax(0,1fr))!important}.card{max-width:calc(100vw - 28px)!important}}
     `;
     document.head.appendChild(style);
   }
 
-  function ensureImage(container, src, alt, className) {
-    if (!container) return;
-    const current = container.querySelector('img');
-    if (current) {
-      if (!current.src.includes(src.split('?')[0])) current.src = src;
-      if (className) current.classList.add(className);
-      if (!current.alt) current.alt = alt;
-      current.onerror = function () { this.onerror = null; this.style.display = 'none'; };
-      return;
-    }
-    container.innerHTML = `<img class="${className || ''}" src="${src}" alt="${escapeHtml(alt)}">`;
-  }
-
   function applyLogo() {
     document.querySelectorAll('.logo-mark').forEach(node => {
-      if (node.dataset.sdcLogoApplied === '1') return;
-      ensureImage(node, LOGO, 'Logo SD COMAYAGUA', 'sdc-logo-img');
-      node.dataset.sdcLogoApplied = '1';
+      if (node.querySelector('img')) return;
+      node.innerHTML = `<img src="${LOGO}" alt="Logo SD COMAYAGUA">`;
     });
-
-    const titleBlock = document.querySelector('.topbar > div:not(.top-actions)');
-    if (!titleBlock) return;
-    titleBlock.classList.add('topbar-brandline');
-    if (!titleBlock.querySelector('.topbar-logo')) {
-      titleBlock.insertAdjacentHTML('afterbegin', `<img class="topbar-logo" src="${LOGO}" alt="Logo SD COMAYAGUA">`);
-    }
-  }
-
-  function applyProductDefaults() {
-    const stateProducts = window.SD_POS?.state?.products || [];
-    document.querySelectorAll('.product-card').forEach(card => {
-      const holder = card.querySelector('.product-img');
-      if (!holder || holder.dataset.sdcDefaultReady === '1') return;
-
-      const code = card.dataset.code;
-      const product = stateProducts.find(item => String(item.codigo) === String(code)) || {
-        nombre: card.querySelector('h3')?.textContent || '',
-        categoria: card.textContent || ''
-      };
-      const fallback = categoryImage(product);
-      const img = holder.querySelector('img');
-
-      if (!img) {
-        holder.innerHTML = `<img class="default-product-img" src="${fallback}" alt="Imagen predeterminada para ${escapeHtml(product.nombre || 'producto')}" loading="lazy">`;
-        holder.dataset.sdcDefaultReady = '1';
-        return;
-      }
-
-      img.onerror = function () {
-        this.onerror = null;
-        this.src = fallback;
-        this.classList.add('default-product-img');
-      };
-      holder.dataset.sdcDefaultReady = '1';
+    document.querySelectorAll('.topbar-logo').forEach(img => {
+      if (!img.src.includes('assets/logo-sdc.svg')) img.src = LOGO;
     });
   }
 
@@ -121,9 +79,9 @@
   }
 
   function run() {
-    injectStyle();
+    injectAssets();
+    injectBaseStyle();
     applyLogo();
-    applyProductDefaults();
     applyReceiptLogo();
   }
 
@@ -139,5 +97,5 @@
 
   document.addEventListener('DOMContentLoaded', run);
   window.addEventListener('load', run);
-  new MutationObserver(scheduleRun).observe(document.body || document.documentElement, { childList: true, subtree: true });
+  new MutationObserver(scheduleRun).observe(document.documentElement, { childList: true, subtree: true });
 })();
