@@ -5,12 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0f172a" />
   <title>SD COMAYAGUA POS</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="css/styles.css" />
-  <link rel="stylesheet" href="css/themes.css" />
-  <link rel="stylesheet" href="css/mobile.css" />
-  <link rel="stylesheet" href="css/print.css" media="print" />
+  <link rel="manifest" href="manifest.json?v=1.2.0" />
+  <link rel="icon" href="assets/icons/icon.svg?v=1.2.0" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/styles.css?v=1.2.0" />
+  <link rel="stylesheet" href="css/themes.css?v=1.2.0" />
+  <link rel="stylesheet" href="css/mobile.css?v=1.2.0" />
+  <link rel="stylesheet" href="css/print.css?v=1.2.0" media="print" />
+  <style>
+    /* parche anti-pantalla borrosa: nunca mostrar una capa modal vacía */
+    [hidden], .modal-root[hidden], .modal-root:empty { display: none !important; }
+    .modal-root:not([hidden]):empty { pointer-events: none; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  </style>
 </head>
 <body data-theme="dark" data-accent="blue">
   <div id="app" class="app-shell">
@@ -81,6 +86,16 @@
   <datalist id="categoriasList"></datalist>
   <datalist id="marcasList"></datalist>
 
-  <script type="module" src="js/app.js"></script>
+  <script>
+    // Limpieza preventiva por si el navegador dejó visible la capa modal en caché.
+    document.addEventListener('DOMContentLoaded', function () {
+      var modal = document.getElementById('modalRoot');
+      if (modal && modal.children.length === 0) {
+        modal.innerHTML = '';
+        modal.setAttribute('hidden', '');
+      }
+    });
+  </script>
+  <script type="module" src="js/app.js?v=1.2.0"></script>
 </body>
 </html>
