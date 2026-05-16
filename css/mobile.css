@@ -1,7 +1,14 @@
 @media (max-width: 980px) {
   .app-shell { grid-template-columns: 1fr; }
   .sidebar { display:none; }
-  .topbar { padding: 16px 16px 10px; }
+  .topbar {
+    position: static !important;
+    top: auto !important;
+    padding: 16px 16px 10px;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
   .view-root { padding: 8px 16px 112px; }
   .status-strip { grid-template-columns: repeat(2, minmax(0,1fr)); padding: 0 16px 10px; }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -15,20 +22,19 @@
   .main-area { width: 100%; max-width: 100vw; }
 
   .topbar {
-    align-items: center;
-    position: sticky;
+    align-items: flex-start;
+    min-height: auto;
     padding: 18px 14px 8px;
-    min-height: 112px;
     gap: 10px;
   }
   .topbar-brandline {
     gap: 10px;
     width: 100%;
     min-width: 0;
-    padding-right: 66px;
+    padding-right: 56px;
   }
   .topbar-brandline > div { min-width: 0; }
-  .topbar-logo { width: 48px; height: 48px; border-radius: 16px; flex: 0 0 auto; }
+  .topbar-logo { width: 46px; height: 46px; border-radius: 16px; flex: 0 0 auto; }
   .eyebrow {
     font-size: .70rem;
     letter-spacing: .10em;
@@ -46,27 +52,14 @@
     align-items: center;
   }
   .top-actions .icon-btn {
-    width: 50px;
-    height: 50px;
-    min-height: 50px;
-    border-radius: 18px;
-    box-shadow: 0 14px 28px rgba(0,0,0,.18);
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    border-radius: 16px;
+    box-shadow: 0 10px 22px rgba(0,0,0,.16);
   }
   .top-actions .btn[data-open-product] {
-    width: 50px;
-    min-width: 50px;
-    height: 50px;
-    min-height: 50px;
-    padding: 0;
-    border-radius: 18px;
-    font-size: 0;
-    box-shadow: 0 16px 32px rgba(37,99,235,.30);
-  }
-  .top-actions .btn[data-open-product]::before {
-    content: '+';
-    font-size: 1.65rem;
-    line-height: 1;
-    font-weight: 950;
+    display: none !important;
   }
 
   .status-strip {
@@ -103,6 +96,17 @@
     font-size: .78rem;
     line-height: 1.15;
     text-align: center;
+  }
+
+  .catalog-toolbar {
+    margin-top: 8px;
+  }
+  .catalog-toolbar .toolbar-add,
+  .catalog-toolbar [data-open-product] {
+    min-height: 46px;
+    border-radius: 15px;
+    font-size: .9rem;
+    box-shadow: 0 10px 22px rgba(37,99,235,.18);
   }
 
   .form-grid { grid-template-columns: 1fr; }
