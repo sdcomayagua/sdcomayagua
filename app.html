@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es-HN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>SD COMAYAGUA POS</title>
+  <link rel="manifest" href="manifest.json?v=1.3.0" />
+  <link rel="icon" href="assets/logo-sdc.svg?v=1.3.0" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/styles.css?v=1.3.0" />
+  <link rel="stylesheet" href="css/themes.css?v=1.3.0" />
+  <link rel="stylesheet" href="css/mobile.css?v=1.3.0" />
+  <link rel="stylesheet" href="css/print.css?v=1.3.0" media="print" />
+</head>
+<body data-theme="dark" data-accent="blue">
+  <div id="app" class="app-shell">
+    <aside class="sidebar" aria-label="Menú principal">
+      <div class="brand">
+        <div class="logo-mark"><img src="assets/logo-sdc.svg?v=1.3.0" alt="Logo SD COMAYAGUA" /></div>
+        <div>
+          <strong>SD COMAYAGUA</strong>
+          <span>POS Honduras</span>
+        </div>
+      </div>
+      <nav class="nav-list" id="desktopNav"></nav>
+      <div class="sidebar-card">
+        <small>Google Sheet ID</small>
+        <code id="sheetIdLabel">Cargando...</code>
+      </div>
+    </aside>
+
+    <section class="main-area">
+      <header class="topbar">
+        <div class="topbar-brandline">
+          <img class="topbar-logo" src="assets/logo-sdc.svg?v=1.3.0" alt="Logo SD COMAYAGUA" />
+          <div>
+            <p class="eyebrow">Sistema de inventario, catálogo y ventas</p>
+            <h1 id="viewTitle">Inicio</h1>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" id="themeToggle" title="Cambiar tema">◐</button>
+          <button class="btn ghost" id="syncBtn">Sincronizar</button>
+          <button class="btn primary" data-open-product>+ Producto</button>
+        </div>
+      </header>
+
+      <div class="status-strip" id="statusStrip"></div>
+      <main id="viewRoot" class="view-root" tabindex="-1"></main>
+    </section>
+
+    <nav class="bottom-nav" id="mobileNav" aria-label="Menú móvil"></nav>
+  </div>
+
+  <div id="toastRoot" class="toast-root" aria-live="polite"></div>
+  <div id="modalRoot" class="modal-root" hidden></div>
+
+  <template id="productFormTemplate">
+    <form class="form-grid" id="productForm">
+      <input type="hidden" name="previousCodigo" />
+      <label>Código <input name="codigo" required placeholder="SDC-0001" autocomplete="off" /></label>
+      <label>Nombre <input name="nombre" required placeholder="Audífonos Bluetooth" /></label>
+      <label>Categoría <input name="categoria" placeholder="Tecnología" list="categoriasList" /></label>
+      <label>Marca <input name="marca" placeholder="Genérica" list="marcasList" /></label>
+      <label>Precio <input name="precio" type="number" step="0.01" min="0" required placeholder="0.00" /></label>
+      <label>Costo <input name="costo" type="number" step="0.01" min="0" placeholder="0.00" /></label>
+      <label>Stock <input name="stock" type="number" step="1" min="0" required placeholder="0" /></label>
+      <label>Colores / variantes <input name="colores" placeholder="Negro=5; Azul=2" /></label>
+      <label class="span-2">Imagen principal <input name="imagen" type="url" placeholder="https://..." /></label>
+      <label class="span-2">Galería <textarea name="galeria" rows="2" placeholder="Una URL por línea o separadas por coma"></textarea></label>
+      <label class="span-2">Descripción <textarea name="descripcion" rows="3" placeholder="Detalle comercial del producto"></textarea></label>
+      <label class="span-2">Promoción <textarea name="promos" rows="2" placeholder="2 unidades por Lps. 500"></textarea></label>
+      <label class="switch-row span-2"><input name="activo" type="checkbox" checked /> Producto activo</label>
+      <label class="span-2">Notas internas <textarea name="notas" rows="2" placeholder="Proveedor, ubicación o notas internas"></textarea></label>
+      <div class="form-actions span-2">
+        <button type="button" class="btn ghost" data-action="generate-code">Generar código</button>
+        <button type="button" class="btn secondary" data-action="recalc-stock">Recalcular stock desde colores</button>
+        <button type="button" class="btn ghost" data-close-modal>Cancelar</button>
+        <button class="btn primary" type="submit">Guardar producto</button>
+      </div>
+    </form>
+  </template>
+
+  <datalist id="categoriasList"></datalist>
+  <datalist id="marcasList"></datalist>
+
+  <script type="module" src="js/app.js?v=1.3.0"></script>
+  <script src="js/assets-enhancer.js?v=1.3.0"></script>
+</body>
+</html>
