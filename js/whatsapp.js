@@ -31,15 +31,15 @@ function parsePromoLines(text='') {
 }
 
 function imageLine(product) {
-  return product.imagen ? `\n- Foto: ${product.imagen}` : '';
+  return product.imagen ? `\n🖼️ Foto: ${product.imagen}` : '';
 }
 
 export function buildProductWhatsApp(product) {
   const promoLines = parsePromoLines(product.promos);
   const promoBlock = promoLines.length
-    ? `\n\n*Promociones por cantidad*\n${promoLines.map(line => `- ${line}`).join('\n')}`
+    ? `\n\n🎁 *Promociones por cantidad*\n${promoLines.map(line => `• ${line}`).join('\n')}`
     : '';
-  return `*${state.settings.storeName}*\n\n*Producto solicitado*\n- Nombre: ${product.nombre}\n- Codigo: ${product.codigo}\n- Precio: ${formatMoney(product.precio, state.settings)}\n- Stock disponible: ${product.stock}${imageLine(product)}${promoBlock}\n\nEsta disponible para entrega?`;
+  return `🏪 *${state.settings.storeName}*\n\n📦 *Producto solicitado*\n• Nombre: ${product.nombre}\n• Código: ${product.codigo}\n• Precio: ${formatMoney(product.precio, state.settings)}\n• Stock disponible: ${product.stock}${imageLine(product)}${promoBlock}\n\n¿Está disponible para entrega?`;
 }
 
 function safeItems(document) {
@@ -59,62 +59,84 @@ function correctedTotals(document) {
   }
 
   const total = Math.max(0, neto + envio + comision);
-  return { subtotal, descuento, envio, comision, total };
+  return { subtotal, descuento, envio, comision, total, envioMasComision: envio + comision };
 }
 
 function customerBlock(document) {
   const rows = [];
-  rows.push(`- Nombre: ${document.cliente || 'Cliente'}`);
-  if (document.telefono) rows.push(`- Telefono: ${document.telefono}`);
+  rows.push(`• Nombre: ${document.cliente || 'Cliente'}`);
+  if (document.telefono) rows.push(`• Teléfono: ${document.telefono}`);
   const location = [document.departamento, document.municipio].filter(Boolean).join(' / ');
-  if (location) rows.push(`- Ubicacion: ${location}`);
-  if (document.direccion) rows.push(`- Direccion: ${document.direccion}`);
+  if (location) rows.push(`• Ubicación: ${location}`);
+  if (document.direccion) rows.push(`• Dirección: ${document.direccion}`);
   return rows.join('\n');
 }
 
 function deliveryMode(document, totals) {
-  if (totals.comision > 0) return 'Pagar al recibir';
-  if (totals.envio > 0) return 'Envio normal';
-  return 'Sin envio';
+  if (totals.comision > 0) return 'Pagar al recibir / COD';
+  if (totals.envio > 0) return 'Envío normal';
+  return 'Sin envío';
 }
 
-export function buildWhatsAppMessage(document, type='venta') {
-  const id = document.venta_id || document.cotizacion_id || 'SIN-ID';
-  const items = safeItems(document);
-  const totals = correctedTotals(document);
-  const title = type === 'venta' ? 'PEDIDO / VENTA' : 'COTIZACION';
-  const fecha = document.fecha ? new Date(document.fecha).toLocaleString('es-HN') : new Date().toLocaleString('es-HN');
-  const entregaMasComision = totals.envio + totals.comision;
+function titleText(type) {
+  return type === 'venta' ? 'PEDIDO / VENTA' : 'COTIZACIÓN';
+}
 
-  const productLines = items.map((i, index) => {
+function productLines(items) {
+  return items.map((i, index) => {
     const qty = number(i.qty) || 1;
     const unit = number(i.precio);
     const lineTotal = number(i.total || i.subtotal || (unit * qty - number(i.discount)));
-    return `${index + 1}) *${i.nombre || 'Producto'}*${i.color ? ` (${i.color})` : ''}\n   - Cantidad: ${qty}\n   - Precio: ${formatMoney(unit, state.settings)} c/u\n   - Total: ${formatMoney(lineTotal, state.settings)}`;
+    return `${index + 1}) *${i.nombre || 'Producto'}*${i.color ? ` (${i.color})` : ''}\n   • Cantidad: ${qty}\n   • Precio: ${formatMoney(unit, state.settings)} c/u\n   • Total: ${formatMoney(lineTotal, state.settings)}`;
   }).join('\n\n');
+}
 
+function partOne(document, type='venta') {
+  const id = document.venta_id || document.cotizacion_id || 'SIN-ID';
+  const items = safeItems(document);
+  const totals = correctedTotals(document);
+  const fecha = document.fecha ? new Date(document.fecha).toLocaleString('es-HN') : new Date().toLocaleString('es-HN');
+
+  return `🧾 *${titleText(type)} - ${state.settings.storeName}*\n` +
+    `*PARTE 1 de 2: Datos y productos*\n\n` +
+    `📌 *Código:* ${id}\n` +
+    `📅 *Fecha:* ${fecha}\n` +
+    `📍 *Estado:* ${document.estado || ''}\n\n` +
+    `👤 *CLIENTE*\n${customerBlock(document)}\n\n` +
+    `📦 *PRODUCTOS*\n${productLines(items) || '• Sin productos'}\n\n` +
+    `🚚 *ENTREGA*\n` +
+    `• Modalidad: ${deliveryMode(document, totals)}\n` +
+    `• Envío: ${formatMoney(totals.envio, state.settings)}\n\n` +
+    `✅ En el siguiente mensaje te envío el resumen final de pago.`;
+}
+
+function partTwo(document, type='venta') {
+  const totals = correctedTotals(document);
   const codNote = totals.comision > 0
-    ? `\n- Nota: Producto + envio + comision 6%. Total redondeado.`
+    ? `\nℹ️ Comisión calculada sobre producto + envío al 6%, redondeada hacia arriba.`
     : '';
 
-  return `*${title} - ${state.settings.storeName}*\n\n` +
-    `*Codigo:* ${id}\n` +
-    `*Fecha:* ${fecha}\n` +
-    `*Estado:* ${document.estado || ''}\n\n` +
-    `*CLIENTE*\n${customerBlock(document)}\n\n` +
-    `*PRODUCTOS*\n${productLines || '- Sin productos'}\n\n` +
-    `*ENTREGA Y PAGO*\n` +
-    `- Modalidad: ${deliveryMode(document, totals)}\n` +
-    `- Envio: ${formatMoney(totals.envio, state.settings)}\n` +
-    `- Comision pagar al recibir: ${formatMoney(totals.comision, state.settings)}${codNote}\n\n` +
-    `*RESUMEN*\n` +
-    `- Productos: ${formatMoney(totals.subtotal, state.settings)}\n` +
-    `- Envio + comision: ${formatMoney(entregaMasComision, state.settings)}\n` +
-    `- Descuento: ${formatMoney(totals.descuento, state.settings)}\n\n` +
-    `*TOTAL A PAGAR: ${formatMoney(totals.total, state.settings)}*\n\n` +
-    `Cotizacion pendiente de confirmacion. No aparta producto. Antes de pagar, confirme disponibilidad, entrega y total final.\n\n` +
-    `*${state.settings.storeName}*\n` +
-    `WhatsApp: ${state.settings.whatsapp || ''}`;
+  return `💰 *RESUMEN DE PAGO - ${state.settings.storeName}*\n` +
+    `*PARTE 2 de 2: Total final*\n\n` +
+    `🛒 Productos: *${formatMoney(totals.subtotal, state.settings)}*\n` +
+    `🚚 Envío: *${formatMoney(totals.envio, state.settings)}*\n` +
+    `📦 Comisión COD: *${formatMoney(totals.comision, state.settings)}*\n` +
+    `🏷️ Descuento: *${formatMoney(totals.descuento, state.settings)}*\n\n` +
+    `✅ *TOTAL A PAGAR: ${formatMoney(totals.total, state.settings)}*\n` +
+    `${codNote}\n\n` +
+    `⚠️ Cotización pendiente de confirmación. No aparta producto. Antes de pagar, confirme disponibilidad, entrega y total final.\n\n` +
+    `🏪 *${state.settings.storeName}*\n` +
+    `📲 WhatsApp: ${state.settings.whatsapp || ''}`;
+}
+
+export function buildWhatsAppMessagePart(document, type='venta', part='full') {
+  if (part === '1' || part === 1 || part === 'parte1') return partOne(document, type);
+  if (part === '2' || part === 2 || part === 'parte2') return partTwo(document, type);
+  return `${partOne(document, type)}\n\n------------------------------\n\n${partTwo(document, type)}`;
+}
+
+export function buildWhatsAppMessage(document, type='venta') {
+  return buildWhatsAppMessagePart(document, type, 'full');
 }
 
 export function openWhatsApp(message, phone=state.settings.whatsapp) {
