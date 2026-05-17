@@ -1,5 +1,5 @@
-// SD COMAYAGUA POS - Service Worker v1.4.3
-const CACHE_NAME = 'sd-comayagua-pos-v1.4.3';
+// SD COMAYAGUA POS - Service Worker v1.4.4
+const CACHE_NAME = 'sd-comayagua-pos-v1.4.4';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -17,6 +17,7 @@ const CORE_ASSETS = [
   './css/mobile-final-v140.css',
   './css/catalog-shipping-v141.css',
   './css/stock-states-v143.css',
+  './css/shipping-modal-polish-v144.css',
   './css/print.css',
   './js/config.js',
   './js/app.js',
