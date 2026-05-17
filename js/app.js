@@ -91,8 +91,8 @@ function bindViewEvents(view) {
   if (view === 'settings') bindSettingsEvents(root);
 }
 function bindCommonProductButtons(container) {
-  container.querySelectorAll('[data-cart-add]').forEach(btn => btn.addEventListener('click', () => { addToCart(btn.dataset.cartAdd, 'sale'); navigate('cart'); }));
-  container.querySelectorAll('[data-quote-add]').forEach(btn => btn.addEventListener('click', () => { addToCart(btn.dataset.quoteAdd, 'quote'); navigate('cart'); }));
+  container.querySelectorAll('[data-cart-add]').forEach(btn => btn.addEventListener('click', () => { addToCart(btn.dataset.cartAdd, 'sale'); }));
+  container.querySelectorAll('[data-quote-add]').forEach(btn => btn.addEventListener('click', () => { addToCart(btn.dataset.quoteAdd, 'quote'); }));
   container.querySelectorAll('[data-whatsapp-product]').forEach(btn => btn.addEventListener('click', () => {
     const product = state.products.find(p => p.codigo === btn.dataset.whatsappProduct);
     if (product) openWhatsApp(buildProductWhatsApp(product));
