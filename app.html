@@ -8,22 +8,24 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>SD COMAYAGUA POS</title>
-  <link rel="manifest" href="manifest.json?v=1.4.9" />
-  <link rel="icon" href="assets/logo-sdc.svg?v=1.4.9" type="image/svg+xml" />
-  <link rel="stylesheet" href="css/styles.css?v=1.4.9" />
-  <link rel="stylesheet" href="css/themes.css?v=1.4.9" />
-  <link rel="stylesheet" href="css/mobile.css?v=1.4.9" />
-  <link rel="stylesheet" href="css/catalog-polish.css?v=1.4.9" />
-  <link rel="stylesheet" href="css/product-image-upload-v147.css?v=1.4.9" />
-  <link rel="stylesheet" href="css/mobile-ui-fix-v148.css?v=1.4.9" />
-  <link rel="stylesheet" href="css/sdc-pro-upgrades-v149.css?v=1.4.9" />
-  <link rel="stylesheet" href="css/print.css?v=1.4.9" media="print" />
+  <link rel="manifest" href="manifest.json?v=1.5.2" />
+  <link rel="icon" href="assets/logo-sdc.svg?v=1.5.2" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/styles.css?v=1.5.2" />
+  <link rel="stylesheet" href="css/themes.css?v=1.5.2" />
+  <link rel="stylesheet" href="css/mobile.css?v=1.5.2" />
+  <link rel="stylesheet" href="css/catalog-polish.css?v=1.5.2" />
+  <link rel="stylesheet" href="css/product-image-upload-v147.css?v=1.5.2" />
+  <link rel="stylesheet" href="css/mobile-ui-fix-v148.css?v=1.5.2" />
+  <link rel="stylesheet" href="css/sdc-pro-upgrades-v149.css?v=1.5.2" />
+  <link rel="stylesheet" href="css/sdc-mobile-fixes-v150.css?v=1.5.2" />
+  <link rel="stylesheet" href="css/sdc-mobile-final-v151.css?v=1.5.2" />
+  <link rel="stylesheet" href="css/print.css?v=1.5.2" media="print" />
 </head>
 <body data-theme="dark" data-accent="blue">
   <div id="app" class="app-shell">
     <aside class="sidebar" aria-label="Menú principal">
       <div class="brand">
-        <div class="logo-mark"><img src="assets/logo-sdc.svg?v=1.4.9" alt="Logo SD COMAYAGUA" /></div>
+        <div class="logo-mark"><img src="assets/logo-sdc.svg?v=1.5.2" alt="Logo SD COMAYAGUA" /></div>
         <div>
           <strong>SD COMAYAGUA</strong>
           <span>POS Honduras</span>
@@ -39,7 +41,7 @@
     <section class="main-area">
       <header class="topbar">
         <div class="topbar-brandline">
-          <img class="topbar-logo" src="assets/logo-sdc.svg?v=1.4.9" alt="Logo SD COMAYAGUA" />
+          <img class="topbar-logo" src="assets/logo-sdc.svg?v=1.5.2" alt="Logo SD COMAYAGUA" />
           <div>
             <p class="eyebrow">Sistema de inventario, catálogo y ventas</p>
             <h1 id="viewTitle">Inicio</h1>
@@ -92,43 +94,9 @@
   <datalist id="categoriasList"></datalist>
   <datalist id="marcasList"></datalist>
 
-  <script type="module" src="js/app.js?v=1.4.9"></script>
-  <script src="js/assets-enhancer.js?v=1.4.9"></script>
-  <script defer src="js/product-image-upload-v147.js?v=1.4.9"></script>
-  <script>
-    (function(){
-      var KEY='sd_pos_app_version';
-      var CHECK_EVERY=180000;
-      function reloadFresh(version){
-        var url=new URL(window.location.href);
-        url.searchParams.set('updated', version || String(Date.now()));
-        window.location.replace(url.toString());
-      }
-      async function checkVersion(){
-        try{
-          var res=await fetch('version.json?v='+Date.now(),{cache:'no-store'});
-          if(!res.ok) return;
-          var data=await res.json();
-          var next=String(data.version||'').trim();
-          if(!next) return;
-          var current=localStorage.getItem(KEY);
-          if(current && current!==next && !new URLSearchParams(location.search).has('updated')){
-            localStorage.setItem(KEY,next);
-            reloadFresh(next);
-            return;
-          }
-          localStorage.setItem(KEY,next);
-        }catch(err){}
-      }
-      window.addEventListener('load',checkVersion);
-      setInterval(checkVersion,CHECK_EVERY);
-      document.addEventListener('click',function(event){
-        if(event.target && event.target.id==='sdcManualUpdate'){
-          localStorage.removeItem(KEY);
-          reloadFresh(String(Date.now()));
-        }
-      });
-    })();
-  </script>
+  <script type="module" src="js/app.js?v=1.5.2"></script>
+  <script src="js/assets-enhancer.js?v=1.5.2"></script>
+  <script defer src="js/product-image-upload-v147.js?v=1.5.2"></script>
+  <script defer src="js/sdc-cache-refresh-v152.js?v=1.5.2"></script>
 </body>
 </html>
