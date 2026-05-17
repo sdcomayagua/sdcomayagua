@@ -113,7 +113,7 @@ function partOne(document, type='venta') {
 function partTwo(document, type='venta') {
   const totals = correctedTotals(document);
   const codNote = totals.comision > 0
-    ? `\n[Info] Comision calculada sobre producto + envio al 6%, redondeada hacia arriba.`
+    ? `\n\n*NOTA SOBRE COMISION*\nComision calculada sobre producto + envio al 6%, redondeada hacia arriba.`
     : '';
 
   return `*RESUMEN DE PAGO - ${state.settings.storeName}*\n` +
@@ -122,9 +122,14 @@ function partTwo(document, type='venta') {
     `[Envio] *${formatMoney(totals.envio, state.settings)}*\n` +
     `[Comision COD] *${formatMoney(totals.comision, state.settings)}*\n` +
     `[Descuento] *${formatMoney(totals.descuento, state.settings)}*\n\n` +
-    `*TOTAL A PAGAR: ${formatMoney(totals.total, state.settings)}*\n` +
+    `*TOTAL A PAGAR: ${formatMoney(totals.total, state.settings)}*` +
     `${codNote}\n\n` +
-    `[Importante] Cotizacion pendiente de confirmacion. No aparta producto. Antes de pagar, confirme disponibilidad, entrega y total final.\n\n` +
+    `------------------------------\n\n` +
+    `*IMPORTANTE*\n\n` +
+    `Cotizacion pendiente de confirmacion.\n` +
+    `No aparta producto.\n` +
+    `Antes de pagar, confirme disponibilidad, entrega y total final.\n\n` +
+    `------------------------------\n\n` +
     `*${state.settings.storeName}*\n` +
     `WhatsApp: ${state.settings.whatsapp || ''}`;
 }
