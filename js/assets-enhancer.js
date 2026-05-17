@@ -1,6 +1,6 @@
-// SD COMAYAGUA POS - cargador visual seguro v1.4.1
+// SD COMAYAGUA POS - cargador visual seguro v1.4.2
 (function () {
-  const VERSION = '1.4.1';
+  const VERSION = '1.4.2';
   const LOGO = `assets/logo-sdc.svg?v=${VERSION}`;
   const RECEIPT_LOGO = `assets/logo-sdc-receipt.svg?v=${VERSION}`;
 
@@ -17,7 +17,8 @@
     'js/document-actions.js',
     'js/catalog-mode.js',
     'js/catalog-admin-cards.js',
-    'js/catalog-shipping-quote.js'
+    'js/catalog-shipping-quote.js',
+    'js/shipping-polish-v142.js'
   ];
 
   function loadCss(path) {
