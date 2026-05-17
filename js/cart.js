@@ -131,6 +131,13 @@ function getLinePricing(item) {
   };
 }
 
+function calculateCodCommission(base, config=state.settings) {
+  const rate = parseNumber(config.codCommissionRate || 0.06);
+  const raw = Math.max(0, parseNumber(base)) * rate;
+  if (raw <= 0) return 0;
+  return Math.ceil(raw) + 1;
+}
+
 export function calculateCartTotals(cart=state.cart, config=state.settings) {
   const subtotal = cart.items.reduce((sum, item) => {
     const product = state.products.find(p => p.codigo === item.codigo);
@@ -138,9 +145,11 @@ export function calculateCartTotals(cart=state.cart, config=state.settings) {
     return sum + Math.max(0, promo.total - parseNumber(item.discount));
   }, 0);
   const discount = parseNumber(cart.discount);
+  const netProducts = Math.max(0, subtotal - discount);
   const shipping = cart.deliveryType === 'sin_envio' || cart.deliveryType === 'entrega_local' ? 0 : (cart.cod ? config.codShipping : config.normalShipping);
-  const commission = cart.cod ? Math.max(0, subtotal - discount) * config.codCommissionRate : 0;
-  const total = Math.max(0, subtotal - discount + shipping + commission);
+  const commissionBase = netProducts + shipping;
+  const commission = cart.cod ? calculateCodCommission(commissionBase, config) : 0;
+  const total = Math.max(0, netProducts + shipping + commission);
   const cost = cart.items.reduce((sum, item) => sum + item.qty * parseNumber(item.costo), 0);
   return { subtotal, discount, shipping, commission, total, cost, estimatedProfit: total - shipping - commission - cost };
 }
