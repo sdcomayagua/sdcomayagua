@@ -28,7 +28,7 @@ export const safeJSONStringify = (value) => {
 };
 export const deepClone = (value) => JSON.parse(JSON.stringify(value ?? null));
 export const escapeHtml = (text='') => String(text ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
-export const isImageUrl = (url='') => /^https?:\/\/.+\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(String(url).trim()) || /^https?:\/\//i.test(String(url).trim());
+export const isImageUrl = (url='') => /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(String(url).trim()) || /^https?:\/\/.+\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(String(url).trim()) || /^https?:\/\//i.test(String(url).trim());
 
 export function parseColorStock(text='') {
   const raw = String(text ?? '').trim();
