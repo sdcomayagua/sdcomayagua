@@ -1,4 +1,4 @@
-// SD COMAYAGUA POS - Mejora de precio con envio v1.4.2
+// SD COMAYAGUA POS - Mejora de precio con envio v1.4.5
 (function(){
   const PKEY='sd_pos_products', SKEY='sd_pos_settings';
   const read=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch{return f}};
@@ -9,6 +9,7 @@
   const cur=()=>st().currency||'Lps.';
   const money=v=>`${cur()} ${num(v).toLocaleString('es-HN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
   const unit=q=>`${q} ${q===1?'unidad':'unidades'}`;
+  const par=q=>`${q} ${q===1?'Par':'Pares'}`;
   const product=code=>ps().find(p=>String(p.codigo)===String(code));
 
   function rules(txt=''){
@@ -29,7 +30,7 @@
 
   function chips(txt=''){
     const rs=rules(txt); if(!rs.length)return'';
-    return `<span class="sdc-offers-title">Ofertas por cantidad</span><div class="sdc-offer-chips">${rs.slice(0,12).map(r=>`<span class="sdc-offer-chip"><b>${unit(r.qty)}</b><small>Total ${money(r.total)}</small><em>${money(r.total/r.qty)} c/u</em></span>`).join('')}</div>`;
+    return `<span class="sdc-offers-title">Cantidad - Precio</span><div class="sdc-offer-chips">${rs.slice(0,12).map(r=>`<span class="sdc-offer-chip"><b>${par(r.qty)}</b><small>${money(r.total)}</small><em>${money(r.total/r.qty)} c/u</em></span>`).join('')}</div>`;
   }
 
   function calc(p,q){
@@ -39,7 +40,9 @@
 
   function msg(p,q,c){
     const pct=c.rate?`${(c.rate*100).toFixed((c.rate*100)%1?1:0)}%`:'0%';
-    return `🛍️ PRODUCTO DISPONIBLE - SD COMAYAGUA\n\n📌 Producto: ${p.nombre}\n🔖 Código: ${p.codigo||'N/A'}\n🔢 Cantidad consultada: ${unit(q)}\n💰 Solo producto: ${money(c.pr.total)}${c.pr.discount?`\n🎁 Promo aplicada: ahorrás ${money(c.pr.discount)}`:''}\n\n🚚 Envío Normal: ${money(c.normalTotal)}\nIncluye producto + ${money(c.normal)} de envío.\nPago por depósito, transferencia o Tigo Money.\n\n📦 Pagar al Recibir: ${money(c.codTotal)}\nIncluye producto + ${money(c.cod)} de envío${c.com?` + comisión COD de ${pct} (${money(c.com)})`:''}.\n\n✅ Disponible para entrega.\n📲 Para confirmar pedido, enviame tu nombre, municipio y dirección.`;
+    const foto=p.imagen?`\n🖼️ *Foto:* ${p.imagen}`:'';
+    const promoLine=c.pr.discount?`\n🎁 *Promo aplicada:* *Ahorrás ${money(c.pr.discount)}*.`:'';
+    return `🛍️ *PRODUCTO DISPONIBLE - SD COMAYAGUA*\n\n📌 *Producto:* *${p.nombre}*.\n🔖 *Código:* *${p.codigo||'N/A'}*.\n🔢 *Cantidad consultada:* *${unit(q)}*.\n💰 *Solo producto:* *${money(c.pr.total)}*.${promoLine}${foto}\n\n🚚 *Envío Normal:* *${money(c.normalTotal)}*.\nIncluye producto + *${money(c.normal)}* de envío.\nPago por depósito, transferencia o Tigo Money.\n\n📦 *Pagar al Recibir:* *${money(c.codTotal)}*.\nIncluye producto + *${money(c.cod)}* de envío${c.com?` + comisión COD de *${pct}* (*${money(c.com)}*)`:''}.\n\n✅ *Disponible para entrega.*\n📲 Para confirmar pedido, enviame tu *nombre, municipio y dirección*.`;
   }
 
   function image(p){return p.imagen||'assets/categorias/general.svg'}
