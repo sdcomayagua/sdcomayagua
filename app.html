@@ -53,6 +53,7 @@
       </header>
 
       <div class="status-strip" id="statusStrip"></div>
+      <div class="sdc-update-system-wrap"><button type="button" class="sdc-update-system-btn" id="sdcManualUpdate">Actualizar sistema</button></div>
       <main id="viewRoot" class="view-root" tabindex="-1"></main>
     </section>
 
@@ -94,5 +95,40 @@
   <script type="module" src="js/app.js?v=1.4.9"></script>
   <script src="js/assets-enhancer.js?v=1.4.9"></script>
   <script defer src="js/product-image-upload-v147.js?v=1.4.9"></script>
+  <script>
+    (function(){
+      var KEY='sd_pos_app_version';
+      var CHECK_EVERY=180000;
+      function reloadFresh(version){
+        var url=new URL(window.location.href);
+        url.searchParams.set('updated', version || String(Date.now()));
+        window.location.replace(url.toString());
+      }
+      async function checkVersion(){
+        try{
+          var res=await fetch('version.json?v='+Date.now(),{cache:'no-store'});
+          if(!res.ok) return;
+          var data=await res.json();
+          var next=String(data.version||'').trim();
+          if(!next) return;
+          var current=localStorage.getItem(KEY);
+          if(current && current!==next && !new URLSearchParams(location.search).has('updated')){
+            localStorage.setItem(KEY,next);
+            reloadFresh(next);
+            return;
+          }
+          localStorage.setItem(KEY,next);
+        }catch(err){}
+      }
+      window.addEventListener('load',checkVersion);
+      setInterval(checkVersion,CHECK_EVERY);
+      document.addEventListener('click',function(event){
+        if(event.target && event.target.id==='sdcManualUpdate'){
+          localStorage.removeItem(KEY);
+          reloadFresh(String(Date.now()));
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
