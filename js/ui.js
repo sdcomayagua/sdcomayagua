@@ -2,13 +2,23 @@ import { NAV_ITEMS } from './config.js';
 import { state } from './state.js';
 import { formatDate, escapeHtml } from './utils.js';
 
-export function toast(message, type='ok', timeout=3600) {
+let activeToast = null;
+let activeToastTimer = null;
+export function toast(message, type='ok', timeout=2200) {
   const root = document.getElementById('toastRoot');
+  if (!root) return;
+  if (activeToast) activeToast.remove();
+  if (activeToastTimer) clearTimeout(activeToastTimer);
   const node = document.createElement('div');
   node.className = `toast ${type}`;
   node.textContent = message;
+  root.innerHTML = '';
   root.appendChild(node);
-  setTimeout(() => node.remove(), timeout);
+  activeToast = node;
+  activeToastTimer = setTimeout(() => {
+    node.remove();
+    if (activeToast === node) activeToast = null;
+  }, timeout);
 }
 
 export function openModal(title, body, options={}) {
