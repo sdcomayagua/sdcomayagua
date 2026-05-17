@@ -1,5 +1,5 @@
-// SD COMAYAGUA POS - Service Worker v1.4.0
-const CACHE_NAME = 'sd-comayagua-pos-v1.4.0';
+// SD COMAYAGUA POS - Service Worker v1.4.3
+const CACHE_NAME = 'sd-comayagua-pos-v1.4.3';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -15,6 +15,8 @@ const CORE_ASSETS = [
   './css/mobile-redesign.css',
   './css/mobile-ultimate.css',
   './css/mobile-final-v140.css',
+  './css/catalog-shipping-v141.css',
+  './css/stock-states-v143.css',
   './css/print.css',
   './js/config.js',
   './js/app.js',
@@ -39,6 +41,9 @@ const CORE_ASSETS = [
   './js/document-actions.js',
   './js/catalog-mode.js',
   './js/catalog-admin-cards.js',
+  './js/catalog-shipping-quote.js',
+  './js/shipping-polish-v142.js',
+  './js/stock-states-v143.js',
   './assets/categorias/general.svg',
   './assets/icons/icon.svg',
   './assets/logo-sdc-receipt.svg',
