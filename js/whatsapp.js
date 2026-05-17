@@ -31,15 +31,15 @@ function parsePromoLines(text='') {
 }
 
 function imageLine(product) {
-  return product.imagen ? `\nFoto: ${product.imagen}` : '';
+  return product.imagen ? `\n- Foto: ${product.imagen}` : '';
 }
 
 export function buildProductWhatsApp(product) {
   const promoLines = parsePromoLines(product.promos);
   const promoBlock = promoLines.length
-    ? `\n\nPromociones por cantidad:\n${promoLines.map(line => `- ${line}`).join('\n')}`
+    ? `\n\n*Promociones por cantidad*\n${promoLines.map(line => `- ${line}`).join('\n')}`
     : '';
-  return `Hola, me interesa este producto de ${state.settings.storeName}:\n\nProducto: ${product.nombre}\nCodigo: ${product.codigo}\nPrecio: ${formatMoney(product.precio, state.settings)}\nStock disponible: ${product.stock}${imageLine(product)}${promoBlock}\n\nEsta disponible para entrega?`;
+  return `*${state.settings.storeName}*\n\n*Producto solicitado*\n- Nombre: ${product.nombre}\n- Codigo: ${product.codigo}\n- Precio: ${formatMoney(product.precio, state.settings)}\n- Stock disponible: ${product.stock}${imageLine(product)}${promoBlock}\n\nEsta disponible para entrega?`;
 }
 
 function safeItems(document) {
@@ -54,8 +54,6 @@ function correctedTotals(document) {
   let comision = number(document.comision);
   const neto = Math.max(0, subtotal - descuento);
 
-  // Si la cotizacion/venta ya trae comision, se recalcula con la regla correcta:
-  // (subtotal - descuento + envio) x 6%, redondeado hacia arriba, + Lps. 1.
   if (comision > 0) {
     comision = codCommission(neto + envio);
   }
@@ -64,19 +62,59 @@ function correctedTotals(document) {
   return { subtotal, descuento, envio, comision, total };
 }
 
+function customerBlock(document) {
+  const rows = [];
+  rows.push(`- Nombre: ${document.cliente || 'Cliente'}`);
+  if (document.telefono) rows.push(`- Telefono: ${document.telefono}`);
+  const location = [document.departamento, document.municipio].filter(Boolean).join(' / ');
+  if (location) rows.push(`- Ubicacion: ${location}`);
+  if (document.direccion) rows.push(`- Direccion: ${document.direccion}`);
+  return rows.join('\n');
+}
+
+function deliveryMode(document, totals) {
+  if (totals.comision > 0) return 'Pagar al recibir';
+  if (totals.envio > 0) return 'Envio normal';
+  return 'Sin envio';
+}
+
 export function buildWhatsAppMessage(document, type='venta') {
   const id = document.venta_id || document.cotizacion_id || 'SIN-ID';
   const items = safeItems(document);
   const totals = correctedTotals(document);
-  const title = type === 'venta' ? 'Pedido/Venta' : 'Cotizacion';
+  const title = type === 'venta' ? 'PEDIDO / VENTA' : 'COTIZACION';
   const fecha = document.fecha ? new Date(document.fecha).toLocaleString('es-HN') : new Date().toLocaleString('es-HN');
-  const lines = items.map((i, index) => {
-    const qty = number(i.qty) || 1;
-    const lineTotal = number(i.total || i.subtotal || (number(i.precio) * qty - number(i.discount)));
-    return `${index + 1}. ${i.nombre || 'Producto'}${i.color ? ` (${i.color})` : ''}\n   Cantidad: ${qty}\n   Total: ${formatMoney(lineTotal, state.settings)}`;
-  }).join('\n');
+  const entregaMasComision = totals.envio + totals.comision;
 
-  return `${state.settings.storeName}\n\n${title}: ${id}\nFecha: ${fecha}\n\nCliente: ${document.cliente || ''}\nTelefono: ${document.telefono || ''}\n\nProductos:\n${lines}\n\nSubtotal: ${formatMoney(totals.subtotal, state.settings)}\nEnvio: ${formatMoney(totals.envio, state.settings)}\nComision: ${formatMoney(totals.comision, state.settings)}\nDescuento: ${formatMoney(totals.descuento, state.settings)}\n\nTotal a pagar: ${formatMoney(totals.total, state.settings)}\n\nEstado: ${document.estado || ''}\n\nGracias por preferirnos.`;
+  const productLines = items.map((i, index) => {
+    const qty = number(i.qty) || 1;
+    const unit = number(i.precio);
+    const lineTotal = number(i.total || i.subtotal || (unit * qty - number(i.discount)));
+    return `${index + 1}) *${i.nombre || 'Producto'}*${i.color ? ` (${i.color})` : ''}\n   - Cantidad: ${qty}\n   - Precio: ${formatMoney(unit, state.settings)} c/u\n   - Total: ${formatMoney(lineTotal, state.settings)}`;
+  }).join('\n\n');
+
+  const codNote = totals.comision > 0
+    ? `\n- Nota: Producto + envio + comision 6%. Total redondeado.`
+    : '';
+
+  return `*${title} - ${state.settings.storeName}*\n\n` +
+    `*Codigo:* ${id}\n` +
+    `*Fecha:* ${fecha}\n` +
+    `*Estado:* ${document.estado || ''}\n\n` +
+    `*CLIENTE*\n${customerBlock(document)}\n\n` +
+    `*PRODUCTOS*\n${productLines || '- Sin productos'}\n\n` +
+    `*ENTREGA Y PAGO*\n` +
+    `- Modalidad: ${deliveryMode(document, totals)}\n` +
+    `- Envio: ${formatMoney(totals.envio, state.settings)}\n` +
+    `- Comision pagar al recibir: ${formatMoney(totals.comision, state.settings)}${codNote}\n\n` +
+    `*RESUMEN*\n` +
+    `- Productos: ${formatMoney(totals.subtotal, state.settings)}\n` +
+    `- Envio + comision: ${formatMoney(entregaMasComision, state.settings)}\n` +
+    `- Descuento: ${formatMoney(totals.descuento, state.settings)}\n\n` +
+    `*TOTAL A PAGAR: ${formatMoney(totals.total, state.settings)}*\n\n` +
+    `Cotizacion pendiente de confirmacion. No aparta producto. Antes de pagar, confirme disponibilidad, entrega y total final.\n\n` +
+    `*${state.settings.storeName}*\n` +
+    `WhatsApp: ${state.settings.whatsapp || ''}`;
 }
 
 export function openWhatsApp(message, phone=state.settings.whatsapp) {
