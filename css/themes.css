@@ -1,0 +1,25 @@
+body[data-theme="light"] {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --card: rgba(255,255,255,.88);
+  --text: #0f172a;
+  --muted: #64748b;
+  --line: rgba(15,23,42,.12);
+  background: radial-gradient(circle at top left, rgba(37,99,235,.12), transparent 28%), var(--bg);
+}
+body[data-theme="black"] {
+  --bg: #000000;
+  --surface: #050505;
+  --surface-2: #111111;
+  --card: rgba(255,255,255,.06);
+  --text: #ffffff;
+  --muted: #a1a1aa;
+  --line: rgba(255,255,255,.14);
+}
+body[data-accent="blue"] { --primary:#2563eb; }
+body[data-accent="red"] { --primary:#dc2626; }
+body[data-accent="black"] { --primary:#111827; }
+body[data-theme="black"][data-accent="black"] { --primary:#f8fafc; --primary-contrast:#000; }
+body[data-theme="light"] .sidebar { background: rgba(255,255,255,.82); }
+body[data-theme="light"] .topbar { background: linear-gradient(to bottom, rgba(248,250,252,.93) 70%, transparent); }
