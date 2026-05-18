@@ -1,6 +1,0 @@
-body { background:#fff !important; color:#000 !important; }
-.sidebar, .topbar, .status-strip, .bottom-nav, .toast-root, .no-print { display:none !important; }
-.app-shell { display:block !important; }
-.view-root { padding:0 !important; }
-.card, .modal, .receipt { box-shadow:none !important; border:0 !important; }
-.receipt { border-radius:0 !important; }
