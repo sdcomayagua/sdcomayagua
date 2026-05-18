@@ -1,0 +1,322 @@
+/* SD COMAYAGUA POS - Ajustes finales móviles v1.3.4 */
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.main-area,
+.view-root,
+.status-strip,
+.catalog-toolbar,
+.product-grid,
+.cart-layout,
+.card {
+  max-width: 100%;
+}
+
+.topbar {
+  position: static !important;
+  top: auto !important;
+}
+
+.table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.danger-mini {
+  color: #fecaca !important;
+  border-color: rgba(248,113,113,.35) !important;
+  background: rgba(220,38,38,.14) !important;
+}
+
+@media (max-width: 620px) {
+  .topbar {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 16px 14px 6px !important;
+  }
+
+  .topbar-brandline {
+    padding-right: 54px !important;
+    gap: 10px !important;
+  }
+
+  .topbar-logo {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 15px !important;
+  }
+
+  .eyebrow {
+    font-size: .66rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: .10em !important;
+  }
+
+  h1 {
+    font-size: 2.15rem !important;
+    line-height: 1 !important;
+  }
+
+  .top-actions {
+    top: 16px !important;
+    right: 14px !important;
+  }
+
+  .top-actions .btn[data-open-product] {
+    display: none !important;
+  }
+
+  .top-actions .icon-btn {
+    width: 42px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    border-radius: 15px !important;
+  }
+
+  .status-strip {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    padding: 4px 14px 10px !important;
+  }
+
+  .status-pill {
+    min-height: 40px !important;
+    padding: 8px 10px !important;
+    border-radius: 14px !important;
+    font-size: .74rem !important;
+  }
+
+  .status-pill strong {
+    font-size: .78rem !important;
+  }
+
+  .status-pill .dot {
+    width: 7px !important;
+    height: 7px !important;
+  }
+
+  .view-root {
+    padding: 6px 14px 108px !important;
+    overflow-x: hidden !important;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .kpi {
+    min-height: 86px !important;
+    border-radius: 18px !important;
+    padding: 13px !important;
+  }
+
+  .kpi span {
+    font-size: .72rem !important;
+  }
+
+  .kpi strong {
+    font-size: 1rem !important;
+    line-height: 1.15 !important;
+    word-break: break-word;
+  }
+
+  .grid[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .card {
+    width: 100% !important;
+    border-radius: 20px !important;
+    padding: 14px !important;
+  }
+
+  .actions-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 9px !important;
+  }
+
+  .actions-row .btn {
+    min-width: 0 !important;
+    width: 100% !important;
+    min-height: 44px !important;
+    border-radius: 14px !important;
+    padding: 8px 6px !important;
+    font-size: .78rem !important;
+    line-height: 1.12 !important;
+    text-align: center !important;
+  }
+
+  .catalog-toolbar {
+    padding: 14px !important;
+    border-radius: 22px !important;
+    margin: 6px 0 18px !important;
+    overflow: hidden !important;
+  }
+
+  .catalog-toolbar .filter-top {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 10px !important;
+    align-items: end !important;
+    margin-bottom: 12px !important;
+  }
+
+  .filter-summary {
+    justify-self: start !important;
+    grid-column: auto !important;
+    font-size: .82rem !important;
+    white-space: normal !important;
+  }
+
+  .filter-summary strong {
+    font-size: 1rem !important;
+  }
+
+  .toolbar-add,
+  .catalog-toolbar [data-open-product] {
+    min-width: 116px !important;
+    min-height: 44px !important;
+    border-radius: 15px !important;
+    padding: 0 12px !important;
+    font-size: .86rem !important;
+    box-shadow: 0 10px 22px rgba(37,99,235,.18) !important;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .filter-search {
+    grid-column: 1 / -1 !important;
+  }
+
+  .filter-search input,
+  .filter-field select {
+    min-height: 44px !important;
+    border-radius: 15px !important;
+    font-size: .86rem !important;
+    padding: 10px 12px !important;
+  }
+
+  .filter-field {
+    font-size: .74rem !important;
+    gap: 5px !important;
+  }
+
+  .product-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .product-card {
+    border-radius: 24px !important;
+    overflow: hidden !important;
+  }
+
+  .product-img {
+    aspect-ratio: 1.42 / 1 !important;
+  }
+
+  .product-body {
+    padding: 13px !important;
+    gap: 10px !important;
+  }
+
+  .product-title {
+    display: grid !important;
+    gap: 7px !important;
+  }
+
+  .product-title h3 {
+    font-size: 1.02rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .product-meta {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .product-meta .meta-pill:nth-child(2),
+  .product-meta .meta-pill:nth-child(3) {
+    display: none !important;
+  }
+
+  .meta-pill {
+    padding: 9px 10px !important;
+    border-radius: 15px !important;
+  }
+
+  .meta-pill small {
+    font-size: .62rem !important;
+  }
+
+  .meta-pill strong {
+    font-size: .88rem !important;
+  }
+
+  .color-stock,
+  .product-promo,
+  .profit-text {
+    display: none !important;
+  }
+
+  .price-row {
+    align-items: center !important;
+    padding-top: 0 !important;
+  }
+
+  .price-row .price {
+    font-size: 1.5rem !important;
+  }
+
+  .product-actions {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 9px !important;
+  }
+
+  .product-actions .btn {
+    min-height: 48px !important;
+    border-radius: 16px !important;
+    font-size: .92rem !important;
+  }
+
+  .product-actions button[data-cart-add] {
+    font-size: 0 !important;
+  }
+
+  .product-actions button[data-cart-add]::after {
+    content: 'Agregar +';
+    font-size: .98rem;
+  }
+
+  .product-actions .span {
+    grid-column: 1 / -1 !important;
+    min-height: 44px !important;
+  }
+
+  .cart-layout {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .cart-layout .form-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .cart-layout .form-actions .btn {
+    width: 100% !important;
+    min-height: 48px !important;
+    border-radius: 16px !important;
+  }
+}

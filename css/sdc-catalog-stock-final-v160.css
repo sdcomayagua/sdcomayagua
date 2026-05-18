@@ -1,0 +1,108 @@
+/* SD COMAYAGUA POS - stock final catalogo cliente v1.6.0 */
+
+body[data-catalog-mode="client"] .product-meta{
+  display:grid!important;
+  grid-template-columns:1fr auto!important;
+  align-items:center!important;
+  gap:12px!important;
+  width:100%!important;
+  min-height:46px!important;
+  margin:0!important;
+  padding:10px 14px!important;
+  box-sizing:border-box!important;
+  border-radius:16px!important;
+  border:1px solid rgba(34,197,94,.22)!important;
+  background:rgba(34,197,94,.08)!important;
+  overflow:hidden!important;
+}
+body[data-catalog-mode="client"] .product-meta .meta-pill{
+  display:none!important;
+}
+body[data-catalog-mode="client"] .product-meta::before{
+  content:"STOCK"!important;
+  display:block!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:.72rem!important;
+  line-height:1!important;
+  letter-spacing:.10em!important;
+  font-weight:900!important;
+  color:var(--muted)!important;
+}
+body[data-catalog-mode="client"] .product-meta::after{
+  content:attr(data-stock)!important;
+  display:block!important;
+  min-width:42px!important;
+  text-align:right!important;
+  font-size:1.15rem!important;
+  line-height:1!important;
+  font-weight:950!important;
+  color:#22c55e!important;
+}
+body[data-catalog-mode="client"] .product-status{
+  width:100%!important;
+  min-height:34px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:15px!important;
+  box-sizing:border-box!important;
+  text-align:center!important;
+}
+body[data-catalog-mode="client"] .product-actions,
+body[data-catalog-mode="client"] .profit-text,
+body[data-catalog-mode="client"] .color-stock,
+body[data-catalog-mode="client"] .product-promo{
+  display:none!important;
+}
+body[data-catalog-mode="client"] .product-body{
+  gap:10px!important;
+}
+body[data-catalog-mode="client"] .price-row{
+  justify-content:center!important;
+  margin-top:4px!important;
+}
+
+@media(max-width:620px){
+  body[data-catalog-mode="client"] .product-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:14px!important;
+  }
+  body[data-catalog-mode="client"] .product-body{
+    padding:10px!important;
+  }
+  body[data-catalog-mode="client"] .product-title h3{
+    font-size:.98rem!important;
+    line-height:1.18!important;
+    min-height:2.35em!important;
+  }
+  body[data-catalog-mode="client"] .product-meta{
+    min-height:44px!important;
+    padding:9px 10px!important;
+    gap:8px!important;
+  }
+  body[data-catalog-mode="client"] .product-meta::before{
+    font-size:.63rem!important;
+  }
+  body[data-catalog-mode="client"] .product-meta::after{
+    min-width:32px!important;
+    font-size:1.02rem!important;
+  }
+}
+
+@media(max-width:360px){
+  body[data-catalog-mode="client"] .product-grid{
+    grid-template-columns:1fr!important;
+  }
+  body[data-catalog-mode="client"] .product-title h3{
+    min-height:auto!important;
+  }
+  body[data-catalog-mode="client"] .product-meta::before{
+    font-size:.70rem!important;
+  }
+  body[data-catalog-mode="client"] .product-meta::after{
+    font-size:1.12rem!important;
+  }
+}
