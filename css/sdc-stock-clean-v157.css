@@ -1,0 +1,70 @@
+/* SD COMAYAGUA POS - stock limpio en catalogo movil v1.5.7 */
+
+body[data-catalog-mode="client"] .product-meta{
+  display:block!important;
+}
+body[data-catalog-mode="client"] .product-meta .meta-pill:not(.stock){
+  display:none!important;
+}
+body[data-catalog-mode="client"] .product-meta .meta-pill.stock{
+  width:100%!important;
+  min-height:42px!important;
+  padding:8px 12px!important;
+  border-radius:15px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  box-sizing:border-box!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+}
+body[data-catalog-mode="client"] .product-meta .meta-pill.stock small{
+  display:block!important;
+  min-width:0!important;
+  flex:1 1 auto!important;
+  font-size:0!important;
+  line-height:1!important;
+  letter-spacing:.10em!important;
+  text-transform:uppercase!important;
+  color:var(--muted)!important;
+}
+body[data-catalog-mode="client"] .product-meta .meta-pill.stock small::before{
+  content:"Stock disponible"!important;
+  font-size:.68rem!important;
+  line-height:1!important;
+}
+body[data-catalog-mode="client"] .product-meta .meta-pill.stock strong{
+  flex:0 0 auto!important;
+  display:block!important;
+  min-width:28px!important;
+  text-align:right!important;
+  font-size:1.08rem!important;
+  line-height:1!important;
+  color:#16a34a!important;
+  font-weight:950!important;
+  letter-spacing:0!important;
+  margin:0!important;
+  transform:none!important;
+}
+body[data-catalog-mode="client"] .product-status{
+  width:max-content!important;
+  max-width:100%!important;
+}
+
+@media(max-width:620px){
+  body[data-catalog-mode="client"] .product-body{
+    padding:10px 10px 12px!important;
+    gap:9px!important;
+  }
+  body[data-catalog-mode="client"] .product-meta .meta-pill.stock{
+    min-height:40px!important;
+    padding:8px 10px!important;
+  }
+  body[data-catalog-mode="client"] .product-meta .meta-pill.stock small::before{
+    font-size:.63rem!important;
+  }
+  body[data-catalog-mode="client"] .product-meta .meta-pill.stock strong{
+    font-size:1.02rem!important;
+  }
+}
