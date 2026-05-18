@@ -24,6 +24,7 @@ boot();
 
 function boot() {
   resetModalLayer();
+  setupMobileMenu();
   setSheetIdLabel();
   render();
   subscribe((_, reason) => {
@@ -39,6 +40,41 @@ function boot() {
   document.getElementById('syncBtn').addEventListener('click', syncNow);
   document.getElementById('themeToggle').addEventListener('click', cycleTheme);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register(`sw.js?v=${APP_VERSION}`).catch(() => {});
+}
+function setupMobileMenu() {
+  const app = document.getElementById('app');
+  const actions = document.querySelector('.top-actions');
+  if (!app || !actions || document.getElementById('sdcMobileMenuBtn')) return;
+  const menuBtn = document.createElement('button');
+  menuBtn.type = 'button';
+  menuBtn.id = 'sdcMobileMenuBtn';
+  menuBtn.className = 'sdc-mobile-menu-btn';
+  menuBtn.setAttribute('aria-label', 'Abrir menú');
+  menuBtn.setAttribute('aria-controls', 'mobileNav');
+  menuBtn.setAttribute('aria-expanded', 'false');
+  menuBtn.innerHTML = '<span aria-hidden="true">☰</span>';
+  actions.prepend(menuBtn);
+
+  const backdrop = document.createElement('button');
+  backdrop.type = 'button';
+  backdrop.className = 'sdc-menu-backdrop';
+  backdrop.setAttribute('aria-label', 'Cerrar menú');
+  app.appendChild(backdrop);
+
+  const closeMenu = () => {
+    document.body.classList.remove('sdc-menu-open');
+    menuBtn.setAttribute('aria-expanded', 'false');
+    menuBtn.innerHTML = '<span aria-hidden="true">☰</span>';
+  };
+  const openMenu = () => {
+    document.body.classList.add('sdc-menu-open');
+    menuBtn.setAttribute('aria-expanded', 'true');
+    menuBtn.innerHTML = '<span aria-hidden="true">×</span>';
+  };
+  menuBtn.addEventListener('click', () => document.body.classList.contains('sdc-menu-open') ? closeMenu() : openMenu());
+  backdrop.addEventListener('click', closeMenu);
+  window.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(); });
+  window.SD_CLOSE_MENU = closeMenu;
 }
 function render() {
   renderNav(state.status.activeView);
@@ -62,6 +98,7 @@ function navigate(view) {
   state.status.activeView = view;
   renderNav(view);
   renderCurrentView();
+  if (typeof window.SD_CLOSE_MENU === 'function') window.SD_CLOSE_MENU();
   root.focus();
 }
 function renderCurrentView() {
