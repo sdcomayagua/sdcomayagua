@@ -1,4 +1,4 @@
-/* SD COMAYAGUA POS - stock limpio en catalogo movil v1.5.7 */
+/* SD COMAYAGUA POS - stock limpio en catalogo movil v1.5.8 */
 
 body[data-catalog-mode="client"] .product-meta{
   display:block!important;
@@ -22,9 +22,9 @@ body[data-catalog-mode="client"] .product-status{
 body[data-catalog-mode="client"] .product-meta .meta-pill.stock{
   width:100%!important;
   max-width:none!important;
-  min-height:44px!important;
-  padding:9px 12px!important;
-  border-radius:15px!important;
+  min-height:48px!important;
+  padding:10px 14px!important;
+  border-radius:16px!important;
   display:flex!important;
   align-items:center!important;
   justify-content:space-between!important;
@@ -46,16 +46,16 @@ body[data-catalog-mode="client"] .product-meta .meta-pill.stock small{
   text-overflow:ellipsis!important;
 }
 body[data-catalog-mode="client"] .product-meta .meta-pill.stock small::before{
-  content:"Stock"!important;
+  content:"STOCK"!important;
   font-size:.72rem!important;
   line-height:1!important;
 }
 body[data-catalog-mode="client"] .product-meta .meta-pill.stock strong{
   flex:0 0 auto!important;
   display:block!important;
-  min-width:34px!important;
+  min-width:42px!important;
   text-align:right!important;
-  font-size:1.14rem!important;
+  font-size:1.16rem!important;
   line-height:1!important;
   color:#16a34a!important;
   font-weight:950!important;
@@ -77,19 +77,34 @@ body[data-catalog-mode="client"] .product-meta .meta-pill.stock strong{
     font-size:.72rem!important;
   }
   body[data-catalog-mode="client"] .product-meta .meta-pill.stock{
-    min-height:42px!important;
-    padding:8px 10px!important;
+    min-height:46px!important;
+    padding:9px 12px!important;
   }
   body[data-catalog-mode="client"] .product-meta .meta-pill.stock small::before{
-    font-size:.67rem!important;
+    font-size:.68rem!important;
   }
   body[data-catalog-mode="client"] .product-meta .meta-pill.stock strong{
-    font-size:1.06rem!important;
+    font-size:1.08rem!important;
   }
 }
 
-@media(max-width:380px){
-  body[data-catalog-mode="client"] .product-meta .meta-pill.stock small::before{
-    content:"Stock"!important;
+@media(max-width:430px){
+  body[data-catalog-mode="client"] .product-grid{
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+  body[data-catalog-mode="client"] .product-card{
+    width:100%!important;
+    max-width:100%!important;
+  }
+  body[data-catalog-mode="client"] .product-img{
+    aspect-ratio:1.22/1!important;
+  }
+  body[data-catalog-mode="client"] .product-title h3{
+    font-size:1rem!important;
+    min-height:auto!important;
+  }
+  body[data-catalog-mode="client"] .price-row .price{
+    font-size:1.32rem!important;
   }
 }
