@@ -70,13 +70,17 @@ export function confirmDialog({ title='Confirmar', message='', confirmText='Conf
   });
 }
 export function renderNav(active='home') {
-  const render = (rootId, maxItems=null) => {
+  const render = (rootId) => {
     const root = document.getElementById(rootId);
-    const items = maxItems ? NAV_ITEMS.slice(0, maxItems) : NAV_ITEMS;
-    root.innerHTML = items.map(item => `<button class="nav-link ${item.id === active ? 'active' : ''}" data-view="${item.id}"><span>${item.icon}</span><span>${item.label}</span></button>`).join('');
+    if (!root) return;
+    root.innerHTML = NAV_ITEMS.map(item => `
+      <button class="nav-link ${item.id === active ? 'active' : ''}" type="button" data-view="${item.id}" aria-current="${item.id === active ? 'page' : 'false'}">
+        <span aria-hidden="true">${item.icon}</span>
+        <span>${item.label}</span>
+      </button>`).join('');
   };
   render('desktopNav');
-  render('mobileNav', 5);
+  render('mobileNav');
 }
 export function renderStatusStrip() {
   const el = document.getElementById('statusStrip');
