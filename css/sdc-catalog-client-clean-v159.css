@@ -1,0 +1,124 @@
+/* SD COMAYAGUA POS - catalogo cliente limpio movil v1.5.9 */
+
+body[data-catalog-mode="client"] .product-actions,
+body[data-catalog-mode="client"] .profit-text,
+body[data-catalog-mode="client"] .product-meta .meta-pill:not(.stock){
+  display:none!important;
+}
+
+body[data-catalog-mode="client"] .product-title{
+  display:grid!important;
+  gap:10px!important;
+}
+
+body[data-catalog-mode="client"] .product-status{
+  width:100%!important;
+  max-width:100%!important;
+  min-height:36px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  box-sizing:border-box!important;
+  border-radius:14px!important;
+}
+
+body[data-catalog-mode="client"] .product-meta{
+  display:block!important;
+  width:100%!important;
+  margin:0!important;
+}
+
+body[data-catalog-mode="client"] .product-meta .meta-pill.stock{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  min-height:46px!important;
+  margin:0!important;
+  padding:10px 14px!important;
+  box-sizing:border-box!important;
+  border-radius:16px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  column-gap:12px!important;
+  overflow:hidden!important;
+}
+
+body[data-catalog-mode="client"] .product-meta .meta-pill.stock small{
+  display:block!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:0!important;
+  line-height:1!important;
+  letter-spacing:.10em!important;
+  text-transform:uppercase!important;
+  color:var(--muted)!important;
+}
+
+body[data-catalog-mode="client"] .product-meta .meta-pill.stock small::before{
+  content:"STOCK"!important;
+  font-size:.72rem!important;
+  line-height:1!important;
+}
+
+body[data-catalog-mode="client"] .product-meta .meta-pill.stock strong{
+  display:block!important;
+  min-width:44px!important;
+  text-align:right!important;
+  font-size:1.18rem!important;
+  line-height:1!important;
+  font-weight:950!important;
+  color:#22c55e!important;
+  letter-spacing:0!important;
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  position:static!important;
+}
+
+body[data-catalog-mode="client"] .price-row{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  margin-top:4px!important;
+}
+
+@media(max-width:620px){
+  body[data-catalog-mode="client"] .product-grid{
+    grid-template-columns:1fr!important;
+    gap:16px!important;
+  }
+  body[data-catalog-mode="client"] .product-card{
+    width:100%!important;
+    max-width:100%!important;
+    border-radius:22px!important;
+  }
+  body[data-catalog-mode="client"] .product-img{
+    aspect-ratio:1.28/1!important;
+  }
+  body[data-catalog-mode="client"] .product-body{
+    padding:12px!important;
+    gap:10px!important;
+  }
+  body[data-catalog-mode="client"] .product-title h3{
+    min-height:auto!important;
+    font-size:1.05rem!important;
+    line-height:1.18!important;
+  }
+  body[data-catalog-mode="client"] .product-status{
+    min-height:36px!important;
+    font-size:.76rem!important;
+  }
+  body[data-catalog-mode="client"] .product-meta .meta-pill.stock{
+    min-height:48px!important;
+  }
+  body[data-catalog-mode="client"] .product-meta .meta-pill.stock strong{
+    font-size:1.2rem!important;
+  }
+  body[data-catalog-mode="client"] .price-row .price{
+    font-size:1.42rem!important;
+  }
+}

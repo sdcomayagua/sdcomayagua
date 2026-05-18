@@ -1,0 +1,5 @@
+{
+  "version": "1.6.5",
+  "updatedAt": "2026-05-18T00:00:00Z",
+  "note": "Corrección mobile real: catálogo sin desbordes, tarjetas compactas, home sin scroll horizontal, inventario más legible, carrito táctil y URL Apps Script /exec integrada por defecto."
+}
