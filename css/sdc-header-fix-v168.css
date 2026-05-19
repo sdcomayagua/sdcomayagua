@@ -1,0 +1,188 @@
+/* SD COMAYAGUA POS — arreglo fuerte del encabezado móvil v1.6.8 */
+@media (max-width: 760px){
+  body, body[data-theme="dark"], body[data-theme="black"]{
+    background:#f4f7fb!important;
+  }
+
+  .topbar{
+    position:sticky!important;
+    top:0!important;
+    z-index:150!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:center!important;
+    column-gap:10px!important;
+    width:100%!important;
+    min-height:72px!important;
+    height:auto!important;
+    margin:0 0 8px!important;
+    padding:10px 12px!important;
+    border-radius:0!important;
+    background:#ffffff!important;
+    border:0!important;
+    border-bottom:1px solid rgba(15,23,42,.08)!important;
+    box-shadow:0 8px 20px rgba(15,23,42,.08)!important;
+    overflow:visible!important;
+  }
+
+  .topbar-brandline{
+    display:grid!important;
+    grid-template-columns:42px minmax(0,1fr)!important;
+    align-items:center!important;
+    gap:10px!important;
+    min-width:0!important;
+    width:100%!important;
+    max-width:none!important;
+    padding:0!important;
+    margin:0!important;
+  }
+
+  .topbar-brandline > div{
+    min-width:0!important;
+  }
+
+  .topbar-logo{
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    border-radius:14px!important;
+    padding:3px!important;
+    background:#ffffff!important;
+    border:1px solid rgba(15,23,42,.08)!important;
+    box-shadow:0 4px 12px rgba(15,23,42,.07)!important;
+  }
+
+  .topbar .eyebrow{
+    display:block!important;
+    margin:0 0 2px!important;
+    font-size:.58rem!important;
+    line-height:1!important;
+    letter-spacing:.16em!important;
+    color:#64748b!important;
+    font-weight:950!important;
+  }
+
+  #viewTitle{
+    display:block!important;
+    margin:0!important;
+    max-width:100%!important;
+    font-size:1.32rem!important;
+    line-height:1.05!important;
+    letter-spacing:-.04em!important;
+    color:#0f172a!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+
+  .top-actions{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:8px!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    padding:0!important;
+    margin:0!important;
+    flex-wrap:nowrap!important;
+    overflow:visible!important;
+  }
+
+  .top-actions .top-shortcut,
+  .top-actions #syncBtn,
+  .top-actions #themeToggle{
+    display:none!important;
+  }
+
+  .sdc-mobile-menu-btn{
+    order:0!important;
+    display:grid!important;
+    place-items:center!important;
+    width:46px!important;
+    min-width:46px!important;
+    height:46px!important;
+    min-height:46px!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:16px!important;
+    background:#111827!important;
+    color:#ffffff!important;
+    box-shadow:0 8px 18px rgba(17,24,39,.20)!important;
+    font-size:1.22rem!important;
+    line-height:1!important;
+  }
+
+  .top-actions [data-open-product]{
+    order:1!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:auto!important;
+    min-width:112px!important;
+    max-width:118px!important;
+    height:46px!important;
+    min-height:46px!important;
+    padding:0 12px!important;
+    border:0!important;
+    border-radius:16px!important;
+    background:linear-gradient(135deg,#2563eb,#06b6d4)!important;
+    color:#ffffff!important;
+    box-shadow:0 8px 18px rgba(37,99,235,.22)!important;
+    font-size:.82rem!important;
+    font-weight:950!important;
+    letter-spacing:-.02em!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+    overflow:hidden!important;
+  }
+
+  .top-actions [data-open-product]::before{
+    content:none!important;
+  }
+
+  .status-strip{
+    padding-top:4px!important;
+  }
+}
+
+@media (max-width: 380px){
+  .topbar{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    padding-left:10px!important;
+    padding-right:10px!important;
+    column-gap:8px!important;
+  }
+
+  .topbar-brandline{
+    grid-template-columns:36px minmax(0,1fr)!important;
+    gap:8px!important;
+  }
+
+  .topbar-logo{
+    width:36px!important;
+    height:36px!important;
+    min-width:36px!important;
+  }
+
+  #viewTitle{
+    font-size:1.16rem!important;
+  }
+
+  .sdc-mobile-menu-btn{
+    width:42px!important;
+    min-width:42px!important;
+    height:42px!important;
+    min-height:42px!important;
+    border-radius:15px!important;
+  }
+
+  .top-actions [data-open-product]{
+    min-width:98px!important;
+    max-width:104px!important;
+    height:42px!important;
+    min-height:42px!important;
+    font-size:.76rem!important;
+    border-radius:15px!important;
+  }
+}
