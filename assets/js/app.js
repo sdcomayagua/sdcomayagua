@@ -116,6 +116,8 @@
 
   async function init() {
     cacheElements();
+    updateAdminVisualLock();
+    setLoading(true, 'Cargando catálogo...', 'Conectando con Firebase y preparando productos.');
     window.sdProductImageError = handleProductImageError;
     bindEvents();
     loadLocalState();
@@ -125,13 +127,14 @@
     await initFirebase();
     await loadProducts();
     renderAll();
+    setLoading(false);
     showToast('SD COMAYAGUA listo para trabajar.');
   }
 
   function cacheElements() {
     const ids = [
-      'cloudStatus', 'syncBtn', 'menuToggle', 'mainNav', 'heroProducts', 'heroUnits', 'heroAvailable',
-      'panelTotalProducts', 'panelTotalUnits', 'panelSales', 'panelQuotes', 'panelInventoryCost', 'panelInventoryProfit', 'salesList', 'quotesList', 'lowStockList', 'topProductsList',
+      'loadingOverlay', 'loadingTitle', 'loadingText', 'cloudStatus', 'syncBtn', 'menuToggle', 'mainNav', 'heroProducts', 'heroUnits', 'heroAvailable',
+      'panelTotalProducts', 'panelTotalUnits', 'panelSales', 'panelQuotes', 'panelInventoryCost', 'panelInventoryProfit', 'panelInventoryValue', 'panelAverageMargin', 'panelBestProfit', 'panelLowProfitCount', 'salesList', 'quotesList', 'lowStockList', 'topProductsList', 'profitList',
       'clearSalesBtn', 'clearQuotesBtn', 'visibleCount', 'unitCount', 'cloudCount', 'availableCount',
       'lowCount', 'outCount', 'searchInput', 'categoryFilter', 'addProductBtn', 'addProductBtnTop',
       'printBtn', 'printComayaguaBtn', 'printHondurasBtn', 'activeFilters', 'productGrid', 'emptyProducts', 'floatingAddBtn', 'productDialog',
@@ -145,7 +148,7 @@
       'saleCustomer', 'saleHelp', 'quoteDialog', 'quoteForm', 'quoteProductName', 'quoteProductId',
       'quoteItems', 'quoteAddProductToggle', 'quoteProductPicker', 'quoteProductSearch',
       'quoteCategoryFilter', 'quoteProductResults', 'quotePreview', 'copyQuoteBtn', 'downloadQuoteBtn', 'printCatalog',
-      'quoteModeShip', 'quoteModeLocal', 'quoteLocalShippingField', 'quoteLocalShipping', 'exportExcelBtn', 'importExcelBtn', 'importExcelFile', 'localPrintDialog', 'localPrintForm', 'localPrintShipping', 'adminPinDialog', 'adminPinForm', 'adminPinInput', 'toast'
+      'quoteModeShip', 'quoteModeLocal', 'quoteLocalShippingField', 'quoteLocalShipping', 'exportExcelBtn', 'importExcelBtn', 'backupBtn', 'duplicateReviewBtn', 'imageAuditBtn', 'categoryManagerBtn', 'importExcelFile', 'duplicateDialog', 'duplicateList', 'imageAuditDialog', 'imageAuditList', 'categoryManagerDialog', 'categoryManagerList', 'importPreviewDialog', 'importPreviewBody', 'localPrintDialog', 'localPrintForm', 'localPrintShipping', 'adminPinDialog', 'adminPinForm', 'adminPinInput', 'toast'
     ];
     ids.forEach((id) => { el[id] = document.getElementById(id); });
     el.navTabs = [...document.querySelectorAll('.nav-tab')];
@@ -196,7 +199,7 @@
       button.addEventListener('click', () => closeDialog(button.dataset.closeDialog));
     });
 
-    [el.productDialog, el.detailDialog, el.saleDialog, el.quoteDialog, el.localPrintDialog, el.adminPinDialog].filter(Boolean).forEach((dialog) => {
+    [el.productDialog, el.detailDialog, el.saleDialog, el.quoteDialog, el.localPrintDialog, el.adminPinDialog, el.duplicateDialog, el.imageAuditDialog, el.categoryManagerDialog, el.importPreviewDialog].filter(Boolean).forEach((dialog) => {
       dialog.addEventListener('click', (event) => {
         if (event.target === dialog) closeDialog(dialog.id);
       });
@@ -233,9 +236,17 @@
     el.quoteProductResults.addEventListener('click', onQuoteProductResultsClick);
     el.exportExcelBtn.addEventListener('click', () => requireAdmin(exportInventoryExcel));
     el.importExcelBtn.addEventListener('click', () => requireAdmin(() => el.importExcelFile.click()));
+    el.backupBtn?.addEventListener('click', () => requireAdmin(createInventoryBackup));
+    el.duplicateReviewBtn?.addEventListener('click', () => requireAdmin(openDuplicateReview));
+    el.imageAuditBtn?.addEventListener('click', () => requireAdmin(openImageAudit));
+    el.categoryManagerBtn?.addEventListener('click', () => requireAdmin(openCategoryManager));
     el.importExcelFile.addEventListener('change', onImportExcelSelected);
     el.localPrintForm.addEventListener('submit', onLocalPrintSubmit);
     el.adminPinForm.addEventListener('submit', onAdminPinSubmit);
+    el.duplicateList?.addEventListener('click', onDuplicateListClick);
+    el.imageAuditList?.addEventListener('click', onImageAuditListClick);
+    el.categoryManagerList?.addEventListener('click', onCategoryManagerClick);
+    el.importPreviewDialog?.addEventListener('click', onImportPreviewClick);
 
     el.productGrid.addEventListener('click', onProductGridClick);
     el.clearSalesBtn.addEventListener('click', () => clearActivity('sales'));
@@ -858,7 +869,12 @@
     const low = state.products.filter((p) => p.stock > 0 && p.stock <= LOW_STOCK_LIMIT).length;
     const out = state.products.filter((p) => p.stock <= 0).length;
     const inventoryCost = state.products.reduce((sum, p) => sum + (Number(p.cost || 0) * Number(p.stock || 0)), 0);
+    const inventoryValue = state.products.reduce((sum, p) => sum + (Number(p.price || 0) * Number(p.stock || 0)), 0);
     const inventoryProfit = state.products.reduce((sum, p) => sum + (Math.max(0, Number(p.price || 0) - Number(p.cost || 0)) * Number(p.stock || 0)), 0);
+    const productsWithCost = state.products.filter((p) => Number(p.cost || 0) > 0 && Number(p.price || 0) > 0);
+    const averageMargin = productsWithCost.length ? Math.round(productsWithCost.reduce((sum, p) => sum + calculateUtility(p).rate, 0) / productsWithCost.length) : 0;
+    const bestProfit = state.products.reduce((best, p) => Math.max(best, calculateUtility(p).amount), 0);
+    const lowProfitCount = productsWithCost.filter((p) => calculateUtility(p).rate < 20).length;
 
     setText('visibleCount', state.filtered.length);
     setText('unitCount', visibleUnits);
@@ -875,6 +891,10 @@
     setText('panelQuotes', state.quotes.length);
     setText('panelInventoryCost', formatMoneyWhole(inventoryCost));
     setText('panelInventoryProfit', formatMoneyWhole(inventoryProfit));
+    setText('panelInventoryValue', formatMoneyWhole(inventoryValue));
+    setText('panelAverageMargin', `${averageMargin}%`);
+    setText('panelBestProfit', formatMoneyWhole(bestProfit));
+    setText('panelLowProfitCount', lowProfitCount);
   }
 
   function renderActiveFilters() {
@@ -913,6 +933,7 @@
 
     renderLowStockPanel();
     renderTopProductsPanel();
+    renderProfitPanel();
   }
 
   function renderLowStockPanel() {
@@ -945,6 +966,23 @@
     el.topProductsList.innerHTML = top.length
       ? top.map((item, index) => `<div class="activity-item"><strong>${index + 1}. ${escapeHtml(item.name)}</strong><span>${item.qty} unidad${item.qty === 1 ? '' : 'es'} vendidas · ${formatMoneyWhole(item.total)}</span></div>`).join('')
       : 'Todavía no hay ventas para calcular el top.';
+  }
+
+
+  function renderProfitPanel() {
+    if (!el.profitList) return;
+    const products = state.products
+      .map((product) => ({ product, utility: calculateUtility(product), possible: calculateUtility(product).amount * Number(product.stock || 0) }))
+      .sort((a, b) => b.possible - a.possible || b.utility.amount - a.utility.amount)
+      .slice(0, 10);
+    el.profitList.classList.toggle('empty-state', products.length === 0);
+    el.profitList.innerHTML = products.length
+      ? products.map(({ product, utility, possible }) => `
+        <div class="activity-item profit-item">
+          <strong>${escapeHtml(product.name)}</strong>
+          <span>Costo ${formatMoneyWhole(product.cost)} · Venta ${formatMoneyWhole(product.price)} · Utilidad ${formatMoneyWhole(utility.amount)} (${utility.rate}%) · Posible ${formatMoneyWhole(possible)}</span>
+        </div>`).join('')
+      : 'No hay productos para calcular utilidad.';
   }
 
   function activityTemplate(item, type) {
@@ -983,6 +1021,7 @@
     if (mode === 'cliente') showToast('Modo cliente: vista limpia para enseñar productos.');
     if (mode === 'envio') showToast('Modo envío: muestra precios con envío normal y pagar al recibir.');
     if (mode === 'admin') showToast('Modo admin activo. Costos y edición desbloqueados.');
+    updateAdminVisualLock();
   }
 
   function requestAdminUnlock(callback) {
@@ -1011,6 +1050,7 @@
       return;
     }
     state.adminUnlocked = true;
+    updateAdminVisualLock();
     closeDialog('adminPinDialog');
     if (state.currentMode !== 'admin') setMode('admin', true);
     const action = state.pendingAdminAction;
@@ -1275,17 +1315,7 @@
     if (!product) return;
     const confirmed = window.confirm(`¿Eliminar ${product.name}? Esta acción no se puede deshacer.`);
     if (!confirmed) return;
-    state.products = state.products.filter((item) => item.id !== productId);
-    saveLocalProducts();
-    try {
-      await deleteProductFromFirebase(productId);
-      showToast('Producto eliminado y sincronizado.');
-    } catch (error) {
-      console.error(error);
-      showToast('No se pudo eliminar en Firebase. Revisa reglas/permisos.');
-    }
-    closeDialog('productDialog');
-    renderAll();
+    await deleteProductById(productId, true);
   }
 
   function openDetail(productId) {
@@ -1973,6 +2003,216 @@
     showToast('Cotización guardada.');
   }
 
+
+  function openDuplicateReview() {
+    const groups = getDuplicateGroups();
+    el.duplicateList.classList.toggle('empty-state', groups.length === 0);
+    el.duplicateList.innerHTML = groups.length ? groups.map((group) => `
+      <section class="review-group">
+        <div class="review-group-head">
+          <strong>${escapeHtml(group.title)}</strong>
+          <span>${group.items.length} productos</span>
+        </div>
+        ${group.items.map((product) => duplicateProductRow(product)).join('')}
+      </section>
+    `).join('') : 'No encontré productos repetidos por código o nombre parecido.';
+    openDialog('duplicateDialog');
+  }
+
+  function duplicateProductRow(product) {
+    return `
+      <div class="review-row">
+        <div>
+          <b>${escapeHtml(product.code || 'Sin código')} · ${escapeHtml(product.name)}</b>
+          <span>${escapeHtml(product.category)} · Stock ${Number(product.stock || 0)} · ${formatMoneyWhole(product.price)} · ${product.imageUrl ? 'con imagen' : 'sin imagen'}</span>
+        </div>
+        <div class="review-actions">
+          <button class="btn btn-ghost btn-small" type="button" data-review-action="edit" data-id="${escapeAttr(product.id)}">Editar</button>
+          <button class="btn btn-danger btn-small" type="button" data-review-action="delete" data-id="${escapeAttr(product.id)}">Eliminar</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function getDuplicateGroups() {
+    const groups = [];
+    const usedSignatures = new Set();
+    const byCode = new Map();
+    const byName = new Map();
+    state.products.forEach((product) => {
+      const codeKey = normalizeText(product.code).trim();
+      const nameKey = normalizeText(product.name).replace(/\s+/g, ' ').trim();
+      if (codeKey) {
+        if (!byCode.has(codeKey)) byCode.set(codeKey, []);
+        byCode.get(codeKey).push(product);
+      }
+      if (nameKey) {
+        const priceBucket = Math.round(Number(product.price || 0));
+        const key = `${nameKey}|${priceBucket}`;
+        if (!byName.has(key)) byName.set(key, []);
+        byName.get(key).push(product);
+      }
+    });
+    byCode.forEach((items, key) => {
+      if (items.length > 1) {
+        const ids = items.map((p) => p.id).sort().join('|');
+        usedSignatures.add(ids);
+        groups.push({ title: `Código repetido: ${escapeHtml(items[0].code || key)}`, items: items.slice().sort(compareProductsForCatalog) });
+      }
+    });
+    byName.forEach((items) => {
+      if (items.length > 1) {
+        const ids = items.map((p) => p.id).sort().join('|');
+        if (!usedSignatures.has(ids)) groups.push({ title: `Nombre parecido: ${items[0].name}`, items: items.slice().sort(compareProductsForCatalog) });
+      }
+    });
+    return groups;
+  }
+
+  async function onDuplicateListClick(event) {
+    const button = event.target.closest('[data-review-action]');
+    if (!button) return;
+    const product = findProduct(button.dataset.id);
+    if (!product) return;
+    if (button.dataset.reviewAction === 'edit') {
+      closeDialog('duplicateDialog');
+      openProductForm(product);
+      return;
+    }
+    if (button.dataset.reviewAction === 'delete') {
+      const confirmed = window.confirm(`¿Eliminar ${product.name}?`);
+      if (!confirmed) return;
+      await deleteProductById(product.id, false);
+      openDuplicateReview();
+    }
+  }
+
+  function openImageAudit() {
+    const problems = getImageAuditItems();
+    el.imageAuditList.classList.toggle('empty-state', problems.length === 0);
+    el.imageAuditList.innerHTML = problems.length ? problems.map(({ product, problem }) => `
+      <div class="review-row">
+        <div>
+          <b>${escapeHtml(product.code)} · ${escapeHtml(product.name)}</b>
+          <span>${escapeHtml(problem)} · ${escapeHtml(product.category)} · Stock ${Number(product.stock || 0)}</span>
+        </div>
+        <div class="review-actions">
+          <button class="btn btn-ghost btn-small" type="button" data-image-action="edit" data-id="${escapeAttr(product.id)}">Editar foto</button>
+        </div>
+      </div>
+    `).join('') : 'No encontré imágenes pendientes de revisión.';
+    openDialog('imageAuditDialog');
+  }
+
+  function getImageAuditItems() {
+    return state.products.flatMap((product) => {
+      const url = String(product.imageUrl || '').trim();
+      if (!url) return [{ product, problem: 'Sin imagen' }];
+      if (/^data:image\//i.test(url)) return [{ product, problem: 'Foto pesada guardada como respaldo' }];
+      if (url.length > 900) return [{ product, problem: 'URL demasiado larga' }];
+      if (!/^https?:\/\//i.test(url) && !/^assets\//i.test(url)) return [{ product, problem: 'Enlace de imagen extraño' }];
+      return [];
+    }).sort((a, b) => compareProductsForCatalog(a.product, b.product));
+  }
+
+  function onImageAuditListClick(event) {
+    const button = event.target.closest('[data-image-action]');
+    if (!button) return;
+    const product = findProduct(button.dataset.id);
+    if (!product) return;
+    closeDialog('imageAuditDialog');
+    openProductForm(product);
+  }
+
+  function openCategoryManager() {
+    const categories = uniqueCategories(state.products).map((category) => ({
+      category,
+      count: state.products.filter((product) => cleanCategory(product.category) === category).length
+    }));
+    el.categoryManagerList.innerHTML = categories.length ? categories.map(({ category, count }) => `
+      <div class="category-manager-row">
+        <div>
+          <strong>${escapeHtml(category)}</strong>
+          <span>${count} ${count === 1 ? 'producto' : 'productos'}</span>
+        </div>
+        <input value="${escapeAttr(category)}" aria-label="Nuevo nombre para ${escapeAttr(category)}" data-category-input="${escapeAttr(category)}">
+        <button class="btn btn-secondary btn-small" type="button" data-category-action="rename" data-category="${escapeAttr(category)}">Guardar</button>
+      </div>
+    `).join('') : '<p class="empty-state">No hay categorías.</p>';
+    openDialog('categoryManagerDialog');
+  }
+
+  async function onCategoryManagerClick(event) {
+    const button = event.target.closest('[data-category-action="rename"]');
+    if (!button) return;
+    const oldCategory = button.dataset.category;
+    const input = el.categoryManagerList.querySelector(`[data-category-input="${cssEscape(oldCategory)}"]`);
+    const newCategory = cleanCategory(input?.value || '');
+    if (!newCategory) return showToast('Escribe un nombre de categoría válido.');
+    if (newCategory === oldCategory) return showToast('La categoría no cambió.');
+    const confirmed = window.confirm(`¿Cambiar todos los productos de "${oldCategory}" a "${newCategory}"?`);
+    if (!confirmed) return;
+    const changed = [];
+    state.products = state.products.map((product) => {
+      if (cleanCategory(product.category) !== oldCategory) return product;
+      const next = normalizeProduct({ ...product, category: newCategory, updatedAt: new Date().toISOString() });
+      changed.push(next);
+      return next;
+    });
+    saveLocalProducts();
+    renderAll();
+    await saveProductsBatchToFirebase(changed);
+    showToast(`Categoría actualizada: ${oldCategory} → ${newCategory}`);
+    openCategoryManager();
+  }
+
+  function createInventoryBackup() {
+    const stamp = uniqueInventoryFilename('').replace(/^inventario-/, 'respaldo-').replace(/\.$/, '');
+    const payload = {
+      createdAt: new Date().toISOString(),
+      source: state.firebase.ready ? `${state.firebase.sourceType}:${state.firebase.sourcePath}` : 'local',
+      products: state.products.map(sanitizeForStorageWithId),
+      sales: state.sales,
+      quotes: state.quotes
+    };
+    downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' }), `${stamp}.json`);
+    try {
+      const blob = createInventoryXlsxBlob(buildInventoryExportRows());
+      downloadBlob(blob, `${stamp}.xlsx`);
+    } catch (error) {
+      console.warn('No se pudo crear respaldo Excel, se dejó JSON.', error);
+    }
+    showToast('Respaldo descargado con fecha y número único.');
+  }
+
+  async function deleteProductById(productId, closeForm = true) {
+    const product = findProduct(productId);
+    if (!product) return;
+    state.products = state.products.filter((item) => item.id !== productId);
+    saveLocalProducts();
+    try {
+      await deleteProductFromFirebase(productId);
+      showToast('Producto eliminado y sincronizado.');
+    } catch (error) {
+      console.error(error);
+      showToast('No se pudo eliminar en Firebase. Revisa reglas/permisos.');
+    }
+    if (closeForm) closeDialog('productDialog');
+    renderAll();
+  }
+
+  async function saveProductsBatchToFirebase(products) {
+    if (!state.firebase.ready || !products.length) return;
+    setCloudStatus('Guardando', 'sync', 'Guardando cambios en Firebase...');
+    stopProductsListener();
+    try {
+      await Promise.all(products.map((product) => saveProductToFirebase(product)));
+      setCloudStatus('Firebase', 'online', 'Cambios guardados en Firebase.');
+    } finally {
+      startProductsListener();
+    }
+  }
+
   function exportInventoryExcel() {
     const rows = buildInventoryExportRows();
     const filenameBase = uniqueInventoryFilename('').replace(/\.$/, '');
@@ -2068,65 +2308,43 @@
 
   async function onImportExcelFile(file) {
     try {
+      setLoading(true, 'Leyendo Excel...', 'Preparando vista previa de importación.');
       const rows = await readInventoryRows(file);
       if (!rows.length) {
         showToast('El archivo no tiene productos para importar.');
+        setLoading(false);
         return;
       }
 
       const imported = rows.map(normalizeProductFromImport).filter((product) => product.name);
       if (!imported.length) {
         showToast('No encontré productos válidos en el archivo.');
+        setLoading(false);
         return;
       }
 
-      const replaceInventory = window.confirm(
-        `Encontré ${imported.length} productos en el archivo.\n\n` +
-        'Aceptar = REEMPLAZAR todo el inventario con este archivo. Esto ayuda a quitar repetidos que ya borraste en Excel.\n\n' +
-        'Cancelar = solo actualizar/agregar productos, sin borrar los que no vengan en el archivo.'
-      );
-
-      const previousProducts = state.products.slice();
-      const byId = new Map(previousProducts.map((product) => [product.id, product]));
-      const byCode = new Map(previousProducts.map((product) => [normalizeText(product.code), product]).filter((entry) => entry[0]));
-      const importedFinal = imported.map((product) => {
-        const match = byId.get(product.id) || byCode.get(normalizeText(product.code));
-        const imageFromFile = String(product.imageUrl || '').trim();
-        const shouldKeepExistingImage = match && (!imageFromFile || isExcelImagePlaceholder(imageFromFile));
-        return normalizeProduct({
-          ...(match || {}),
-          ...product,
-          imageUrl: shouldKeepExistingImage ? match.imageUrl : product.imageUrl,
-          id: match?.id || product.id || cryptoId(),
-          createdAt: match?.createdAt || product.createdAt || new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      });
-
-      let finalProducts;
-      let idsToDelete = [];
-      if (replaceInventory) {
-        finalProducts = dedupeProducts(importedFinal);
-        const keepIds = new Set(finalProducts.map((product) => product.id));
-        idsToDelete = previousProducts.filter((product) => !keepIds.has(product.id)).map((product) => product.id);
-      } else {
-        const merged = [...previousProducts];
-        importedFinal.forEach((product) => {
-          const index = merged.findIndex((item) => item.id === product.id || normalizeText(item.code) === normalizeText(product.code));
-          if (index >= 0) merged[index] = product;
-          else merged.unshift(product);
-        });
-        finalProducts = dedupeProducts(merged);
+      const plan = buildImportPlan(imported);
+      setLoading(false);
+      const mode = await requestImportPreview(plan);
+      if (!mode || mode === 'cancel') {
+        showToast('Importación cancelada.');
+        return;
       }
+
+      const replaceInventory = mode === 'replace';
+      const finalProducts = replaceInventory ? plan.replaceProducts : plan.mergeProducts;
+      const productsToWrite = replaceInventory ? finalProducts : plan.importedFinal;
+      const idsToDelete = replaceInventory ? plan.idsToDelete : [];
 
       state.products = finalProducts;
       saveLocalProducts();
       renderAll();
 
       if (state.firebase.ready) {
+        setLoading(true, 'Guardando en Firebase...', 'Subiendo productos importados para que no vuelva el inventario viejo.');
         setCloudStatus('Importando', 'sync', 'Guardando inventario importado en Firebase...');
         stopProductsListener();
-        await saveImportedProductsToFirebase(finalProducts, importedFinal, idsToDelete, replaceInventory);
+        await saveImportedProductsToFirebase(finalProducts, productsToWrite, idsToDelete, replaceInventory);
         startProductsListener();
         setCloudStatus('Firebase', 'online', 'Inventario importado y guardado en Firebase.');
         showToast(`Inventario importado y sincronizado: ${finalProducts.length} productos.`);
@@ -2138,7 +2356,83 @@
       startProductsListener();
       setCloudStatus(state.firebase.ready ? 'Firebase' : 'Local', state.firebase.ready ? 'online' : 'muted', state.firebase.ready ? 'Firebase conectado.' : 'Modo local.');
       showToast(error.message || 'No se pudo importar el archivo.');
+    } finally {
+      setLoading(false);
     }
+  }
+
+  function buildImportPlan(imported) {
+    const previousProducts = state.products.slice();
+    const byId = new Map(previousProducts.map((product) => [product.id, product]));
+    const byCode = new Map(previousProducts.map((product) => [normalizeText(product.code), product]).filter((entry) => entry[0]));
+    const importedFinal = imported.map((product) => {
+      const match = byId.get(product.id) || byCode.get(normalizeText(product.code));
+      const imageFromFile = String(product.imageUrl || '').trim();
+      const shouldKeepExistingImage = match && (!imageFromFile || isExcelImagePlaceholder(imageFromFile));
+      return normalizeProduct({
+        ...(match || {}),
+        ...product,
+        imageUrl: shouldKeepExistingImage ? match.imageUrl : product.imageUrl,
+        id: match?.id || product.id || cryptoId(),
+        createdAt: match?.createdAt || product.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    });
+
+    const updates = importedFinal.filter((product) => byId.has(product.id) || byCode.has(normalizeText(product.code))).length;
+    const adds = importedFinal.length - updates;
+    const replaceProducts = dedupeProducts(importedFinal);
+    const keepIds = new Set(replaceProducts.map((product) => product.id));
+    const idsToDelete = previousProducts.filter((product) => !keepIds.has(product.id)).map((product) => product.id);
+    const merged = [...previousProducts];
+    importedFinal.forEach((product) => {
+      const index = merged.findIndex((item) => item.id === product.id || normalizeText(item.code) === normalizeText(product.code));
+      if (index >= 0) merged[index] = product;
+      else merged.unshift(product);
+    });
+    const mergeProducts = dedupeProducts(merged);
+    const duplicateGroups = getImportDuplicateGroups(importedFinal);
+    return { previousProducts, importedFinal, replaceProducts, mergeProducts, idsToDelete, updates, adds, duplicates: duplicateGroups };
+  }
+
+  function getImportDuplicateGroups(products) {
+    const byCode = new Map();
+    products.forEach((product) => {
+      const key = normalizeText(product.code);
+      if (!key) return;
+      if (!byCode.has(key)) byCode.set(key, []);
+      byCode.get(key).push(product);
+    });
+    return [...byCode.values()].filter((items) => items.length > 1);
+  }
+
+  function requestImportPreview(plan) {
+    return new Promise((resolve) => {
+      state.importDraft = plan;
+      state.importPreviewResolve = resolve;
+      el.importPreviewBody.innerHTML = `
+        <div class="import-summary-grid">
+          <article><span>Archivo</span><strong>${plan.importedFinal.length}</strong><small>productos leídos</small></article>
+          <article><span>Actualizar</span><strong>${plan.updates}</strong><small>coinciden por Id o código</small></article>
+          <article><span>Agregar</span><strong>${plan.adds}</strong><small>nuevos productos</small></article>
+          <article><span>Eliminar si reemplaza</span><strong>${plan.idsToDelete.length}</strong><small>no vienen en el archivo</small></article>
+        </div>
+        ${plan.duplicates.length ? `<div class="import-warning"><strong>Ojo:</strong> el archivo trae ${plan.duplicates.length} códigos repetidos. Se conservará uno por código para evitar duplicados.</div>` : ''}
+        <p class="form-help"><b>Reemplazar inventario</b> sirve si ya limpiaste el Excel y quieres borrar repetidos. <b>Actualizar/agregar</b> mantiene lo que no venga en el archivo.</p>
+      `;
+      openDialog('importPreviewDialog');
+    });
+  }
+
+  function onImportPreviewClick(event) {
+    const button = event.target.closest('[data-import-mode]');
+    if (!button) return;
+    const mode = button.dataset.importMode;
+    const resolver = state.importPreviewResolve;
+    state.importPreviewResolve = null;
+    state.importDraft = null;
+    closeDialog('importPreviewDialog');
+    if (typeof resolver === 'function') resolver(mode);
   }
 
   async function saveImportedProductsToFirebase(finalProducts, importedProducts, idsToDelete, replaceInventory) {
@@ -2462,6 +2756,24 @@
     showToast(`Historial de ${label} limpiado.`);
   }
 
+
+  function setLoading(show, title = 'Cargando...', text = '') {
+    if (!el.loadingOverlay) return;
+    el.loadingOverlay.hidden = !show;
+    el.loadingOverlay.classList.toggle('visible', Boolean(show));
+    if (el.loadingTitle && title) el.loadingTitle.textContent = title;
+    if (el.loadingText) el.loadingText.textContent = text || '';
+  }
+
+  function updateAdminVisualLock() {
+    document.body.dataset.adminUnlocked = state.adminUnlocked ? 'true' : 'false';
+  }
+
+  function cssEscape(value) {
+    if (window.CSS?.escape) return CSS.escape(String(value || ''));
+    return String(value || '').replace(/"/g, '\\"').replace(/\\/g, '\\\\');
+  }
+
   function openDialog(id) {
     const dialog = el[id];
     if (!dialog) return;
@@ -2472,6 +2784,11 @@
   function closeDialog(id) {
     const dialog = el[id];
     if (!dialog) return;
+    if (id === 'importPreviewDialog' && typeof state.importPreviewResolve === 'function') {
+      state.importPreviewResolve('cancel');
+      state.importPreviewResolve = null;
+      state.importDraft = null;
+    }
     if (typeof dialog.close === 'function') dialog.close();
     else dialog.removeAttribute('open');
   }

@@ -99,3 +99,15 @@ No subas solo el archivo ZIP. Debes subir los archivos descomprimidos.
 - Exportar Excel ahora genera un archivo `.xlsx` real con columnas separadas y encabezados ordenados.
 - Si una foto fue subida desde galería y está guardada como dato interno, en Excel aparece como `FOTO_SUBIDA_DESDE_GALERIA` para evitar columnas enormes. Al importar de vuelta, si el producto conserva su Id o código, la página mantiene la imagen existente.
 - Si el navegador tuviera que usar CSV como respaldo, ahora lo crea con separador compatible con Excel en español.
+
+
+## Mejoras de administración agregadas
+
+- Detector de productos repetidos por código o nombre parecido.
+- Revisión de imágenes: productos sin foto, fotos pesadas guardadas como respaldo o enlaces extraños.
+- Administrador de categorías para renombrar o unir categorías repetidas.
+- Importación inteligente desde Excel/CSV con vista previa antes de guardar en Firebase.
+- Botón Crear respaldo para descargar respaldo JSON y Excel con fecha/número único.
+- Pantalla de carga mientras conecta Firebase o importa datos.
+- Panel de ganancias más completo: inversión, venta posible, utilidad posible, margen promedio y utilidad baja.
+- Bloqueo visual reforzado: costos, importación, exportación y herramientas privadas solo aparecen después del PIN.

@@ -15,6 +15,14 @@
 <body>
   <a class="skip-link" href="#productos">Saltar a productos</a>
 
+  <div id="loadingOverlay" class="loading-overlay" role="status" aria-live="polite">
+    <div class="loading-card">
+      <img src="assets/img/logo-round.png" alt="SD COMAYAGUA">
+      <strong id="loadingTitle">Cargando catálogo...</strong>
+      <span id="loadingText">Conectando con Firebase y preparando productos.</span>
+    </div>
+  </div>
+
   <header class="app-header">
     <div class="brand-wrap">
       <div class="brand-logo" aria-hidden="true">
@@ -91,6 +99,10 @@
         <article class="summary-card"><span>Cotizaciones</span><strong id="panelQuotes">0</strong></article>
         <article class="summary-card admin-only"><span>Inversión</span><strong id="panelInventoryCost">L 0</strong></article>
         <article class="summary-card admin-only success"><span>Utilidad posible</span><strong id="panelInventoryProfit">L 0</strong></article>
+        <article class="summary-card admin-only"><span>Venta posible</span><strong id="panelInventoryValue">L 0</strong></article>
+        <article class="summary-card admin-only success"><span>Margen promedio</span><strong id="panelAverageMargin">0%</strong></article>
+        <article class="summary-card admin-only"><span>Mejor utilidad</span><strong id="panelBestProfit">L 0</strong></article>
+        <article class="summary-card admin-only warning"><span>Utilidad baja</span><strong id="panelLowProfitCount">0</strong></article>
       </div>
 
       <div class="panel-columns">
@@ -124,6 +136,14 @@
             <span class="mini-pill">Top</span>
           </div>
           <div id="topProductsList" class="activity-list empty-state">Todavía no hay ventas para calcular el top.</div>
+        </article>
+
+        <article class="panel-card admin-only">
+          <div class="panel-card-head">
+            <h3>Ganancias por producto</h3>
+            <span class="mini-pill">Costos</span>
+          </div>
+          <div id="profitList" class="activity-list empty-state">Desbloquea Admin para ver utilidad por producto.</div>
         </article>
       </div>
     </section>
@@ -171,6 +191,10 @@
 
           <button id="exportExcelBtn" class="btn btn-secondary admin-only" type="button">Exportar Excel</button>
           <button id="importExcelBtn" class="btn btn-secondary admin-only" type="button">Importar Excel</button>
+          <button id="backupBtn" class="btn btn-secondary admin-only" type="button">Crear respaldo</button>
+          <button id="duplicateReviewBtn" class="btn btn-secondary admin-only" type="button">Revisar repetidos</button>
+          <button id="imageAuditBtn" class="btn btn-secondary admin-only" type="button">Revisar imágenes</button>
+          <button id="categoryManagerBtn" class="btn btn-secondary admin-only" type="button">Categorías</button>
           <input id="importExcelFile" type="file" accept=".xlsx,.xls,.csv" hidden>
           <button id="printBtn" class="btn btn-secondary" type="button">Imprimir</button>
           <button id="printComayaguaBtn" class="btn btn-secondary" type="button">Imprimir Comayagua</button>
@@ -398,6 +422,67 @@
         <button class="btn btn-primary" type="submit">Entrar</button>
       </div>
     </form>
+  </dialog>
+
+
+  <dialog id="duplicateDialog" class="dialog">
+    <div class="dialog-card admin-tools-card">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Limpieza</p>
+          <h3>Productos repetidos</h3>
+        </div>
+        <button class="icon-close" type="button" data-close-dialog="duplicateDialog" aria-label="Cerrar">×</button>
+      </div>
+      <p class="form-help">Revisa productos con código repetido o nombre parecido. Borra solo cuando estés seguro.</p>
+      <div id="duplicateList" class="admin-review-list empty-state">No hay repetidos detectados.</div>
+    </div>
+  </dialog>
+
+  <dialog id="imageAuditDialog" class="dialog">
+    <div class="dialog-card admin-tools-card">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Imágenes</p>
+          <h3>Revisión de imágenes</h3>
+        </div>
+        <button class="icon-close" type="button" data-close-dialog="imageAuditDialog" aria-label="Cerrar">×</button>
+      </div>
+      <p class="form-help">Aquí salen productos sin foto, con foto pesada guardada como respaldo o con enlaces que conviene revisar.</p>
+      <div id="imageAuditList" class="admin-review-list empty-state">No hay problemas de imagen detectados.</div>
+    </div>
+  </dialog>
+
+  <dialog id="categoryManagerDialog" class="dialog">
+    <div class="dialog-card admin-tools-card">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Administración</p>
+          <h3>Categorías</h3>
+        </div>
+        <button class="icon-close" type="button" data-close-dialog="categoryManagerDialog" aria-label="Cerrar">×</button>
+      </div>
+      <p class="form-help">Renombra o une categorías repetidas. Ejemplo: puedes pasar “Tecnologia” a “Tecnología”.</p>
+      <div id="categoryManagerList" class="category-manager-list"></div>
+    </div>
+  </dialog>
+
+  <dialog id="importPreviewDialog" class="dialog">
+    <div class="dialog-card admin-tools-card">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Importación inteligente</p>
+          <h3>Revisar antes de guardar</h3>
+        </div>
+        <button class="icon-close" type="button" data-import-mode="cancel" aria-label="Cerrar">×</button>
+      </div>
+      <div id="importPreviewBody" class="import-preview-body"></div>
+      <div class="dialog-actions stacked-actions">
+        <button class="btn btn-danger ghost-danger" type="button" data-import-mode="replace">Reemplazar inventario</button>
+        <button class="btn btn-primary" type="button" data-import-mode="merge">Actualizar / agregar</button>
+        <button class="btn btn-light" type="button" data-import-mode="cancel">Cancelar</button>
+      </div>
+    </div>
   </dialog>
 
 
