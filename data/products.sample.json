@@ -1,0 +1,20 @@
+[
+  {
+    "code": "SD-001",
+    "name": "Teléfono Samsung Galaxy A15 128GB",
+    "category": "Celulares",
+    "price": 6490,
+    "stock": 6,
+    "imageUrl": "",
+    "description": "Producto de ejemplo."
+  },
+  {
+    "code": "SD-002",
+    "name": "Audífonos Bluetooth Pro Bass",
+    "category": "Accesorios",
+    "price": 850,
+    "stock": 2,
+    "imageUrl": "",
+    "description": "Producto de ejemplo."
+  }
+]
