@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b2d5c">
+  <meta name="description" content="SD COMAYAGUA - Catálogo limpio para clientes.">
+  <title>SD COMAYAGUA | Catálogo para cliente</title>
+  <link rel="icon" href="assets/img/logo-round.png" type="image/png">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/visual-polish.css">
+  <script src="firebase-config.js"></script>
+  <script src="assets/js/promotions.js"></script>
+  <script>window.SD_PUBLIC_CLIENT_CATALOG = true;</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="assets/js/app.js"></script>
+</head>
+<body data-public-catalog="true">
+  <a class="skip-link" href="#productos">Saltar a productos</a>
+
+  <div id="loadingOverlay" class="loading-overlay" role="status" aria-live="polite">
+    <div class="loading-card simple-loading-card">
+      <img src="assets/img/logo-round.png" alt="SD COMAYAGUA">
+      <strong id="loadingTitle">Cargando catálogo...</strong>
+      <span id="loadingText">Conectando con Firebase y preparando productos.</span>
+      <div class="loading-progress simple-loading-progress" aria-hidden="true"><span></span></div>
+    </div>
+  </div>
+
+  <header class="app-header">
+    <div class="brand-wrap">
+      <button id="brandLogo" class="brand-logo logo-home-btn" type="button" aria-label="Ir al inicio del catálogo">
+        <img src="assets/img/logo-round.png" alt="Logo SD COMAYAGUA" width="56" height="56">
+      </button>
+      <div class="brand-copy">
+        <p class="eyebrow">Catálogo para cliente</p>
+        <h1>SD COMAYAGUA</h1>
+        <p>Productos disponibles · Promociones · Atención por WhatsApp</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <span id="cloudStatus" class="status-pill status-muted" title="Estado de sincronización">
+        <span class="dot"></span><span>Local</span>
+      </span>
+      <button id="syncBtn" class="btn btn-light" type="button" title="Sincronizar productos">
+        <span aria-hidden="true">↻</span><span>Sincronizar</span>
+      </button>
+      <button id="menuToggle" class="icon-btn" type="button" aria-label="Abrir menú" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <nav id="mainNav" class="main-nav" aria-label="Navegación principal">
+    <button class="nav-tab active" type="button" data-section="inicio">Inicio</button>
+    <button class="nav-tab" type="button" data-section="panel">Panel</button>
+    <button class="nav-tab" type="button" data-section="cotizaciones">Cotizaciones</button>
+    <button class="nav-tab" type="button" data-section="productos">Productos</button>
+  </nav>
+
+  <main class="app-main">
+    <section id="inicio" class="section active-section" data-section-panel="inicio">
+      <div class="hero-card">
+        <div>
+          <p class="section-label">Sistema comercial</p>
+          <h2>Catálogo de productos disponibles.</h2>
+          <p class="hero-text">Vista limpia para revisar productos, promociones y disponibilidad.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="cliente.html" target="_blank" rel="noopener">Catálogo cliente limpio</a>
+            <button class="btn btn-secondary" type="button" data-go="productos">Ver productos</button>
+            <button class="btn btn-secondary" type="button" data-go="panel">Ver resumen</button>
+          </div>
+        </div>
+        <div class="hero-panel" aria-label="Resumen rápido">
+          <div class="mini-stat">
+            <strong id="heroProducts">0</strong>
+            <span>Productos</span>
+          </div>
+          <div class="mini-stat">
+            <strong id="heroUnits">0</strong>
+            <span>Unidades</span>
+          </div>
+          <div class="mini-stat">
+            <strong id="heroAvailable">0</strong>
+            <span>Disponibles</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel" class="section" data-section-panel="panel">
+      <div class="section-head">
+        <div>
+          <p class="section-label">Panel</p>
+          <h2>Resumen del inventario</h2>
+          <p>Control rápido de existencias, ventas y cotizaciones creadas en este navegador.</p>
+        </div>
+      </div>
+
+      <div class="summary-grid panel-summary" aria-live="polite">
+        <article class="summary-card"><span>Productos</span><strong id="panelTotalProducts">0</strong></article>
+        <article class="summary-card"><span>Unidades</span><strong id="panelTotalUnits">0</strong></article>
+        <article class="summary-card"><span>Ventas</span><strong id="panelSales">0</strong></article>
+        <article class="summary-card"><span>Cotizaciones</span><strong id="panelQuotes">0</strong></article>
+        <article class="summary-card admin-only success"><span>Vendido</span><strong id="panelSalesRevenue">L 0</strong></article>
+        <article class="summary-card admin-only success"><span>Ganancia ventas</span><strong id="panelSalesProfit">L 0</strong></article>
+        <article class="summary-card admin-only warning"><span>Ganancia hoy</span><strong id="panelTodayProfit">L 0</strong></article>
+        <article class="summary-card admin-only"><span>Inversión</span><strong id="panelInventoryCost">L 0</strong></article>
+        <article class="summary-card admin-only success"><span>Utilidad posible</span><strong id="panelInventoryProfit">L 0</strong></article>
+        <article class="summary-card admin-only"><span>Venta posible</span><strong id="panelInventoryValue">L 0</strong></article>
+        <article class="summary-card admin-only success"><span>Margen promedio</span><strong id="panelAverageMargin">0%</strong></article>
+        <article class="summary-card admin-only"><span>Mejor utilidad</span><strong id="panelBestProfit">L 0</strong></article>
+        <article class="summary-card admin-only warning"><span>Utilidad baja</span><strong id="panelLowProfitCount">0</strong></article>
+      </div>
+
+      <div class="panel-columns">
+        <article class="panel-card">
+          <div class="panel-card-head">
+            <h3>Últimas ventas</h3>
+            <button id="clearSalesBtn" class="btn btn-ghost btn-small" type="button">Limpiar</button>
+          </div>
+          <div id="salesList" class="activity-list empty-state">No hay ventas registradas todavía.</div>
+        </article>
+
+        <article class="panel-card">
+          <div class="panel-card-head">
+            <h3>Últimas cotizaciones</h3>
+            <button id="clearQuotesBtn" class="btn btn-ghost btn-small" type="button">Limpiar</button>
+          </div>
+          <div id="quotesList" class="activity-list empty-state">No hay cotizaciones registradas todavía.</div>
+        </article>
+
+        <article class="panel-card alert-panel">
+          <div class="panel-card-head">
+            <h3>Alerta de bajo stock</h3>
+            <span class="mini-pill">Auto</span>
+          </div>
+          <div id="lowStockList" class="activity-list empty-state">No hay productos en alerta.</div>
+        </article>
+
+        <article class="panel-card admin-only">
+          <div class="panel-card-head">
+            <h3>Productos más vendidos</h3>
+            <span class="mini-pill">Top</span>
+          </div>
+          <div id="topProductsList" class="activity-list empty-state">Todavía no hay ventas para calcular el top.</div>
+        </article>
+
+        <article class="panel-card admin-only">
+          <div class="panel-card-head">
+            <h3>Ganancias por producto</h3>
+            <span class="mini-pill">Costos</span>
+          </div>
+          <div id="profitList" class="activity-list empty-state">Desbloquea Admin para ver utilidad por producto.</div>
+        </article>
+
+        <article class="panel-card admin-only incomplete-panel">
+          <div class="panel-card-head">
+            <h3>Productos incompletos</h3>
+            <span class="mini-pill warning">Revisar</span>
+          </div>
+          <div id="incompleteProductsList" class="activity-list empty-state">Todo se ve completo por ahora.</div>
+        </article>
+      </div>
+    </section>
+
+    <section id="cotizaciones" class="section" data-section-panel="cotizaciones">
+      <div class="section-head quotes-head-only">
+        <div class="section-actions">
+          <button id="newQuoteBtn" class="btn btn-primary" type="button">Nueva cotización</button>
+        </div>
+      </div>
+
+      <article class="panel-card">
+        <div class="panel-card-head">
+          <h3>Lista de cotizaciones</h3>
+          <span class="mini-pill">Local</span>
+        </div>
+        <div id="savedQuotesSectionList" class="saved-quotes-list empty-state">No hay cotizaciones guardadas todavía.</div>
+      </article>
+    </section>
+
+    <section id="productos" class="section" data-section-panel="productos">
+      <div class="catalog-head catalog-head-compact">
+        <div>
+          <h2>Productos</h2>
+        </div>
+        <button id="addProductBtnTop" class="btn btn-primary desktop-only" type="button">+ Agregar producto</button>
+      </div>
+
+      <div class="summary-grid product-summary" aria-live="polite">
+        <article class="summary-card"><span>Resultados</span><strong id="visibleCount">0</strong></article>
+        <article class="summary-card"><span>Unidades</span><strong id="unitCount">0</strong></article>
+        <article class="summary-card"><span>Nube</span><strong id="cloudCount">Local</strong></article>
+        <article class="summary-card success"><span>Disponibles</span><strong id="availableCount">0</strong></article>
+        <article class="summary-card warning"><span>Bajo stock</span><strong id="lowCount">0</strong></article>
+        <article class="summary-card danger"><span>Agotados</span><strong id="outCount">0</strong></article>
+      </div>
+
+      <div class="toolbar" aria-label="Filtros y acciones">
+        <div class="search-field">
+          <span aria-hidden="true">⌕</span>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="Buscar producto o categoría">
+        </div>
+
+        <label class="select-field" for="categoryFilter">
+          <span>Categoría</span>
+          <select id="categoryFilter">
+            <option value="all">Todas</option>
+          </select>
+        </label>
+
+        <div id="quickFilters" class="quick-filters" aria-label="Categorías">
+          <button class="quick-filter-btn client-category-chip active" type="button" data-client-category="all">Todas</button>
+        </div>
+
+        <div class="toolbar-actions-scroll" aria-label="Acciones y vistas">
+          <button id="addProductBtn" class="btn btn-primary" type="button">+ Agregar</button>
+
+          <div class="mode-switch" role="group" aria-label="Modo de vista">
+            <button class="mode-btn active" type="button" data-mode="admin">Admin</button>
+            <button class="mode-btn" type="button" data-mode="cliente">Cliente</button>
+            <button class="mode-btn" type="button" data-mode="envio">Envío</button>
+          </div>
+          <a class="btn btn-success client-public-link" href="cliente.html" target="_blank" rel="noopener">Abrir catálogo cliente limpio</a>
+
+          <button id="exportExcelBtn" class="btn btn-secondary admin-only" type="button">Exportar Excel</button>
+          <button id="importExcelBtn" class="btn btn-secondary admin-only" type="button">Importar Excel</button>
+          <button id="backupBtn" class="btn btn-secondary admin-only" type="button">Crear respaldo</button>
+          <button id="duplicateReviewBtn" class="btn btn-secondary admin-only" type="button">Revisar repetidos</button>
+          <button id="imageAuditBtn" class="btn btn-secondary admin-only" type="button">Revisar imágenes</button>
+          <button id="categoryManagerBtn" class="btn btn-secondary admin-only" type="button">Categorías</button>
+          <button id="hideOutToggleBtn" class="btn btn-light" type="button">Ocultar agotados</button>
+          <input id="importExcelFile" type="file" accept=".xlsx,.xls,.csv" hidden>
+          <button id="printBtn" class="btn btn-secondary" type="button">Imprimir catálogo</button>
+          <button id="printComayaguaBtn" class="btn btn-secondary" type="button">Imprimir Comayagua</button>
+          <button id="printHondurasBtn" class="btn btn-secondary" type="button">Envío Honduras</button>
+        </div>
+      </div>
+<div id="activeFilters" class="active-filters" hidden></div>
+      <div id="productGrid" class="product-grid" aria-live="polite"></div>
+      <div id="emptyProducts" class="empty-products" hidden>
+        <h3>No se encontraron productos</h3>
+        <p>Prueba con otro nombre, código o categoría.</p>
+      </div>
+    </section>
+
+    <section id="printCatalog" class="print-catalog" aria-hidden="true"></section>
+  </main>
+
+  <footer class="app-footer" aria-label="Pie de página">
+    <div class="app-footer-inner">
+      <span class="footer-mark" aria-hidden="true">SD</span>
+      <div class="footer-copy">
+        <p>Hecho por <strong>Gabriel Guerrero</strong></p>
+        <small>SD COMAYAGUA · Derechos reservados</small>
+      </div>
+    </div>
+  </footer>
+
+  <button id="floatingAddBtn" class="floating-add" type="button" aria-label="Agregar producto">+</button>
+
+  <dialog id="productDialog" class="dialog">
+    <form id="productForm" class="dialog-card" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Producto</p>
+          <h3 id="productFormTitle">Agregar producto</h3>
+        </div>
+        <button class="icon-close" value="cancel" type="button" data-close-dialog="productDialog" aria-label="Cerrar">×</button>
+      </div>
+
+      <input type="hidden" id="productId">
+      <div class="form-grid">
+        <label>Nombre del producto
+          <input id="productName" name="name" required placeholder="Ej. Celular Samsung A15">
+        </label>
+        <label>Código
+          <input id="productCode" name="code" required placeholder="Ej. SD-001">
+        </label>
+        <label>Categoría
+          <input id="productCategory" name="category" required list="categorySuggestions" placeholder="Ej. Celulares">
+          <datalist id="categorySuggestions"></datalist>
+        </label>
+        <label>Precio de venta L
+          <input id="productPrice" name="price" required inputmode="decimal" type="number" min="0" step="0.01" placeholder="Ej. 300">
+        </label>
+        <label class="admin-only">Costo L
+          <input id="productCost" name="cost" inputmode="decimal" type="number" min="0" step="0.01" placeholder="Ej. 150">
+        </label>
+        <label>Stock
+          <div class="number-stepper">
+            <button class="step-btn" type="button" data-step-target="productStock" data-step-dir="-1" aria-label="Restar stock">−</button>
+            <input id="productStock" name="stock" required inputmode="numeric" type="number" min="0" step="1" placeholder="Ej. 25">
+            <button class="step-btn" type="button" data-step-target="productStock" data-step-dir="1" aria-label="Sumar stock">+</button>
+          </div>
+        </label>
+        <label class="full-field image-upload-field">URL de imagen
+          <input id="productImage" name="imageUrl" placeholder="https://...">
+          <div class="image-upload-row">
+            <button id="uploadPhotoBtn" class="btn btn-secondary image-upload-btn" type="button">SUBIR FOTO desde Galería</button>
+            <input id="productImageFile" type="file" accept="image/*" hidden>
+            <span id="imageUploadStatus" class="image-upload-status">También puedes pegar una URL.</span>
+          </div>
+          <div id="productImagePreview" class="product-image-preview" hidden></div>
+        </label>
+        <label class="full-field">Descripción
+          <textarea id="productDescription" rows="3" placeholder="Detalles, especificaciones o nota interna"></textarea>
+        </label>
+
+        <section id="productPromotionEditor" class="promotion-editor admin-only full-field" aria-label="Promociones del producto">
+          <div class="promotion-editor-head">
+            <div>
+              <p class="section-label">Promociones</p>
+              <h4>Promociones manuales del producto</h4>
+              <small>Se guardan junto al producto y usan el mismo formato que <b>assets/js/promotions.js</b>.</small>
+            </div>
+            <label class="promo-disable-toggle">
+              <input id="promoDisableAll" type="checkbox">
+              <span>No usar promociones en este producto</span>
+            </label>
+          </div>
+
+          <div class="promotion-editor-grid">
+            <article class="promotion-editor-card" data-promo-card="tier">
+              <label class="promo-main-toggle">
+                <input id="promoTierEnabled" type="checkbox">
+                <span>Precio especial por cantidad</span>
+              </label>
+              <div id="promoTierBody" class="promo-card-body">
+                <label>Nombre de la promoción
+                  <input id="promoTierLabel" placeholder="Ej. Dedales V1 por cantidad">
+                </label>
+                <div class="promo-row-head"><span>Desde cantidad</span><span>Precio c/u</span><span></span></div>
+                <div id="promoTierRows" class="promo-rows"></div>
+                <button id="promoTierAddRow" class="btn btn-light btn-small" type="button">+ Agregar escala</button>
+              </div>
+            </article>
+
+            <article class="promotion-editor-card" data-promo-card="gift">
+              <label class="promo-main-toggle">
+                <input id="promoGiftEnabled" type="checkbox">
+                <span>Regalo automático por compra</span>
+              </label>
+              <div id="promoGiftBody" class="promo-card-body">
+                <label>Producto que regalas
+                  <select id="promoGiftProduct">
+                    <option value="">Elegir del catálogo</option>
+                  </select>
+                </label>
+                <label>Nombre de la promoción
+                  <input id="promoGiftLabel" placeholder="Ej. Regalo Dedales V1">
+                </label>
+                <div class="promo-two-cols">
+                  <label>Unidad singular
+                    <input id="promoGiftUnitLabel" placeholder="par" value="par">
+                  </label>
+                  <label>Unidad plural
+                    <input id="promoGiftUnitPlural" placeholder="pares" value="pares">
+                  </label>
+                </div>
+                <div class="promo-row-head"><span>Si compra</span><span>Regala</span><span></span></div>
+                <div id="promoGiftRows" class="promo-rows"></div>
+                <button id="promoGiftAddRow" class="btn btn-light btn-small" type="button">+ Agregar regla de regalo</button>
+              </div>
+            </article>
+          </div>
+          <p class="form-help promo-editor-help">Si no activas nada, el producto queda sin promoción manual. Si coincide con una promoción general de <b>promotions.js</b>, seguirá aplicando, salvo que marques “No usar promociones”.</p>
+        </section>
+      </div>
+
+      <div class="dialog-actions">
+        <button id="deleteProductBtn" class="btn btn-danger ghost-danger" type="button" hidden>Eliminar</button>
+        <button class="btn btn-light" type="button" data-close-dialog="productDialog">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="detailDialog" class="dialog">
+    <div class="dialog-card detail-card">
+      <div class="dialog-head">
+        <div>
+          <p id="detailStatus" class="stock-badge">Disponible</p>
+          <h3 id="detailName">Producto</h3>
+        </div>
+        <button class="icon-close" type="button" data-close-dialog="detailDialog" aria-label="Cerrar">×</button>
+      </div>
+      <div class="detail-layout">
+        <div id="detailImage" class="detail-image"></div>
+        <div class="detail-info">
+          <strong id="detailPrice" class="detail-price">L 0.00</strong>
+          <dl>
+            <div><dt>Código</dt><dd id="detailCode">-</dd></div>
+            <div><dt>Categoría</dt><dd id="detailCategory">-</dd></div>
+            <div><dt>Stock</dt><dd id="detailStock">0</dd></div>
+            <div class="admin-only"><dt>Costo</dt><dd id="detailCost">L 0</dd></div>
+            <div class="admin-only"><dt>Utilidad</dt><dd id="detailProfit">L 0</dd></div>
+          </dl>
+
+          <div class="shipping-panel detail-shipping" aria-label="Precios con envío">
+            <div class="shipping-row normal">
+              <div>
+                <span>Envío normal</span>
+                <small id="detailShippingNormalNote">Depósito o transferencia antes de enviar el paquete.</small>
+              </div>
+              <strong id="detailShippingNormal">L 0</strong>
+            </div>
+            <div class="shipping-row receive">
+              <div>
+                <span>Pagar al recibir</span>
+                <small id="detailShippingReceiveNote">Se paga cuando tenga el paquete en sus manos. La empresa cobra 10% por este sistema.</small>
+              </div>
+              <strong id="detailShippingReceive">L 0</strong>
+            </div>
+          </div>
+
+          <div id="detailDescription" class="detail-description"><p>Sin descripción.</p></div>
+          <div class="detail-actions">
+            <button id="detailSellBtn" class="btn btn-primary" type="button">Vender</button>
+            <button id="detailQuoteBtn" class="btn btn-secondary" type="button">Cotizar</button>
+            <button id="detailDuplicateBtn" class="btn btn-light admin-only" type="button">Duplicar</button>
+            <button id="detailEditBtn" class="btn btn-dark" type="button">Admin</button>
+            <button id="detailWhatsappEmojiBtn" class="btn btn-success detail-wa-btn wa-emoji" type="button"><span>💬</span> Con emojis</button>
+            <button id="detailWhatsappFormalBtn" class="btn btn-light detail-wa-btn detail-wa-formal wa-formal" type="button"><span>📄</span> Formal</button>
+            <button id="detailWhatsappCommercialBtn" class="btn btn-warning detail-wa-btn wa-commercial" type="button"><span>🔥</span> Comercial</button>
+            <button id="detailWhatsappCleanBtn" class="btn btn-secondary detail-wa-btn detail-wa-clean wa-clean" type="button"><span>✅</span> Corto y limpio</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="whatsappPreviewDialog" class="dialog">
+    <form class="dialog-card compact-dialog whatsapp-preview-card" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Vista previa</p>
+          <h3 id="whatsappPreviewTitle">Mensaje para WhatsApp</h3>
+        </div>
+        <button type="button" class="icon-btn" data-close-dialog="whatsappPreviewDialog" aria-label="Cerrar">×</button>
+      </div>
+      <p class="form-help">Revisa el mensaje antes de enviarlo. Puedes editar el texto aquí mismo si quieres cambiar algo rápido.</p>
+      <textarea id="whatsappPreviewText" class="whatsapp-preview-text" rows="15"></textarea>
+      <div class="dialog-actions whatsapp-preview-actions">
+        <button class="btn btn-light" type="button" data-close-dialog="whatsappPreviewDialog">Cancelar</button>
+        <button id="whatsappPreviewCopyBtn" class="btn btn-secondary" type="button">Copiar texto</button>
+        <button id="whatsappPreviewSendBtn" class="btn btn-success" type="button">Enviar WhatsApp</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="saleDialog" class="dialog">
+    <form id="saleForm" class="dialog-card compact-dialog" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Venta</p>
+          <h3 id="saleProductName">Vender producto</h3>
+        </div>
+        <button class="icon-close" value="cancel" type="button" data-close-dialog="saleDialog" aria-label="Cerrar">×</button>
+      </div>
+      <input type="hidden" id="saleProductId">
+      <label>Cantidad
+        <div class="number-stepper">
+          <button class="step-btn" type="button" data-step-target="saleQty" data-step-dir="-1" aria-label="Restar cantidad">−</button>
+          <input id="saleQty" type="number" inputmode="numeric" min="1" step="1" value="1" required>
+          <button class="step-btn" type="button" data-step-target="saleQty" data-step-dir="1" aria-label="Sumar cantidad">+</button>
+        </div>
+      </label>
+      <label>Cliente o nota
+        <input id="saleCustomer" placeholder="Opcional">
+      </label>
+      <p id="saleHelp" class="form-help"></p>
+      <div class="dialog-actions">
+        <button class="btn btn-light" type="button" data-close-dialog="saleDialog">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Registrar venta</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="quoteDialog" class="dialog quote-dialog">
+    <form id="quoteForm" class="dialog-card quote-card" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Factura para cliente</p>
+          <h3 id="quoteProductName">Cotizar productos</h3>
+          <p class="quote-hint">Ajusta cantidades, agrega productos y toma captura de la factura limpia.</p>
+        </div>
+        <button class="icon-close" value="cancel" type="button" data-close-dialog="quoteDialog" aria-label="Cerrar">×</button>
+      </div>
+      <input type="hidden" id="quoteProductId">
+
+      <div class="quote-builder" aria-label="Productos de la cotización">
+        <div id="quoteItems" class="quote-items"></div>
+
+        <div class="quote-add-actions">
+          <button id="quoteAddProductToggle" class="btn btn-secondary quote-add-toggle" type="button">+ Agregar otro producto</button>
+          <button id="quoteAddGiftToggle" class="btn btn-light quote-add-toggle quote-gift-toggle" type="button">+ Agregar regalo</button>
+        </div>
+        <div id="quoteProductPicker" class="quote-picker" hidden>
+          <p id="quotePickerModeLabel" class="quote-picker-mode">Elige un producto del catálogo.</p>
+          <div class="quote-picker-fields">
+            <div class="search-field compact-search">
+              <span aria-hidden="true">⌕</span>
+              <input id="quoteProductSearch" type="search" autocomplete="off" placeholder="Buscar producto para agregar">
+            </div>
+            <label class="select-field compact-select" for="quoteCategoryFilter">
+              <span>Categoría</span>
+              <select id="quoteCategoryFilter">
+                <option value="">Elegir categoría</option>
+                <option value="all">Todas</option>
+              </select>
+            </label>
+          </div>
+          <div id="quoteProductResults" class="quote-product-results"></div>
+        </div>
+      </div>
+
+      <div class="quote-delivery-panel" aria-label="Tipo de cotización">
+        <p>Tipo de precio</p>
+        <div class="quote-mode-switch" role="group" aria-label="Tipo de envío para la factura">
+          <button id="quoteModeShip" class="quote-mode-chip active" type="button" data-quote-mode="ship">Envío nacional</button>
+          <button id="quoteModeLocal" class="quote-mode-chip" type="button" data-quote-mode="local">Local</button>
+        </div>
+        <label id="quoteLocalShippingField" class="local-shipping-field" hidden>
+          <span>Precio del envío local</span>
+          <input id="quoteLocalShipping" type="number" inputmode="numeric" min="0" step="1" placeholder="Ej. 50">
+        </label>
+      </div>
+
+      <div id="quotePreview" class="quote-preview invoice-preview" hidden></div>
+      <div id="quoteProfitBox" class="quote-profit-box admin-only" hidden></div>
+      <div class="dialog-actions quote-actions">
+        <button class="btn btn-light" type="button" data-close-dialog="quoteDialog">Cancelar</button>
+        <button class="btn btn-secondary" type="button" id="copyQuoteBtn">Copiar texto</button>
+        <button class="btn btn-secondary" type="button" id="downloadQuoteBtn">Descargar cotización</button>
+        <button class="btn btn-secondary" type="button" id="downloadReceiptBtn">Descargar recibo</button>
+        <button class="btn btn-success" type="button" id="whatsappQuoteBtn">WhatsApp</button>
+        <button class="btn btn-warning" type="button" id="sellQuoteBtn">Vender y descontar stock</button>
+        <button class="btn btn-primary quote-save-btn" type="button" id="saveQuoteBtn">Guardar cotización</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="catalogExportDialog" class="dialog catalog-preview-dialog">
+    <form class="dialog-card compact-dialog catalog-preview-card" method="dialog">
+      <div class="dialog-head catalog-preview-head">
+        <div>
+          <p class="section-label">Vista previa</p>
+          <h3 id="catalogExportTitle">Vista previa del catálogo</h3>
+        </div>
+        <button class="icon-close" type="button" data-close-dialog="catalogExportDialog" aria-label="Cerrar">×</button>
+      </div>
+      <p id="catalogExportHint" class="quote-hint catalog-preview-hint">Revisa el catálogo antes de descargarlo o abrirlo para imprimir.</p>
+      <div id="catalogExportPreview" class="catalog-export-preview" aria-live="polite">
+        <div class="catalog-preview-loading">Preparando vista previa...</div>
+      </div>
+      <div class="dialog-actions stacked-actions catalog-export-actions">
+        <button id="catalogExportImageBtn" class="btn btn-secondary" type="button">Descargar como imagen</button>
+        <button id="catalogExportPdfBtn" class="btn btn-primary" type="button">Abrir PDF para imprimir</button>
+        <button class="btn btn-light" type="button" data-close-dialog="catalogExportDialog">Cerrar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="adminPinDialog" class="dialog">
+    <form id="adminPinForm" class="dialog-card compact-dialog" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Acceso privado</p>
+          <h3>PIN de administrador</h3>
+        </div>
+        <button class="icon-close" value="cancel" type="button" data-close-dialog="adminPinDialog" aria-label="Cerrar">×</button>
+      </div>
+      <label>PIN de acceso
+        <input id="adminPinInput" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Escribe tu PIN" required>
+      </label>
+      <div class="dialog-actions">
+        <button class="btn btn-light" type="button" data-close-dialog="adminPinDialog">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Entrar</button>
+      </div>
+    </form>
+  </dialog>
+
+
+  <dialog id="duplicateDialog" class="dialog">
+    <div class="dialog-card admin-tools-card">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Limpieza</p>
+          <h3>Productos repetidos</h3>
+        </div>
+        <button class="icon-close" type="button" data-close-dialog="duplicateDialog" aria-label="Cerrar">×</button>
+      </div>
+      <p class="form-help">Revisa productos con código repetido o nombre parecido. Borra solo cuando estés seguro.</p>
+      <div id="duplicateList" class="admin-review-list empty-state">No hay repetidos detectados.</div>
+    </div>
+  </dialog>
+
+  <dialog id="imageAuditDialog" class="dialog">
+    <div class="dialog-card admin-tools-card">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Imágenes</p>
+          <h3>Revisión de imágenes</h3>
+        </div>
+        <button class="icon-close" type="button" data-close-dialog="imageAuditDialog" aria-label="Cerrar">×</button>
+      </div>
+      <p class="form-help">Aquí salen productos sin foto, con foto pesada guardada como respaldo o con enlaces que conviene revisar.</p>
+      <div id="imageAuditList" class="admin-review-list empty-state">No hay problemas de imagen detectados.</div>
+    </div>
+  </dialog>
+
+  <dialog id="categoryManagerDialog" class="dialog">
+    <div class="dialog-card admin-tools-card">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Administración</p>
+          <h3>Categorías</h3>
+        </div>
+        <button class="icon-close" type="button" data-close-dialog="categoryManagerDialog" aria-label="Cerrar">×</button>
+      </div>
+      <p class="form-help">Renombra o une categorías repetidas. Ejemplo: puedes pasar “Tecnologia” a “Tecnología”.</p>
+      <div id="categoryManagerList" class="category-manager-list"></div>
+    </div>
+  </dialog>
+
+  <dialog id="importPreviewDialog" class="dialog">
+    <div class="dialog-card admin-tools-card">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Importación inteligente</p>
+          <h3>Revisar antes de guardar</h3>
+        </div>
+        <button class="icon-close" type="button" data-import-mode="cancel" aria-label="Cerrar">×</button>
+      </div>
+      <div id="importPreviewBody" class="import-preview-body"></div>
+      <div class="dialog-actions stacked-actions">
+        <button class="btn btn-danger ghost-danger" type="button" data-import-mode="replace">Reemplazar inventario</button>
+        <button class="btn btn-primary" type="button" data-import-mode="merge">Actualizar / agregar</button>
+        <button class="btn btn-light" type="button" data-import-mode="cancel">Cancelar</button>
+      </div>
+    </div>
+  </dialog>
+
+
+  <dialog id="localPrintDialog" class="dialog">
+    <form id="localPrintForm" class="dialog-card compact-dialog" method="dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-label">Imprimir Comayagua</p>
+          <h3>Precio del envío local</h3>
+        </div>
+        <button class="icon-close" value="cancel" type="button" data-close-dialog="localPrintDialog" aria-label="Cerrar">×</button>
+      </div>
+      <label>¿Cuánto cobrarás por el envío?
+        <input id="localPrintShipping" type="number" inputmode="numeric" min="0" step="1" placeholder="Ej. 40" required>
+      </label>
+      <p class="form-help">Este valor se sumará a cada producto del catálogo impreso para clientes dentro de Comayagua.</p>
+      <div class="dialog-actions">
+        <button class="btn btn-light" type="button" data-close-dialog="localPrintDialog">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Imprimir catálogo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
