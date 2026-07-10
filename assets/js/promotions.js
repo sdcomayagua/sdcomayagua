@@ -1,3 +1,17 @@
+// Carga la capa visual premium sin modificar la lógica principal del sistema.
+(() => {
+  const premiumStylesheet = 'assets/css/premium-ui.css?v=20260709';
+  const alreadyLoaded = document.querySelector('link[data-sd-premium-ui]');
+
+  if (!alreadyLoaded) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = premiumStylesheet;
+    link.dataset.sdPremiumUi = 'true';
+    document.head.appendChild(link);
+  }
+})();
+
 // Promociones especiales SD COMAYAGUA
 // Edita este archivo para promociones GENERALES sin tocar app.js.
 // Las promociones manuales que agregues desde el Admin se guardan dentro del producto
