@@ -1,0 +1,757 @@
+/* =========================================================
+   SD COMAYAGUA · Reestructuración profesional 2026
+   Capa final de interfaz. Corrige desbordamientos y moderniza
+   catálogo, detalle, formularios y cotización sin tocar la lógica.
+   ========================================================= */
+
+:root {
+  --pro-navy-950: #06162f;
+  --pro-navy-900: #08234a;
+  --pro-blue-700: #075bcf;
+  --pro-blue-600: #0d6ce8;
+  --pro-blue-500: #2487ff;
+  --pro-blue-100: #eaf4ff;
+  --pro-blue-50: #f5f9ff;
+  --pro-green-600: #0ba76b;
+  --pro-green-50: #ecfff7;
+  --pro-amber-600: #d98200;
+  --pro-amber-50: #fff8e7;
+  --pro-red-600: #dc3f49;
+  --pro-red-50: #fff1f2;
+  --pro-text: #10233f;
+  --pro-muted: #657b98;
+  --pro-line: rgba(78, 121, 174, .22);
+  --pro-line-strong: rgba(36, 106, 194, .34);
+  --pro-surface: #ffffff;
+  --pro-surface-soft: #f7faff;
+  --pro-shadow-1: 0 8px 24px rgba(7, 35, 76, .08);
+  --pro-shadow-2: 0 18px 48px rgba(7, 35, 76, .14);
+  --pro-shadow-3: 0 30px 90px rgba(3, 19, 46, .28);
+  --pro-radius-sm: 14px;
+  --pro-radius-md: 20px;
+  --pro-radius-lg: 28px;
+}
+
+html.pro-ui-ready,
+html.pro-ui-ready body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip !important;
+}
+
+body.pro-ui-open-dialog { overflow: hidden !important; }
+
+.btn,
+.nav-tab,
+.mode-btn,
+.quick-filter-btn,
+.quote-mode-chip,
+.icon-close,
+.icon-btn {
+  font-weight: 850;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:focus-visible,
+.nav-tab:focus-visible,
+.mode-btn:focus-visible,
+.quick-filter-btn:focus-visible,
+.quote-mode-chip:focus-visible,
+.icon-close:focus-visible,
+.icon-btn:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(36, 135, 255, .26) !important;
+  outline-offset: 2px;
+}
+
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
+.btn:active:not(:disabled) { transform: translateY(0) scale(.985); }
+
+/* ===== Navegación móvil tipo aplicación ===== */
+.pro-nav-icon {
+  display: none;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+@media (max-width: 760px) {
+  .main-nav .nav-tab {
+    display: grid !important;
+    grid-template-rows: 18px auto;
+    place-items: center;
+    gap: 2px;
+    line-height: 1;
+  }
+
+  .main-nav .nav-tab .pro-nav-icon { display: block; }
+  .main-nav .nav-tab .pro-nav-label {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: .66rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* ===== Encabezado, buscador y tarjetas ===== */
+.app-header { isolation: isolate; }
+.header-actions .btn,
+.header-actions .icon-btn,
+.header-actions .status-pill { box-shadow: 0 5px 16px rgba(8, 41, 88, .07); }
+
+.toolbar {
+  border-color: rgba(255, 255, 255, .92) !important;
+  background: rgba(255, 255, 255, .94) !important;
+}
+
+.search-field,
+.select-field {
+  border-color: var(--pro-line) !important;
+  background: var(--pro-surface) !important;
+}
+
+.search-field:focus-within,
+.select-field:focus-within {
+  border-color: var(--pro-blue-500) !important;
+  box-shadow: 0 0 0 4px rgba(36, 135, 255, .11) !important;
+}
+
+.product-card {
+  border-color: var(--pro-line) !important;
+  box-shadow: var(--pro-shadow-1) !important;
+}
+
+.product-card:hover {
+  border-color: var(--pro-line-strong) !important;
+  box-shadow: var(--pro-shadow-2) !important;
+}
+
+.product-media {
+  background:
+    radial-gradient(circle at 50% 28%, rgba(36, 135, 255, .10), transparent 42%),
+    linear-gradient(180deg, #ffffff, #f1f7ff) !important;
+}
+
+.product-media img { object-fit: contain !important; }
+.product-price { color: var(--pro-blue-700) !important; }
+.product-actions .btn { border-radius: var(--pro-radius-sm) !important; }
+
+/* ===== Diálogos profesionales ===== */
+.dialog::backdrop {
+  background: rgba(2, 14, 34, .68) !important;
+  backdrop-filter: blur(8px) saturate(115%);
+  -webkit-backdrop-filter: blur(8px) saturate(115%);
+}
+
+.dialog-card {
+  border: 1px solid rgba(255, 255, 255, .95) !important;
+  background: rgba(255, 255, 255, .985) !important;
+  box-shadow: var(--pro-shadow-3) !important;
+}
+
+.dialog-head { background: rgba(255, 255, 255, .97) !important; }
+.dialog-head .section-label { color: var(--pro-blue-600) !important; }
+
+.icon-close,
+.dialog-head .icon-btn {
+  color: var(--pro-navy-950) !important;
+  border: 1px solid var(--pro-line) !important;
+  background: var(--pro-blue-50) !important;
+}
+
+.icon-close:hover,
+.dialog-head .icon-btn:hover {
+  color: var(--pro-blue-700) !important;
+  border-color: var(--pro-line-strong) !important;
+  background: var(--pro-blue-100) !important;
+}
+
+/* ===== Detalle de producto ===== */
+#detailDialog .detail-card { max-width: 960px; }
+
+#detailDialog .detail-image {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(36,135,255,.13), transparent 46%),
+    linear-gradient(180deg, #fff, #f0f6ff) !important;
+}
+
+#detailDialog .detail-image img {
+  max-width: 100%;
+  max-height: 420px;
+  object-fit: contain !important;
+}
+
+#detailDialog .detail-info dl > div {
+  border: 1px solid var(--pro-line);
+  background: var(--pro-surface-soft) !important;
+}
+
+#detailDialog .detail-actions { align-items: stretch; }
+#detailDialog .detail-actions .btn { min-height: 48px; }
+
+/* =========================================================
+   COTIZACIÓN / FACTURA · REESTRUCTURACIÓN COMPLETA
+   ========================================================= */
+#quoteDialog {
+  width: min(860px, calc(100vw - 24px)) !important;
+  max-width: min(860px, calc(100vw - 24px)) !important;
+  border-radius: 30px !important;
+}
+
+#quoteDialog .quote-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  max-height: min(94dvh, 980px) !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border-radius: 30px !important;
+  scrollbar-gutter: stable;
+}
+
+#quoteDialog .dialog-head {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  margin: 0 !important;
+  padding: 20px 22px 17px !important;
+  border-radius: 30px 30px 0 0 !important;
+  box-shadow: 0 10px 28px rgba(7, 35, 76, .07);
+}
+
+#quoteDialog .dialog-head > div { min-width: 0; }
+#quoteDialog .dialog-head h3 {
+  margin-top: 1px !important;
+  color: var(--pro-navy-950) !important;
+  font-size: clamp(1.38rem, 3vw, 1.8rem) !important;
+  letter-spacing: -.035em;
+}
+
+#quoteDialog .quote-hint {
+  max-width: 580px;
+  margin: 7px 0 0 !important;
+  color: var(--pro-muted) !important;
+  font-size: .92rem;
+  line-height: 1.42;
+}
+
+#quoteDialog .quote-builder,
+#quoteDialog .quote-delivery-panel,
+#quoteDialog #quotePreview,
+#quoteDialog #quoteProfitBox,
+#quoteDialog .quote-actions { margin-inline: 20px !important; }
+
+#quoteDialog .quote-builder {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px !important;
+}
+
+#quoteDialog .quote-items { display: grid; gap: 10px; }
+
+#quoteDialog .quote-item {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-height: 88px;
+  padding: 14px !important;
+  border: 1px solid var(--pro-line) !important;
+  border-radius: 20px !important;
+  background: var(--pro-surface) !important;
+  box-shadow: 0 6px 20px rgba(7, 35, 76, .055);
+}
+
+#quoteDialog .quote-item-copy,
+#quoteDialog .quote-item > div:first-child { min-width: 0 !important; }
+#quoteDialog .quote-item strong { color: var(--pro-text); line-height: 1.2; }
+
+#quoteDialog .qty-stepper,
+#quoteDialog .quote-item-stepper,
+#quoteDialog .number-stepper {
+  flex: 0 0 auto;
+  min-width: 136px !important;
+  max-width: 160px !important;
+  border: 1px solid var(--pro-line) !important;
+  background: var(--pro-blue-50) !important;
+}
+
+#quoteDialog .quote-remove {
+  flex: 0 0 auto;
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  color: var(--pro-red-600) !important;
+  background: var(--pro-red-50) !important;
+}
+
+#quoteDialog .quote-add-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+#quoteDialog .quote-add-actions .btn {
+  min-height: 50px !important;
+  border-radius: 16px !important;
+}
+
+#quoteDialog .quote-picker {
+  border: 1px solid var(--pro-line-strong) !important;
+  background: var(--pro-blue-50) !important;
+}
+
+#quoteDialog .quote-product-result { transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease; }
+#quoteDialog .quote-product-result:hover {
+  transform: translateY(-1px);
+  border-color: var(--pro-blue-500) !important;
+  box-shadow: var(--pro-shadow-1);
+}
+
+#quoteDialog .quote-delivery-panel {
+  margin-top: 14px !important;
+  padding: 15px !important;
+  border: 1px solid var(--pro-line) !important;
+  border-radius: 20px !important;
+  background: var(--pro-surface-soft) !important;
+}
+
+#quoteDialog .quote-mode-switch { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+#quoteDialog .quote-mode-chip { min-height: 50px !important; border-radius: 16px !important; }
+
+/* ----- Factura visual: reseteo del selector defectuoso anterior ----- */
+#quoteDialog #quotePreview,
+#quoteDialog .invoice-preview,
+#quoteDialog .invoice-paper,
+#quoteDialog .invoice-head,
+#quoteDialog .invoice-products,
+#quoteDialog .invoice-options,
+#quoteDialog .invoice-local-total {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#quoteDialog .invoice-brand-line,
+#quoteDialog .invoice-brand-copy,
+#quoteDialog .invoice-item-main,
+#quoteDialog .invoice-item-copy,
+#quoteDialog .invoice-product-thumb,
+#quoteDialog .invoice-logo-shell,
+#quoteDialog .invoice-logo-image,
+#quoteDialog .invoice-meta {
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+#quoteDialog #quotePreview {
+  margin-top: 16px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+#quoteDialog .invoice-paper {
+  overflow: hidden !important;
+  border: 1px solid rgba(36, 106, 194, .22) !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+  box-shadow: var(--pro-shadow-2) !important;
+}
+
+#quoteDialog .invoice-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  min-height: 104px !important;
+  height: auto !important;
+  padding: 18px 20px !important;
+  color: #fff !important;
+  background:
+    radial-gradient(circle at 78% -60%, rgba(93, 194, 255, .42), transparent 17rem),
+    linear-gradient(135deg, var(--pro-navy-900), var(--pro-blue-700) 62%, var(--pro-blue-500)) !important;
+}
+
+#quoteDialog .invoice-brand-line {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  align-items: center !important;
+  gap: 13px !important;
+}
+
+#quoteDialog .invoice-logo-shell {
+  display: grid !important;
+  flex: 0 0 58px !important;
+  place-items: center !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  height: 58px !important;
+  padding: 4px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 18px;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 10px 24px rgba(0, 18, 48, .22);
+}
+
+#quoteDialog .invoice-logo-image {
+  display: block !important;
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  height: 50px !important;
+  max-height: 50px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  object-fit: cover !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 14px !important;
+  transform: none !important;
+}
+
+#quoteDialog .invoice-brand-copy {
+  display: grid !important;
+  flex: 1 1 auto;
+  gap: 2px !important;
+}
+
+#quoteDialog .invoice-kicker {
+  color: rgba(255,255,255,.70) !important;
+  font-size: .62rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+#quoteDialog .invoice-brand-copy > strong {
+  color: #fff !important;
+  font-size: 1.08rem !important;
+  letter-spacing: .02em !important;
+}
+
+#quoteDialog .invoice-brand-copy > span:not(.invoice-kicker) {
+  color: rgba(255,255,255,.82) !important;
+  font-size: .78rem;
+}
+
+#quoteDialog .invoice-meta {
+  display: grid !important;
+  flex: 0 0 auto !important;
+  justify-items: end !important;
+  gap: 4px !important;
+  margin: 0 !important;
+  color: rgba(255,255,255,.82) !important;
+  font-size: .72rem !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  text-align: right !important;
+}
+
+#quoteDialog .invoice-meta-number { color: #fff !important; font-size: .76rem; font-weight: 950; }
+
+#quoteDialog .invoice-products {
+  display: grid !important;
+  gap: 0 !important;
+  padding: 18px !important;
+}
+
+#quoteDialog .invoice-products > p {
+  margin: 0 0 8px !important;
+  color: var(--pro-muted) !important;
+  font-size: .68rem !important;
+  letter-spacing: .12em !important;
+}
+
+#quoteDialog .invoice-item-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-height: 78px;
+  padding: 12px 0 !important;
+  border-bottom: 1px solid var(--pro-line) !important;
+}
+
+#quoteDialog .invoice-item-main {
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 11px !important;
+}
+
+#quoteDialog .invoice-product-thumb {
+  display: grid !important;
+  place-items: center !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  height: 58px !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--pro-line) !important;
+  border-radius: 15px !important;
+  background: var(--pro-blue-50) !important;
+}
+
+#quoteDialog .invoice-product-thumb img,
+#quoteDialog .invoice-product-thumb svg {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  border-radius: 10px;
+}
+
+#quoteDialog .invoice-item-copy { display: grid !important; gap: 3px !important; }
+#quoteDialog .invoice-item-copy strong { color: var(--pro-text) !important; font-size: .91rem !important; line-height: 1.22 !important; }
+#quoteDialog .invoice-item-copy span,
+#quoteDialog .invoice-item-copy small { color: var(--pro-muted) !important; font-size: .72rem !important; line-height: 1.3 !important; }
+#quoteDialog .invoice-item-row > b { color: var(--pro-navy-900) !important; font-size: .93rem !important; white-space: nowrap !important; }
+
+#quoteDialog .invoice-options {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  padding: 0 18px 18px !important;
+}
+
+#quoteDialog .invoice-option {
+  position: relative;
+  min-height: 134px !important;
+  padding: 14px !important;
+  border-radius: 19px !important;
+}
+
+#quoteDialog .invoice-option.normal { border-color: rgba(13, 108, 232, .22) !important; background: var(--pro-blue-50) !important; }
+#quoteDialog .invoice-option.receive { border-color: rgba(11, 167, 107, .22) !important; background: var(--pro-green-50) !important; }
+#quoteDialog .invoice-option strong { font-size: clamp(1.3rem, 4vw, 1.75rem) !important; }
+#quoteDialog .shipping-badge { max-width: 100%; font-size: .56rem !important; }
+
+/* ----- Acciones de cotización ----- */
+#quoteDialog .quote-actions {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 25 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 20px !important;
+  margin-bottom: 0 !important;
+  padding: 16px 0 calc(20px + env(safe-area-inset-bottom)) !important;
+  border-top: 1px solid var(--pro-line) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.80), #fff 28%) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+#quoteDialog .quote-actions .btn {
+  min-height: 50px !important;
+  border-radius: 16px !important;
+  font-size: .88rem !important;
+}
+
+#quoteDialog #whatsappQuoteBtn {
+  order: 1;
+  color: #fff !important;
+  border-color: transparent !important;
+  background: linear-gradient(135deg, #07955e, #14bf7a) !important;
+  box-shadow: 0 10px 24px rgba(11, 167, 107, .20) !important;
+}
+
+#quoteDialog #saveQuoteBtn {
+  order: 2;
+  color: #fff !important;
+  border-color: transparent !important;
+  background: linear-gradient(135deg, var(--pro-blue-700), var(--pro-blue-500)) !important;
+  box-shadow: 0 10px 24px rgba(13, 108, 232, .20) !important;
+}
+
+#quoteDialog #downloadQuoteBtn { order: 3; }
+#quoteDialog #downloadReceiptBtn { order: 4; }
+#quoteDialog #copyQuoteBtn { order: 5; }
+#quoteDialog #sellQuoteBtn { order: 6; }
+#quoteDialog [data-close-dialog="quoteDialog"] {
+  order: 7;
+  grid-column: 1 / -1 !important;
+  min-height: 44px !important;
+}
+
+#quoteDialog .quote-profit-box {
+  margin-top: 14px !important;
+  border: 1px dashed rgba(11, 167, 107, .30) !important;
+  border-radius: 19px !important;
+  background: var(--pro-green-50) !important;
+}
+
+/* ===== Móvil ===== */
+@media (max-width: 760px) {
+  .app-main { padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important; }
+  .product-media { min-height: 185px !important; max-height: 220px !important; padding: 12px !important; }
+  .product-media img { max-height: 194px !important; }
+
+  #detailDialog,
+  #quoteDialog,
+  #productDialog,
+  #whatsappPreviewDialog {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  #detailDialog .dialog-card,
+  #quoteDialog .dialog-card,
+  #productDialog .dialog-card,
+  #whatsappPreviewDialog .dialog-card {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  #quoteDialog .quote-card { padding: 0 !important; }
+  #quoteDialog .dialog-head { padding: 16px 16px 14px !important; border-radius: 0 !important; }
+  #quoteDialog .dialog-head h3 { font-size: 1.32rem !important; }
+  #quoteDialog .quote-hint { font-size: .84rem; }
+
+  #quoteDialog .quote-builder,
+  #quoteDialog .quote-delivery-panel,
+  #quoteDialog #quotePreview,
+  #quoteDialog #quoteProfitBox,
+  #quoteDialog .quote-actions { margin-inline: 14px !important; }
+
+  #quoteDialog .quote-item {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 9px !important;
+    min-height: 92px;
+    padding: 12px !important;
+  }
+
+  #quoteDialog .quote-remove {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+  }
+
+  #quoteDialog .qty-stepper,
+  #quoteDialog .quote-item-stepper,
+  #quoteDialog .number-stepper {
+    min-width: 124px !important;
+    max-width: 132px !important;
+    margin-right: 38px;
+  }
+
+  #quoteDialog .quote-add-actions { grid-template-columns: 1fr !important; }
+  #quoteDialog .quote-mode-switch { grid-template-columns: 1fr 1fr !important; }
+
+  #quoteDialog .invoice-head {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 15px !important;
+  }
+
+  #quoteDialog .invoice-brand-line { width: 100% !important; }
+  #quoteDialog .invoice-logo-shell {
+    flex-basis: 52px !important;
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    height: 52px !important;
+    border-radius: 16px;
+  }
+
+  #quoteDialog .invoice-logo-image {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    max-height: 44px !important;
+    border-radius: 12px !important;
+  }
+
+  #quoteDialog .invoice-meta {
+    width: 100% !important;
+    grid-template-columns: auto auto !important;
+    justify-content: space-between !important;
+    justify-items: start !important;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,.20);
+    text-align: left !important;
+  }
+
+  #quoteDialog .invoice-products { padding: 14px !important; }
+  #quoteDialog .invoice-item-row { grid-template-columns: minmax(0, 1fr) !important; gap: 7px !important; }
+  #quoteDialog .invoice-item-row > b {
+    justify-self: end;
+    padding: 6px 9px;
+    border-radius: 10px;
+    background: var(--pro-blue-100);
+  }
+
+  #quoteDialog .invoice-item-main { grid-template-columns: 50px minmax(0, 1fr) !important; }
+  #quoteDialog .invoice-product-thumb {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    height: 50px !important;
+  }
+
+  #quoteDialog .invoice-options { grid-template-columns: 1fr !important; padding: 0 14px 14px !important; }
+  #quoteDialog .invoice-option { min-height: 116px !important; }
+
+  #quoteDialog .quote-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    margin-inline: 0 !important;
+    padding: 14px 14px calc(14px + env(safe-area-inset-bottom)) !important;
+  }
+
+  #quoteDialog #whatsappQuoteBtn,
+  #quoteDialog #saveQuoteBtn { min-height: 54px !important; }
+  #detailDialog .detail-actions { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 420px) {
+  #quoteDialog .quote-mode-switch,
+  #quoteDialog .quote-actions { grid-template-columns: 1fr !important; }
+
+  #quoteDialog #downloadQuoteBtn,
+  #quoteDialog #downloadReceiptBtn,
+  #quoteDialog #copyQuoteBtn,
+  #quoteDialog #sellQuoteBtn,
+  #quoteDialog #whatsappQuoteBtn,
+  #quoteDialog #saveQuoteBtn,
+  #quoteDialog [data-close-dialog="quoteDialog"] { grid-column: 1 !important; }
+
+  #detailDialog .detail-actions { grid-template-columns: 1fr !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
