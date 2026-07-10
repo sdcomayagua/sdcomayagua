@@ -1,14 +1,23 @@
-// Carga la capa visual premium sin modificar la lógica principal del sistema.
+// Carga las capas visuales sin modificar la lógica principal del sistema.
 (() => {
-  const premiumStylesheet = 'assets/css/premium-ui.css?v=20260709';
-  const alreadyLoaded = document.querySelector('link[data-sd-premium-ui]');
-
-  if (!alreadyLoaded) {
+  const loadStylesheet = (href, dataName) => {
+    if (document.querySelector(`link[data-${dataName}]`)) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = premiumStylesheet;
-    link.dataset.sdPremiumUi = 'true';
+    link.href = href;
+    link.setAttribute(`data-${dataName}`, 'true');
     document.head.appendChild(link);
+  };
+
+  loadStylesheet('assets/css/premium-ui.css?v=20260710', 'sd-premium-ui');
+  loadStylesheet('assets/css/pro-restructure.css?v=20260710', 'sd-pro-restructure');
+
+  if (!document.querySelector('script[data-sd-pro-ui]')) {
+    const script = document.createElement('script');
+    script.src = 'assets/js/pro-ui.js?v=20260710';
+    script.async = false;
+    script.dataset.sdProUi = 'true';
+    document.head.appendChild(script);
   }
 })();
 
