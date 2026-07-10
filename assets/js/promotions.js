@@ -9,16 +9,23 @@
     document.head.appendChild(link);
   };
 
-  loadStylesheet('assets/css/premium-ui.css?v=20260710', 'sd-premium-ui');
-  loadStylesheet('assets/css/pro-restructure.css?v=20260710', 'sd-pro-restructure');
-
-  if (!document.querySelector('script[data-sd-pro-ui]')) {
+  const loadScript = (src, dataName) => {
+    if (document.querySelector(`script[data-${dataName}]`)) return;
     const script = document.createElement('script');
-    script.src = 'assets/js/pro-ui.js?v=20260710';
+    script.src = src;
     script.async = false;
-    script.dataset.sdProUi = 'true';
+    script.setAttribute(`data-${dataName}`, 'true');
     document.head.appendChild(script);
-  }
+  };
+
+  const version = '20260710d';
+
+  loadStylesheet(`assets/css/premium-ui.css?v=${version}`, 'sd-premium-ui');
+  loadStylesheet(`assets/css/pro-restructure.css?v=${version}`, 'sd-pro-restructure');
+  loadStylesheet(`assets/css/product-card-polish.css?v=${version}`, 'sd-product-card-polish');
+
+  loadScript(`assets/js/pro-ui.js?v=${version}`, 'sd-pro-ui');
+  loadScript(`assets/js/catalog-ui-fix.js?v=${version}`, 'sd-catalog-ui-fix');
 })();
 
 // Promociones especiales SD COMAYAGUA
