@@ -18,14 +18,18 @@
     document.head.appendChild(script);
   };
 
-  const version = '20260710d';
+  const version = '20260710f';
 
   loadStylesheet(`assets/css/premium-ui.css?v=${version}`, 'sd-premium-ui');
   loadStylesheet(`assets/css/pro-restructure.css?v=${version}`, 'sd-pro-restructure');
   loadStylesheet(`assets/css/product-card-polish.css?v=${version}`, 'sd-product-card-polish');
+  loadStylesheet(`assets/css/storefront-mobile.css?v=${version}`, 'sd-storefront-mobile');
+  loadStylesheet(`assets/css/storefront-access.css?v=${version}`, 'sd-storefront-access');
 
   loadScript(`assets/js/pro-ui.js?v=${version}`, 'sd-pro-ui');
   loadScript(`assets/js/catalog-ui-fix.js?v=${version}`, 'sd-catalog-ui-fix');
+  loadScript(`assets/js/storefront-mobile.js?v=${version}`, 'sd-storefront-mobile');
+  loadScript(`assets/js/storefront-admin-tools.js?v=${version}`, 'sd-storefront-admin-tools');
 })();
 
 // Promociones especiales SD COMAYAGUA

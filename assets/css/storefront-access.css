@@ -1,0 +1,58 @@
+/* Acceso administrativo complementario para el storefront 2026. */
+
+/* La cuadrícula principal queda deliberadamente limpia para capturas:
+   fotografía, nombre y cantidad. Solo se muestra una alerta cuando está agotado. */
+.storefront-v3 .product-card.store-minimal-card .store-card-category {
+  display: none !important;
+}
+
+.storefront-v3 .product-card.store-minimal-card .store-card-status:not(.out) {
+  display: none !important;
+}
+
+.storefront-v3 .product-card.store-minimal-card .store-card-copy {
+  gap: 6px !important;
+}
+
+@media (min-width: 761px) {
+  .storefront-v3 #productos .toolbar {
+    grid-template-columns: minmax(280px, 1fr) minmax(190px, 240px) !important;
+  }
+
+  .storefront-v3 #productos .toolbar-actions-scroll {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 5px 1px 1px !important;
+    overflow: visible !important;
+  }
+
+  .storefront-v3 #productos .toolbar-actions-scroll > * {
+    flex: 0 0 auto !important;
+  }
+
+  .storefront-v3 #productos .toolbar-actions-scroll .mode-switch {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(86px, auto)) !important;
+    width: auto !important;
+  }
+}
+
+.store-admin-drawer-note {
+  margin: 4px 7px 10px;
+  color: #718096;
+  font-size: .7rem;
+  line-height: 1.4;
+}
+
+.store-drawer-item.store-admin-action span:first-child {
+  color: #075fd1;
+  font-weight: 950;
+}
+
+.store-drawer-item.store-admin-action.danger span:first-child {
+  color: #d44552;
+}
