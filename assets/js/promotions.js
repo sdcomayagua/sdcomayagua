@@ -18,7 +18,7 @@
     document.head.appendChild(script);
   };
 
-  const version = '20260710h';
+  const version = '20260710i';
 
   loadStylesheet(`assets/css/premium-ui.css?v=${version}`, 'sd-premium-ui');
   loadStylesheet(`assets/css/pro-restructure.css?v=${version}`, 'sd-pro-restructure');
