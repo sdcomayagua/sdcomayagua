@@ -1,0 +1,77 @@
+/* =========================================================
+   SD COMAYAGUA · Recuperación de interacciones
+   Evita que capas invisibles bloqueen clic, toque o menú contextual.
+   ========================================================= */
+
+/* La pantalla de carga puede seguir mostrándose, pero nunca debe capturar clics. */
+#loadingOverlay {
+  pointer-events: none !important;
+}
+
+/* El acceso por PIN sí debe permanecer completamente interactivo. */
+#adminPinGate,
+#adminPinGate * {
+  pointer-events: auto !important;
+}
+
+/* Un backdrop cerrado no debe cubrir la página de forma invisible. */
+.store-drawer-backdrop {
+  pointer-events: none !important;
+}
+
+.store-drawer-backdrop.open {
+  pointer-events: auto !important;
+}
+
+/* El menú fuera de pantalla tampoco debe capturar eventos. */
+.store-drawer:not(.open) {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.store-drawer.open {
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Los diálogos nativos cerrados no deben interferir con la página. */
+dialog:not([open]) {
+  pointer-events: none !important;
+}
+
+dialog[open] {
+  pointer-events: auto !important;
+}
+
+/* Restauración explícita después de autorizar el panel. */
+html:not(.sd-admin-locked) body,
+html:not(.sd-admin-locked) .app-header,
+html:not(.sd-admin-locked) .main-nav,
+html:not(.sd-admin-locked) .app-main,
+html:not(.sd-admin-locked) .section.active-section,
+html:not(.sd-admin-locked) .product-grid,
+html:not(.sd-admin-locked) .product-card,
+html:not(.sd-admin-locked) .store-card-view,
+html:not(.sd-admin-locked) button:not(:disabled),
+html:not(.sd-admin-locked) a,
+html:not(.sd-admin-locked) input:not(:disabled),
+html:not(.sd-admin-locked) select:not(:disabled),
+html:not(.sd-admin-locked) textarea:not(:disabled),
+html:not(.sd-admin-locked) summary {
+  pointer-events: auto;
+}
+
+/* Permite selección y menú contextual normal en computadora. */
+html:not(.sd-admin-locked),
+html:not(.sd-admin-locked) body,
+html:not(.sd-admin-locked) .app-main {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+/* Estado de emergencia aplicado por JS a una capa obsoleta. */
+.interaction-layer-released {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
