@@ -7,6 +7,12 @@
     return html.classList.contains('sd-admin-locked');
   }
 
+  function setAttributeIfNeeded(element, name, value) {
+    if (element && element.getAttribute(name) !== value) {
+      element.setAttribute(name, value);
+    }
+  }
+
   function releaseClosedLayers() {
     if (isAdminLocked()) return;
 
@@ -17,27 +23,18 @@
 
     if (!drawerOpen) {
       drawer?.classList.remove('open');
-      drawer?.setAttribute('aria-hidden', 'true');
       backdrop?.classList.remove('open');
-      backdrop?.setAttribute('aria-hidden', 'true');
-      body?.style.removeProperty('overflow');
+      setAttributeIfNeeded(drawer, 'aria-hidden', 'true');
+      setAttributeIfNeeded(backdrop, 'aria-hidden', 'true');
+
+      if (body?.style.overflow === 'hidden') {
+        body.style.removeProperty('overflow');
+      }
     }
 
-    document.querySelectorAll('dialog:not([open])').forEach((dialog) => {
-      dialog.setAttribute('aria-hidden', 'true');
-    });
-
     const loading = document.getElementById('loadingOverlay');
-    if (loading) {
+    if (loading && loading.style.pointerEvents !== 'none') {
       loading.style.pointerEvents = 'none';
-      const styles = getComputedStyle(loading);
-      const alreadyHidden = loading.hidden
-        || loading.getAttribute('aria-hidden') === 'true'
-        || styles.display === 'none'
-        || styles.visibility === 'hidden'
-        || Number.parseFloat(styles.opacity || '1') < 0.05;
-
-      if (alreadyHidden) loading.classList.add('interaction-layer-released');
     }
 
     body?.removeAttribute('inert');
@@ -47,34 +44,26 @@
   function installContextMenuRecovery() {
     window.addEventListener('contextmenu', (event) => {
       if (isAdminLocked()) return;
-      // Detiene bloqueadores registrados posteriormente sin cancelar el menú nativo.
+      // Impide que bloqueadores posteriores cancelen el menú nativo.
+      // No se llama preventDefault(), por lo que el clic derecho sigue funcionando.
       event.stopImmediatePropagation();
     }, true);
   }
 
-  function installLayerObserver() {
+  function installAuthObserver() {
     const observer = new MutationObserver(() => {
-      window.requestAnimationFrame(releaseClosedLayers);
+      if (!isAdminLocked()) window.requestAnimationFrame(releaseClosedLayers);
     });
 
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class']
     });
-
-    if (document.body) {
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['class', 'open', 'aria-hidden', 'style']
-      });
-    }
   }
 
   function boot() {
     installContextMenuRecovery();
-    installLayerObserver();
+    installAuthObserver();
     releaseClosedLayers();
 
     window.addEventListener('sd:admin-auth-ok', () => {
@@ -83,7 +72,7 @@
       window.setTimeout(releaseClosedLayers, 1200);
     });
 
-    // Revisión corta durante el arranque para limpiar cualquier capa que quede obsoleta.
+    // Revisión corta durante el arranque, sin observar cada cambio interno del DOM.
     let checks = 0;
     const timer = window.setInterval(() => {
       releaseClosedLayers();
