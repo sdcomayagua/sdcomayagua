@@ -328,12 +328,18 @@
     return image;
   }
 
+  function cardSignature(data) {
+    const source = data.image?.currentSrc || data.image?.src || (data.svg ? 'svg' : 'logo');
+    return [data.name, data.category, data.status, data.stock ?? '', source].join('|');
+  }
+
   function decorateProductCard(card) {
     if (!(card instanceof Element)) return;
     card.classList.add('store-minimal-card');
 
     let view = qs(':scope > .store-card-view', card);
     const data = extractCardData(card);
+    const signature = cardSignature(data);
 
     if (!view) {
       view = document.createElement('div');
@@ -345,18 +351,21 @@
       card.appendChild(view);
     }
 
-    const photo = qs('.store-card-photo', view);
-    qsa('img, svg', photo).forEach((node) => node.remove());
-    photo.appendChild(cloneVisual(data));
+    if (view.dataset.signature !== signature) {
+      view.dataset.signature = signature;
+      const photo = qs('.store-card-photo', view);
+      qsa('img, svg', photo).forEach((node) => node.remove());
+      photo.appendChild(cloneVisual(data));
 
-    const status = qs('.store-card-status', view);
-    status.textContent = data.status;
-    status.classList.toggle('out', /agotado|sin stock/i.test(data.status));
-    qs('.store-card-category', view).textContent = data.category || 'Producto';
-    qs('.store-card-name', view).textContent = data.name;
-    qs('.store-card-stock', view).textContent = data.stock === null
-      ? 'Toque para ver detalles'
-      : `${data.stock} ${data.stock === 1 ? 'unidad disponible' : 'unidades disponibles'}`;
+      const status = qs('.store-card-status', view);
+      status.textContent = data.status;
+      status.classList.toggle('out', /agotado|sin stock/i.test(data.status));
+      qs('.store-card-category', view).textContent = data.category || 'Producto';
+      qs('.store-card-name', view).textContent = data.name;
+      qs('.store-card-stock', view).textContent = data.stock === null
+        ? 'Toque para ver detalles'
+        : `${data.stock} ${data.stock === 1 ? 'unidad disponible' : 'unidades disponibles'}`;
+    }
 
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
@@ -366,8 +375,10 @@
       card.dataset.storeClickReady = '1';
       card.addEventListener('click', (event) => {
         if (event.target.closest('button, a, input, select, textarea')) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
         findDetailControl(card)?.click();
-      });
+      }, true);
       card.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
@@ -417,12 +428,17 @@
 
     const featured = qs('#storeFeaturedGrid');
     if (featured) {
-      featured.replaceChildren(...cards.slice(0, 4).map(buildFeatureCard));
-      if (!cards.length) {
-        const empty = document.createElement('p');
-        empty.className = 'empty-state';
-        empty.textContent = 'Los productos aparecerán aquí cuando termine la sincronización.';
-        featured.appendChild(empty);
+      const featuredCards = cards.slice(0, 4);
+      const signature = featuredCards.map((card) => qs(':scope > .store-card-view', card)?.dataset.signature || '').join('||');
+      if (featured.dataset.signature !== signature) {
+        featured.dataset.signature = signature;
+        featured.replaceChildren(...featuredCards.map(buildFeatureCard));
+        if (!cards.length) {
+          const empty = document.createElement('p');
+          empty.className = 'empty-state';
+          empty.textContent = 'Los productos aparecerán aquí cuando termine la sincronización.';
+          featured.appendChild(empty);
+        }
       }
     }
     syncCounters();
@@ -438,17 +454,20 @@
 
   function syncCategories() {
     const categories = getCategories();
+    const signature = categories.map((item) => `${item.value}:${item.label}`).join('|');
     const strip = qs('#storeCategoryStrip');
     const drawer = qs('#storeDrawerCategories');
 
-    if (strip) {
+    if (strip && strip.dataset.signature !== signature) {
+      strip.dataset.signature = signature;
       strip.replaceChildren();
       const allButton = createCategoryCard('all', 'Todas');
       strip.appendChild(allButton);
       categories.slice(0, 12).forEach((item) => strip.appendChild(createCategoryCard(item.value, item.label)));
     }
 
-    if (drawer) {
+    if (drawer && drawer.dataset.signature !== signature) {
+      drawer.dataset.signature = signature;
       drawer.replaceChildren();
       categories.forEach((item) => {
         const button = document.createElement('button');
@@ -494,7 +513,7 @@
     ];
     targets.forEach(([selector, value]) => {
       const target = qs(selector);
-      if (target) target.textContent = value;
+      if (target && target.textContent !== value) target.textContent = value;
     });
   }
 
