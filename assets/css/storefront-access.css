@@ -1,5 +1,19 @@
 /* Acceso administrativo complementario para el storefront 2026. */
 
+/* La cuadrícula principal queda deliberadamente limpia para capturas:
+   fotografía, nombre y cantidad. Solo se muestra una alerta cuando está agotado. */
+.storefront-v3 .product-card.store-minimal-card .store-card-category {
+  display: none !important;
+}
+
+.storefront-v3 .product-card.store-minimal-card .store-card-status:not(.out) {
+  display: none !important;
+}
+
+.storefront-v3 .product-card.store-minimal-card .store-card-copy {
+  gap: 6px !important;
+}
+
 @media (min-width: 761px) {
   .storefront-v3 #productos .toolbar {
     grid-template-columns: minmax(280px, 1fr) minmax(190px, 240px) !important;
