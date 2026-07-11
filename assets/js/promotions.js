@@ -18,13 +18,18 @@
     document.head.appendChild(script);
   };
 
-  const version = '20260710g';
+  const version = '20260710h';
 
   loadStylesheet(`assets/css/premium-ui.css?v=${version}`, 'sd-premium-ui');
   loadStylesheet(`assets/css/pro-restructure.css?v=${version}`, 'sd-pro-restructure');
   loadStylesheet(`assets/css/product-card-polish.css?v=${version}`, 'sd-product-card-polish');
   loadStylesheet(`assets/css/storefront-mobile.css?v=${version}`, 'sd-storefront-mobile');
   loadStylesheet(`assets/css/storefront-access.css?v=${version}`, 'sd-storefront-access');
+  loadStylesheet(`assets/css/interaction-recovery.css?v=${version}`, 'sd-interaction-recovery');
+
+  // Este módulo se carga desde el inicio porque también limpia capas invisibles
+  // que podrían interferir con el acceso o con la página ya autorizada.
+  loadScript(`assets/js/interaction-recovery.js?v=${version}`, 'sd-interaction-recovery');
 
   let uiLoaded = false;
 
