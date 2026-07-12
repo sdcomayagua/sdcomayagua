@@ -2,7 +2,13 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260712-client-commerce-fixes-v1';
+  const version = '20260712-client-commerce-fixes-v2';
+
+  // cliente.html declara esta variable después de este archivo; la anticipamos
+  // para que los botones públicos funcionen incluso si el módulo carga muy rápido.
+  if (/\bcliente(?:\.html)?$/i.test(window.location.pathname)) {
+    window.SD_PUBLIC_CLIENT_CATALOG = true;
+  }
 
   if (!document.querySelector('link[data-sd-mobile-premium-v3]')) {
     const style = document.createElement('link');
