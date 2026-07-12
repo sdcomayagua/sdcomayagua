@@ -1,8 +1,8 @@
 // Promociones especiales SD COMAYAGUA.
 // La lógica principal permanece en assets/js/app.js.
-// Esta carga visual no intercepta productos, cotizaciones ni Firebase.
+// Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260712-mobile-premium-v3-hotfix-1';
+  const version = '20260712-client-commerce-fixes-v1';
 
   if (!document.querySelector('link[data-sd-mobile-premium-v3]')) {
     const style = document.createElement('link');
@@ -20,12 +20,28 @@
     document.head.appendChild(hotfix);
   }
 
+  if (!document.querySelector('link[data-sd-client-commerce-fixes]')) {
+    const commerceStyle = document.createElement('link');
+    commerceStyle.rel = 'stylesheet';
+    commerceStyle.href = `assets/css/client-commerce-fixes-v1.css?v=${version}`;
+    commerceStyle.setAttribute('data-sd-client-commerce-fixes', 'true');
+    document.head.appendChild(commerceStyle);
+  }
+
   if (!document.querySelector('script[data-sd-mobile-premium-v3]')) {
     const script = document.createElement('script');
     script.src = `assets/js/mobile-premium-v3.js?v=${version}`;
     script.defer = true;
     script.setAttribute('data-sd-mobile-premium-v3', 'true');
     document.head.appendChild(script);
+  }
+
+  if (!document.querySelector('script[data-sd-client-commerce-fixes]')) {
+    const commerceScript = document.createElement('script');
+    commerceScript.src = `assets/js/client-commerce-fixes-v1.js?v=${version}`;
+    commerceScript.defer = true;
+    commerceScript.setAttribute('data-sd-client-commerce-fixes', 'true');
+    document.head.appendChild(commerceScript);
   }
 })();
 
