@@ -1,0 +1,34 @@
+/* Ajustes finales de prioridad para la galería y las tarjetas. */
+#productForm .image-upload-row,
+#productForm #productImagePreview {
+  display: none !important;
+}
+
+body[data-mode="admin"] .product-card .product-price,
+body[data-mode="cliente"] .product-card .product-price,
+body[data-mode="envio"] .product-card .product-price,
+body[data-public-catalog="true"] .product-card .product-price,
+html body .product-card .product-price {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+body[data-mode="admin"] .product-card .product-meta,
+body[data-mode="cliente"] .product-card .product-meta,
+body[data-mode="envio"] .product-card .product-meta,
+body[data-public-catalog="true"] .product-card .product-meta,
+html body .product-card .product-meta {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .product-card .product-name {
+    min-height: 2.35em !important;
+  }
+
+  .product-card .product-price {
+    max-width: 100% !important;
+    font-size: clamp(.84rem, 4vw, 1rem) !important;
+  }
+}
