@@ -1,0 +1,325 @@
+/* =========================================================
+   SD COMAYAGUA · MOBILE PREMIUM V3 HOTFIX
+   Corrige solapes observados en celulares.
+   ========================================================= */
+
+@media (max-width: 760px) {
+  html,
+  body {
+    overflow-x: hidden !important;
+  }
+
+  body {
+    padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .app-main {
+    padding-bottom: calc(136px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Encabezado: marca completa sin empujar los controles */
+  .app-header {
+    gap: 7px !important;
+    padding-inline: 10px !important;
+  }
+
+  .brand-wrap {
+    flex: 1 1 auto !important;
+    gap: 7px !important;
+    min-width: 0 !important;
+  }
+
+  .brand-logo,
+  .logo-home-btn {
+    flex-basis: 43px !important;
+    width: 43px !important;
+    min-width: 43px !important;
+    height: 43px !important;
+  }
+
+  .brand-logo img,
+  .logo-home-btn img {
+    width: 35px !important;
+    height: 35px !important;
+  }
+
+  .brand-copy {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .brand-copy h1 {
+    width: 100% !important;
+    max-width: 126px !important;
+    font-size: clamp(.77rem, 3.55vw, .92rem) !important;
+    letter-spacing: -.04em !important;
+  }
+
+  .header-actions {
+    flex: 0 0 auto !important;
+    gap: 5px !important;
+  }
+
+  .header-actions > *,
+  #cloudStatus,
+  #syncBtn,
+  #menuToggle {
+    width: 39px !important;
+    min-width: 39px !important;
+    height: 39px !important;
+    min-height: 39px !important;
+    border-radius: 13px !important;
+  }
+
+  /* Más aire para productos y barra inferior */
+  .product-grid {
+    gap: 10px !important;
+    padding-bottom: 96px !important;
+  }
+
+  .product-card {
+    border-radius: 19px !important;
+  }
+
+  .product-content {
+    gap: 6px !important;
+    padding: 10px 10px 11px !important;
+  }
+
+  .product-name {
+    min-height: 2.34em !important;
+    font-size: clamp(.80rem, 3.65vw, .94rem) !important;
+    line-height: 1.17 !important;
+  }
+
+  /* Stock: chip compacto en lugar de bloque alto */
+  body[data-mode="admin"] .product-meta {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body[data-mode="admin"] .product-meta span {
+    display: none !important;
+  }
+
+  body[data-mode="admin"] .product-meta span:last-child {
+    display: inline-flex !important;
+    align-items: center !important;
+    width: auto !important;
+    max-width: 100% !important;
+    min-height: 30px !important;
+    margin: 0 !important;
+    padding: 0 9px !important;
+    border: 1px solid #d7e4f2 !important;
+    border-radius: 999px !important;
+    background: #f5f9fe !important;
+    color: #63758d !important;
+    font-size: .68rem !important;
+    line-height: 1.15 !important;
+    font-weight: 850 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    box-shadow: none !important;
+  }
+
+  body[data-mode="admin"] .product-meta span:last-child b {
+    margin-left: 3px !important;
+    color: #0d3d86 !important;
+    font-size: .72rem !important;
+    font-weight: 950 !important;
+  }
+
+  /* El botón agregar no cubre stock ni navegación */
+  #floatingAddBtn,
+  .floating-add {
+    right: 14px !important;
+    bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    border-radius: 15px !important;
+    font-size: 1.45rem !important;
+    box-shadow: 0 10px 22px rgba(31, 111, 229, .28) !important;
+  }
+
+  /* Barra inferior y avisos: nunca se superponen */
+  .main-nav {
+    z-index: 120 !important;
+    min-height: 65px !important;
+    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .nav-tab {
+    min-height: 54px !important;
+  }
+
+  .toast,
+  #toast {
+    position: fixed !important;
+    z-index: 160 !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 11px 13px !important;
+    border-radius: 15px !important;
+    transform: none !important;
+    font-size: .76rem !important;
+    line-height: 1.32 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    text-align: left !important;
+    pointer-events: none !important;
+  }
+
+  /* Detalle: encabezado y estadísticas compactos */
+  #detailDialog .dialog-head {
+    align-items: flex-start !important;
+    gap: 9px !important;
+    padding-right: 12px !important;
+  }
+
+  #detailDialog .dialog-head > div {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    padding-right: 4px !important;
+  }
+
+  #detailDialog .dialog-head h3,
+  #detailName {
+    display: -webkit-box !important;
+    max-width: 100% !important;
+    margin-top: 4px !important;
+    overflow: hidden !important;
+    font-size: clamp(1rem, 5vw, 1.28rem) !important;
+    line-height: 1.12 !important;
+    letter-spacing: -.035em !important;
+    overflow-wrap: anywhere !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+  }
+
+  #detailDialog .icon-close {
+    flex: 0 0 42px !important;
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+  }
+
+  #detailDialog .detail-info dl {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  #detailDialog .detail-info dl > div {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 70px !important;
+    padding: 10px !important;
+    border-radius: 15px !important;
+  }
+
+  #detailDialog .detail-info dt {
+    font-size: .66rem !important;
+    line-height: 1.15 !important;
+  }
+
+  #detailDialog .detail-info dd {
+    margin-top: 5px !important;
+    font-size: .84rem !important;
+    line-height: 1.2 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #detailDialog .detail-info dd b,
+  #detailDialog .detail-info dd strong {
+    font-size: inherit !important;
+  }
+
+  /* Promoción dentro de la descripción */
+  #detailDialog .detail-description {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 12px !important;
+    overflow: hidden !important;
+    font-size: .82rem !important;
+    line-height: 1.46 !important;
+  }
+
+  #detailDialog .detail-description > * {
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #detailDialog .detail-description [class*="promo"],
+  #detailDialog .detail-description [class*="promotion"],
+  #detailDialog .detail-description section:first-child,
+  #detailDialog .detail-description article:first-child {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 10px !important;
+    padding: 11px !important;
+    border: 1px solid #cfe0f6 !important;
+    border-radius: 15px !important;
+    background: #f6faff !important;
+    box-shadow: none !important;
+  }
+
+  #detailDialog .detail-description [class*="promo"] *,
+  #detailDialog .detail-description [class*="promotion"] *,
+  #detailDialog .detail-description section:first-child *,
+  #detailDialog .detail-description article:first-child * {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+  }
+
+  #detailDialog .detail-description h3,
+  #detailDialog .detail-description h4,
+  #detailDialog .detail-description strong {
+    font-size: .88rem !important;
+    line-height: 1.3 !important;
+  }
+
+  #detailDialog .detail-description p,
+  #detailDialog .detail-description li,
+  #detailDialog .detail-description span,
+  #detailDialog .detail-description small {
+    font-size: .79rem !important;
+    line-height: 1.45 !important;
+  }
+
+  #detailDialog .detail-description ul,
+  #detailDialog .detail-description ol {
+    margin: 7px 0 0 !important;
+    padding-left: 18px !important;
+  }
+}
+
+@media (max-width: 350px) {
+  .brand-copy h1 {
+    display: none !important;
+  }
+
+  #detailDialog .detail-info dl {
+    grid-template-columns: 1fr !important;
+  }
+}
