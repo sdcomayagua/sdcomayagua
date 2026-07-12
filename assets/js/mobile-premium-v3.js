@@ -14,6 +14,14 @@
     document.head.appendChild(style);
   }
 
+  if (!document.querySelector('link[data-sd-product-gallery-commerce-final]')) {
+    const finalStyle = document.createElement('link');
+    finalStyle.rel = 'stylesheet';
+    finalStyle.href = `assets/css/product-gallery-commerce-final.css?v=${FEATURE_VERSION}`;
+    finalStyle.setAttribute('data-sd-product-gallery-commerce-final', 'true');
+    document.head.appendChild(finalStyle);
+  }
+
   if (!document.querySelector('script[data-sd-product-gallery-commerce]')) {
     const script = document.createElement('script');
     script.src = `assets/js/product-gallery-commerce-v1.js?v=${FEATURE_VERSION}`;
