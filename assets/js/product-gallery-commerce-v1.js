@@ -200,6 +200,7 @@
     const nativeInput = document.getElementById('productImageFile');
     const urlInput = document.getElementById('productImage');
     if (!nativeInput || !urlInput) return setStatus('No se encontró el cargador de imágenes.', 'error');
+    const existingImages = [...state.images];
     state.uploadBusy = true;
     renderEditor();
     const uploaded = [];
@@ -213,7 +214,7 @@
           uploaded.push(await optimizedDataUrl(file));
         }
       }
-      state.images = unique([...state.images, ...uploaded]);
+      state.images = unique([...existingImages, ...uploaded]);
       syncCover();
       setStatus(`${uploaded.length} imagen${uploaded.length === 1 ? '' : 'es'} agregada${uploaded.length === 1 ? '' : 's'}.`, 'success');
     } catch {
@@ -340,6 +341,7 @@
     renderDetailGallery();
     ensureCommercePanel();
     updateCommerce();
+    window.setTimeout(updateCommerce, 220);
   }
 
   function renderDetailGallery() {
@@ -491,24 +493,7 @@
     const productDialog = document.getElementById('productDialog');
     if (productDialog) new MutationObserver(() => { if (productDialog.open) setTimeout(loadEditor, 40); }).observe(productDialog, { attributes: true, attributeFilter: ['open'] });
     const detailDialog = document.getElementById('detailDialog');
-    if (detailDialog) new MutationObserver(() => { if (detailDialog.open) setTimeout(enhanceDetail, 60); }).observe(detailDialog, { attributes: true, attributeFilter: ['open'] });
-
-    const description = document.getElementById('detailDescription');
-    if (description) {
-      let pending = false;
-      new MutationObserver(() => {
-        if (!detailDialog?.open || pending) return;
-        pending = true;
-        requestAnimationFrame(() => {
-          pending = false;
-          const text = description.textContent?.replace(/\s+/g, ' ').trim();
-          if (text) state.promoText = text;
-          stripMarker(description);
-          if (document.getElementById('detailCommercePanel')) updateCommerce();
-        });
-      }).observe(description, { childList: true, subtree: true, characterData: true });
-    }
-
+    if (detailDialog) new MutationObserver(() => { if (detailDialog.open) setTimeout(enhanceDetail, 70); }).observe(detailDialog, { attributes: true, attributeFilter: ['open'] });
     const grid = document.getElementById('productGrid');
     if (grid) {
       let pending = false;
