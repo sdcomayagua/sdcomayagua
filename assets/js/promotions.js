@@ -2,7 +2,10 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260712-client-commerce-fixes-v2';
+  const version = '20260712-client-commerce-fixes-v3';
+
+  // Número global seguro: evita errores en todos los botones de WhatsApp.
+  window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
 
   // cliente.html declara esta variable después de este archivo; la anticipamos
   // para que los botones públicos funcionen incluso si el módulo carga muy rápido.
