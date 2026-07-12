@@ -1,16 +1,22 @@
-// Promociones y capa visual estable de SD COMAYAGUA.
+// Promociones y capas visuales estables de SD COMAYAGUA.
 // La lógica principal permanece exclusivamente en assets/js/app.js.
 (() => {
-  const version = '20260711-stable-1';
-  const dataName = 'sd-storefront-stable';
+  const version = '20260712-catalog-clean-1';
 
-  if (!document.querySelector(`link[data-${dataName}]`)) {
+  const loadStyle = (href, dataName) => {
+    if (document.querySelector(`link[data-${dataName}]`)) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = `assets/css/storefront-stable.css?v=${version}`;
+    link.href = href;
     link.setAttribute(`data-${dataName}`, 'true');
     document.head.appendChild(link);
-  }
+  };
+
+  // Base visual estable.
+  loadStyle(`assets/css/storefront-stable.css?v=${version}`, 'sd-storefront-stable');
+
+  // Corrección final cargada después de la base para limpiar las tarjetas.
+  loadStyle(`assets/css/catalog-clean-final.css?v=${version}`, 'sd-catalog-clean-final');
 })();
 
 // Promociones especiales SD COMAYAGUA.

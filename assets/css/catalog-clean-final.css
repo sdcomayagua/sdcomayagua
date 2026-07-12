@@ -1,0 +1,438 @@
+/* =========================================================
+   SD COMAYAGUA · CATÁLOGO LIMPIO FINAL
+   Capa cargada al final. No modifica lógica ni eventos.
+   ========================================================= */
+
+:root {
+  --catalog-final-ink: #0a2348;
+  --catalog-final-muted: #60738d;
+  --catalog-final-blue: #1766d7;
+  --catalog-final-blue-2: #2b82f6;
+  --catalog-final-line: #d8e4f2;
+  --catalog-final-soft: #f5f9fe;
+  --catalog-final-green: #087d53;
+  --catalog-final-green-soft: #e7fff4;
+  --catalog-final-red: #b42332;
+  --catalog-final-red-soft: #fff0f2;
+  --catalog-final-shadow: 0 10px 28px rgba(8, 42, 86, .09);
+}
+
+/* ===== Limpieza del encabezado del catálogo ===== */
+#productos .client-catalog-notice,
+#productos .product-summary {
+  display: none !important;
+}
+
+#productos .catalog-head {
+  margin-bottom: 10px !important;
+  padding: 14px 16px !important;
+  border-radius: 20px !important;
+}
+
+#productos .catalog-head h2 {
+  font-size: clamp(1.45rem, 6vw, 2rem) !important;
+}
+
+#productos .toolbar {
+  margin-bottom: 12px !important;
+  padding: 10px !important;
+  border: 1px solid var(--catalog-final-line) !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+  box-shadow: var(--catalog-final-shadow) !important;
+}
+
+#productos .search-field,
+#productos .select-field {
+  min-height: 48px !important;
+  border: 1px solid var(--catalog-final-line) !important;
+  border-radius: 15px !important;
+  background: var(--catalog-final-soft) !important;
+  box-shadow: none !important;
+}
+
+#productos .quick-filters {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 7px !important;
+  padding: 2px 1px 3px !important;
+  overflow-x: auto !important;
+  scrollbar-width: none;
+}
+
+#productos .quick-filters::-webkit-scrollbar {
+  display: none;
+}
+
+#productos .quick-filter-btn {
+  flex: 0 0 auto !important;
+  min-height: 36px !important;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+  font-size: .72rem !important;
+  white-space: nowrap !important;
+}
+
+/* Oculta el texto redundante “Ocultando agotados” y otros chips pesados. */
+#productos .active-filters {
+  display: none !important;
+}
+
+/* ===== Cuadrícula ===== */
+#productos .product-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+/* ===== Tarjeta: foto, nombre y cantidad ===== */
+#productos .product-card {
+  position: relative !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid var(--catalog-final-line) !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: var(--catalog-final-shadow) !important;
+  transform: none !important;
+}
+
+#productos .product-card::before,
+#productos .product-card::after {
+  display: none !important;
+  content: none !important;
+}
+
+#productos .product-card:hover {
+  border-color: rgba(23, 102, 215, .32) !important;
+  box-shadow: 0 15px 34px rgba(8, 42, 86, .13) !important;
+  transform: translateY(-2px) !important;
+}
+
+#productos .product-media {
+  position: relative !important;
+  order: 1 !important;
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  padding: 13px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f8fd 100%) !important;
+  box-shadow: none !important;
+}
+
+#productos .product-media img,
+#productos .product-media svg,
+#productos .product-media .placeholder-product {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  transform: none !important;
+}
+
+#productos .product-content {
+  position: static !important;
+  order: 2 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding: 12px 13px 14px !important;
+  border-top: 1px solid #edf2f8 !important;
+  background: #fff !important;
+}
+
+/* Estado flotante sobre la foto */
+#productos .product-top {
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
+  z-index: 4 !important;
+  width: auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#productos .stock-badge {
+  min-height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 10px !important;
+  border: 1px solid rgba(8, 125, 83, .18) !important;
+  border-radius: 999px !important;
+  color: var(--catalog-final-green) !important;
+  background: rgba(231, 255, 244, .95) !important;
+  font-size: .62rem !important;
+  font-weight: 950 !important;
+  letter-spacing: .03em !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 5px 14px rgba(8, 42, 86, .08) !important;
+  backdrop-filter: blur(8px);
+}
+
+#productos .stock-badge.out {
+  border-color: rgba(180, 35, 50, .18) !important;
+  color: var(--catalog-final-red) !important;
+  background: rgba(255, 240, 242, .96) !important;
+}
+
+#productos .promo-badges,
+#productos .promo-mini-card,
+#productos .product-price,
+#productos .product-cost,
+#productos .product-shipping,
+#productos .product-actions {
+  display: none !important;
+}
+
+#productos .product-name {
+  order: 1 !important;
+  min-height: 2.42em !important;
+  display: -webkit-box !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  color: var(--catalog-final-ink) !important;
+  font-size: .94rem !important;
+  font-weight: 900 !important;
+  line-height: 1.21 !important;
+  letter-spacing: -.015em !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  text-overflow: ellipsis !important;
+}
+
+#productos .product-meta {
+  order: 2 !important;
+  min-height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  color: var(--catalog-final-blue) !important;
+  background: transparent !important;
+  font-size: .69rem !important;
+  font-weight: 900 !important;
+}
+
+#productos .product-meta span {
+  display: none !important;
+}
+
+/* En Admin el último span es Stock; en Cliente es Estado. */
+#productos .product-meta span:last-child {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#productos .product-meta span:last-child::before {
+  content: '📦';
+  flex: 0 0 auto;
+  font-size: .83rem;
+}
+
+/* Toda la tarjeta abre el detalle usando la acción original de app.js. */
+#productos .product-open-detail {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 8 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: inherit !important;
+  opacity: 0 !important;
+  color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+
+#productos .product-open-detail:focus-visible {
+  opacity: 1 !important;
+  outline: 4px solid rgba(23, 102, 215, .42) !important;
+  outline-offset: -5px !important;
+}
+
+/* Neutraliza reglas antiguas que volvían a mostrar precios y botones en Envío/Admin. */
+body[data-mode='envio'] #productos .product-price,
+body[data-mode='envio'] #productos .product-shipping,
+body[data-mode='envio'] #productos .product-actions,
+body[data-mode='envio'] #productos .product-cost,
+body[data-mode='admin'] #productos .product-price,
+body[data-mode='admin'] #productos .product-shipping,
+body[data-mode='admin'] #productos .product-actions,
+body[data-mode='admin'] #productos .product-cost,
+body[data-mode='cliente'] #productos .product-price,
+body[data-mode='cliente'] #productos .product-shipping,
+body[data-mode='cliente'] #productos .product-actions,
+body[data-mode='cliente'] #productos .product-cost {
+  display: none !important;
+}
+
+body[data-mode='envio'] #productos .product-open-detail,
+body[data-mode='admin'] #productos .product-open-detail,
+body[data-mode='cliente'] #productos .product-open-detail {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0 !important;
+  background: transparent !important;
+}
+
+/* ===== Detalle: aquí sí aparece toda la información ===== */
+#detailDialog .detail-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+}
+
+#detailDialog .detail-actions .btn {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 50px !important;
+  padding: 0 12px !important;
+  border-radius: 15px !important;
+  white-space: normal !important;
+  font-size: .9rem !important;
+  font-weight: 900 !important;
+}
+
+#detailDialog .detail-shipping {
+  display: grid !important;
+}
+
+/* ===== Barra inferior sin tapar productos ===== */
+@media (max-width: 700px) {
+  body {
+    padding-bottom: calc(106px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .app-main {
+    padding-bottom: 24px !important;
+  }
+
+  .main-nav,
+  .main-nav.open {
+    position: fixed !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+    top: auto !important;
+    z-index: 90 !important;
+    width: auto !important;
+    max-width: none !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    margin: 0 !important;
+    padding: 6px !important;
+    border: 1px solid rgba(216, 228, 242, .96) !important;
+    border-radius: 20px !important;
+    background: rgba(255, 255, 255, .97) !important;
+    box-shadow: 0 18px 42px rgba(8, 42, 86, .20) !important;
+    backdrop-filter: blur(16px);
+  }
+
+  .nav-tab {
+    min-width: 0 !important;
+    min-height: 48px !important;
+    padding: 0 4px !important;
+    overflow: hidden !important;
+    border-radius: 14px !important;
+    font-size: .68rem !important;
+    line-height: 1.05 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  #productos .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 11px !important;
+  }
+
+  #productos .product-card {
+    border-radius: 18px !important;
+  }
+
+  #productos .product-media {
+    padding: 9px !important;
+  }
+
+  #productos .product-content {
+    gap: 7px !important;
+    padding: 10px 10px 12px !important;
+  }
+
+  #productos .product-top {
+    top: 7px !important;
+    left: 7px !important;
+  }
+
+  #productos .stock-badge {
+    min-height: 25px !important;
+    padding: 0 8px !important;
+    font-size: .55rem !important;
+  }
+
+  #productos .product-name {
+    min-height: 2.5em !important;
+    font-size: .82rem !important;
+    line-height: 1.24 !important;
+  }
+
+  #productos .product-meta {
+    min-height: 20px !important;
+    font-size: .62rem !important;
+  }
+
+  #productos .toolbar {
+    grid-template-columns: 1fr !important;
+  }
+
+  #detailDialog .detail-actions {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #productos .product-grid {
+    gap: 8px !important;
+  }
+
+  #productos .product-content {
+    padding-inline: 8px !important;
+  }
+
+  #productos .product-name {
+    font-size: .76rem !important;
+  }
+}
