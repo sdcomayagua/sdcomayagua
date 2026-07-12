@@ -2,7 +2,7 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260712-client-commerce-fixes-v3';
+  const version = '20260712-whatsapp-order-v4';
 
   // Número global seguro: evita errores en todos los botones de WhatsApp.
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
@@ -40,15 +40,25 @@
   if (!document.querySelector('script[data-sd-mobile-premium-v3]')) {
     const script = document.createElement('script');
     script.src = `assets/js/mobile-premium-v3.js?v=${version}`;
-    script.defer = true;
+    script.async = false;
     script.setAttribute('data-sd-mobile-premium-v3', 'true');
     document.head.appendChild(script);
+  }
+
+  // Debe registrarse antes de client-commerce-fixes para tener prioridad
+  // sobre el botón COMPRAR de cliente.html.
+  if (!document.querySelector('script[data-sd-whatsapp-order-v2]')) {
+    const orderScript = document.createElement('script');
+    orderScript.src = `assets/js/whatsapp-order-message-v2.js?v=${version}`;
+    orderScript.async = false;
+    orderScript.setAttribute('data-sd-whatsapp-order-v2', 'true');
+    document.head.appendChild(orderScript);
   }
 
   if (!document.querySelector('script[data-sd-client-commerce-fixes]')) {
     const commerceScript = document.createElement('script');
     commerceScript.src = `assets/js/client-commerce-fixes-v1.js?v=${version}`;
-    commerceScript.defer = true;
+    commerceScript.async = false;
     commerceScript.setAttribute('data-sd-client-commerce-fixes', 'true');
     document.head.appendChild(commerceScript);
   }
