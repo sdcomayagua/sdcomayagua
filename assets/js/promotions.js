@@ -2,7 +2,7 @@
 // La lógica principal permanece en assets/js/app.js.
 // Esta carga visual no intercepta productos, cotizaciones ni Firebase.
 (() => {
-  const version = '20260712-mobile-premium-v3';
+  const version = '20260712-mobile-premium-v3-hotfix-1';
 
   if (!document.querySelector('link[data-sd-mobile-premium-v3]')) {
     const style = document.createElement('link');
@@ -10,6 +10,14 @@
     style.href = `assets/css/mobile-premium-v3.css?v=${version}`;
     style.setAttribute('data-sd-mobile-premium-v3', 'true');
     document.head.appendChild(style);
+  }
+
+  if (!document.querySelector('link[data-sd-mobile-premium-v3-hotfix]')) {
+    const hotfix = document.createElement('link');
+    hotfix.rel = 'stylesheet';
+    hotfix.href = `assets/css/mobile-premium-v3-hotfix.css?v=${version}`;
+    hotfix.setAttribute('data-sd-mobile-premium-v3-hotfix', 'true');
+    document.head.appendChild(hotfix);
   }
 
   if (!document.querySelector('script[data-sd-mobile-premium-v3]')) {
