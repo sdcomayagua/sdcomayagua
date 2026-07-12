@@ -4,21 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b2d5c">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="description" content="SD COMAYAGUA - Catálogo, ventas, cotizaciones e inventario.">
   <title>SD COMAYAGUA | Catálogo e Inventario</title>
   <link rel="icon" href="assets/img/logo-round.png" type="image/png">
-  <link rel="stylesheet" href="assets/css/styles.css">
-  <link rel="stylesheet" href="assets/css/visual-polish.css">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260712-force-2">
+  <link rel="stylesheet" href="assets/css/visual-polish.css?v=20260712-force-2">
+  <link rel="stylesheet" href="assets/css/final-ui.css?v=20260712-force-2">
   <style>
     html.sd-admin-locked body > *:not(#adminPinGate) { display: none !important; }
     html.sd-admin-locked body #adminPinGate { display: flex !important; }
   </style>
   <script>document.documentElement.classList.add('sd-admin-locked');</script>
-  <script src="assets/js/admin-auth.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="assets/js/promotions.js"></script>
+  <script src="assets/js/admin-auth.js?v=20260712-force-2"></script>
+  <script src="firebase-config.js?v=20260712-force-2"></script>
+  <script src="assets/js/promotions.js?v=20260712-force-2"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script defer src="assets/js/app.js"></script>
+  <script defer src="assets/js/app.js?v=20260712-force-2"></script>
 </head>
 <body>
   <a class="skip-link" href="#productos">Saltar a productos</a>
@@ -27,7 +31,7 @@
     <div class="loading-card simple-loading-card">
       <img src="assets/img/logo-round.png" alt="SD COMAYAGUA">
       <strong id="loadingTitle">Cargando catálogo...</strong>
-      <span id="loadingText">Conectando con Firebase y preparando productos.</span>
+      <span id="loadingText">Preparando productos.</span>
       <div class="loading-progress simple-loading-progress" aria-hidden="true"><span></span></div>
     </div>
   </div>
@@ -38,9 +42,9 @@
         <img src="assets/img/logo-round.png" alt="Logo SD COMAYAGUA" width="56" height="56">
       </button>
       <div class="brand-copy">
-        <p class="eyebrow">Inventario privado</p>
+        <p class="eyebrow">Panel privado</p>
         <h1>SD COMAYAGUA</h1>
-        <p>CATÁLOGO · VENTAS · COTIZACIONES · INVENTARIO</p>
+        <p>PRODUCTOS · COTIZACIONES · INVENTARIO</p>
       </div>
     </div>
 
@@ -68,13 +72,13 @@
     <section id="inicio" class="section active-section" data-section-panel="inicio">
       <div class="hero-card">
         <div>
-          <p class="section-label">Sistema comercial</p>
-          <h2>Catálogo rápido para vender, cotizar y revisar stock.</h2>
-          <p class="hero-text">Una interfaz compacta para celular, con tarjetas claras, precio visible y acciones rápidas.</p>
+          <p class="section-label">SD COMAYAGUA</p>
+          <h2>Productos, cotizaciones e inventario.</h2>
+          <p class="hero-text">Rápido. Claro. Listo.</p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="cliente.html" target="_blank" rel="noopener">Catálogo cliente limpio</a>
-            <button class="btn btn-secondary" type="button" data-go="productos">Ver productos</button>
-            <button class="btn btn-secondary" type="button" data-go="panel">Ver resumen</button>
+            <a class="btn btn-primary" href="cliente.html" target="_blank" rel="noopener">Vista para clientes</a>
+            <button class="btn btn-secondary" type="button" data-go="productos">Productos</button>
+            <button class="btn btn-secondary" type="button" data-go="panel">Inventario</button>
           </div>
         </div>
         <div class="hero-panel" aria-label="Resumen rápido">
@@ -98,8 +102,8 @@
       <div class="section-head">
         <div>
           <p class="section-label">Panel</p>
-          <h2>Resumen del inventario</h2>
-          <p>Control rápido de existencias, ventas y cotizaciones creadas en este navegador.</p>
+          <h2>Inventario</h2>
+          <p>Resumen general.</p>
         </div>
       </div>
 
@@ -233,7 +237,7 @@
             <button class="mode-btn" type="button" data-mode="cliente">Cliente</button>
             <button class="mode-btn" type="button" data-mode="envio">Envío</button>
           </div>
-          <a class="btn btn-success client-public-link" href="cliente.html" target="_blank" rel="noopener">Abrir catálogo cliente limpio</a>
+          <a class="btn btn-success client-public-link" href="cliente.html" target="_blank" rel="noopener">Vista para clientes</a>
 
           <button id="exportExcelBtn" class="btn btn-secondary admin-only" type="button">Exportar Excel</button>
           <button id="importExcelBtn" class="btn btn-secondary admin-only" type="button">Importar Excel</button>
@@ -249,9 +253,9 @@
         </div>
       </div>
 
-      <div class="client-catalog-notice" aria-live="polite">
+      <div class="client-catalog-notice" aria-live="polite" hidden>
         <strong>Catálogo para cliente</strong>
-        <span>Vista limpia: sin costos, sin botones de admin y con promociones visibles para vender más rápido.</span>
+        <span>Productos disponibles.</span>
       </div>
 
       <div id="activeFilters" class="active-filters" hidden></div>
@@ -457,7 +461,7 @@
         </div>
         <button type="button" class="icon-btn" data-close-dialog="whatsappPreviewDialog" aria-label="Cerrar">×</button>
       </div>
-      <p class="form-help">Revisa el mensaje antes de enviarlo. Puedes editar el texto aquí mismo si quieres cambiar algo rápido.</p>
+      <p class="form-help">Edita el mensaje antes de enviarlo.</p>
       <textarea id="whatsappPreviewText" class="whatsapp-preview-text" rows="15"></textarea>
       <div class="dialog-actions whatsapp-preview-actions">
         <button class="btn btn-light" type="button" data-close-dialog="whatsappPreviewDialog">Cancelar</button>
@@ -499,9 +503,9 @@
     <form id="quoteForm" class="dialog-card quote-card" method="dialog">
       <div class="dialog-head">
         <div>
-          <p class="section-label">Factura para cliente</p>
-          <h3 id="quoteProductName">Cotizar productos</h3>
-          <p class="quote-hint">Ajusta cantidades, agrega productos y toma captura de la factura limpia.</p>
+          <p class="section-label">Cotización</p>
+          <h3 id="quoteProductName">Factura / cotización</h3>
+          <p class="quote-hint">Productos, cantidades y entrega.</p>
         </div>
         <button class="icon-close" value="cancel" type="button" data-close-dialog="quoteDialog" aria-label="Cerrar">×</button>
       </div>
@@ -599,7 +603,6 @@
     </form>
   </dialog>
 
-
   <dialog id="duplicateDialog" class="dialog">
     <div class="dialog-card admin-tools-card">
       <div class="dialog-head">
@@ -659,7 +662,6 @@
       </div>
     </div>
   </dialog>
-
 
   <dialog id="localPrintDialog" class="dialog">
     <form id="localPrintForm" class="dialog-card compact-dialog" method="dialog">
