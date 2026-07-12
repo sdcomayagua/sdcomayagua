@@ -40,13 +40,17 @@
       const quantityMatch = details.match(/(\d+)\s+(unidad(?:es)?|par(?:es)?)/i);
       const unitPriceMatch = details.match(/(L(?:ps)?\.?\s*[0-9.,]+)\s*c\/u/i);
       const savingMatch = promo.match(/ahorro\s+(.+)$/i);
+      const quantityNumber = quantityMatch ? Number(quantityMatch[1]) : 0;
+      const quantityLabel = /dedal/i.test(name)
+        ? (quantityNumber === 1 ? 'par' : 'pares')
+        : (quantityMatch?.[2] || 'unidades');
 
       return {
         name,
-        quantity: quantityMatch ? `${quantityMatch[1]} ${quantityMatch[2]}` : details.split('·')[0]?.trim() || '',
+        quantity: quantityMatch ? `${quantityNumber} ${quantityLabel}` : details.split('·')[0]?.trim() || '',
         unitPrice: unitPriceMatch ? clean(unitPriceMatch[1]).replace(/^L\s*/i, 'Lps.') : '',
         subtotal,
-        promotion: promo ? promo.split('·')[0].trim() : '',
+        promotion: promo ? 'Precio especial por cantidad aplicado' : '',
         saving: savingMatch ? clean(savingMatch[1]) : '',
         gifts
       };
@@ -97,14 +101,12 @@
     const lines = [
       '*SD COMAYAGUA*',
       '*PEDIDO DESDE EL CATÁLOGO*',
-      divider,
-      header.order ? `*No. de pedido:* ${header.order}` : '',
-      header.date ? `*Fecha:* ${header.date}` : '',
-      '',
-      '*PRODUCTOS*',
-      divider,
-      ''
-    ].filter((line) => line !== '');
+      divider
+    ];
+
+    if (header.order) lines.push(`*No. de pedido:* ${header.order}`);
+    if (header.date) lines.push(`*Fecha:* ${header.date}`);
+    lines.push('', '*PRODUCTOS*', divider, '');
 
     items.forEach((item, index) => {
       lines.push(`${index + 1}. *${item.name}*`);
