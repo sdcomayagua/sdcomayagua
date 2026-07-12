@@ -1,10 +1,34 @@
 // SD COMAYAGUA · Mobile Premium V3
-// Este módulo solo organiza filtros y textos estáticos.
-// No intercepta tarjetas, cotizaciones, ventas, Firebase ni descargas.
+// Organiza filtros y carga las mejoras comerciales independientes.
 (() => {
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
+  const FEATURE_VERSION = '20260712-gallery-commerce-v1';
+
+  if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = `assets/css/product-gallery-commerce-v1.css?v=${FEATURE_VERSION}`;
+    style.setAttribute('data-sd-product-gallery-commerce', 'true');
+    document.head.appendChild(style);
+  }
+
+  if (!document.querySelector('link[data-sd-product-gallery-commerce-final]')) {
+    const finalStyle = document.createElement('link');
+    finalStyle.rel = 'stylesheet';
+    finalStyle.href = `assets/css/product-gallery-commerce-final.css?v=${FEATURE_VERSION}`;
+    finalStyle.setAttribute('data-sd-product-gallery-commerce-final', 'true');
+    document.head.appendChild(finalStyle);
+  }
+
+  if (!document.querySelector('script[data-sd-product-gallery-commerce]')) {
+    const script = document.createElement('script');
+    script.src = `assets/js/product-gallery-commerce-v1.js?v=${FEATURE_VERSION}`;
+    script.async = false;
+    script.setAttribute('data-sd-product-gallery-commerce', 'true');
+    document.head.appendChild(script);
+  }
 
   function initMobilePremium() {
     document.documentElement.dataset.mobileUi = 'premium-v3';
