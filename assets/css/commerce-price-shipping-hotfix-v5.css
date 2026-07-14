@@ -1,0 +1,137 @@
+/* SD COMAYAGUA · Ajuste final de precios y envíos V5 */
+
+/* Precios promocionales: apilados para evitar cortes en celular. */
+.commerce-card-price.has-offer {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 7px !important;
+}
+
+.commerce-card-price.has-offer > div {
+  min-height: 48px !important;
+}
+
+.commerce-card-price-before,
+.commerce-card-price-now {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  column-gap: 9px !important;
+  row-gap: 3px !important;
+  width: 100% !important;
+}
+
+.commerce-card-price-before span,
+.commerce-card-price-now span {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  align-self: center !important;
+}
+
+.commerce-card-price-before del,
+.commerce-card-price-now strong {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  font-size: clamp(.88rem, 4vw, 1.02rem) !important;
+  line-height: 1.08 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.commerce-card-price-now small {
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  margin: 0 !important;
+  color: #64758a !important;
+  font-size: .67rem !important;
+  line-height: 1.2 !important;
+  font-weight: 850 !important;
+  white-space: normal !important;
+}
+
+/* La oferta actual debe verse más importante que el precio anterior. */
+.commerce-card-price-before {
+  background: #f7f9fc !important;
+}
+
+.commerce-card-price-before del {
+  color: #8a98aa !important;
+  font-size: clamp(.80rem, 3.5vw, .92rem) !important;
+}
+
+.commerce-card-price-now {
+  border-color: #b9d5f8 !important;
+  background: linear-gradient(180deg, #f3f8ff, #e8f2ff) !important;
+}
+
+.commerce-card-price-now strong {
+  color: #0a4da9 !important;
+  font-weight: 950 !important;
+}
+
+/* Opciones de envío más claras y con total final completo. */
+.detail-delivery-options button {
+  min-height: 152px !important;
+  align-content: start !important;
+}
+
+.detail-delivery-options button > span,
+.detail-delivery-options button > strong,
+.detail-delivery-options button > small {
+  display: block !important;
+  width: 100% !important;
+}
+
+.detail-delivery-options button > strong {
+  margin-top: 8px !important;
+  font-size: clamp(1.12rem, 5.4vw, 1.42rem) !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.detail-delivery-options button > small {
+  margin-top: 10px !important;
+  line-height: 1.35 !important;
+}
+
+.detail-delivery-options button::after {
+  content: "Total con producto y envío" !important;
+  display: block !important;
+  margin-top: 10px !important;
+  color: #748399 !important;
+  font-size: .64rem !important;
+  line-height: 1.2 !important;
+  font-weight: 850 !important;
+}
+
+@media (max-width: 760px) {
+  .commerce-card-price.has-offer {
+    gap: 6px !important;
+  }
+
+  .commerce-card-price.has-offer > div {
+    min-height: 45px !important;
+    padding: 8px 9px !important;
+  }
+
+  .commerce-card-price-before del,
+  .commerce-card-price-now strong {
+    font-size: clamp(.82rem, 4.1vw, .98rem) !important;
+  }
+
+  .commerce-card-price-before del {
+    font-size: clamp(.75rem, 3.7vw, .88rem) !important;
+  }
+
+  .detail-delivery-options {
+    grid-template-columns: 1fr !important;
+  }
+
+  .detail-delivery-options button {
+    min-height: 118px !important;
+  }
+}
