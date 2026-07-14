@@ -1,0 +1,79 @@
+/* SD COMAYAGUA · Precio anterior y ahorro correcto V6 */
+
+.product-previous-price-field {
+  position: relative;
+}
+
+.product-previous-price-field .discount-optional-label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-left: 6px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #eef4fb;
+  color: #63758d;
+  font-size: .65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.product-previous-price-field small {
+  display: block;
+  margin-top: 6px;
+  color: #6d7d92;
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+.commerce-card-price.has-discount {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 7px !important;
+}
+
+.commerce-card-price.has-discount .commerce-card-price-before,
+.commerce-card-price.has-discount .commerce-card-price-now {
+  min-height: 52px !important;
+}
+
+.commerce-card-price.has-discount .commerce-card-price-before span {
+  font-size: .64rem !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+}
+
+.commerce-card-price.has-discount .commerce-card-price-before del,
+.commerce-card-price.has-discount .commerce-card-price-now strong {
+  font-size: clamp(.9rem, 4.2vw, 1.05rem) !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+}
+
+.sd-shipping-savings-v6 {
+  display: block !important;
+  margin-top: 12px !important;
+  padding-top: 10px !important;
+  border-top: 1px solid rgba(191, 211, 235, .82) !important;
+  color: #d62828 !important;
+  font-size: .78rem !important;
+  line-height: 1.35 !important;
+  font-weight: 900 !important;
+  white-space: normal !important;
+}
+
+@media (max-width: 760px) {
+  .product-previous-price-field {
+    grid-column: 1 / -1 !important;
+  }
+
+  .commerce-card-price.has-discount > div {
+    padding: 9px 10px !important;
+  }
+
+  .commerce-card-price.has-discount .commerce-card-price-before,
+  .commerce-card-price.has-discount .commerce-card-price-now {
+    min-height: 48px !important;
+  }
+}
