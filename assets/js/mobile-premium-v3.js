@@ -46,6 +46,14 @@
     document.head.appendChild(correctionScript);
   }
 
+  if (!document.querySelector('script[data-sd-index-shipping-sync]')) {
+    const shippingScript = document.createElement('script');
+    shippingScript.src = `assets/js/commerce-index-shipping-sync-v1.js?v=${FEATURE_VERSION}`;
+    shippingScript.async = false;
+    shippingScript.setAttribute('data-sd-index-shipping-sync', 'true');
+    document.head.appendChild(shippingScript);
+  }
+
   function initMobilePremium() {
     document.documentElement.dataset.mobileUi = 'premium-v3';
 
