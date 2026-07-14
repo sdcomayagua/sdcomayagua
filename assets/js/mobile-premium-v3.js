@@ -4,7 +4,7 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260714-commerce-corrections-v5';
+  const FEATURE_VERSION = '20260714-discount-savings-v6';
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -38,6 +38,14 @@
     document.head.appendChild(priceShippingStyle);
   }
 
+  if (!document.querySelector('link[data-sd-commerce-discount-savings-v6]')) {
+    const discountStyle = document.createElement('link');
+    discountStyle.rel = 'stylesheet';
+    discountStyle.href = `assets/css/commerce-discount-savings-v6.css?v=${FEATURE_VERSION}`;
+    discountStyle.setAttribute('data-sd-commerce-discount-savings-v6', 'true');
+    document.head.appendChild(discountStyle);
+  }
+
   if (!document.querySelector('script[data-sd-product-gallery-commerce]')) {
     const script = document.createElement('script');
     script.src = `assets/js/product-gallery-commerce-v1.js?v=${FEATURE_VERSION}`;
@@ -52,6 +60,22 @@
     correctionScript.async = false;
     correctionScript.setAttribute('data-sd-commerce-corrections-v5', 'true');
     document.head.appendChild(correctionScript);
+  }
+
+  if (!document.querySelector('script[data-sd-product-discount-v1]')) {
+    const discountEditorScript = document.createElement('script');
+    discountEditorScript.src = `assets/js/product-discount-v1.js?v=${FEATURE_VERSION}`;
+    discountEditorScript.async = false;
+    discountEditorScript.setAttribute('data-sd-product-discount-v1', 'true');
+    document.head.appendChild(discountEditorScript);
+  }
+
+  if (!document.querySelector('script[data-sd-commerce-discount-savings-v6]')) {
+    const discountScript = document.createElement('script');
+    discountScript.src = `assets/js/commerce-discount-savings-v6.js?v=${FEATURE_VERSION}`;
+    discountScript.async = false;
+    discountScript.setAttribute('data-sd-commerce-discount-savings-v6', 'true');
+    document.head.appendChild(discountScript);
   }
 
   function initMobilePremium() {

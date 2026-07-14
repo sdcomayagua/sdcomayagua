@@ -2,13 +2,10 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260714-commerce-corrections-v5';
+  const version = '20260714-discount-savings-v6';
 
-  // Número global seguro: evita errores en todos los botones de WhatsApp.
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
 
-  // cliente.html declara esta variable después de este archivo; la anticipamos
-  // para que los botones públicos funcionen incluso si el módulo carga muy rápido.
   if (/\bcliente(?:\.html)?$/i.test(window.location.pathname)) {
     window.SD_PUBLIC_CLIENT_CATALOG = true;
   }
@@ -45,8 +42,6 @@
     document.head.appendChild(script);
   }
 
-  // Debe registrarse antes de client-commerce-fixes para tener prioridad
-  // sobre el botón COMPRAR de cliente.html.
   if (!document.querySelector('script[data-sd-whatsapp-order-v2]')) {
     const orderScript = document.createElement('script');
     orderScript.src = `assets/js/whatsapp-order-message-v2.js?v=${version}`;
