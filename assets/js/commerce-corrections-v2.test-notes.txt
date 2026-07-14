@@ -1,9 +1,0 @@
-Validaciones manuales previstas:
-- Dedales V1: cantidad 1 = Lps.25.00; cantidad 5 = Lps.25.00; cantidad 6 = Lps.24.00.
-- Subtotal = precio por unidad multiplicado por cantidad.
-- Comayagua: subtotal + Lps.35.00.
-- Fuera de Comayagua: subtotal + Lps.110.00.
-- Pagar al recibir: (subtotal + Lps.110.00) x 1.10.
-- El botón Comprar permanece desactivado hasta elegir Sí o No en cliente.html.
-- Las tarjetas ocultan stock exacto y muestran precio.
-- Los avisos .toast se eliminan automáticamente después de 2.4 segundos.
