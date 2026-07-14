@@ -4,7 +4,7 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260714-commerce-corrections-v3';
+  const FEATURE_VERSION = '20260714-commerce-corrections-v4';
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -22,11 +22,11 @@
     document.head.appendChild(finalStyle);
   }
 
-  if (!document.querySelector('link[data-sd-commerce-corrections-v3]')) {
+  if (!document.querySelector('link[data-sd-commerce-corrections-v4]')) {
     const correctionStyle = document.createElement('link');
     correctionStyle.rel = 'stylesheet';
     correctionStyle.href = `assets/css/commerce-corrections-v3.css?v=${FEATURE_VERSION}`;
-    correctionStyle.setAttribute('data-sd-commerce-corrections-v3', 'true');
+    correctionStyle.setAttribute('data-sd-commerce-corrections-v4', 'true');
     document.head.appendChild(correctionStyle);
   }
 
@@ -38,11 +38,11 @@
     document.head.appendChild(script);
   }
 
-  if (!document.querySelector('script[data-sd-commerce-corrections-v3]')) {
+  if (!document.querySelector('script[data-sd-commerce-corrections-v4]')) {
     const correctionScript = document.createElement('script');
-    correctionScript.src = `assets/js/commerce-corrections-v3.js?v=${FEATURE_VERSION}`;
+    correctionScript.src = `assets/js/commerce-corrections-v4.js?v=${FEATURE_VERSION}`;
     correctionScript.async = false;
-    correctionScript.setAttribute('data-sd-commerce-corrections-v3', 'true');
+    correctionScript.setAttribute('data-sd-commerce-corrections-v4', 'true');
     document.head.appendChild(correctionScript);
   }
 
