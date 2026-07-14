@@ -2,7 +2,7 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260714-commerce-corrections-v3';
+  const version = '20260714-commerce-corrections-v4';
 
   // Número global seguro: evita errores en todos los botones de WhatsApp.
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
