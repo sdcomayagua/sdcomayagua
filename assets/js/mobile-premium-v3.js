@@ -4,7 +4,7 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260712-gallery-commerce-v1';
+  const FEATURE_VERSION = '20260713-commerce-corrections-v2';
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -22,12 +22,28 @@
     document.head.appendChild(finalStyle);
   }
 
+  if (!document.querySelector('link[data-sd-commerce-corrections-v2]')) {
+    const correctionStyle = document.createElement('link');
+    correctionStyle.rel = 'stylesheet';
+    correctionStyle.href = `assets/css/commerce-corrections-v2.css?v=${FEATURE_VERSION}`;
+    correctionStyle.setAttribute('data-sd-commerce-corrections-v2', 'true');
+    document.head.appendChild(correctionStyle);
+  }
+
   if (!document.querySelector('script[data-sd-product-gallery-commerce]')) {
     const script = document.createElement('script');
     script.src = `assets/js/product-gallery-commerce-v1.js?v=${FEATURE_VERSION}`;
     script.async = false;
     script.setAttribute('data-sd-product-gallery-commerce', 'true');
     document.head.appendChild(script);
+  }
+
+  if (!document.querySelector('script[data-sd-commerce-corrections-v2]')) {
+    const correctionScript = document.createElement('script');
+    correctionScript.src = `assets/js/commerce-corrections-v2.js?v=${FEATURE_VERSION}`;
+    correctionScript.async = false;
+    correctionScript.setAttribute('data-sd-commerce-corrections-v2', 'true');
+    document.head.appendChild(correctionScript);
   }
 
   function initMobilePremium() {
