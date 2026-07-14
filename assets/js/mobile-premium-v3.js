@@ -4,7 +4,7 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260714-commerce-corrections-v4';
+  const FEATURE_VERSION = '20260714-commerce-corrections-v5';
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -22,12 +22,20 @@
     document.head.appendChild(finalStyle);
   }
 
-  if (!document.querySelector('link[data-sd-commerce-corrections-v4]')) {
+  if (!document.querySelector('link[data-sd-commerce-corrections-v5]')) {
     const correctionStyle = document.createElement('link');
     correctionStyle.rel = 'stylesheet';
     correctionStyle.href = `assets/css/commerce-corrections-v3.css?v=${FEATURE_VERSION}`;
-    correctionStyle.setAttribute('data-sd-commerce-corrections-v4', 'true');
+    correctionStyle.setAttribute('data-sd-commerce-corrections-v5', 'true');
     document.head.appendChild(correctionStyle);
+  }
+
+  if (!document.querySelector('link[data-sd-commerce-price-shipping-v5]')) {
+    const priceShippingStyle = document.createElement('link');
+    priceShippingStyle.rel = 'stylesheet';
+    priceShippingStyle.href = `assets/css/commerce-price-shipping-hotfix-v5.css?v=${FEATURE_VERSION}`;
+    priceShippingStyle.setAttribute('data-sd-commerce-price-shipping-v5', 'true');
+    document.head.appendChild(priceShippingStyle);
   }
 
   if (!document.querySelector('script[data-sd-product-gallery-commerce]')) {
@@ -38,20 +46,12 @@
     document.head.appendChild(script);
   }
 
-  if (!document.querySelector('script[data-sd-commerce-corrections-v4]')) {
+  if (!document.querySelector('script[data-sd-commerce-corrections-v5]')) {
     const correctionScript = document.createElement('script');
-    correctionScript.src = `assets/js/commerce-corrections-v4.js?v=${FEATURE_VERSION}`;
+    correctionScript.src = `assets/js/commerce-corrections-v5.js?v=${FEATURE_VERSION}`;
     correctionScript.async = false;
-    correctionScript.setAttribute('data-sd-commerce-corrections-v4', 'true');
+    correctionScript.setAttribute('data-sd-commerce-corrections-v5', 'true');
     document.head.appendChild(correctionScript);
-  }
-
-  if (!document.querySelector('script[data-sd-index-shipping-sync]')) {
-    const shippingScript = document.createElement('script');
-    shippingScript.src = `assets/js/commerce-index-shipping-sync-v1.js?v=${FEATURE_VERSION}`;
-    shippingScript.async = false;
-    shippingScript.setAttribute('data-sd-index-shipping-sync', 'true');
-    document.head.appendChild(shippingScript);
   }
 
   function initMobilePremium() {
