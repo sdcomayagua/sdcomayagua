@@ -95,9 +95,11 @@ window.SD_ADMIN_PIN = "199311";
   addStyle('sd-storefront-mobile-css', 'assets/css/storefront-mobile.css');
   addStyle('sd-genial-mobile-css', 'assets/css/genial-mobile.css');
 
-  if (document.readyState === 'complete') {
-    startStorefront();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      window.setTimeout(startStorefront, 0);
+    }, { once: true });
   } else {
-    window.addEventListener('load', startStorefront, { once: true });
+    startStorefront();
   }
 })();
