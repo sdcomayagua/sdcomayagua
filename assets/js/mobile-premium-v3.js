@@ -4,7 +4,7 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260714-discount-savings-v6';
+  const FEATURE_VERSION = '20260715-requested-fixes-v2';
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -76,6 +76,24 @@
     discountScript.async = false;
     discountScript.setAttribute('data-sd-commerce-discount-savings-v6', 'true');
     document.head.appendChild(discountScript);
+  }
+
+  // Capa final: se agrega después de las hojas comerciales para que
+  // las correcciones solicitadas no sean anuladas por reglas anteriores.
+  if (!document.querySelector('link[data-sd-mobile-requested-fixes-v2]')) {
+    const requestedStyle = document.createElement('link');
+    requestedStyle.rel = 'stylesheet';
+    requestedStyle.href = `assets/css/mobile-requested-fixes-v2.css?v=${FEATURE_VERSION}`;
+    requestedStyle.setAttribute('data-sd-mobile-requested-fixes-v2', 'true');
+    document.head.appendChild(requestedStyle);
+  }
+
+  if (!document.querySelector('script[data-sd-mobile-requested-fixes-v2]')) {
+    const requestedScript = document.createElement('script');
+    requestedScript.src = `assets/js/mobile-requested-fixes-v2.js?v=${FEATURE_VERSION}`;
+    requestedScript.async = false;
+    requestedScript.setAttribute('data-sd-mobile-requested-fixes-v2', 'true');
+    document.head.appendChild(requestedScript);
   }
 
   function initMobilePremium() {
