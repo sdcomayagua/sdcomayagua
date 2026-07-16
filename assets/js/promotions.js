@@ -2,7 +2,7 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260716-receipt-clean-v10';
+  const version = '20260716-category-dropdown-v11';
 
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
 
@@ -66,13 +66,30 @@
     document.head.appendChild(commerceScript);
   }
 
-  // Carga explícita de la versión limpia después de las capas anteriores.
   if (!document.querySelector('script[data-sd-receipt-clean-v3]')) {
     const receiptScript = document.createElement('script');
     receiptScript.src = `assets/js/catalog-receipt-fixes-v2.js?v=${version}`;
     receiptScript.async = false;
     receiptScript.setAttribute('data-sd-receipt-clean-v3', 'true');
     document.head.appendChild(receiptScript);
+  }
+
+  // Corrección final para el selector de categorías en PC estrecha.
+  let categoryStyle = document.querySelector('link[data-sd-category-dropdown-desktop-fix-v1]');
+  if (!categoryStyle) {
+    categoryStyle = document.createElement('link');
+    categoryStyle.rel = 'stylesheet';
+    categoryStyle.setAttribute('data-sd-category-dropdown-desktop-fix-v1', 'true');
+  }
+  categoryStyle.href = `assets/css/category-dropdown-desktop-fix-v1.css?v=${version}`;
+  document.head.appendChild(categoryStyle);
+
+  if (!document.querySelector('script[data-sd-category-dropdown-desktop-fix-v1]')) {
+    const categoryScript = document.createElement('script');
+    categoryScript.src = `assets/js/category-dropdown-desktop-fix-v1.js?v=${version}`;
+    categoryScript.async = false;
+    categoryScript.setAttribute('data-sd-category-dropdown-desktop-fix-v1', 'true');
+    document.head.appendChild(categoryScript);
   }
 })();
 
