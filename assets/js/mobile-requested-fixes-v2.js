@@ -7,36 +7,56 @@
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
   let queued = false;
 
-  function forceCompactCards() {
+  function hideLegacyCardContent(card) {
+    if (!(card instanceof Element)) return;
+
+    const views = qsa(':scope > .store-card-view', card);
+    if (!views.length) return;
+
+    const view = views[0];
+    views.slice(1).forEach((duplicate) => duplicate.remove());
+
+    Array.from(card.children).forEach((child) => {
+      if (child === view) return;
+
+      child.dataset.sdLegacyCardContent = 'true';
+      child.setAttribute('aria-hidden', 'true');
+      child.style.setProperty('display', 'none', 'important');
+      child.style.setProperty('visibility', 'hidden', 'important');
+      child.style.setProperty('height', '0', 'important');
+      child.style.setProperty('min-height', '0', 'important');
+      child.style.setProperty('max-height', '0', 'important');
+      child.style.setProperty('margin', '0', 'important');
+      child.style.setProperty('padding', '0', 'important');
+      child.style.setProperty('overflow', 'hidden', 'important');
+      child.style.setProperty('border', '0', 'important');
+    });
+
+    const copy = qs('.store-card-copy', view);
+    if (copy) {
+      const bottoms = qsa(':scope > .gm-card-bottom', copy);
+      bottoms.slice(1).forEach((duplicate) => duplicate.remove());
+
+      const promos = qsa(':scope > .gm-promo-label', copy);
+      promos.slice(1).forEach((duplicate) => duplicate.remove());
+    }
+
+    card.dataset.sdUnifiedCard = 'true';
+  }
+
+  function normalizeCards() {
     const grid = qs('#productGrid');
     if (grid) {
-      grid.style.setProperty('align-items', 'start', 'important');
+      grid.style.setProperty('align-items', 'stretch', 'important');
       grid.style.setProperty('align-content', 'start', 'important');
-      grid.style.setProperty('grid-auto-rows', 'max-content', 'important');
+      grid.style.setProperty('grid-auto-rows', '1fr', 'important');
     }
 
     qsa('#productGrid .product-card.store-minimal-card').forEach((card) => {
-      card.style.setProperty('height', 'auto', 'important');
-      card.style.setProperty('min-height', '0', 'important');
-      card.style.setProperty('max-height', 'none', 'important');
-      card.style.setProperty('align-self', 'start', 'important');
+      hideLegacyCardContent(card);
+      card.style.setProperty('align-self', 'stretch', 'important');
       card.style.setProperty('content-visibility', 'visible', 'important');
       card.style.setProperty('contain', 'none', 'important');
-
-      const view = qs(':scope > .store-card-view', card);
-      if (view) {
-        view.style.setProperty('height', 'auto', 'important');
-        view.style.setProperty('min-height', '0', 'important');
-        view.style.setProperty('max-height', 'none', 'important');
-        view.style.setProperty('align-content', 'start', 'important');
-      }
-
-      const copy = qs('.store-card-copy', card);
-      if (copy) {
-        copy.style.setProperty('height', 'auto', 'important');
-        copy.style.setProperty('min-height', '0', 'important');
-        copy.style.setProperty('max-height', 'none', 'important');
-      }
     });
   }
 
@@ -71,7 +91,7 @@
 
   function sync() {
     queued = false;
-    forceCompactCards();
+    normalizeCards();
     releaseMobileToolbar();
     updateShippingText();
     updateDetailState();
