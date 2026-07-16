@@ -2,7 +2,7 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260716-photo-stock-v7';
+  const version = '20260716-layout-final-v8';
 
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
 
