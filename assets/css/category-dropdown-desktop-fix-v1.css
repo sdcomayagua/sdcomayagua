@@ -1,1 +1,105 @@
-temp
+/* =========================================================
+   SD COMAYAGUA · MENÚ DE CATEGORÍAS EN PC/TABLETA ESTRECHA
+   Evita recortes, mejora el espacio vertical y mantiene el
+   desplegable por encima de las tarjetas del catálogo.
+   ========================================================= */
+
+@media (min-width: 600px) {
+  html.storefront-v3,
+  html.storefront-v3 body,
+  html.storefront-v3 .app-main,
+  html.storefront-v3 #productos,
+  html.storefront-v3 #productos.section,
+  html.storefront-v3 #productos .toolbar {
+    overflow-x: visible !important;
+  }
+
+  html.storefront-v3 #productos,
+  html.storefront-v3 #productos.section {
+    position: relative !important;
+    overflow-y: visible !important;
+    isolation: auto !important;
+  }
+
+  html.storefront-v3 #productos .toolbar {
+    position: relative !important;
+    z-index: 320 !important;
+    overflow: visible !important;
+    isolation: isolate !important;
+  }
+
+  html.storefront-v3 #productos .select-field {
+    position: relative !important;
+    z-index: 340 !important;
+    min-height: 64px !important;
+    height: auto !important;
+    padding: 8px 46px 8px 15px !important;
+    overflow: visible !important;
+  }
+
+  html.storefront-v3 #productos .select-field:focus-within,
+  html.storefront-v3 #productos .select-field.sd-category-select-open {
+    z-index: 1400 !important;
+  }
+
+  html.storefront-v3 #productos #categoryFilter {
+    position: relative !important;
+    z-index: 1410 !important;
+    min-height: 30px !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding-block: 2px !important;
+  }
+
+  html.storefront-v3 #productos .select-field [class*="dropdown"],
+  html.storefront-v3 #productos .select-field [class*="options"],
+  html.storefront-v3 #productos .select-field [class*="option-list"],
+  html.storefront-v3 #productos .select-field [class*="select-menu"],
+  html.storefront-v3 #productos .select-field [role="listbox"] {
+    z-index: 1600 !important;
+    max-height: min(260px, calc(100dvh - 250px)) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+  }
+
+  html.storefront-v3 #productGrid,
+  html.storefront-v3 #productos .product-grid,
+  html.storefront-v3 #productos .active-filters,
+  html.storefront-v3 #productos .product-summary {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 760px) {
+  html.storefront-v3 #productos .toolbar {
+    grid-template-columns: minmax(220px, 1fr) minmax(210px, 280px) !important;
+    align-items: start !important;
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+
+  html.storefront-v3 #productos .search-field,
+  html.storefront-v3 #productos .select-field {
+    min-height: 64px !important;
+    border-radius: 17px !important;
+  }
+
+  html.storefront-v3 #productos #mobileFilterToggle {
+    display: none !important;
+  }
+
+  html.storefront-v3 #productos .toolbar.mobile-filters-collapsed .select-field,
+  html.storefront-v3 #productos .toolbar.mobile-filters-collapsed #categoryFilter,
+  html.storefront-v3 #productos .toolbar.mobile-filters-collapsed #quickFilters,
+  html.storefront-v3 #productos .toolbar.mobile-filters-collapsed .quick-filters {
+    display: flex !important;
+  }
+
+  html.storefront-v3 #productos .quick-filters,
+  html.storefront-v3 #productos #quickFilters {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+  }
+}
