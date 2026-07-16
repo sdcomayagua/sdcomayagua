@@ -4,7 +4,7 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260716-layout-final-v8';
+  const FEATURE_VERSION = '20260716-catalog-receipt-v9';
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -103,7 +103,6 @@
   menuImageStyle.href = `assets/css/menu-image-tweak-v1.css?v=${FEATURE_VERSION}`;
   document.head.appendChild(menuImageStyle);
 
-  // Esta es la última capa visual: navegación fija, detalle, tarjetas y contador.
   let layoutFinalStyle = document.querySelector('link[data-sd-layout-final-fixes-v1]');
   if (!layoutFinalStyle) {
     layoutFinalStyle = document.createElement('link');
@@ -119,6 +118,24 @@
     layoutFinalScript.async = false;
     layoutFinalScript.setAttribute('data-sd-layout-final-fixes-v1', 'true');
     document.head.appendChild(layoutFinalScript);
+  }
+
+  // Última capa: corrige el recorte real de fotografías y el texto del recibo.
+  let catalogReceiptStyle = document.querySelector('link[data-sd-catalog-receipt-fixes-v2]');
+  if (!catalogReceiptStyle) {
+    catalogReceiptStyle = document.createElement('link');
+    catalogReceiptStyle.rel = 'stylesheet';
+    catalogReceiptStyle.setAttribute('data-sd-catalog-receipt-fixes-v2', 'true');
+  }
+  catalogReceiptStyle.href = `assets/css/catalog-receipt-fixes-v2.css?v=${FEATURE_VERSION}`;
+  document.head.appendChild(catalogReceiptStyle);
+
+  if (!document.querySelector('script[data-sd-catalog-receipt-fixes-v2]')) {
+    const catalogReceiptScript = document.createElement('script');
+    catalogReceiptScript.src = `assets/js/catalog-receipt-fixes-v2.js?v=${FEATURE_VERSION}`;
+    catalogReceiptScript.async = false;
+    catalogReceiptScript.setAttribute('data-sd-catalog-receipt-fixes-v2', 'true');
+    document.head.appendChild(catalogReceiptScript);
   }
 
   function initMobilePremium() {
