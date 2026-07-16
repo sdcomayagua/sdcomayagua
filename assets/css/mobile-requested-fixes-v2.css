@@ -1,80 +1,114 @@
 /* =========================================================
-   SD COMAYAGUA · CORRECCIONES SOLICITADAS · JULIO 2026
+   SD COMAYAGUA · CORRECCIONES FINALES DE CATÁLOGO · JULIO 2026
    Capa final cargada después de las demás hojas de estilo.
+   Corrige escritorio, tableta y celular.
    ========================================================= */
 
+/* =========================================================
+   TARJETAS COMPACTAS EN TODAS LAS PANTALLAS
+   ========================================================= */
+html.storefront-v3 #productGrid,
+html.storefront-v3 #productos .product-grid {
+  align-items: start !important;
+  align-content: start !important;
+  grid-auto-rows: max-content !important;
+}
+
+html.storefront-v3 #productGrid > .product-card,
+html.storefront-v3 #productGrid > .product-card.store-minimal-card,
+html.storefront-v3 #productos .product-grid > .product-card {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  align-self: start !important;
+  justify-self: stretch !important;
+  content-visibility: visible !important;
+  contain: none !important;
+}
+
+html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view,
+html.storefront-v3 #productGrid .store-card-view {
+  display: grid !important;
+  grid-template-rows: 190px auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  align-content: start !important;
+}
+
+html.storefront-v3 #productGrid .store-card-photo {
+  width: 100% !important;
+  height: 190px !important;
+  min-height: 190px !important;
+  max-height: 190px !important;
+  aspect-ratio: auto !important;
+  padding: 11px !important;
+}
+
+html.storefront-v3 #productGrid .store-card-photo img,
+html.storefront-v3 #productGrid .store-card-photo svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 168px !important;
+  object-fit: contain !important;
+}
+
+html.storefront-v3 #productGrid .store-card-copy,
+html.storefront-v3 .store-feature-copy {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  align-content: start !important;
+  padding: 11px 12px 13px !important;
+}
+
+html.storefront-v3 #productGrid .gm-card-bottom,
+html.storefront-v3 .gm-feature-bottom {
+  margin-top: 6px !important;
+  padding-top: 0 !important;
+}
+
+/* Evita que una fila completa adopte la altura del elemento más alto. */
+html.storefront-v3 #productGrid > * {
+  align-self: start !important;
+}
+
+/* =========================================================
+   CELULAR
+   ========================================================= */
 @media (max-width: 760px) {
-  /* 1. El buscador y "Filtros y vista" permanecen en su lugar
-     dentro del documento; ya no acompañan el desplazamiento. */
+  /* El buscador y “Filtros y vista” permanecen en el flujo normal.
+     No acompañan el desplazamiento ni cubren los productos. */
   html.storefront-v3 #productos .toolbar {
     position: relative !important;
     inset: auto !important;
     top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
     z-index: 1 !important;
     transform: none !important;
     margin-bottom: 14px !important;
   }
 
-  /* 2. Las tarjetas toman solamente la altura de su contenido. */
-  html.storefront-v3 #productGrid,
-  html.storefront-v3 #productos .product-grid {
-    align-items: start !important;
-    grid-auto-rows: max-content !important;
-  }
-
-  html.storefront-v3 #productGrid .product-card.store-minimal-card {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    align-self: start !important;
-    content-visibility: visible !important;
-    contain: none !important;
-    contain-intrinsic-size: none !important;
-  }
-
-  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view {
-    display: grid !important;
-    grid-template-rows: auto auto !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    align-content: start !important;
+  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view,
+  html.storefront-v3 #productGrid .store-card-view {
+    grid-template-rows: clamp(132px, 40vw, 174px) auto !important;
   }
 
   html.storefront-v3 #productGrid .store-card-photo {
-    width: 100% !important;
-    height: clamp(132px, 40vw, 178px) !important;
+    height: clamp(132px, 40vw, 174px) !important;
     min-height: 0 !important;
-    max-height: 178px !important;
-    aspect-ratio: auto !important;
+    max-height: 174px !important;
     padding: 9px !important;
   }
 
   html.storefront-v3 #productGrid .store-card-photo img,
   html.storefront-v3 #productGrid .store-card-photo svg {
-    width: 100% !important;
-    height: 100% !important;
-    max-height: 160px !important;
-    object-fit: contain !important;
+    max-height: 156px !important;
   }
 
-  html.storefront-v3 #productGrid .store-card-copy,
-  html.storefront-v3 .store-feature-copy {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    align-content: start !important;
-    padding: 10px 10px 12px !important;
-  }
-
-  html.storefront-v3 #productGrid .gm-card-bottom,
-  html.storefront-v3 .gm-feature-bottom {
-    margin-top: 5px !important;
-    padding-top: 0 !important;
-  }
-
-  /* 3. Acciones del producto fijadas al borde inferior real
-     del celular, sin quedar flotando a media pantalla. */
+  /* Acciones del producto fijadas al borde inferior real del celular. */
   body.sd-detail-dialog-open .main-nav {
     display: none !important;
   }
@@ -115,10 +149,10 @@
     grid-column: 1 / -1 !important;
   }
 
-  /* 4. Más separación para la línea de ahorro. */
+  /* Más separación para la línea de ahorro. */
   html.storefront-v3 #detailDialog .shipping-row.normal .sd-shipping-savings-v6 {
     display: block !important;
-    margin-top: 10px !important;
+    margin-top: 11px !important;
     padding-top: 2px !important;
     line-height: 1.3 !important;
   }
@@ -130,6 +164,11 @@
 }
 
 @media (max-width: 390px) {
+  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view,
+  html.storefront-v3 #productGrid .store-card-view {
+    grid-template-rows: 138px auto !important;
+  }
+
   html.storefront-v3 #productGrid .store-card-photo {
     height: 138px !important;
     max-height: 138px !important;
