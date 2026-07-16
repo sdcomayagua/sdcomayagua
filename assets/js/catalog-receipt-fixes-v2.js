@@ -1,48 +1,47 @@
-// SD COMAYAGUA · Corrección final del texto de Pagar al recibir.
+// SD COMAYAGUA · Texto limpio para Pagar al recibir.
 (() => {
   'use strict';
 
-  const RECEIVE_TEXT = 'Se paga al recibir. La empresa cobra 10% por usar este servicio, se multiplica por el valor total del producto + Lps.110 del envío.';
+  const INVOICE_TEXT = 'Se paga al recibir. La empresa cobra 10% por el servicio. Cálculo: productos + Lps.110 de envío, más 10%.';
   const CANVAS_LINES = [
-    'Se paga al recibir.',
-    'La empresa cobra 10% por usar este servicio,',
-    'se multiplica por el valor total del producto',
-    '+ Lps.110 del envío.'
+    { text: 'Pago al recibir.', font: '800 14px Arial, sans-serif', color: '#475569' },
+    { text: 'La empresa cobra 10% por el servicio.', font: '700 12px Arial, sans-serif', color: '#64748b' },
+    { text: 'Cálculo: productos + Lps.110, más 10%.', font: '900 12px Arial, sans-serif', color: '#c2410c' }
   ];
 
   function updateInvoiceText(root = document) {
     root.querySelectorAll?.('.invoice-option.receive small').forEach((node) => {
-      if (node.textContent.trim() !== RECEIVE_TEXT) node.textContent = RECEIVE_TEXT;
+      if (node.textContent.trim() !== INVOICE_TEXT) node.textContent = INVOICE_TEXT;
     });
   }
 
   function patchQuoteCanvas() {
     if (!window.CanvasRenderingContext2D) return;
     const proto = window.CanvasRenderingContext2D.prototype;
-    if (proto.__sdReceiveTextPatchedV2) return;
+    if (proto.__sdReceiveTextPatchedV3) return;
 
     const previousFillText = proto.fillText;
     proto.fillText = function sdReceiveTextFillText(text, x, y, maxWidth) {
       const value = String(text || '').trim();
       const isQuoteCanvas = this?.canvas?.width === 900;
 
-      if (isQuoteCanvas && this.__sdSkipOldReceiveLineV2 > 0) {
-        this.__sdSkipOldReceiveLineV2 -= 1;
+      if (isQuoteCanvas && this.__sdSkipOldReceiveLineV3 > 0) {
+        this.__sdSkipOldReceiveLineV3 -= 1;
         return;
       }
 
       if (isQuoteCanvas && /^Se paga al recibir\./i.test(value)) {
         this.save();
-        this.fillStyle = '#64748b';
-        this.font = '800 14px Arial, sans-serif';
         CANVAS_LINES.forEach((line, index) => {
-          previousFillText.call(this, line, x, y + index * 17);
+          this.fillStyle = line.color;
+          this.font = line.font;
+          previousFillText.call(this, line.text, x, y + index * 18);
         });
         this.restore();
 
-        // El generador original dibuja la nota vieja en dos líneas.
-        // La primera se sustituye arriba y la segunda se descarta.
-        this.__sdSkipOldReceiveLineV2 = 1;
+        // El generador original divide la nota anterior en dos líneas.
+        // Se reemplaza la primera y se descarta la segunda.
+        this.__sdSkipOldReceiveLineV3 = 1;
         return;
       }
 
@@ -50,7 +49,7 @@
       return previousFillText.call(this, text, x, y);
     };
 
-    proto.__sdReceiveTextPatchedV2 = true;
+    proto.__sdReceiveTextPatchedV3 = true;
   }
 
   function boot() {
