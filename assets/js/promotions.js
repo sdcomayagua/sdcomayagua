@@ -2,7 +2,7 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260716-category-dropdown-v11';
+  const version = '20260716-admin-recovery-v12';
 
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
 
@@ -74,7 +74,6 @@
     document.head.appendChild(receiptScript);
   }
 
-  // Corrección final para el selector de categorías en PC estrecha.
   let categoryStyle = document.querySelector('link[data-sd-category-dropdown-desktop-fix-v1]');
   if (!categoryStyle) {
     categoryStyle = document.createElement('link');
@@ -90,6 +89,33 @@
     categoryScript.async = false;
     categoryScript.setAttribute('data-sd-category-dropdown-desktop-fix-v1', 'true');
     document.head.appendChild(categoryScript);
+  }
+
+  // Se carga al final para que las funciones privadas permanezcan visibles
+  // y el menú lateral respete el encabezado y la navegación fija.
+  const loadAdminRecovery = () => {
+    let recoveryStyle = document.querySelector('link[data-sd-admin-access-recovery-v1]');
+    if (!recoveryStyle) {
+      recoveryStyle = document.createElement('link');
+      recoveryStyle.rel = 'stylesheet';
+      recoveryStyle.setAttribute('data-sd-admin-access-recovery-v1', 'true');
+    }
+    recoveryStyle.href = `assets/css/admin-access-recovery-v1.css?v=${version}`;
+    document.head.appendChild(recoveryStyle);
+
+    if (!document.querySelector('script[data-sd-admin-access-recovery-v1]')) {
+      const recoveryScript = document.createElement('script');
+      recoveryScript.src = `assets/js/admin-access-recovery-v1.js?v=${version}`;
+      recoveryScript.async = false;
+      recoveryScript.setAttribute('data-sd-admin-access-recovery-v1', 'true');
+      document.head.appendChild(recoveryScript);
+    }
+  };
+
+  if (document.readyState === 'complete') {
+    window.setTimeout(loadAdminRecovery, 0);
+  } else {
+    window.addEventListener('load', loadAdminRecovery, { once: true });
   }
 })();
 
