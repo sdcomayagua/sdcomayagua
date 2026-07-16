@@ -2,7 +2,7 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260716-catalog-receipt-v9';
+  const version = '20260716-receipt-clean-v10';
 
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
 
@@ -64,6 +64,15 @@
     commerceScript.async = false;
     commerceScript.setAttribute('data-sd-client-commerce-fixes', 'true');
     document.head.appendChild(commerceScript);
+  }
+
+  // Carga explícita de la versión limpia después de las capas anteriores.
+  if (!document.querySelector('script[data-sd-receipt-clean-v3]')) {
+    const receiptScript = document.createElement('script');
+    receiptScript.src = `assets/js/catalog-receipt-fixes-v2.js?v=${version}`;
+    receiptScript.async = false;
+    receiptScript.setAttribute('data-sd-receipt-clean-v3', 'true');
+    document.head.appendChild(receiptScript);
   }
 })();
 
