@@ -1,0 +1,120 @@
+/* =========================================================
+   SD COMAYAGUA · FOTOS PC Y TARJETAS LIMPIAS · JULIO 2026
+   Capa final cargada después del resto de estilos.
+   ========================================================= */
+
+/* La etiqueta interna “precio actual” no aporta información al cliente. */
+html.storefront-v3 #productGrid .store-card-category {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Reorganiza el contenido sin dejar un hueco donde estaba la etiqueta. */
+html.storefront-v3 #productGrid .store-card-copy {
+  grid-template-rows: 52px 22px 28px minmax(36px, 1fr) !important;
+  gap: 7px !important;
+}
+
+html.storefront-v3 #productGrid .store-card-name {
+  grid-row: 1 !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  align-self: start !important;
+}
+
+html.storefront-v3 #productGrid .store-card-stock {
+  grid-row: 2 !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+}
+
+html.storefront-v3 #productGrid .store-card-copy > .gm-promo-label {
+  grid-row: 3 !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+}
+
+html.storefront-v3 #productGrid .store-card-copy > .gm-card-bottom {
+  grid-row: 4 !important;
+  align-self: end !important;
+}
+
+/* Evita que el alto 100% más el padding desborde y corte la fotografía. */
+html.storefront-v3 #productGrid .store-card-photo img,
+html.storefront-v3 #productGrid .store-card-photo svg {
+  box-sizing: border-box !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: auto !important;
+  padding: 4px !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  transform: none !important;
+}
+
+/* En computadora se agrega espacio vertical real para mostrar la foto completa. */
+@media (min-width: 761px) {
+  html.storefront-v3 #productGrid > .product-card,
+  html.storefront-v3 #productGrid > .product-card.store-minimal-card,
+  html.storefront-v3 #productos .product-grid > .product-card {
+    height: 404px !important;
+    min-height: 404px !important;
+    max-height: 404px !important;
+  }
+
+  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view {
+    grid-template-rows: 220px 184px !important;
+    height: 404px !important;
+    min-height: 404px !important;
+    max-height: 404px !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-photo {
+    height: 220px !important;
+    min-height: 220px !important;
+    max-height: 220px !important;
+    padding: 8px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html.storefront-v3 #productGrid .store-card-copy {
+    grid-template-rows: 44px 18px 24px minmax(36px, 1fr) !important;
+    gap: 5px !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-name {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-stock {
+    height: 18px !important;
+    min-height: 18px !important;
+    max-height: 18px !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-copy > .gm-promo-label {
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-photo img,
+  html.storefront-v3 #productGrid .store-card-photo svg {
+    padding: 3px !important;
+  }
+}
