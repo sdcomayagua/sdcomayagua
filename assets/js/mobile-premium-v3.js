@@ -4,7 +4,7 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260716-final-actions-v5';
+  const FEATURE_VERSION = '20260716-menu-image-v6';
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -93,6 +93,17 @@
     requestedScript.setAttribute('data-sd-mobile-requested-fixes-v2', 'true');
     document.head.appendChild(requestedScript);
   }
+
+  // Esta hoja debe ser la última para que el menú y las imágenes
+  // no vuelvan a ser modificados por capas anteriores.
+  let menuImageStyle = document.querySelector('link[data-sd-menu-image-tweak-v1]');
+  if (!menuImageStyle) {
+    menuImageStyle = document.createElement('link');
+    menuImageStyle.rel = 'stylesheet';
+    menuImageStyle.setAttribute('data-sd-menu-image-tweak-v1', 'true');
+  }
+  menuImageStyle.href = `assets/css/menu-image-tweak-v1.css?v=${FEATURE_VERSION}`;
+  document.head.appendChild(menuImageStyle);
 
   function initMobilePremium() {
     document.documentElement.dataset.mobileUi = 'premium-v3';
