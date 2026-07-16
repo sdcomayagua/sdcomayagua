@@ -4,7 +4,7 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260716-menu-image-v6';
+  const FEATURE_VERSION = '20260716-photo-stock-v7';
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -94,8 +94,6 @@
     document.head.appendChild(requestedScript);
   }
 
-  // Esta hoja debe ser la última para que el menú y las imágenes
-  // no vuelvan a ser modificados por capas anteriores.
   let menuImageStyle = document.querySelector('link[data-sd-menu-image-tweak-v1]');
   if (!menuImageStyle) {
     menuImageStyle = document.createElement('link');
