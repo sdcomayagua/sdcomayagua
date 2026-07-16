@@ -1,0 +1,102 @@
+/* SD COMAYAGUA · Recuperación de controles administrativos y menú lateral. */
+
+@media (min-width: 761px) {
+  .storefront-v3 .app-header { z-index: 560 !important; }
+  .storefront-v3 #mainNav.main-nav,
+  .storefront-v3 .main-nav { z-index: 550 !important; }
+  .storefront-v3 .store-drawer-backdrop {
+    top: var(--sd-drawer-top, 190px) !important;
+    bottom: 0 !important;
+    height: auto !important;
+    z-index: 520 !important;
+  }
+  .storefront-v3 .store-drawer {
+    top: var(--sd-drawer-top, 190px) !important;
+    bottom: 0 !important;
+    height: auto !important;
+    max-height: calc(100dvh - var(--sd-drawer-top, 190px)) !important;
+    z-index: 530 !important;
+    border-top-right-radius: 22px !important;
+  }
+}
+
+.sd-admin-catalog-tools {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 13px 14px;
+  border: 1px solid #cfe0f4;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffffff 0%, #eef6ff 100%);
+  box-shadow: 0 10px 26px rgba(7, 35, 76, .08);
+}
+body[data-mode="admin"] .sd-admin-catalog-tools { display: flex; }
+.sd-admin-catalog-copy { min-width: 0; display: grid; gap: 2px; }
+.sd-admin-catalog-copy strong { color: #10233f; font-size: .94rem; line-height: 1.15; }
+.sd-admin-catalog-copy span { color: #64748b; font-size: .73rem; font-weight: 750; line-height: 1.25; }
+.sd-admin-catalog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.sd-admin-tool-btn {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border: 1px solid #cbdcf0;
+  border-radius: 13px;
+  background: #fff;
+  color: #0b2d5c;
+  font-weight: 900;
+  box-shadow: 0 5px 14px rgba(7, 35, 76, .06);
+}
+.sd-admin-tool-btn.primary {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, #075fd1, #1684ff);
+  box-shadow: 0 9px 20px rgba(7, 95, 209, .22);
+}
+
+.sd-card-edit-stock {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  z-index: 18 !important;
+  min-height: 30px !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  padding: 5px 9px !important;
+  border: 1px solid rgba(7, 95, 209, .20) !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.96) !important;
+  color: #075fd1 !important;
+  font-size: .64rem !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  box-shadow: 0 7px 18px rgba(7,35,76,.12) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+body[data-mode="admin"] #productGrid .sd-card-edit-stock { display: inline-flex !important; }
+body[data-mode="admin"] #productGrid .product-card.store-minimal-card { position: relative !important; }
+#detailEditBtn.sd-detail-admin-recovered { min-width: min(100%, 230px) !important; }
+
+@media (max-width: 760px) {
+  .sd-admin-catalog-tools { align-items: stretch; flex-direction: column; padding: 12px; }
+  .sd-admin-catalog-actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .sd-admin-tool-btn.primary { grid-column: 1 / -1; }
+  .sd-card-edit-stock {
+    top: 8px !important;
+    right: 8px !important;
+    min-height: 28px !important;
+    padding: 5px 8px !important;
+    font-size: .57rem !important;
+  }
+}
+@media (max-width: 390px) {
+  .sd-admin-catalog-actions { grid-template-columns: 1fr; }
+  .sd-admin-tool-btn.primary { grid-column: auto; }
+}
