@@ -1,0 +1,339 @@
+/* =========================================================
+   SD COMAYAGUA · AJUSTES FINALES DE DISTRIBUCIÓN · JULIO 2026
+   Capa cargada al final para PC, tableta y celular.
+   ========================================================= */
+
+:root {
+  --sd-header-height: 84px;
+  --sd-nav-gap: 10px;
+}
+
+/* =========================================================
+   PC: ENCABEZADO Y NAVEGACIÓN SIEMPRE VISIBLES
+   ========================================================= */
+@media (min-width: 761px) {
+  .app-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 520 !important;
+    width: 100% !important;
+    backdrop-filter: blur(18px) saturate(145%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
+  }
+
+  #mainNav.main-nav,
+  .main-nav {
+    position: sticky !important;
+    top: calc(var(--sd-header-height) + var(--sd-nav-gap)) !important;
+    z-index: 500 !important;
+    width: 100% !important;
+    margin-top: var(--sd-nav-gap) !important;
+    margin-bottom: 14px !important;
+    background: rgba(255, 255, 255, .96) !important;
+    box-shadow: 0 10px 28px rgba(17, 50, 91, .10) !important;
+    backdrop-filter: blur(18px) saturate(145%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
+  }
+
+  .section,
+  [data-section-panel] {
+    scroll-margin-top: calc(var(--sd-header-height) + 96px) !important;
+  }
+}
+
+/* =========================================================
+   TARJETAS: UN POCO MÁS DE ALTURA PARA LA FOTO
+   ========================================================= */
+html.storefront-v3 #productGrid > .product-card,
+html.storefront-v3 #productGrid > .product-card.store-minimal-card,
+html.storefront-v3 #productos .product-grid > .product-card {
+  height: 390px !important;
+  min-height: 390px !important;
+  max-height: 390px !important;
+}
+
+html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view {
+  grid-template-rows: 206px 184px !important;
+  height: 390px !important;
+  min-height: 390px !important;
+  max-height: 390px !important;
+}
+
+html.storefront-v3 #productGrid .store-card-photo {
+  height: 206px !important;
+  min-height: 206px !important;
+  max-height: 206px !important;
+  padding: 11px !important;
+}
+
+html.storefront-v3 #productGrid .store-card-photo img,
+html.storefront-v3 #productGrid .store-card-photo svg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: auto !important;
+  padding: 8px !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  transform: none !important;
+}
+
+/* =========================================================
+   CONTADOR DE PRODUCTOS
+   ========================================================= */
+.store-catalog-intro {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  gap: 16px !important;
+}
+
+.store-result-pill {
+  position: static !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 9px 14px !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+.store-result-pill b,
+.store-result-pill span {
+  position: static !important;
+  display: inline !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+/* =========================================================
+   DETALLE DEL PRODUCTO EN COMPUTADORA
+   ========================================================= */
+#detailDialog.dialog {
+  padding: 18px !important;
+}
+
+#detailDialog .detail-card {
+  width: min(1160px, calc(100vw - 44px)) !important;
+  max-width: 1160px !important;
+  max-height: calc(100dvh - 36px) !important;
+  margin: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border-radius: 24px !important;
+}
+
+#detailDialog .dialog-head {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 40 !important;
+  padding: 15px 20px !important;
+  background: rgba(255, 255, 255, .98) !important;
+  border-bottom: 1px solid #dce6f2 !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+#detailDialog .detail-layout {
+  display: grid !important;
+  grid-template-columns: minmax(330px, .88fr) minmax(0, 1.35fr) !important;
+  align-items: start !important;
+  gap: 24px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 20px 22px 0 !important;
+}
+
+#detailDialog .detail-image {
+  position: sticky !important;
+  top: 96px !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 420px !important;
+  max-height: 520px !important;
+  margin: 0 !important;
+  padding: 18px !important;
+  overflow: hidden !important;
+  border: 1px solid #d9e5f2 !important;
+  border-radius: 20px !important;
+  background: #f6f9fd !important;
+}
+
+#detailDialog .detail-image img,
+#detailDialog .detail-image svg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 484px !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+#detailDialog .detail-info {
+  display: grid !important;
+  gap: 14px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+#detailDialog .detail-info dl {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+#detailDialog .detail-description {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-height: 380px !important;
+  overflow: auto !important;
+}
+
+#detailDialog .detail-card > .detail-actions.sd-detail-actions-final {
+  margin: 20px 22px 22px !important;
+}
+
+/* =========================================================
+   CELULAR
+   ========================================================= */
+@media (max-width: 760px) {
+  html.storefront-v3 #productGrid > .product-card,
+  html.storefront-v3 #productGrid > .product-card.store-minimal-card,
+  html.storefront-v3 #productos .product-grid > .product-card,
+  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view {
+    height: 326px !important;
+    min-height: 326px !important;
+    max-height: 326px !important;
+  }
+
+  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view {
+    grid-template-rows: 156px 170px !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-photo {
+    height: 156px !important;
+    min-height: 156px !important;
+    max-height: 156px !important;
+    padding: 7px !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-photo img,
+  html.storefront-v3 #productGrid .store-card-photo svg {
+    max-height: 100% !important;
+    padding: 5px !important;
+  }
+
+  .store-catalog-intro {
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 10px !important;
+  }
+
+  .store-catalog-intro h2 {
+    margin-bottom: 5px !important;
+  }
+
+  .store-result-pill {
+    justify-self: start !important;
+    min-width: 0 !important;
+    padding: 8px 12px !important;
+    font-size: .78rem !important;
+  }
+
+  #detailDialog.dialog {
+    padding: 8px !important;
+  }
+
+  #detailDialog .detail-card {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    margin: auto !important;
+    border-radius: 20px !important;
+  }
+
+  #detailDialog .dialog-head {
+    padding: 13px 14px !important;
+  }
+
+  #detailDialog .detail-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #detailDialog .detail-image {
+    position: static !important;
+    inset: auto !important;
+    display: grid !important;
+    place-items: center !important;
+    width: calc(100% - 24px) !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    aspect-ratio: 1 / 1 !important;
+    margin: 12px auto 14px !important;
+    padding: 12px !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+  }
+
+  #detailDialog .detail-image img,
+  #detailDialog .detail-image svg {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    margin: auto !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    transform: none !important;
+  }
+
+  #detailDialog .detail-info {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 14px 14px !important;
+  }
+
+  #detailDialog .detail-description {
+    max-height: none !important;
+  }
+
+  #detailDialog .detail-card > .detail-actions.sd-detail-actions-final {
+    margin: 14px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .store-result-pill {
+    font-size: .72rem !important;
+  }
+
+  #detailDialog .detail-image {
+    width: calc(100% - 18px) !important;
+    margin-inline: auto !important;
+    padding: 9px !important;
+  }
+}

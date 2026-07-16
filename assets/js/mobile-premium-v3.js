@@ -4,7 +4,7 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260716-photo-stock-v7';
+  const FEATURE_VERSION = '20260716-layout-final-v8';
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -102,6 +102,24 @@
   }
   menuImageStyle.href = `assets/css/menu-image-tweak-v1.css?v=${FEATURE_VERSION}`;
   document.head.appendChild(menuImageStyle);
+
+  // Esta es la última capa visual: navegación fija, detalle, tarjetas y contador.
+  let layoutFinalStyle = document.querySelector('link[data-sd-layout-final-fixes-v1]');
+  if (!layoutFinalStyle) {
+    layoutFinalStyle = document.createElement('link');
+    layoutFinalStyle.rel = 'stylesheet';
+    layoutFinalStyle.setAttribute('data-sd-layout-final-fixes-v1', 'true');
+  }
+  layoutFinalStyle.href = `assets/css/layout-final-fixes-v1.css?v=${FEATURE_VERSION}`;
+  document.head.appendChild(layoutFinalStyle);
+
+  if (!document.querySelector('script[data-sd-layout-final-fixes-v1]')) {
+    const layoutFinalScript = document.createElement('script');
+    layoutFinalScript.src = `assets/js/layout-final-fixes-v1.js?v=${FEATURE_VERSION}`;
+    layoutFinalScript.async = false;
+    layoutFinalScript.setAttribute('data-sd-layout-final-fixes-v1', 'true');
+    document.head.appendChild(layoutFinalScript);
+  }
 
   function initMobilePremium() {
     document.documentElement.dataset.mobileUi = 'premium-v3';
