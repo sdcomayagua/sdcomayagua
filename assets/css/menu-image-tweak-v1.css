@@ -1,0 +1,106 @@
+/* =========================================================
+   SD COMAYAGUA · MENÚ E IMÁGENES · JULIO 2026
+   Capa visual final para celular, tableta y computadora.
+   ========================================================= */
+
+/* Menú hamburguesa limpio, centrado y simétrico. */
+#menuToggle,
+#menuToggle.icon-btn {
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  line-height: 1 !important;
+}
+
+#menuToggle::before,
+#menuToggle::after {
+  display: none !important;
+  content: none !important;
+}
+
+#menuToggle > span {
+  position: static !important;
+  display: block !important;
+  flex: 0 0 auto !important;
+  width: 21px !important;
+  height: 2px !important;
+  min-width: 21px !important;
+  min-height: 2px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #0b2d5c !important;
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Las fotografías ocupan un poco más del área disponible sin deformarse. */
+html.storefront-v3 #productGrid .store-card-photo {
+  padding: 5px !important;
+}
+
+html.storefront-v3 #productGrid .store-card-photo img,
+html.storefront-v3 #productGrid .store-card-photo svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 180px !important;
+  object-fit: contain !important;
+  transform: scale(1.04) !important;
+  transform-origin: center !important;
+}
+
+html.storefront-v3 #storeFeaturedGrid .store-feature-image {
+  padding: 6px !important;
+}
+
+html.storefront-v3 #storeFeaturedGrid .store-feature-image img,
+html.storefront-v3 #storeFeaturedGrid .store-feature-image svg {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  transform: scale(1.04) !important;
+  transform-origin: center !important;
+}
+
+@media (max-width: 760px) {
+  #menuToggle,
+  #menuToggle.icon-btn {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    border-radius: 15px !important;
+  }
+
+  #menuToggle > span {
+    width: 20px !important;
+    min-width: 20px !important;
+    height: 2px !important;
+    min-height: 2px !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-photo {
+    padding: 3px !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-photo img,
+  html.storefront-v3 #productGrid .store-card-photo svg {
+    max-height: 138px !important;
+    transform: scale(1.06) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  html.storefront-v3 #productGrid .store-card-photo img,
+  html.storefront-v3 #productGrid .store-card-photo svg {
+    max-height: 128px !important;
+    transform: scale(1.05) !important;
+  }
+}
