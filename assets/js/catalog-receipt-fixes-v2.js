@@ -4,7 +4,7 @@
 
   const INVOICE_TEXT = 'Se paga al recibir. La empresa cobra 10% por el servicio. Cálculo: productos + Lps.110 de envío, más 10%.';
   const CANVAS_LINES = [
-    { text: 'Se paga al recibir.', font: '800 14px Arial, sans-serif', color: '#475569' },
+    { text: 'Pago al recibir.', font: '800 14px Arial, sans-serif', color: '#475569' },
     { text: 'La empresa cobra 10% por el servicio.', font: '700 12px Arial, sans-serif', color: '#64748b' },
     { text: 'Cálculo: productos + Lps.110, más 10%.', font: '900 12px Arial, sans-serif', color: '#c2410c' }
   ];
