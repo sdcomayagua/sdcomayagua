@@ -2,7 +2,7 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260716-final-actions-v5';
+  const version = '20260716-menu-image-v6';
 
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
 
@@ -32,6 +32,14 @@
     commerceStyle.href = `assets/css/client-commerce-fixes-v1.css?v=${version}`;
     commerceStyle.setAttribute('data-sd-client-commerce-fixes', 'true');
     document.head.appendChild(commerceStyle);
+  }
+
+  if (!document.querySelector('link[data-sd-menu-image-tweak-v1]')) {
+    const finalStyle = document.createElement('link');
+    finalStyle.rel = 'stylesheet';
+    finalStyle.href = `assets/css/menu-image-tweak-v1.css?v=${version}`;
+    finalStyle.setAttribute('data-sd-menu-image-tweak-v1', 'true');
+    document.head.appendChild(finalStyle);
   }
 
   if (!document.querySelector('script[data-sd-mobile-premium-v3]')) {
