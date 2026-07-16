@@ -39,6 +39,8 @@
 
       const promos = qsa(':scope > .gm-promo-label', copy);
       promos.slice(1).forEach((duplicate) => duplicate.remove());
+
+      qsa('.gm-card-cta', copy).forEach((arrow) => arrow.remove());
     }
 
     card.dataset.sdUnifiedCard = 'true';
@@ -58,6 +60,26 @@
       card.style.setProperty('content-visibility', 'visible', 'important');
       card.style.setProperty('contain', 'none', 'important');
     });
+
+    qsa('#storeFeaturedGrid .gm-feature-cta').forEach((arrow) => arrow.remove());
+  }
+
+  function moveDetailActionsToEnd() {
+    const card = qs('#detailDialog .detail-card');
+    const layout = qs('#detailDialog .detail-layout');
+    const actions = qs('#detailDialog .detail-actions');
+    if (!card || !layout || !actions) return;
+
+    if (actions.parentElement !== card || actions.previousElementSibling !== layout) {
+      layout.insertAdjacentElement('afterend', actions);
+    }
+
+    actions.classList.add('sd-detail-actions-final');
+    actions.style.setProperty('position', 'static', 'important');
+    actions.style.setProperty('inset', 'auto', 'important');
+    actions.style.setProperty('transform', 'none', 'important');
+    actions.style.setProperty('width', 'auto', 'important');
+    actions.style.setProperty('max-width', 'none', 'important');
   }
 
   function releaseMobileToolbar() {
@@ -92,6 +114,7 @@
   function sync() {
     queued = false;
     normalizeCards();
+    moveDetailActionsToEnd();
     releaseMobileToolbar();
     updateShippingText();
     updateDetailState();

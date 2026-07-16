@@ -4,7 +4,7 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260716-unified-cards-v4';
+  const FEATURE_VERSION = '20260716-final-actions-v5';
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -78,8 +78,6 @@
     document.head.appendChild(discountScript);
   }
 
-  // Capa final: se agrega después de las hojas comerciales para que
-  // las correcciones solicitadas no sean anuladas por reglas anteriores.
   if (!document.querySelector('link[data-sd-mobile-requested-fixes-v2]')) {
     const requestedStyle = document.createElement('link');
     requestedStyle.rel = 'stylesheet';
