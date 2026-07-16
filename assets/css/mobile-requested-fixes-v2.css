@@ -1,84 +1,167 @@
 /* =========================================================
-   SD COMAYAGUA · CORRECCIONES FINALES DE CATÁLOGO · JULIO 2026
+   SD COMAYAGUA · TARJETAS UNIFICADAS · JULIO 2026
    Capa final cargada después de las demás hojas de estilo.
-   Corrige escritorio, tableta y celular.
+   Mantiene una sola tarjeta visible y alinea todas las alturas.
    ========================================================= */
 
 /* =========================================================
-   TARJETAS COMPACTAS EN TODAS LAS PANTALLAS
+   CATÁLOGO: UNA SOLA TARJETA Y ALTURA UNIFORME
    ========================================================= */
 html.storefront-v3 #productGrid,
 html.storefront-v3 #productos .product-grid {
-  align-items: start !important;
+  display: grid !important;
+  align-items: stretch !important;
   align-content: start !important;
-  grid-auto-rows: max-content !important;
+  grid-auto-rows: 1fr !important;
+  gap: 14px !important;
+}
+
+/* Oculta el diseño anterior conservándolo en el DOM para que
+   sus controles de detalle, cotización y administración funcionen. */
+html.storefront-v3 #productGrid .product-card.store-minimal-card > :not(.store-card-view) {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
 }
 
 html.storefront-v3 #productGrid > .product-card,
 html.storefront-v3 #productGrid > .product-card.store-minimal-card,
 html.storefront-v3 #productos .product-grid > .product-card {
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  align-self: start !important;
+  width: 100% !important;
+  height: 366px !important;
+  min-height: 366px !important;
+  max-height: 366px !important;
+  align-self: stretch !important;
   justify-self: stretch !important;
+  padding: 0 !important;
+  overflow: hidden !important;
   content-visibility: visible !important;
   contain: none !important;
 }
 
-html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view,
-html.storefront-v3 #productGrid .store-card-view {
+html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view {
   display: grid !important;
-  grid-template-rows: 190px auto !important;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  align-content: start !important;
+  grid-template-rows: 188px 178px !important;
+  width: 100% !important;
+  height: 366px !important;
+  min-height: 366px !important;
+  max-height: 366px !important;
+  overflow: hidden !important;
+  background: #fff !important;
 }
 
 html.storefront-v3 #productGrid .store-card-photo {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
   width: 100% !important;
-  height: 190px !important;
-  min-height: 190px !important;
-  max-height: 190px !important;
+  height: 188px !important;
+  min-height: 188px !important;
+  max-height: 188px !important;
   aspect-ratio: auto !important;
   padding: 11px !important;
+  overflow: hidden !important;
 }
 
 html.storefront-v3 #productGrid .store-card-photo img,
 html.storefront-v3 #productGrid .store-card-photo svg {
   width: 100% !important;
   height: 100% !important;
-  max-height: 168px !important;
+  max-width: 100% !important;
+  max-height: 166px !important;
   object-fit: contain !important;
 }
 
-html.storefront-v3 #productGrid .store-card-copy,
-html.storefront-v3 .store-feature-copy {
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
+html.storefront-v3 #productGrid .store-card-copy {
+  display: grid !important;
+  grid-template-rows: 15px 42px 20px 26px 34px !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 6px !important;
+  width: 100% !important;
+  height: 178px !important;
+  min-height: 178px !important;
+  max-height: 178px !important;
   align-content: start !important;
-  padding: 11px 12px 13px !important;
+  padding: 10px 12px 11px !important;
+  overflow: hidden !important;
 }
 
-html.storefront-v3 #productGrid .gm-card-bottom,
-html.storefront-v3 .gm-feature-bottom {
-  margin-top: 6px !important;
-  padding-top: 0 !important;
+html.storefront-v3 #productGrid .store-card-category {
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
 }
 
-/* Evita que una fila completa adopte la altura del elemento más alto. */
-html.storefront-v3 #productGrid > * {
-  align-self: start !important;
+html.storefront-v3 #productGrid .store-card-name {
+  grid-row: 2 !important;
+  display: -webkit-box !important;
+  min-width: 0 !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  line-height: 1.25 !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+html.storefront-v3 #productGrid .store-card-stock {
+  grid-row: 3 !important;
+  min-width: 0 !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+html.storefront-v3 #productGrid .store-card-copy > .gm-promo-label {
+  grid-row: 4 !important;
+  align-self: center !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  height: 26px !important;
+  min-height: 26px !important;
+  max-height: 26px !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+html.storefront-v3 #productGrid .store-card-copy > .gm-card-bottom {
+  grid-row: 5 !important;
+  align-self: end !important;
+  width: 100% !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html.storefront-v3 #productGrid .gm-card-price {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
 }
 
 /* =========================================================
    CELULAR
    ========================================================= */
 @media (max-width: 760px) {
-  /* El buscador y “Filtros y vista” permanecen en el flujo normal.
-     No acompañan el desplazamiento ni cubren los productos. */
+  /* El buscador y “Filtros y vista” permanecen en su ubicación. */
   html.storefront-v3 #productos .toolbar {
     position: relative !important;
     inset: auto !important;
@@ -91,24 +174,74 @@ html.storefront-v3 #productGrid > * {
     margin-bottom: 14px !important;
   }
 
-  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view,
-  html.storefront-v3 #productGrid .store-card-view {
-    grid-template-rows: clamp(132px, 40vw, 174px) auto !important;
+  html.storefront-v3 #productGrid,
+  html.storefront-v3 #productos .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 11px !important;
+  }
+
+  html.storefront-v3 #productGrid > .product-card,
+  html.storefront-v3 #productGrid > .product-card.store-minimal-card,
+  html.storefront-v3 #productos .product-grid > .product-card,
+  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view {
+    height: 308px !important;
+    min-height: 308px !important;
+    max-height: 308px !important;
+  }
+
+  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view {
+    grid-template-rows: 142px 166px !important;
   }
 
   html.storefront-v3 #productGrid .store-card-photo {
-    height: clamp(132px, 40vw, 174px) !important;
-    min-height: 0 !important;
-    max-height: 174px !important;
-    padding: 9px !important;
+    height: 142px !important;
+    min-height: 142px !important;
+    max-height: 142px !important;
+    padding: 8px !important;
   }
 
   html.storefront-v3 #productGrid .store-card-photo img,
   html.storefront-v3 #productGrid .store-card-photo svg {
-    max-height: 156px !important;
+    max-height: 126px !important;
   }
 
-  /* Acciones del producto fijadas al borde inferior real del celular. */
+  html.storefront-v3 #productGrid .store-card-copy {
+    grid-template-rows: 14px 38px 18px 24px 32px !important;
+    gap: 5px !important;
+    height: 166px !important;
+    min-height: 166px !important;
+    max-height: 166px !important;
+    padding: 9px 9px 10px !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-name {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    font-size: clamp(.78rem, 3.6vw, .91rem) !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-stock {
+    height: 18px !important;
+    min-height: 18px !important;
+    max-height: 18px !important;
+    font-size: .64rem !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-copy > .gm-promo-label {
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    font-size: .54rem !important;
+  }
+
+  html.storefront-v3 #productGrid .store-card-copy > .gm-card-bottom {
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+  }
+
+  /* Acciones fijadas al borde inferior real del celular. */
   body.sd-detail-dialog-open .main-nav {
     display: none !important;
   }
@@ -149,7 +282,6 @@ html.storefront-v3 #productGrid > * {
     grid-column: 1 / -1 !important;
   }
 
-  /* Más separación para la línea de ahorro. */
   html.storefront-v3 #detailDialog .shipping-row.normal .sd-shipping-savings-v6 {
     display: block !important;
     margin-top: 11px !important;
@@ -164,18 +296,26 @@ html.storefront-v3 #productGrid > * {
 }
 
 @media (max-width: 390px) {
-  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view,
-  html.storefront-v3 #productGrid .store-card-view {
-    grid-template-rows: 138px auto !important;
+  html.storefront-v3 #productGrid > .product-card,
+  html.storefront-v3 #productGrid > .product-card.store-minimal-card,
+  html.storefront-v3 #productos .product-grid > .product-card,
+  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view {
+    height: 298px !important;
+    min-height: 298px !important;
+    max-height: 298px !important;
+  }
+
+  html.storefront-v3 #productGrid .product-card.store-minimal-card > .store-card-view {
+    grid-template-rows: 132px 166px !important;
   }
 
   html.storefront-v3 #productGrid .store-card-photo {
-    height: 138px !important;
-    max-height: 138px !important;
+    height: 132px !important;
+    min-height: 132px !important;
+    max-height: 132px !important;
   }
 
   body.sd-detail-dialog-open #detailDialog .detail-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
     padding-inline: 10px !important;
   }
