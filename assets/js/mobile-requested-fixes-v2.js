@@ -3,9 +3,56 @@
   'use strict';
 
   const RECEIVE_TEXT = 'Se paga al recibir. Sale un poco más caro que el normal, porque la empresa de envío cobra 10% adicional por manejar dinero.';
+  const FALLBACK_IMAGE = 'assets/img/logo-round.png';
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
   let queued = false;
+
+  function protectImage(image) {
+    if (!(image instanceof HTMLImageElement)) return;
+
+    const useFallback = () => {
+      if (image.dataset.sdFallbackApplied === '1') {
+        image.style.setProperty('display', 'none', 'important');
+        image.closest('.store-card-photo, .store-feature-image')?.classList.add('sd-missing-image');
+        return;
+      }
+
+      image.dataset.sdFallbackApplied = '1';
+      image.classList.add('sd-image-fallback');
+      image.alt = '';
+      image.src = FALLBACK_IMAGE;
+    };
+
+    if (image.dataset.sdImageGuard !== '1') {
+      image.dataset.sdImageGuard = '1';
+      image.addEventListener('error', useFallback);
+    }
+
+    image.loading = 'lazy';
+    image.decoding = 'async';
+
+    if (image.complete && image.naturalWidth === 0) useFallback();
+  }
+
+  function normalizeStatus(card) {
+    const status = qs('.store-card-status', card);
+    if (!status) return;
+
+    const raw = String(status.textContent || '').toLowerCase();
+    const out = status.classList.contains('out') || /agotado|sin stock|no disponible/.test(raw);
+    const label = out ? 'AGOTADO' : 'EN STOCK';
+
+    if (status.textContent.trim() !== label) status.textContent = label;
+    status.classList.toggle('out', out);
+    status.setAttribute('aria-label', out ? 'Producto agotado' : 'Producto en stock');
+    status.title = out ? 'Producto agotado' : 'Producto en stock';
+  }
+
+  function normalizeMedia(root = document) {
+    qsa('.store-card-photo img, .store-feature-image img', root).forEach(protectImage);
+    qsa('#productGrid .product-card.store-minimal-card', root).forEach(normalizeStatus);
+  }
 
   function hideLegacyCardContent(card) {
     if (!(card instanceof Element)) return;
@@ -43,6 +90,8 @@
       qsa('.gm-card-cta', copy).forEach((arrow) => arrow.remove());
     }
 
+    normalizeStatus(card);
+    qsa('.store-card-photo img', view).forEach(protectImage);
     card.dataset.sdUnifiedCard = 'true';
   }
 
@@ -62,6 +111,7 @@
     });
 
     qsa('#storeFeaturedGrid .gm-feature-cta').forEach((arrow) => arrow.remove());
+    normalizeMedia();
   }
 
   function moveDetailActionsToEnd() {
@@ -130,6 +180,15 @@
     const grid = qs('#productGrid');
     if (grid) {
       new MutationObserver(scheduleSync).observe(grid, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+    }
+
+    const featured = qs('#storeFeaturedGrid');
+    if (featured) {
+      new MutationObserver(scheduleSync).observe(featured, {
         childList: true,
         subtree: true,
         characterData: true
