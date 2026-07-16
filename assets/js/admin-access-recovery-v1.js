@@ -90,7 +90,7 @@
   }
 
   function addCardEditButton(card) {
-    if (!(card instanceof Element) || card.querySelector(':scope > .sd-card-edit-stock')) return;
+    if (!(card instanceof Element) || card.querySelector('.sd-card-edit-stock')) return;
     const storefrontView = card.querySelector(':scope > .store-card-view');
     if (!storefrontView) return;
 
@@ -115,7 +115,7 @@
       window.setTimeout(() => qs('#detailEditBtn')?.click(), 180);
     }, true);
 
-    card.appendChild(button);
+    storefrontView.appendChild(button);
   }
 
   function recoverCardActions() {
