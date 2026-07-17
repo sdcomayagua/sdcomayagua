@@ -10,6 +10,12 @@
     return document.body?.dataset.publicCatalog === 'true' || /cliente(?:\.html)?$/i.test(location.pathname);
   }
 
+  function ensurePrivateAdminMode() {
+    if (isPublicCatalog() || !document.body) return;
+    if (!document.body.dataset.mode) document.body.dataset.mode = 'admin';
+    document.body.dataset.privateCatalog = 'true';
+  }
+
   function normalize(value) {
     return String(value || '')
       .toLowerCase()
@@ -41,29 +47,9 @@
     return true;
   }
 
-  function buildAdminTools() {
-    if (isPublicCatalog() || qs('#sdAdminCatalogTools')) return;
-    const products = qs('#productos');
-    const toolbar = qs('#productos .toolbar');
-    if (!products || !toolbar) return;
-
-    const tools = document.createElement('section');
-    tools.id = 'sdAdminCatalogTools';
-    tools.className = 'sd-admin-catalog-tools';
-    tools.setAttribute('aria-label', 'Administración de productos');
-    tools.innerHTML = `
-      <div class="sd-admin-catalog-copy">
-        <strong>Gestión del inventario</strong>
-        <span>Agregue productos o edite precio, foto, descripción y stock.</span>
-      </div>
-      <div class="sd-admin-catalog-actions">
-        <button class="sd-admin-tool-btn primary" type="button" data-sd-admin-tool="add">＋ Agregar producto</button>
-        <button class="sd-admin-tool-btn" type="button" data-sd-admin-tool="import">📥 Importar Excel</button>
-        <button class="sd-admin-tool-btn" type="button" data-sd-admin-tool="categories">🗂️ Categorías</button>
-      </div>
-    `;
-
-    products.insertBefore(tools, toolbar);
+  function bindAdminTools(tools) {
+    if (!tools || tools.dataset.sdAdminToolsBound === '1') return;
+    tools.dataset.sdAdminToolsBound = '1';
     tools.addEventListener('click', (event) => {
       const button = event.target.closest('[data-sd-admin-tool]');
       if (!button) return;
@@ -72,6 +58,37 @@
       if (action === 'import') clickOriginal('importExcelBtn');
       if (action === 'categories') clickOriginal('categoryManagerBtn');
     });
+  }
+
+  function buildAdminTools() {
+    if (isPublicCatalog()) return;
+    const products = qs('#productos');
+    const toolbar = qs('#productos .toolbar');
+    if (!products || !toolbar) return;
+
+    let tools = qs('#sdAdminCatalogTools');
+    if (!tools) {
+      tools = document.createElement('section');
+      tools.id = 'sdAdminCatalogTools';
+      tools.className = 'sd-admin-catalog-tools';
+      tools.setAttribute('aria-label', 'Administración de productos');
+      tools.innerHTML = `
+        <div class="sd-admin-catalog-copy">
+          <strong>Gestión del inventario</strong>
+          <span>Agregue productos o edite precio, foto, descripción y stock.</span>
+        </div>
+        <div class="sd-admin-catalog-actions">
+          <button class="sd-admin-tool-btn primary" type="button" data-sd-admin-tool="add">＋ Agregar producto</button>
+          <button class="sd-admin-tool-btn" type="button" data-sd-admin-tool="import">📥 Importar Excel</button>
+          <button class="sd-admin-tool-btn" type="button" data-sd-admin-tool="categories">🗂️ Categorías</button>
+        </div>
+      `;
+      products.insertBefore(tools, toolbar);
+    }
+
+    tools.hidden = false;
+    tools.style.setProperty('display', 'flex', 'important');
+    bindAdminTools(tools);
   }
 
   function findAdminControl(card) {
@@ -134,6 +151,7 @@
 
   function sync() {
     scheduled = false;
+    ensurePrivateAdminMode();
     updateDrawerTop();
     buildAdminTools();
     recoverCardActions();
@@ -175,7 +193,7 @@
     window.addEventListener('resize', scheduleSync, { passive: true });
     window.addEventListener('pageshow', scheduleSync);
     document.addEventListener('click', scheduleSync, true);
-    [150, 450, 900, 1700, 3000].forEach((delay) => setTimeout(scheduleSync, delay));
+    [100, 250, 500, 900, 1500, 2400, 3600, 5200].forEach((delay) => setTimeout(scheduleSync, delay));
   }
 
   if (document.readyState === 'loading') {
