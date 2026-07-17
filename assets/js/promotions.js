@@ -2,7 +2,7 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260717-client-cart-v15';
+  const version = '20260717-client-cart-price-v16';
 
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
 
@@ -91,8 +91,6 @@
     document.head.appendChild(categoryScript);
   }
 
-  // Se carga al final para que las funciones privadas permanezcan visibles
-  // y el menú lateral respete el encabezado y la navegación fija.
   const loadAdminRecovery = () => {
     let recoveryStyle = document.querySelector('link[data-sd-admin-access-recovery-v1]');
     if (!recoveryStyle) {
