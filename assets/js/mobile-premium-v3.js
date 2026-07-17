@@ -4,7 +4,8 @@
   'use strict';
 
   const MOBILE_QUERY = '(max-width: 760px)';
-  const FEATURE_VERSION = '20260716-receipt-clean-v10';
+  const FEATURE_VERSION = '20260717-client-cart-v15';
+  const PUBLIC_CATALOG = Boolean(window.SD_PUBLIC_CLIENT_CATALOG) || /cliente(?:\.html)?$/i.test(location.pathname);
 
   if (!document.querySelector('link[data-sd-product-gallery-commerce]')) {
     const style = document.createElement('link');
@@ -120,7 +121,6 @@
     document.head.appendChild(layoutFinalScript);
   }
 
-  // Última capa: corrige el recorte real de fotografías y el texto del recibo.
   let catalogReceiptStyle = document.querySelector('link[data-sd-catalog-receipt-fixes-v2]');
   if (!catalogReceiptStyle) {
     catalogReceiptStyle = document.createElement('link');
@@ -136,6 +136,25 @@
     catalogReceiptScript.async = false;
     catalogReceiptScript.setAttribute('data-sd-catalog-receipt-fixes-v2', 'true');
     document.head.appendChild(catalogReceiptScript);
+  }
+
+  // Capa visual final para compactar el panel y mejorar cliente.html.
+  let cartPolishStyle = document.querySelector('link[data-sd-catalog-cart-polish-v1]');
+  if (!cartPolishStyle) {
+    cartPolishStyle = document.createElement('link');
+    cartPolishStyle.rel = 'stylesheet';
+    cartPolishStyle.setAttribute('data-sd-catalog-cart-polish-v1', 'true');
+  }
+  cartPolishStyle.href = `assets/css/catalog-cart-polish-v1.css?v=${FEATURE_VERSION}`;
+  document.head.appendChild(cartPolishStyle);
+
+  // El carrito solo existe en el catálogo público.
+  if (PUBLIC_CATALOG && !document.querySelector('script[data-sd-client-cart-v1]')) {
+    const cartScript = document.createElement('script');
+    cartScript.src = `assets/js/client-cart-v1.js?v=${FEATURE_VERSION}`;
+    cartScript.async = false;
+    cartScript.setAttribute('data-sd-client-cart-v1', 'true');
+    document.head.appendChild(cartScript);
   }
 
   function initMobilePremium() {
