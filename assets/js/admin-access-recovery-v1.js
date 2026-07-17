@@ -56,6 +56,7 @@
       const action = button.dataset.sdAdminTool;
       if (action === 'add') clickOriginal('addProductBtn') || clickOriginal('addProductBtnTop');
       if (action === 'import') clickOriginal('importExcelBtn');
+      if (action === 'export') clickOriginal('exportExcelBtn');
       if (action === 'categories') clickOriginal('categoryManagerBtn');
     });
   }
@@ -72,22 +73,29 @@
       tools.id = 'sdAdminCatalogTools';
       tools.className = 'sd-admin-catalog-tools';
       tools.setAttribute('aria-label', 'Administración de productos');
-      tools.innerHTML = `
-        <div class="sd-admin-catalog-copy">
-          <strong>Gestión del inventario</strong>
-          <span>Agregue productos o edite precio, foto, descripción y stock.</span>
-        </div>
-        <div class="sd-admin-catalog-actions">
-          <button class="sd-admin-tool-btn primary" type="button" data-sd-admin-tool="add">＋ Agregar producto</button>
-          <button class="sd-admin-tool-btn" type="button" data-sd-admin-tool="import">📥 Importar Excel</button>
-          <button class="sd-admin-tool-btn" type="button" data-sd-admin-tool="categories">🗂️ Categorías</button>
-        </div>
-      `;
       products.insertBefore(tools, toolbar);
     }
 
+    tools.innerHTML = `
+      <div class="sd-admin-catalog-copy">
+        <strong>Gestión del inventario</strong>
+        <span>Agregue o edite productos y stock.</span>
+      </div>
+      <div class="sd-admin-catalog-actions">
+        <button class="sd-admin-tool-btn primary" type="button" data-sd-admin-tool="add">＋ Agregar producto</button>
+        <button class="sd-admin-tool-btn icon-only import" type="button" data-sd-admin-tool="import" aria-label="Importar Excel" title="Importar Excel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg>
+        </button>
+        <button class="sd-admin-tool-btn icon-only export" type="button" data-sd-admin-tool="export" aria-label="Exportar Excel" title="Exportar Excel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0 4.5-4.5M12 16l-4.5-4.5M5 10v8.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V10"/></svg>
+        </button>
+        <button class="sd-admin-tool-btn categories" type="button" data-sd-admin-tool="categories">🗂️ Categorías</button>
+      </div>
+    `;
+
     tools.hidden = false;
     tools.style.setProperty('display', 'flex', 'important');
+    delete tools.dataset.sdAdminToolsBound;
     bindAdminTools(tools);
   }
 
