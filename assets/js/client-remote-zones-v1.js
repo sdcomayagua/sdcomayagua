@@ -43,6 +43,14 @@
       .replace(/'/g, '&#039;');
   }
 
+  function setText(node, value) {
+    if (node && node.textContent !== value) node.textContent = value;
+  }
+
+  function setHtml(node, value) {
+    if (node && node.innerHTML !== value) node.innerHTML = value;
+  }
+
   function readCart() {
     try {
       const value = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
@@ -71,9 +79,8 @@
     if (!toast) return;
     toast.textContent = message;
     toast.classList.add('show');
-    clearTimeout(Number(toast.dataset.timer || 0));
-    const timer = window.setTimeout(() => toast.classList.remove('show'), 2300);
-    toast.dataset.timer = String(timer);
+    clearTimeout(Number(toast.dataset.remoteTimer || 0));
+    toast.dataset.remoteTimer = String(window.setTimeout(() => toast.classList.remove('show'), 2300));
   }
 
   function markStandardOptions(options) {
@@ -82,11 +89,9 @@
       if (!input) return;
       label.classList.add(`sd-delivery-${input.value}`);
 
-      const title = qs('strong', label);
-      const detail = qs('span', label);
       if (input.value === 'local') {
-        if (title) title.textContent = 'Casco urbano';
-        if (detail) detail.textContent = 'Comayagua · Lps.40';
+        setText(qs('strong', label), 'Casco urbano');
+        setText(qs('span', label), 'Comayagua · Lps.40');
       }
     });
   }
@@ -148,27 +153,29 @@
     if (select && select.value !== selectedZoneId) select.value = selectedZoneId;
     card.classList.toggle('selected', remoteActive);
     if (picker) picker.hidden = !remoteActive;
-    if (toggle) toggle.setAttribute('aria-expanded', String(remoteActive));
+    if (toggle?.getAttribute('aria-expanded') !== String(remoteActive)) {
+      toggle.setAttribute('aria-expanded', String(remoteActive));
+    }
 
     if (!zone) {
-      if (summary) summary.textContent = 'Elegir sector · precio varía';
-      if (price) price.textContent = 'Selecciona una zona para calcular el envío.';
+      setText(summary, 'Elegir sector · precio varía');
+      setText(price, 'Selecciona una zona para calcular el envío.');
       return;
     }
 
     if (zone.price == null) {
-      if (summary) summary.textContent = `${zone.label} · precio por definir`;
-      if (price) price.innerHTML = `<strong>${escapeHtml(zone.label)}</strong><span>El precio del envío se confirma por WhatsApp.</span>`;
+      setText(summary, `${zone.label} · precio por definir`);
+      setHtml(price, `<strong>${escapeHtml(zone.label)}</strong><span>El precio del envío se confirma por WhatsApp.</span>`);
     } else {
-      if (summary) summary.textContent = `${zone.label} · ${money(zone.price)}`;
-      if (price) price.innerHTML = `<strong>${escapeHtml(zone.label)}</strong><span>Envío: ${money(zone.price)}</span>`;
+      setText(summary, `${zone.label} · ${money(zone.price)}`);
+      setHtml(price, `<strong>${escapeHtml(zone.label)}</strong><span>Envío: ${money(zone.price)}</span>`);
     }
   }
 
   function uncheckStandardDelivery() {
     if (!remoteActive) return;
     qsa('#sdClientCartPanel input[name="sdDeliveryMode"]').forEach((input) => {
-      input.checked = false;
+      if (input.checked) input.checked = false;
     });
   }
 
@@ -198,10 +205,8 @@
 
   function buildRemoteQuote() {
     const zone = selectedZone();
-    if (!zone) return '';
-
     const cart = readCart();
-    if (!cart.length) return '';
+    if (!zone || !cart.length) return '';
 
     const productSubtotal = cart.reduce((sum, item) => sum + (Number(item.price) || 0) * Math.max(1, Number(item.qty) || 1), 0);
     const shippingKnown = zone.price != null;
@@ -289,20 +294,32 @@
     }, true);
   }
 
+  function observe() {
+    if (!observer) return;
+    observer.disconnect();
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
+
   function sync() {
     syncQueued = false;
-    const panel = qs('#sdClientCartPanel');
-    if (!panel) return;
+    observer?.disconnect();
 
-    bindPanel(panel);
-    const options = qs('.sd-cart-delivery-options', panel);
-    if (!options) return;
+    try {
+      const panel = qs('#sdClientCartPanel');
+      if (!panel) return;
 
-    markStandardOptions(options);
-    const card = createRemoteOption(options);
-    updateRemoteOption(card);
-    uncheckStandardDelivery();
-    renderRemoteTotals();
+      bindPanel(panel);
+      const options = qs('.sd-cart-delivery-options', panel);
+      if (!options) return;
+
+      markStandardOptions(options);
+      const card = createRemoteOption(options);
+      updateRemoteOption(card);
+      uncheckStandardDelivery();
+      renderRemoteTotals();
+    } finally {
+      observe();
+    }
   }
 
   function scheduleSync() {
@@ -312,9 +329,9 @@
   }
 
   function boot() {
-    sync();
     observer = new MutationObserver(scheduleSync);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    sync();
+    observe();
     window.addEventListener('pageshow', scheduleSync);
     [100, 300, 700, 1200, 2200, 3800].forEach((delay) => setTimeout(scheduleSync, delay));
   }
