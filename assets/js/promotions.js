@@ -2,13 +2,15 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260717-client-cart-price-v16';
+  const version = '20260717-comayagua-zones-v17';
 
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
 
   if (/\bcliente(?:\.html)?$/i.test(window.location.pathname)) {
     window.SD_PUBLIC_CLIENT_CATALOG = true;
   }
+
+  const publicCatalog = Boolean(window.SD_PUBLIC_CLIENT_CATALOG) || /cliente(?:\.html)?$/i.test(window.location.pathname);
 
   if (!document.querySelector('link[data-sd-mobile-premium-v3]')) {
     const style = document.createElement('link');
@@ -42,6 +44,14 @@
     document.head.appendChild(finalStyle);
   }
 
+  if (publicCatalog && !document.querySelector('link[data-sd-client-remote-zones-v1]')) {
+    const remoteStyle = document.createElement('link');
+    remoteStyle.rel = 'stylesheet';
+    remoteStyle.href = `assets/css/client-remote-zones-v1.css?v=${version}`;
+    remoteStyle.setAttribute('data-sd-client-remote-zones-v1', 'true');
+    document.head.appendChild(remoteStyle);
+  }
+
   if (!document.querySelector('script[data-sd-mobile-premium-v3]')) {
     const script = document.createElement('script');
     script.src = `assets/js/mobile-premium-v3.js?v=${version}`;
@@ -72,6 +82,14 @@
     receiptScript.async = false;
     receiptScript.setAttribute('data-sd-receipt-clean-v3', 'true');
     document.head.appendChild(receiptScript);
+  }
+
+  if (publicCatalog && !document.querySelector('script[data-sd-client-remote-zones-v1]')) {
+    const remoteScript = document.createElement('script');
+    remoteScript.src = `assets/js/client-remote-zones-v1.js?v=${version}`;
+    remoteScript.async = false;
+    remoteScript.setAttribute('data-sd-client-remote-zones-v1', 'true');
+    document.head.appendChild(remoteScript);
   }
 
   let categoryStyle = document.querySelector('link[data-sd-category-dropdown-desktop-fix-v1]');

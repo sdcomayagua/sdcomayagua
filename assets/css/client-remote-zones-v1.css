@@ -1,0 +1,194 @@
+/* SD COMAYAGUA · Zonas alejadas en el carrito público */
+
+body[data-public-catalog="true"] .sd-cart-delivery-options {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+}
+
+body[data-public-catalog="true"] .sd-cart-delivery-option {
+  min-width: 0 !important;
+}
+
+body[data-public-catalog="true"] .sd-delivery-pickup { order: 1; }
+body[data-public-catalog="true"] .sd-delivery-local { order: 2; }
+body[data-public-catalog="true"] .sd-remote-zone-option { order: 3; }
+body[data-public-catalog="true"] .sd-delivery-normal { order: 4; }
+body[data-public-catalog="true"] .sd-delivery-cod { order: 5; }
+
+body[data-public-catalog="true"] .sd-remote-zone-option {
+  grid-column: 1 / -1 !important;
+  overflow: hidden;
+  border: 1.5px solid #c8dbf5;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f8fbff, #eef6ff);
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-option.selected {
+  border-color: #2e7bea;
+  background: linear-gradient(135deg, #eff6ff, #e6f1ff);
+  box-shadow: 0 8px 20px rgba(22, 101, 216, .12);
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 58px;
+  padding: 10px 13px;
+  border: 0;
+  background: transparent;
+  color: #142c50;
+  text-align: left;
+  cursor: pointer;
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-toggle-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-toggle strong {
+  font-size: .9rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-toggle small {
+  overflow: hidden;
+  color: #647997;
+  font-size: .72rem;
+  font-weight: 750;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-chevron {
+  display: grid;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(46, 123, 234, .1);
+  color: #1768d7;
+  font-size: 1.15rem;
+  font-weight: 900;
+  transition: transform .2s ease;
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-option.selected .sd-remote-zone-chevron {
+  transform: rotate(180deg);
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px 10px;
+  padding: 0 11px 11px;
+  border-top: 1px solid rgba(46, 123, 234, .14);
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-picker[hidden] {
+  display: none !important;
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-picker label {
+  grid-column: 1 / -1;
+  padding-top: 9px;
+  color: #526a8b;
+  font-size: .66rem;
+  font-weight: 900;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+body[data-public-catalog="true"] #sdRemoteZoneSelect {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px 34px 8px 10px;
+  border: 1px solid #bad2f3;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+  color: #112a4e;
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+body[data-public-catalog="true"] #sdRemoteZoneSelect:focus {
+  border-color: #2676e7;
+  box-shadow: 0 0 0 3px rgba(38, 118, 231, .12);
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 118px;
+  padding: 7px 9px;
+  border-radius: 11px;
+  background: #fff;
+  color: #5a7090;
+  font-size: .67rem;
+  font-weight: 750;
+  text-align: center;
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-price strong,
+body[data-public-catalog="true"] .sd-remote-zone-price span {
+  display: block;
+}
+
+body[data-public-catalog="true"] .sd-remote-zone-price strong {
+  color: #102b51;
+  font-weight: 900;
+}
+
+body[data-public-catalog="true"] .sd-remote-total-note {
+  display: block;
+  margin-top: 7px;
+  padding: 7px 9px;
+  border-radius: 9px;
+  background: #fff6df;
+  color: #7a5515;
+  font-size: .68rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+@media (max-width: 430px) {
+  body[data-public-catalog="true"] .sd-cart-delivery-options {
+    gap: 8px !important;
+  }
+
+  body[data-public-catalog="true"] .sd-remote-zone-toggle {
+    min-height: 54px;
+    padding: 9px 11px;
+  }
+
+  body[data-public-catalog="true"] .sd-remote-zone-toggle strong {
+    font-size: .84rem;
+  }
+
+  body[data-public-catalog="true"] .sd-remote-zone-toggle small {
+    font-size: .66rem;
+  }
+
+  body[data-public-catalog="true"] .sd-remote-zone-picker {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-public-catalog="true"] .sd-remote-zone-price {
+    min-width: 0;
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
