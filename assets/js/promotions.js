@@ -2,7 +2,7 @@
 // La lógica principal permanece en assets/js/app.js.
 // Las capas visuales no interceptan Firebase, inventario ni cotizaciones.
 (() => {
-  const version = '20260717-comayagua-zones-v17';
+  const version = '20260719-private-admin-v18';
 
   window.SD_WHATSAPP_NUMBER = window.SD_WHATSAPP_NUMBER || '50431517755';
 
@@ -110,6 +110,8 @@
   }
 
   const loadAdminRecovery = () => {
+    if (publicCatalog) return;
+
     let recoveryStyle = document.querySelector('link[data-sd-admin-access-recovery-v1]');
     if (!recoveryStyle) {
       recoveryStyle = document.createElement('link');
