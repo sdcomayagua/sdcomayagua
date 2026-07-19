@@ -42,6 +42,12 @@ body:not([data-public-catalog="true"]) #detailDialog #detailEditBtn.sd-private-e
   box-shadow: 0 9px 22px rgba(7, 95, 209, .22) !important;
 }
 
+body:not([data-public-catalog="true"]) #detailDialog #detailEditBtn.sd-private-edit-action.is-restock {
+  border-color: #d17b00 !important;
+  background: linear-gradient(135deg, #e68400, #ffad24) !important;
+  box-shadow: 0 9px 22px rgba(230, 132, 0, .24) !important;
+}
+
 body:not([data-public-catalog="true"]) #detailDialog #detailDuplicateBtn.sd-private-duplicate-action {
   border-color: #c7d8ec !important;
   background: #fff !important;
@@ -52,6 +58,13 @@ body:not([data-public-catalog="true"]) #detailDialog #detailSellBtn.sd-private-p
   border-color: #0b9d69 !important;
   background: linear-gradient(135deg, #07945f, #14b879) !important;
   color: #fff !important;
+}
+
+body:not([data-public-catalog="true"]) #detailDialog #detailSellBtn.sd-private-primary-action:disabled {
+  border-color: #cbd5e1 !important;
+  background: #e9eef5 !important;
+  color: #7b8ba1 !important;
+  box-shadow: none !important;
 }
 
 body:not([data-public-catalog="true"]) #productGrid .store-card-view {
@@ -87,6 +100,31 @@ body:not([data-public-catalog="true"]) #productGrid .sd-card-edit-stock.sd-card-
   cursor: pointer !important;
 }
 
+body:not([data-public-catalog="true"]) #productGrid .sd-card-edit-stock.sd-card-edit-final.is-restock {
+  border-color: #f0a542 !important;
+  background: linear-gradient(135deg, #fff8e9, #fff1cf) !important;
+  color: #9a5700 !important;
+}
+
+body:not([data-public-catalog="true"]) #sdAdminCatalogTools .sd-admin-tool-btn.out-stock {
+  gap: 6px !important;
+  border-color: #ffd39a !important;
+  background: #fff8ed !important;
+  color: #9a5700 !important;
+}
+
+body:not([data-public-catalog="true"]) #sdAdminCatalogTools .sd-admin-tool-btn.out-stock b {
+  display: inline-grid !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  place-items: center !important;
+  padding: 0 6px !important;
+  border-radius: 999px !important;
+  background: #f28a00 !important;
+  color: #fff !important;
+  font-size: .67rem !important;
+}
+
 @media (max-width: 980px) {
   body:not([data-public-catalog="true"]) #detailDialog .detail-actions.sd-private-admin-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -94,6 +132,17 @@ body:not([data-public-catalog="true"]) #productGrid .sd-card-edit-stock.sd-card-
 
   body:not([data-public-catalog="true"]) #detailDialog #detailEditBtn.sd-private-edit-action {
     grid-column: 1 / -1 !important;
+  }
+
+  body:not([data-public-catalog="true"]) #sdAdminCatalogTools .sd-admin-tool-btn.out-stock {
+    width: 40px !important;
+    min-width: 40px !important;
+    padding: 0 !important;
+  }
+
+  body:not([data-public-catalog="true"]) #sdAdminCatalogTools .sd-admin-tool-btn.out-stock .sd-out-label,
+  body:not([data-public-catalog="true"]) #sdAdminCatalogTools .sd-admin-tool-btn.out-stock b {
+    display: none !important;
   }
 }
 
