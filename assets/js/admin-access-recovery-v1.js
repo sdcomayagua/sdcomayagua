@@ -8,6 +8,7 @@
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
   let scheduled = false;
+  let initialViewRestored = false;
 
   function ensureFinalStyle() {
     let style = qs('link[data-sd-private-product-admin-final-v1]');
@@ -16,7 +17,7 @@
       style.rel = 'stylesheet';
       style.setAttribute('data-sd-private-product-admin-final-v1', 'true');
     }
-    style.href = 'assets/css/private-product-admin-final-v1.css?v=20260719-private-admin-v18';
+    style.href = 'assets/css/private-product-admin-final-v1.css?v=20260719-private-admin-v19';
     document.head.appendChild(style);
   }
 
@@ -70,6 +71,46 @@
     return true;
   }
 
+  function activateAdminMode() {
+    const adminMode = qs('.mode-btn[data-mode="admin"]');
+    if (!adminMode) return false;
+    if (!adminMode.classList.contains('active')) adminMode.click();
+    document.body.dataset.mode = 'admin';
+    return true;
+  }
+
+  function activateQuickFilter(filter) {
+    const button = qs(`.quick-filter-btn[data-quick-filter="${filter}"]`);
+    if (!button) return false;
+    if (!button.classList.contains('active')) button.click();
+    return true;
+  }
+
+  function restoreInitialPrivateView() {
+    if (initialViewRestored) return;
+    const grid = qs('#productGrid');
+    const adminMode = qs('.mode-btn[data-mode="admin"]');
+    const allFilter = qs('.quick-filter-btn[data-quick-filter="all"]');
+    if (!grid || !adminMode || !allFilter) return;
+
+    activateAdminMode();
+    activateQuickFilter('all');
+    initialViewRestored = true;
+  }
+
+  function showOutOfStockProducts() {
+    activateAdminMode();
+    activateQuickFilter('out');
+    qs('[data-section="productos"]')?.click();
+    window.setTimeout(() => qs('#productGrid')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  }
+
+  function showAllProducts() {
+    activateAdminMode();
+    activateQuickFilter('all');
+    qs('[data-section="productos"]')?.click();
+  }
+
   function bindAdminTools(tools) {
     if (!tools || tools.dataset.sdAdminToolsBound === '1') return;
     tools.dataset.sdAdminToolsBound = '1';
@@ -81,7 +122,15 @@
       if (action === 'import') clickOriginal('importExcelBtn');
       if (action === 'export') clickOriginal('exportExcelBtn');
       if (action === 'categories') clickOriginal('categoryManagerBtn');
+      if (action === 'all') showAllProducts();
+      if (action === 'out') showOutOfStockProducts();
     });
+  }
+
+  function updateOutCount(tools) {
+    const count = qs('#outCount')?.textContent?.trim() || '0';
+    const badge = qs('[data-sd-out-count]', tools);
+    if (badge && badge.textContent !== count) badge.textContent = count;
   }
 
   function buildAdminTools() {
@@ -105,6 +154,10 @@
           <span>Agregue o edite productos, fotos, promociones y stock.</span>
         </div>
         <div class="sd-admin-catalog-actions">
+          <button class="sd-admin-tool-btn compact-all" type="button" data-sd-admin-tool="all" title="Ver todos los productos" aria-label="Ver todos los productos">Todos</button>
+          <button class="sd-admin-tool-btn out-stock" type="button" data-sd-admin-tool="out" title="Ver productos agotados">
+            <span aria-hidden="true">⛔</span><span class="sd-out-label">Agotados</span><b data-sd-out-count>0</b>
+          </button>
           <button class="sd-admin-tool-btn primary" type="button" data-sd-admin-tool="add">＋ Agregar producto</button>
           <button class="sd-admin-tool-btn icon-only import" type="button" data-sd-admin-tool="import" aria-label="Importar Excel" title="Importar Excel">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg>
@@ -119,6 +172,7 @@
 
     forceVisible(tools, 'flex');
     bindAdminTools(tools);
+    updateOutCount(tools);
   }
 
   function findAdminControl(card) {
@@ -136,6 +190,13 @@
     }) || null;
   }
 
+  function isOutOfStock(card) {
+    const status = qs('.store-card-status, .stock-badge', card);
+    const stock = qs('.store-card-stock, .product-stock, [data-stock]', card);
+    const text = normalize(`${status?.textContent || ''} ${stock?.textContent || ''}`);
+    return status?.classList.contains('out') || /agotado|sin stock|0 unidades|0 disponible/.test(text);
+  }
+
   function addCardEditButton(card) {
     if (!(card instanceof Element)) return;
     const view = qs(':scope > .store-card-view', card);
@@ -146,9 +207,6 @@
       button = document.createElement('button');
       button.type = 'button';
       button.className = 'sd-card-edit-stock sd-card-edit-final';
-      button.innerHTML = '<span aria-hidden="true">✏️</span><span>Editar</span>';
-      button.setAttribute('aria-label', 'Editar producto, fotografías, promociones y stock');
-      button.setAttribute('title', 'Editar producto y stock');
       button.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -166,6 +224,16 @@
       }, true);
       view.appendChild(button);
     }
+
+    const out = isOutOfStock(card);
+    button.classList.toggle('is-restock', out);
+    button.innerHTML = out
+      ? '<span aria-hidden="true">📦</span><span>Reponer stock</span>'
+      : '<span aria-hidden="true">✏️</span><span>Editar</span>';
+    button.setAttribute('aria-label', out
+      ? 'Reponer stock y editar producto agotado'
+      : 'Editar producto, fotografías, promociones y stock');
+    button.setAttribute('title', out ? 'Reponer stock' : 'Editar producto y stock');
 
     forceVisible(button);
   }
@@ -192,6 +260,8 @@
     const quote = qs('#detailQuoteBtn');
     const duplicate = qs('#detailDuplicateBtn');
     const edit = qs('#detailEditBtn');
+    const status = normalize(qs('#detailStatus')?.textContent || '');
+    const out = /agotado|sin stock/.test(status) || Number(String(qs('#detailStock')?.textContent || '').replace(/\D/g, '')) === 0;
 
     [sell, quote, duplicate, edit].forEach((node) => {
       if (node && node.parentElement !== actions) actions.appendChild(node);
@@ -202,6 +272,7 @@
       sell.textContent = '🛒 Vender';
       sell.setAttribute('aria-label', 'Registrar venta de este producto');
       sell.classList.add('sd-private-primary-action');
+      sell.disabled = out;
     }
 
     if (duplicate) {
@@ -211,10 +282,13 @@
     }
 
     if (edit) {
-      edit.textContent = '✏️ Editar producto, fotos y stock';
-      edit.setAttribute('aria-label', 'Editar producto, fotografías, precio, stock, descripción y promociones');
-      edit.setAttribute('title', 'Editar fotografías, precio, stock, descripción y promociones');
+      edit.textContent = out ? '📦 Reponer stock y editar' : '✏️ Editar producto, fotos y stock';
+      edit.setAttribute('aria-label', out
+        ? 'Reponer stock y editar producto agotado'
+        : 'Editar producto, fotografías, precio, stock, descripción y promociones');
+      edit.setAttribute('title', out ? 'Reponer stock' : 'Editar fotografías, precio, stock, descripción y promociones');
       edit.classList.add('sd-detail-admin-recovered', 'sd-private-edit-action');
+      edit.classList.toggle('is-restock', out);
     }
   }
 
@@ -223,6 +297,7 @@
     ensureFinalStyle();
     ensurePrivateMode();
     updateDrawerTop();
+    restoreInitialPrivateView();
     buildAdminTools();
     recoverCardActions();
     recoverDetailActions();
@@ -252,6 +327,9 @@
       childList: true,
       subtree: true
     });
+
+    const outCount = qs('#outCount');
+    if (outCount) new MutationObserver(scheduleSync).observe(outCount, { childList: true, characterData: true, subtree: true });
 
     if ('ResizeObserver' in window) {
       const observer = new ResizeObserver(updateDrawerTop);
