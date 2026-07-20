@@ -1,0 +1,44 @@
+/* SD COMAYAGUA · Solo descuentos manuales por cantidad */
+
+#productPromotionEditor [data-promo-card="gift"] {
+  display: none !important;
+}
+
+#productPromotionEditor .promotion-editor-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+#productPromotionEditor [data-promo-card="tier"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+#productPromotionEditor .promotion-editor-head {
+  align-items: flex-start !important;
+}
+
+#productPromotionEditor .promo-editor-help {
+  margin-top: 10px !important;
+  padding: 10px 12px !important;
+  border: 1px solid #cfe0f4 !important;
+  border-radius: 12px !important;
+  background: #f5f9ff !important;
+  color: #526985 !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+}
+
+#productPromotionEditor .promo-main-toggle {
+  min-height: 46px !important;
+}
+
+@media (max-width: 760px) {
+  #productPromotionEditor .promotion-editor-head {
+    display: grid !important;
+    gap: 10px !important;
+  }
+
+  #productPromotionEditor .promo-disable-toggle {
+    width: 100% !important;
+  }
+}
