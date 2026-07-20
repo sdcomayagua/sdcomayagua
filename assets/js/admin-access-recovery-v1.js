@@ -9,6 +9,15 @@
   const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
   let scheduled = false;
   let initialViewRestored = false;
+  let observersReady = false;
+
+  function authReady() {
+    return Boolean(
+      document.body?.classList.contains('admin-auth-ok')
+      && !document.documentElement.classList.contains('sd-admin-locked')
+      && !qs('#adminPinGate')
+    );
+  }
 
   function ensureFinalStyle() {
     let style = qs('link[data-sd-private-product-admin-final-v1]');
@@ -17,7 +26,7 @@
       style.rel = 'stylesheet';
       style.setAttribute('data-sd-private-product-admin-final-v1', 'true');
     }
-    style.href = 'assets/css/private-product-admin-final-v1.css?v=20260719-private-admin-v19';
+    style.href = 'assets/css/private-product-admin-final-v1.css?v=20260719-private-admin-v20';
     document.head.appendChild(style);
   }
 
@@ -45,11 +54,12 @@
   }
 
   function ensurePrivateMode() {
-    if (!document.body) return;
+    if (!document.body || !authReady()) return;
     document.body.dataset.privateCatalog = 'true';
   }
 
   function updateDrawerTop() {
+    if (!authReady()) return;
     if (matchMedia('(max-width: 760px)').matches) {
       document.documentElement.style.removeProperty('--sd-drawer-top');
       return;
@@ -65,6 +75,7 @@
   }
 
   function clickOriginal(id) {
+    if (!authReady()) return false;
     const control = qs(`#${id}`);
     if (!control) return false;
     control.click();
@@ -72,6 +83,7 @@
   }
 
   function activateAdminMode() {
+    if (!authReady()) return false;
     const adminMode = qs('.mode-btn[data-mode="admin"]');
     if (!adminMode) return false;
     if (!adminMode.classList.contains('active')) adminMode.click();
@@ -80,6 +92,7 @@
   }
 
   function activateQuickFilter(filter) {
+    if (!authReady()) return false;
     const button = qs(`.quick-filter-btn[data-quick-filter="${filter}"]`);
     if (!button) return false;
     if (!button.classList.contains('active')) button.click();
@@ -87,7 +100,7 @@
   }
 
   function restoreInitialPrivateView() {
-    if (initialViewRestored) return;
+    if (!authReady() || initialViewRestored) return;
     const grid = qs('#productGrid');
     const adminMode = qs('.mode-btn[data-mode="admin"]');
     const allFilter = qs('.quick-filter-btn[data-quick-filter="all"]');
@@ -99,6 +112,7 @@
   }
 
   function showOutOfStockProducts() {
+    if (!authReady()) return;
     activateAdminMode();
     activateQuickFilter('out');
     qs('[data-section="productos"]')?.click();
@@ -106,6 +120,7 @@
   }
 
   function showAllProducts() {
+    if (!authReady()) return;
     activateAdminMode();
     activateQuickFilter('all');
     qs('[data-section="productos"]')?.click();
@@ -115,6 +130,7 @@
     if (!tools || tools.dataset.sdAdminToolsBound === '1') return;
     tools.dataset.sdAdminToolsBound = '1';
     tools.addEventListener('click', (event) => {
+      if (!authReady()) return;
       const button = event.target.closest('[data-sd-admin-tool]');
       if (!button) return;
       const action = button.dataset.sdAdminTool;
@@ -134,6 +150,7 @@
   }
 
   function buildAdminTools() {
+    if (!authReady()) return;
     const products = qs('#productos');
     const toolbar = qs('#productos .toolbar');
     if (!products || !toolbar) return;
@@ -198,7 +215,7 @@
   }
 
   function addCardEditButton(card) {
-    if (!(card instanceof Element)) return;
+    if (!authReady() || !(card instanceof Element)) return;
     const view = qs(':scope > .store-card-view', card);
     if (!view) return;
 
@@ -211,6 +228,7 @@
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
+        if (!authReady()) return;
 
         const original = findAdminControl(card);
         if (original) {
@@ -234,15 +252,16 @@
       ? 'Reponer stock y editar producto agotado'
       : 'Editar producto, fotografías, promociones y stock');
     button.setAttribute('title', out ? 'Reponer stock' : 'Editar producto y stock');
-
     forceVisible(button);
   }
 
   function recoverCardActions() {
+    if (!authReady()) return;
     qsa('#productGrid .product-card.store-minimal-card').forEach(addCardEditButton);
   }
 
   function recoverDetailActions() {
+    if (!authReady()) return;
     const dialog = qs('#detailDialog');
     const card = qs('.detail-card', dialog || document);
     const layout = qs('.detail-layout', card || document);
@@ -294,6 +313,7 @@
 
   function sync() {
     scheduled = false;
+    if (!authReady()) return;
     ensureFinalStyle();
     ensurePrivateMode();
     updateDrawerTop();
@@ -304,13 +324,14 @@
   }
 
   function scheduleSync() {
-    if (scheduled) return;
+    if (!authReady() || scheduled) return;
     scheduled = true;
     requestAnimationFrame(sync);
   }
 
-  function boot() {
-    sync();
+  function prepareObservers() {
+    if (observersReady) return;
+    observersReady = true;
 
     const drawer = qs('#storeDrawer');
     const menu = qs('#menuToggle');
@@ -342,7 +363,20 @@
     window.addEventListener('resize', scheduleSync, { passive: true });
     window.addEventListener('pageshow', scheduleSync);
     document.addEventListener('click', scheduleSync, true);
-    [100, 250, 500, 900, 1500, 2400, 3600, 5200].forEach((delay) => setTimeout(scheduleSync, delay));
+  }
+
+  function startAfterAuthentication() {
+    if (!authReady()) return;
+    initialViewRestored = false;
+    prepareObservers();
+    scheduleSync();
+    [100, 250, 500, 900, 1500, 2400, 3600].forEach((delay) => window.setTimeout(scheduleSync, delay));
+  }
+
+  function boot() {
+    prepareObservers();
+    if (authReady()) startAfterAuthentication();
+    window.addEventListener('sd:admin-auth-ok', startAfterAuthentication);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
