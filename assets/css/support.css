@@ -1,0 +1,110 @@
+.box{padding:22px;border-radius:24px;margin:18px 0}
+.admin-area{padding:26px 0 60px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+.stats article{padding:18px 16px;border-radius:20px}
+.stats span{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+.stats strong{font-size:30px;color:var(--navy)}
+.table-scroller{overflow:auto;border:1px solid var(--line);border-radius:20px;background:#fff}
+.products-table{width:100%;border-collapse:collapse;min-width:760px;font-size:14px}
+.products-table thead th{padding:14px;background:#eaf2fd;color:#35567c;text-align:left;white-space:nowrap;font-size:13px}
+.products-table td{padding:14px;border-top:1px solid var(--line);vertical-align:top}
+.products-table tbody tr:hover{background:#f8fbff}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.form-grid label{display:grid;gap:8px;font-size:13px;font-weight:800;color:#294766}
+.form-grid .full{grid-column:1/-1}
+.form-grid textarea{min-height:120px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.spaced{justify-content:space-between}
+.imgpreview{width:120px;height:120px;object-fit:cover;background:#f3f6fb;border-radius:18px;border:1px solid var(--line)}
+.upload-card{display:grid;grid-template-columns:120px 1fr;gap:16px;align-items:start;padding:16px;border:1px dashed #bfd1e4;border-radius:20px;background:#f9fbff}
+.upload-card h3{margin:0 0 8px;font-size:18px}
+.upload-actions{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 8px}
+.hidden-input{position:absolute!important;left:-9999px;opacity:0;pointer-events:none}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:10px}
+.gallery-thumb{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.gallery-thumb img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.gallery-thumb span{position:absolute;right:6px;bottom:6px;background:rgba(255,255,255,.92);color:#24486c;font-size:10px;padding:4px 6px;border-radius:999px;font-weight:800}
+.gallery-help{font-size:13px;color:#6f8198;line-height:1.6}
+
+.bank-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.bank-card,.bank-empty{padding:18px;border-radius:22px}
+.bank-card-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.bank-card h3,.bank-empty h3{margin:0;font-size:24px;letter-spacing:-.03em}
+.bank-symbol{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#eef5ff;color:#245ba7;font-size:24px}
+.bank-copy-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-top:1px solid var(--line);cursor:pointer}
+.bank-copy-row:first-of-type{border-top:0}
+.bank-copy-row small{display:block;color:#8497ad;margin-bottom:4px}
+.bank-copy-row strong{display:block;overflow-wrap:anywhere}
+.copy-btn{padding:10px 12px;border:1px solid var(--line-2);background:#fff;border-radius:12px;color:#244a70;font-weight:800}
+.bank-warning{margin-top:16px;padding:16px 18px;border-radius:18px;background:#fff7ec;border:1px solid #f0d2a4;color:#8a6428;line-height:1.6}
+.bank-empty p{color:var(--muted);line-height:1.7}
+
+
+.gc-payments{padding-bottom:54px}
+.payments-hero{margin-top:26px;margin-bottom:30px;padding:30px 36px;border-radius:26px;background:linear-gradient(115deg,#ffffff,#edf5ff);border:1px solid #d9e6f5;box-shadow:0 10px 28px rgba(24,58,98,.06)}
+.payments-hero h1{font-size:clamp(38px,5vw,58px);letter-spacing:-.045em;margin:12px 0;line-height:1.1;color:#173455}
+.payments-hero h1 span{color:#1668db}
+.payments-hero>p{font-size:18px;line-height:1.6;color:#65778c;max-width:670px}
+.payment-shipping{display:flex;gap:16px;align-items:center;border-radius:18px;padding:17px 20px;background:#fff;border:1px solid #d5e4f7;margin-top:22px;max-width:650px}
+.shipping-icon{display:grid;place-items:center;min-width:54px;height:54px;border-radius:16px;background:#eaf3ff;font-size:26px}
+.payment-shipping>div{display:grid;gap:2px}
+.payment-shipping .shipping-label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#6592d0;font-weight:900}
+.payment-shipping strong{font-size:23px;color:#14385f}
+.payment-shipping small{font-size:13px;line-height:1.45;color:#647c97}
+.payments-methods{margin:0 auto 28px}
+.payments-methods h2,.payment-explain h2,.payments-actions h2{font-size:clamp(25px,3.5vw,35px);letter-spacing:-.035em;color:#193755;margin:9px 0 20px}
+.payment-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.payment-card{display:flex;flex-direction:column;gap:12px;padding:25px;background:#fff;border:1px solid #d9e4f2;border-radius:22px;box-shadow:0 10px 26px rgba(23,56,87,.04)}
+.payment-card-icon{display:grid;place-items:center;background:#ebf4ff;color:#1d65d4;border-radius:16px;width:49px;height:49px;font-size:25px;font-weight:900}
+.payment-card h3{margin:2px 0;font-size:20px;letter-spacing:-.02em;color:#193755}
+.payment-card p{flex:1;margin:0;font-size:15px;line-height:1.65;color:#65768d}
+.payment-link{font-size:14px;font-weight:800;color:#195fca}
+.payment-note{font-size:12px;font-weight:800;color:#24694e;background:#eaf8f0;padding:10px 12px;border-radius:11px}
+.payment-explain{display:grid;grid-template-columns:1fr minmax(280px,.75fr);gap:22px;margin-bottom:28px}
+.payment-explain-body,.payment-example{padding:28px;border-radius:22px;background:#fff;border:1px solid #d9e4f2}
+.payment-explain-body p{color:#65778c;line-height:1.7;font-size:15px}
+.payment-formulas{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.payment-formulas>div{display:grid;gap:7px;padding:16px;border-radius:15px;background:#f0f6fd}
+.payment-formulas span{font-size:13px;color:#557395}
+.payment-formulas strong{font-size:16px;color:#1c5ba5}
+.payment-explain-body .payment-disclaimer{font-size:13px;color:#7a8da2;margin-top:18px}
+.payment-example .eyebrow{margin-bottom:16px}
+.payment-example-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid #e4edf7;font-size:14px;color:#5f7791}
+.payment-example-row strong{font-weight:900;color:#173756}
+.payment-example-row.total{font-size:17px;font-weight:800;color:#1a5ec1}
+.payment-example-row.total strong{color:#1a5ec1}
+.payment-example-row.deposit strong{color:#195eb9}
+.payment-example-row.cash strong{color:#087c57}
+.payment-example small{display:block;font-size:12px;line-height:1.5;color:#8091a5;margin-top:15px}
+.payments-actions{display:flex;align-items:center;justify-content:space-between;gap:18px;background:#ecf4ff;border-radius:22px;padding:25px 30px;border:1px solid #d1e2f9}
+.payments-actions h2{margin:0 0 5px}
+.payments-actions p{color:#617991;margin:0;line-height:1.5}
+.payments-action-links{display:flex;gap:10px;flex-wrap:wrap}
+@media(max-width:900px){
+  .home-sections{grid-template-columns:1fr}
+  .payment-cards{grid-template-columns:1fr}
+  .payment-explain{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+ .mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr));padding:8px 3px env(safe-area-inset-bottom)}
+ .mobile-nav a,.mobile-nav button{font-size:10px;padding:6px 2px;gap:2px;min-width:0;letter-spacing:0}
+ .mobile-nav .mobile-nav-icon{font-size:21px;display:block;height:28px;line-height:28px}
+ .nav a[aria-current="page"]::after{display:none}
+ .home-sections{gap:11px;padding-bottom:26px}
+ .home-section-link{padding:14px}
+ .gc-home-only .hero{padding-bottom:12px}
+ .payments-hero{margin-top:12px;margin-bottom:23px;padding:22px 18px;border-radius:22px}
+ .payments-hero h1{font-size:34px}
+ .payments-hero>p{font-size:15px}
+ .payment-shipping{padding:14px;gap:12px;margin-top:15px}
+ .payment-shipping strong{font-size:21px}
+ .payment-card{padding:19px;border-radius:17px}
+ .payment-card h3{font-size:18px}
+ .payment-card p{font-size:14px}
+ .payment-explain-body,.payment-example{padding:20px}
+ .payment-formulas{grid-template-columns:1fr}
+ .payments-actions{flex-direction:column;align-items:stretch;padding:20px}
+ .payments-action-links{display:grid;grid-template-columns:1fr}
+}
+
+
