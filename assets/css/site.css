@@ -402,3 +402,109 @@ textarea.field{min-height:120px;resize:vertical}
  .payments-actions{flex-direction:column;align-items:stretch;padding:20px}
  .payments-action-links{display:grid;grid-template-columns:1fr}
 }
+
+
+/* Gamer Comayagua · ajuste móvil 2026-10-08 · catálogo, ficha y carrito */
+html,body{max-width:100%;overflow-x:clip}
+#productGrid .product{transition:border-color .16s ease,box-shadow .16s ease}
+#productGrid .product:hover{border-color:#b8d0f1}
+#detailOverlay .detail-main img{object-fit:contain;background:#f5f8fc}
+#detailOverlay .info,#detailOverlay .warning{font-size:14px}
+#cartOverlay .dialog{max-width:680px}
+#cartOverlay .total-row.big{border-top:2px solid #bbd6f8;border-bottom:1px solid #dbe9fa;margin-top:4px;padding:15px 0;font-size:24px}
+#cartOverlay .deposit-row strong{color:#1267d7}
+#cartOverlay .cash-row strong{color:#09845d}
+#cartOverlay .payment-helper{font-size:13px;line-height:1.5;margin-top:4px;margin-bottom:12px}
+#cartOverlay .bank-cart-link{font-size:14px}
+#cartOverlay #checkoutControls>.row.spaced{gap:10px}
+#cartOverlay #sendQuote{flex:1 1 280px}
+#cartOverlay #clearCart{flex:0 1 auto}
+.gc-admin-fallback{margin-top:20px;border-top:1px solid #dfe7f0;padding-top:18px;display:grid;gap:10px}
+.gc-admin-fallback p{color:#657993;font-size:13px;line-height:1.5;margin:0}
+.gc-admin-fallback .btn{width:100%;padding:13px 10px;font-size:13px;text-align:center}
+@media(max-width:760px){
+  body{background:#f5f8fc}
+  .topbar .wrap{display:flex;justify-content:center;text-align:center;padding:6px 12px;font-size:11px}
+  .topbar .wrap span:first-child{display:none}
+  .topbar .wrap span:last-child{max-width:100%;text-align:center}
+  .header{box-shadow:0 4px 12px rgba(12,33,67,.09)}
+  .header .wrap{min-height:68px;padding:8px 16px}
+  .brand img{width:152px;max-width:53vw}
+  .cart-trigger{min-width:65px;padding:10px 12px;border-radius:16px;gap:6px}
+  .catalog-page .catalog{padding:18px 0 85px}
+  .catalog-page .section-top{margin:0;gap:3px}
+  .catalog-page .section-top h2{font-size:clamp(25px,7.6vw,32px);line-height:1.12;letter-spacing:-.035em;margin:7px 0}
+  .catalog-page .section-top .eyebrow{font-size:10px;letter-spacing:2px}
+  .catalog-page .section-top p{font-size:13px}
+  .catalog-page .section-top>.pill{display:none}
+  .catalog-page .filters{grid-template-columns:1fr 1fr;gap:9px;margin:15px 0 8px}
+  .catalog-page .filters input#search{grid-column:1/-1;min-width:0}
+  .catalog-page .filters select{min-width:0;font-size:13px;padding:12px 10px;min-height:45px;border-radius:12px}
+  .catalog-page .filters input{min-height:46px;padding:12px 14px;border-radius:13px;font-size:14px}
+  .catalog-page #syncStatus{font-size:11px;line-height:1.4;margin:8px 0 12px;overflow-wrap:anywhere}
+  .catalog-page .grid{gap:10px}
+  .catalog-page .product{border-radius:15px;box-shadow:0 3px 9px rgba(22,53,87,.045);overflow:hidden}
+  .catalog-page .photo{aspect-ratio:1.08;background:#eff4fa}
+  .catalog-page .photo img{object-fit:cover}
+  .catalog-page .tag{top:6px;left:6px;padding:4px 6px;font-size:9px;border-radius:7px;max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .catalog-page .tag.eligible{left:auto;right:6px;max-width:48%;font-size:8px}
+  .catalog-page .product-body{gap:6px;padding:11px 10px 12px}
+  .catalog-page .product-body .category{font-size:9px;letter-spacing:.65px}
+  .catalog-page .product h3{font-size:13px;line-height:1.28;min-height:35px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .catalog-page .product .cost{font-size:19px;letter-spacing:-.03em}
+  .catalog-page .product .stock{font-size:11px;line-height:1.3}
+  .catalog-page .product-actions{display:grid;grid-template-columns:1fr;gap:7px;margin-top:5px}
+  .catalog-page .product-actions .btn{min-height:36px;font-size:12px;padding:9px 6px;border-radius:10px}
+  .catalog-page .product-actions [data-detail]{display:none}
+  /* Diálogos tipo app: scroll interno y encabezado siempre accesible */
+  #detailOverlay,#cartOverlay{align-items:flex-end;justify-content:center;padding:0;background:rgba(11,27,47,.58)}
+  #detailOverlay .dialog,#cartOverlay .dialog{width:100%;max-width:100%;height:auto;max-height:94dvh;max-height:94vh;overflow-y:auto;overscroll-behavior:contain;margin:0;padding:0 16px 20px;border:0;border-radius:23px 23px 0 0;box-shadow:0 -12px 50px rgba(3,19,43,.18)}
+  #detailOverlay .dialog-head,#cartOverlay .dialog-head{position:sticky;top:0;z-index:5;background:#fff;min-height:66px;padding:13px 0 11px;margin:0 0 13px;border-bottom:1px solid #e5edf5}
+  #detailOverlay .dialog-head .eyebrow{letter-spacing:1.2px;font-size:10px}
+  #detailOverlay .dialog-head .icon,#cartOverlay .dialog-head .icon{width:38px;height:38px;border-radius:11px;flex:none;font-size:24px}
+  #detailOverlay .detail{display:flex;flex-direction:column;gap:14px}
+  #detailOverlay .detail-media{gap:8px}
+  #detailOverlay .detail-main{border-radius:15px}
+  #detailOverlay .detail-main img{width:100%;height:205px;aspect-ratio:auto;object-fit:contain;background:#f2f6fa}
+  #detailOverlay .detail-thumbs{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+  #detailOverlay .detail-thumb img{aspect-ratio:1}
+  #detailOverlay .detail>div:last-child{min-width:0}
+  #detailOverlay .detail h3{font-size:clamp(22px,6vw,27px);line-height:1.12;margin:6px 0 9px}
+  #detailOverlay .detail .cost{font-size:24px;margin:2px 0 6px}
+  #detailOverlay .detail p{margin:5px 0 10px;font-size:13px;line-height:1.48}
+  #detailOverlay .detail .info,#detailOverlay .detail .warning{padding:10px 12px;border-radius:13px;font-size:12px;line-height:1.4}
+  #detailOverlay .detail-buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0 6px}
+  #detailOverlay .detail-buttons .btn{min-width:0;font-size:12px;line-height:1.25;padding:11px 7px;border-radius:12px;min-height:48px;white-space:normal}
+  /* Carrito: separación y botones grandes en secuencia */
+  #cartOverlay .dialog{padding-left:15px;padding-right:15px;padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+  #cartOverlay .dialog-head h2{font-size:24px}
+  #cartOverlay .cart-items{gap:9px}
+  #cartOverlay .cart-line{grid-template-columns:56px minmax(0,1fr);padding:10px;gap:9px;border-radius:15px}
+  #cartOverlay .cart-line img{height:56px;width:56px;border-radius:10px}
+  #cartOverlay .cart-line>div:nth-child(2) strong{font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+  #cartOverlay .cart-line .actions{grid-column:2;justify-content:flex-start;gap:9px}
+  #cartOverlay .cart-line .actions button{width:32px;height:32px}
+  #cartOverlay #checkoutControls{display:flex;flex-direction:column;gap:0}
+  #cartOverlay #checkoutControls>h3{font-size:16px;margin:20px 0 9px!important}
+  #cartOverlay .method-grid{grid-template-columns:1fr;gap:7px;margin:0 0 12px}
+  #cartOverlay .method{padding:12px 13px;border-radius:12px;font-size:14px}
+  #cartOverlay .totals{padding:11px 13px;border-radius:15px;margin:12px 0}
+  #cartOverlay .total-row{font-size:13px;padding:9px 0;align-items:center;gap:10px}
+  #cartOverlay .total-row strong{white-space:nowrap}
+  #cartOverlay .total-row.big{font-size:19px;margin-top:4px;padding:13px 0}
+  #cartOverlay .total-row.deposit-row,#cartOverlay .total-row.cash-row{font-size:13px}
+  #cartOverlay .payment-helper{font-size:12px;line-height:1.5;margin:2px 0 10px}
+  #cartOverlay .bank-cart-link{font-size:12px;margin:0 0 13px}
+  #cartOverlay #checkoutControls>.row.spaced{display:contents}
+  #cartOverlay #sendQuote{order:6;width:100%;flex:none;min-height:49px;font-size:14px;padding:12px}
+  #cartOverlay #printQuote{order:7;width:100%;min-height:46px;font-size:13px;margin:9px 0 0!important;padding:12px}
+  #cartOverlay #clearCart{order:8;width:100%;flex:none;background:transparent;border:none;color:#7b899e;font-size:12px;padding:10px 0;min-height:34px;text-decoration:underline}
+  #cartOverlay #checkoutControls>.admin-hint{order:9;font-size:11px;line-height:1.4;color:#8796a8;margin:6px 0}
+  #cartOverlay .warning{padding:11px 12px;font-size:12px;line-height:1.4}
+}
+@media(max-width:360px){
+  #detailOverlay .detail-buttons{grid-template-columns:1fr}
+  #detailOverlay .detail-main img{height:170px}
+  .catalog-page .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .catalog-page .product-body{padding:9px 8px}
+}
