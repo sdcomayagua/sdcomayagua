@@ -63,7 +63,18 @@ function doPost(e) {
   } catch (err) { result = {ok:false,error:safeError_(err)}; }
   const message = JSON.stringify({__gcResponse:true,requestId,...result})
     .replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
-  return HtmlService.createHtmlOutput('<!doctype html><meta charset="utf-8"><script>try{window.top.postMessage('+message+',"*");}catch(e){}try{window.parent.postMessage('+message+',"*");}catch(e){}<\/script>')
+  // Apps Script encierra HtmlService en un iframe adicional.
+  // Reintentamos el mensaje a la ventana principal para evitar que se pierda.
+  const html = '<!doctype html><html><head><meta charset="utf-8"></head><body>' +
+    '<script>(function(){' +
+    'var answer=' + message + ';' +
+    'function deliver(){' +
+      'try{window.top.postMessage(answer,"*");}catch(e){}' +
+      'try{window.parent.postMessage(answer,"*");}catch(e){}' +
+    '}' +
+    'deliver();setTimeout(deliver,200);setTimeout(deliver,800);' +
+    '})();<\\/script></body></html>';
+  return HtmlService.createHtmlOutput(html)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
