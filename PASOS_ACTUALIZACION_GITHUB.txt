@@ -1,0 +1,16 @@
+GAMER COMAYAGUA V2 - ACTUALIZACION SIN PERDER APPS SCRIPT
+
+IMPORTANTE: Este paquete no incluye ni modifica assets/js/config.js, así que conserva el enlace /exec que ya configuraste.
+
+1. Descarga y descomprime ZIP de actualización.
+2. Abre tu repositorio de GitHub Pages.
+3. Sube las carpetas/archivos de este ZIP respetando la ubicación.
+4. Espera la nueva implementación de GitHub Pages y refresca la web.
+5. Comprueba Inicio, Productos, Cuentas y la cotización.
+6. Si aún estás en el paso 2 de Apps Script, continúa ese procedimiento; actualizar GitHub no sustituye los permisos del servicio.
+7. En la pestaña Cuentas de Google Sheets agrega: Banco | Titular | Cuenta | Identidad | Visible. Solo filas con Visible=SI se publican, incluido el número de identidad.
+8. Para las fotos, utiliza el archivo FOTOS_PENDIENTES.csv y sube los archivos WEBP reales que faltan en assets/products/.
+
+PRUEBAS RAPIDAS:
+40 pares a L20 => productos L800, envío L110, comisión L91, total L1001, anticipo L201, efectivo L800.
+Cargador L250 y adaptador L120 => productos L370, envío L110, comisión L48, total L528, anticipo L158, efectivo L370.
