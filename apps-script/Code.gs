@@ -64,7 +64,7 @@ function doPost(e) {
   } catch (err) { result = {ok:false,error:safeError_(err)}; }
   const message = JSON.stringify({__gcResponse:true,requestId,...result})
     .replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
-  return HtmlService.createHtmlOutput('<!doctype html><meta charset="utf-8"><script>parent.postMessage('+message+',"*");<\/script>')
+  return HtmlService.createHtmlOutput('<!doctype html><meta charset="utf-8"><script>try{window.top.postMessage('+message+',"*");}catch(e){}try{window.parent.postMessage('+message+',"*");}catch(e){}<\/script>')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
