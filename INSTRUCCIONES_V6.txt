@@ -1,0 +1,12 @@
+GAMER COMAYAGUA — ACTUALIZACION V6 PARA GITHUB PAGES
+
+1. Descomprimí este ZIP.
+2. En VS Code conectado a tu repositorio sdcomayagua/sdcomayagua, reemplazá los siete archivos en sus carpetas actuales (index.html, productos.html, cuentas.html, admin.html, assets/css/site.css, assets/js/site.js y assets/js/admin.js).
+3. Hacé Commit & Push; esperá a que GitHub Pages termine la publicación.
+4. Abrí la tienda en modo incógnito o agregá ?v=6 a la dirección.
+
+IMPORTANTE: NO REEMPLACES assets/js/config.js NI apps-script/Code.gs. Esta actualización solo cambia el aspecto y el formulario de fotos.
+
+FOTOS: Botón Elegir de galería (varios archivos) / Abrir cámara (una foto) / enlaces HTTPS en Imagen y Galería adicional. Máximo 10 fotos en total, 2 MB por archivo al subirlos a Google Drive. Para ver las fotos nuevas en el catálogo, presioná Guardar producto tras cargarlas.
+
+Si Google Drive presenta un error al abrir Apps Script, el problema es independiente de la descarga: comprobá la implementación /exec en modo incógnito y el acceso Cualquier usuario.
