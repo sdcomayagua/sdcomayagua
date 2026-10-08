@@ -1,0 +1,29 @@
+name: Sincronizar catálogo público Gamer Comayagua
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "7,17,27,37,47,57 * * * *"
+permissions:
+  contents: write
+concurrency:
+  group: gamer-comayagua-catalog-sync
+  cancel-in-progress: false
+jobs:
+  catalogo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Actualizar catálogo solo desde la pestaña publicada
+        run: python3 scripts/sync_public_catalog.py
+      - name: Guardar cambios en GitHub Pages
+        shell: bash
+        run: |
+          if git diff --quiet -- data/catalogo-respaldo.json; then
+            echo "No hay cambios de inventario."
+            exit 0
+          fi
+          git config user.name "Gamer Comayagua Sync"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/catalogo-respaldo.json
+          git commit -m "Actualizar inventario desde catálogo público Google Sheets"
+          git push
