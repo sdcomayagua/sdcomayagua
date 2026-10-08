@@ -126,7 +126,7 @@ function cfg_(){
   return {brand:String(raw.brand||'Gamer Comayagua'),shipping:money_(raw.shipping||110),codMinimum:money_(raw.codMin||350),codMinimumUnits:Math.max(2,Math.floor(money_(raw.codMinUnits||2))),codRate:rate_(raw.codRate,.1),tigoRate:rate_(raw.tigoRate,.07),whatsapp:String(raw.whatsapp||'50431517755').replace(/\D/g,'')};
 }
 function publicPayload_(){
-  const cache=CacheService.getScriptCache();const cached=cache.get('public_catalog_v4');if(cached)return JSON.parse(cached);
+  const cache=CacheService.getScriptCache();const cached=cache.get('public_catalog_v5');if(cached)return JSON.parse(cached);
   const ss=book_(),sheet=ss.getSheetByName(GC_TAB_PRODUCTS);if(!sheet)throw Error('No existe la pestaña Productos.');
   const vals=sheet.getDataRange().getDisplayValues();const headers=vals.shift()||[];const idx=k=>headers.indexOf(k);
   const value=(row,k)=>idx(k)>=0?row[idx(k)]:'';
@@ -135,14 +135,16 @@ function publicPayload_(){
     category:String(value(r,'Categoria')||'Otros'),price:money_(value(r,'Precio')),
     stock:Math.max(0,Math.floor(money_(value(r,'Stock')))),image:String(value(r,'Imagen')),
     gallery:String(value(r,'Galeria')),description:String(value(r,'Descripcion')),
-    discounts:String(value(r,'Descuentos')),codAllowed:yes_(value(r,'PagoAlRecibir')),active:yes_(value(r,'Activo'))
+    discounts:String(value(r,'Descuentos')),colors:String(value(r,'Colores')),
+    promoPrice:money_(value(r,'PrecioPromocion')),promoText:String(value(r,'PromocionTexto')),
+    codAllowed:yes_(value(r,'PagoAlRecibir')),active:yes_(value(r,'Activo'))
   })).filter(p=>p.id&&p.name&&p.active);
   const bankSheet=ss.getSheetByName(GC_TAB_BANKS);const banks=[];
   if(bankSheet&&bankSheet.getLastRow()>1){bankSheet.getRange(2,1,bankSheet.getLastRow()-1,5).getDisplayValues().forEach(r=>{
     if(yes_(r[4])&&r[2])banks.push({bank:r[0],owner:r[1],account:r[2],identity:r[3],visible:true});
   });}
   const result={products,settings:cfg_(),banks,updatedAt:new Date().toISOString()};
-  const out=JSON.stringify(result);if(out.length<90000)cache.put('public_catalog_v4',out,45);
+  const out=JSON.stringify(result);if(out.length<90000)cache.put('public_catalog_v5',out,45);
   return result;
 }
 function saveProduct_(p){
