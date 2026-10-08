@@ -31,7 +31,7 @@ function items(){cleanItems();return Object.entries(cart).map(([id,qty])=>({prod
 function renderCategories(){if(!$('category'))return;const cats=[...new Set(products.filter(p=>p.active).map(p=>p.category))].filter(Boolean).sort((a,b)=>a.localeCompare(b,'es'));const selection=$('category').value;$('category').innerHTML='<option value="">Todas las categorías</option>'+cats.map(x=>`<option value="${escapeAttr(x)}">${safe(x)}</option>`).join('');$('category').value=cats.includes(selection)?selection:'';}
 function card(p){
  const offer=C.unitPrice(p,1),reduced=offer<p.price;
- const amount=reduced?`<div class="cost"><span class="old-price">${C.money(p.price)}</span> ${C.money(offer)}</div>`:`<div class="cost">${C.money(p.price)}</div>`;
+ const amount=reduced?`<div class="product-price is-promo"><span class="price-previous">Antes <s>${C.money(p.price)}</s></span><strong class="price-current">${C.money(offer)}</strong></div>`:`<div class="product-price"><strong class="price-current">${C.money(p.price)}</strong></div>`;
  return `<article class="product ${p.stock?'':'out'}"><div class="photo"><button type="button" class="photo-open" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}"><img loading="lazy" decoding="async" src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}'" alt="${safe(p.name)}"></button><span class="tag ${p.stock?'':'out'}">${p.stock?'Disponible':'Agotado'}</span>${p.codAllowed?'<span class="tag eligible">Pago al recibir*</span>':''}</div><div class="product-body"><div class="category">${safe(p.category)}</div><h3>${safe(p.name)}</h3>${amount}${p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:''}<div class="stock">${p.stock?`${p.stock} unidad(es) disponible(s)`:'Sin existencias'}</div><div class="product-actions"><button type="button" class="btn" data-add="${escapeAttr(p.id)}" ${!p.stock?'disabled':''}>${p.stock?'🛒 Agregar':'Agotado'}</button><button type="button" class="btn outline" data-detail="${escapeAttr(p.id)}">Ver</button></div></div></article>`;
 }
 function render(){
@@ -58,7 +58,7 @@ function open(id){
  const p=products.find(x=>x.id===id);if(!p)return;currentId=id;
  const images=galleryOf(p).length?galleryOf(p):[imgFallback];
  const unit=C.unitPrice(p,1),reduced=unit<p.price;
- const amount=`<div class="cost">${reduced?`<span class="old-price">${C.money(p.price)}</span> `:''}${C.money(unit)}</div>`;
+ const amount=reduced?`<div class="product-price detail-price is-promo"><span class="price-previous">Antes <s>${C.money(p.price)}</s></span><strong class="price-current">${C.money(unit)}</strong></div>`:`<div class="product-price detail-price"><strong class="price-current">${C.money(unit)}</strong></div>`;
  const detailText=p.description?`<p>${safe(p.description)}</p>`:'';
  const colors=p.colors?`<p class="detail-optional"><b>Colores disponibles:</b> ${safe(p.colors)}</p>`:'';
  const promotion=p.promoText?`<p class="promo-note">${safe(p.promoText)}</p>`:'';
