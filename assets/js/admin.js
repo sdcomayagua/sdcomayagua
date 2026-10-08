@@ -3,14 +3,52 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&
 const toast=x=>{const el=$('toast');el.textContent=x;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.display='none',3800)};
 function validApi(){return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(cfg.apiUrl||'')}
 function request(action,extra={}){
- if(!validApi())return Promise.reject(Error('Primero configurá la URL de Apps Script en assets/js/config.js.'));
- return new Promise((resolve,reject)=>{const requestId='req'+Date.now()+Math.random().toString(36).slice(2),frame=document.createElement('iframe'),form=document.createElement('form');let timer,complete=false;
- function finish(err,data){if(complete)return;complete=true;clearTimeout(timer);window.removeEventListener('message',listener);frame.remove();form.remove();err?reject(err):resolve(data)}
- frame.name='frame_'+requestId;frame.style.cssText='position:absolute;width:0;height:0;visibility:hidden;border:0';document.body.appendChild(frame);
- function listener(ev){if(!/^https:\/\/(?:script\.google\.com|(?:[\w-]+\.)?googleusercontent\.com)$/i.test(ev.origin))return;const d=ev.data;if(!d||d.__gcResponse!==true||d.requestId!==requestId)return;if(d.ok)finish(null,d);else finish(Error(d.error||'No se pudo completar la operación'))}
- window.addEventListener('message',listener);form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,token,...extra});form.appendChild(field);document.body.appendChild(form);timer=setTimeout(()=>finish(Error('No se pudo verificar el acceso. Revisá la implementación actualizada de Apps Script.')),45000);form.submit();});
+ if(!validApi())return Promise.reject(Error('La URL de Apps Script no está configurada correctamente.'));
+ return new Promise((resolve,reject)=>{
+  const requestId=(typeof crypto!=='undefined' && crypto.randomUUID)?crypto.randomUUID():('gc'+Date.now()+Math.random().toString(36).slice(2));
+  const frame=document.createElement('iframe'),form=document.createElement('form');
+  let timer,finished=false;
+  function finish(err,data){
+   if(finished)return;finished=true;clearTimeout(timer);
+   window.removeEventListener('message',listener);frame.remove();form.remove();
+   if(err)reject(err);else resolve(data);
+  }
+  frame.name='gcFrame_'+requestId.replace(/[^\w]/g,'');
+  frame.style.cssText='position:absolute;left:-10000px;top:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+  document.body.appendChild(frame);
+  function listener(ev){
+   const allowed=ev.origin==='null'||/^https:\/\/(?:script\.google\.com|(?:[a-z0-9-]+\.)*googleusercontent\.com)$/i.test(ev.origin);
+   if(!allowed)return;
+   const d=ev.data;
+   if(!d||d.__gcResponse!==true||d.requestId!==requestId)return;
+   if(d.ok)finish(null,d);else finish(Error(d.error||'No se pudo completar la operación.'));
+  }
+  window.addEventListener('message',listener);
+  form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';
+  const field=document.createElement('input');field.name='payload';
+  field.value=JSON.stringify({requestId,action,token,...extra});
+  form.appendChild(field);document.body.appendChild(form);
+  timer=setTimeout(()=>finish(Error('Apps Script respondió a la prueba pública, pero el navegador no recibió la confirmación privada. Revisá el permiso “Cualquier usuario” de la implementación y las restricciones de cookies/iframes del navegador.')),30000);
+  try{form.submit()}catch(error){finish(Error('No se pudo enviar la solicitud al servidor de Google.'))}
+ });
 }
-function jsonp(){return new Promise((resolve,reject)=>{const n='gcAdminList'+Date.now(),s=document.createElement('script');const t=setTimeout(()=>end(Error('Sin respuesta de Apps Script')),14000);function end(err,result){clearTimeout(t);delete window[n];s.remove();err?reject(err):resolve(result)}window[n]=result=>result.ok?end(null,result):end(Error(result.error||'Error al consultar'));s.onerror=()=>end(Error('Fallo al consultar'));s.src=cfg.apiUrl+'?action=public&callback='+n+'&t='+Date.now();document.head.appendChild(s)})}
+function jsonp(action='public'){
+ return new Promise((resolve,reject)=>{
+  if(!validApi())return reject(Error('Falta configurar la URL de Apps Script.'));
+  const n='gcCheck'+Date.now()+'_'+Math.floor(Math.random()*100000);
+  const script=document.createElement('script');
+  let done=false;
+  const timer=setTimeout(()=>finish(Error('No se pudo conectar con Apps Script. Comprobá el acceso público de la implementación.')),12000);
+  function finish(err,result){
+   if(done)return;done=true;clearTimeout(timer);delete window[n];script.remove();
+   if(err)reject(err);else resolve(result);
+  }
+  window[n]=result=>result&&result.ok?finish(null,result):finish(Error(result?.error||'Respuesta inválida de Apps Script.'));
+  script.onerror=()=>finish(Error('La aplicación web de Google no está accesible desde esta página.'));
+  script.src=cfg.apiUrl+(cfg.apiUrl.includes('?')?'&':'?')+'action='+encodeURIComponent(action)+'&callback='+n+'&t='+Date.now();
+  document.head.appendChild(script);
+ });
+}
 function render(){
  const q=$('adminSearch').value.toLowerCase().trim();
  const rows=products.filter(p=>(p.name+' '+p.category).toLowerCase().includes(q));
@@ -34,6 +72,9 @@ async function logIn(e){
  const candidate=$('secret').value.trim();if(!candidate)return;
  token=candidate;$('loginBtn').disabled=true;$('loginMessage').classList.add('hidden');
  try{
+  const health=await jsonp('health');
+  if(health.version!=='GC-20261008-PIN-V6')throw Error('La implementación de Apps Script está desactualizada. Copiá el último Code.gs desde GitHub y publicá una NUEVA VERSIÓN de la implementación existente.');
+  if(!health.pinConfigurado)throw Error('Falta configurar un PIN válido de seis dígitos en las propiedades de Apps Script.');
   await request('verify');
   sessionStorage.setItem('gc_admin_token',token);
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');reload();
