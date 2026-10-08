@@ -596,3 +596,76 @@ html,body{max-width:100%;overflow-x:clip}
  #detailOverlay .product-price.detail-price{margin:8px 0 10px}
  #detailOverlay .product-price.detail-price .price-current{font-size:29px}
 }
+
+/* GC Pro: precios, catálogo y editor de fotografías */
+:root{--blue:#075bc9;--blue-2:#084ca6;--text:#14283f;--muted:#51657c;--line:#d9e1ea}
+body{background:#f3f5f8;color:var(--text)}
+.header{background:#101f31}
+.eyebrow{color:#075bc9}
+.product{border-radius:18px;box-shadow:0 4px 18px #14283f08}
+.product .photo{aspect-ratio:1;background:#fff}
+.product .photo img,.catalog-page .photo img{object-fit:contain;padding:10px;background:#fff}
+.product-body{padding:18px}
+.product h3{line-height:1.4;overflow-wrap:anywhere}
+.product .category{color:#53667b}
+.product .stock{color:#506177}
+.product .price-line{display:flex;align-items:center;gap:9px;flex-wrap:wrap;max-width:100%}
+.price-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.offer-badge{display:inline-flex;align-items:center;border-radius:6px;background:#ffcf33;color:#292100;font-size:11px;font-weight:850;letter-spacing:.02em;padding:5px 7px;line-height:1;white-space:nowrap}
+.product-price .price-current{color:#122a43}
+.product-price.is-promo .price-current{color:#075bc9}
+.price-previous{white-space:nowrap}
+.product-actions .btn{min-height:44px}
+.filters{padding:14px;background:#fff;border:1px solid var(--line);border-radius:16px}
+.field{color:#14283f}
+.field::placeholder{color:#65768a}
+.mobile-nav a[aria-current=page]{background:#e8f0fc;color:#075bc9;border-radius:12px}
+.gallery-thumb{position:relative;padding:6px;background:white;border:1px solid #d5dfeb;border-radius:12px;min-width:0}
+.gallery-thumb img{width:100%;aspect-ratio:1;object-fit:contain;border-radius:8px}
+.gallery-thumb span{display:block;font-size:11px;color:#52677f;padding:5px 0}
+.gallery-thumb button{display:block;width:100%;min-height:36px;margin-top:4px;border:1px solid #cad6e5;border-radius:7px;background:#f3f7fc;color:#173858;font-size:11px;font-weight:700}
+.gallery-thumb.pending{border:1px dashed #075bc9}
+#pendingPreview:empty{display:none}
+#selectedFilesText{overflow-wrap:anywhere}
+#formOverlay .dialog{max-width:960px}
+#formOverlay .dialog-head{position:sticky;top:-24px;background:#fff;z-index:2;padding:18px 0;border-bottom:1px solid #e0e7ef}
+#productForm>.row:last-child{position:sticky;bottom:-24px;background:white;padding:16px 0;border-top:1px solid #e0e7ef;z-index:2}
+#productForm .upload-card{background:#f3f7fc;border:1px solid #dce5ee;border-radius:16px;padding:18px}
+#productForm .upload-actions{gap:8px;flex-wrap:wrap}
+#formMessage{overflow-wrap:anywhere}
+#productForm[aria-busy=true] .form-grid{pointer-events:none;opacity:.75}
+.products-table td,.products-table th{padding:16px 12px}
+.admin-area .stats article{border-radius:16px}
+@media(min-width:1000px){.catalog-page .grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}.catalog-page .product h3{font-size:16px;min-height:45px}.catalog-page .catalog{padding-top:32px}.catalog-page .filters{gap:14px}}
+@media(max-width:800px){
+ .catalog-page .filters{padding:10px;gap:8px}
+ .catalog-page .product .photo{aspect-ratio:1}
+ .catalog-page .product h3{font-size:14px;min-height:39px;line-height:1.4}
+ .catalog-page .product-body{padding:12px 10px;gap:7px}
+ .catalog-page .product .category{font-size:10px;letter-spacing:.3px}
+ .catalog-page .product .stock{font-size:11px}
+ .catalog-page .product .price-current{font-size:clamp(18px,5.1vw,23px)}
+ .product .price-line{gap:5px}
+ .offer-badge{font-size:9px;padding:5px}
+ .catalog-page .product-actions .btn{min-height:44px}
+ .catalog-page .product .tag{font-size:9px;max-width:70%}
+ .catalog-page .product .tag.eligible{top:auto;bottom:6px;right:6px;max-width:90%;font-size:9px}
+ .admin-area .row.spaced{align-items:stretch;gap:14px}
+ .admin-area .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #formOverlay{padding:0;align-items:flex-end}
+ #formOverlay .dialog{width:100%;max-height:95dvh;border-radius:20px 20px 0 0;padding:0 16px 16px;overscroll-behavior:contain}
+ #formOverlay .dialog-head{top:0;margin:0 0 16px}
+ #formOverlay .field{font-size:16px;min-height:46px}
+ #productForm .form-grid{grid-template-columns:minmax(0,1fr)}
+ #productForm .upload-card{display:block;padding:12px}
+ #productForm .imgpreview{display:none}
+ #productForm .upload-actions{display:grid;grid-template-columns:1fr 1fr}
+ #uploadBtn{grid-column:1/-1}
+ #productForm .gallery-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ #productForm>.row:last-child{bottom:-16px;padding:12px 0 calc(12px + env(safe-area-inset-bottom));gap:8px}
+ #productForm #saveBtn{flex:1;min-height:48px}
+ .admin-area h1{font-size:28px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
+.gallery-thumb span{position:static;background:transparent;border-radius:0}
+@media(max-width:800px){#formOverlay .dialog{min-height:0;max-height:95dvh}}
