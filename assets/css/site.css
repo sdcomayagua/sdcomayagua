@@ -549,3 +549,50 @@ html,body{max-width:100%;overflow-x:clip}
  .mobile-nav a,.mobile-nav button{width:100%;min-width:0;padding:4px 1px;font-size:10px;white-space:nowrap}
  .mobile-nav .mobile-nav-icon{font-size:19px}
 }
+
+
+/* Gamer Comayagua | Precio promocional limpio, sin importes pegados */
+.product-price{
+ display:flex;
+ flex-direction:column;
+ align-items:flex-start;
+ justify-content:flex-end;
+ gap:3px;
+ min-height:48px;
+ max-width:100%;
+ margin:3px 0 2px;
+ line-height:1.12;
+}
+.product-price .price-previous{
+ color:#788aa0;
+ font-size:12px;
+ font-weight:500;
+ line-height:1.2;
+ letter-spacing:0;
+}
+.product-price .price-previous s{
+ color:#8393a7;
+ text-decoration:line-through;
+ text-decoration-thickness:1px;
+ text-decoration-color:#8799ad;
+}
+.product-price .price-current{
+ display:block;
+ color:#17375b;
+ font-size:28px;
+ line-height:1.07;
+ letter-spacing:-.035em;
+ font-weight:850;
+ font-variant-numeric:tabular-nums;
+}
+.product-price.is-promo .price-current{color:#1467cf}
+#detailOverlay .product-price.detail-price{min-height:0;margin:9px 0 12px;gap:5px}
+#detailOverlay .product-price.detail-price .price-previous{font-size:14px}
+#detailOverlay .product-price.detail-price .price-current{font-size:33px}
+@media(max-width:800px){
+ .catalog-page .product .product-price{min-height:43px;gap:3px;margin:3px 0 2px}
+ .catalog-page .product .price-previous{font-size:11px}
+ .catalog-page .product .price-current{font-size:23px;line-height:1.05}
+ #detailOverlay .product-price.detail-price{margin:8px 0 10px}
+ #detailOverlay .product-price.detail-price .price-current{font-size:29px}
+}
