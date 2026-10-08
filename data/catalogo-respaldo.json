@@ -90,7 +90,7 @@
     "name": "Exfoliante para el Cuerpo y Cara",
     "category": "Belleza",
     "price": 100,
-    "stock": 2,
+    "stock": 1,
     "image": "assets/products/b027c5c40082c4b50ec2.webp",
     "gallery": "",
     "description": "",
@@ -98,7 +98,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
+    "promoPrice": 80,
     "promoText": ""
   },
   {
