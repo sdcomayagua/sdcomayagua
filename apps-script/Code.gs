@@ -73,7 +73,7 @@ function doPost(e) {
       'try{window.parent.postMessage(answer,"*");}catch(e){}' +
     '}' +
     'deliver();setTimeout(deliver,200);setTimeout(deliver,800);' +
-    '})();<\\/script></body></html>';
+    '})();</script></body></html>';
   return HtmlService.createHtmlOutput(html)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
