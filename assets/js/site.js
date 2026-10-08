@@ -87,13 +87,51 @@ function printQuote(){
  const html=`<!doctype html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${uid} - Gamer Comayagua</title><style>@page{size:A4;margin:17mm}*{box-sizing:border-box}body{max-width:850px;margin:25px auto;padding:0 20px;color:#172b46;font:14px/1.55 Arial,sans-serif}header{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;border-bottom:4px solid #1269d9;padding-bottom:24px}.name{font-weight:900;color:#1068d7;font-size:27px;line-height:1.1;letter-spacing:-1px}header p{margin:7px 0;color:#667b92}.flag{font-size:11px;text-transform:uppercase;letter-spacing:2px;font-weight:800;color:#4875a9}.meta{text-align:right}.folio{font-size:18px;font-weight:800;color:#122842}.intro{display:flex;justify-content:space-between;gap:20px;padding:26px 0}h2{margin:0 0 10px;font-size:19px}table{width:100%;border-collapse:collapse}thead th{background:#e9f1fb;color:#244267;text-align:left;font-size:12px;padding:12px 10px}tbody td{border-bottom:1px solid #e3eaf2;padding:12px 10px}tbody td:nth-child(2),tbody td:nth-child(3){white-space:nowrap}.right{text-align:right;white-space:nowrap}.sku{font-size:11px;color:#8aa0b8;padding-right:4px}.bottom{display:flex;justify-content:flex-end;margin-top:24px}.totals{width:min(370px,100%);background:#f3f7fc;border-radius:12px;padding:15px 19px}.sumrow{display:flex;justify-content:space-between;gap:20px;padding:8px 0;border-bottom:1px solid #dee8f3}.sumrow:last-child{border-bottom:0}.sumrow.highlight{font-size:18px;font-weight:850;color:#075bc1;border-top:2px solid #a5c6ef;padding-top:12px}.footer{border-top:1px solid #cddceb;margin-top:48px;padding-top:14px;font-size:12px;color:#667b92}.stamp{margin-top:18px;color:#466b9b;font-size:12px}.print{position:fixed;top:10px;right:10px;background:#146fe3;color:white;border:0;border-radius:9px;font-weight:bold;padding:10px 16px;cursor:pointer}@media print{body{margin:0;padding:0}.print{display:none}}</style></head><body><button class="print" onclick="window.print()">Imprimir / Guardar PDF</button><header><div><div class="name">GAMER COMAYAGUA</div><p>Comayagua · Envíos a toda Honduras</p><p>WhatsApp: +504 3151-7755</p></div><div class="meta"><div class="flag">Cotización</div><div class="folio">${uid}</div><p>${safe(date)}</p></div></header><div class="intro"><div><div class="flag">Detalles del pedido</div><h2>Cotización de productos</h2><span>Confirmación de inventario por WhatsApp</span></div><div><div class="flag">Modalidad</div><strong>${safe(labels[q.mode])}</strong></div></div><table><thead><tr><th>Descripción</th><th>Cant.</th><th>Precio unit.</th><th class="right">Subtotal</th></tr></thead><tbody>${rows}</tbody></table><div class="bottom"><div class="totals">${line('Subtotal productos',q.subtotal)}${line('Envío nacional',q.shipping)}${fees}${line('TOTAL A PAGAR',q.total,true)}${balances}</div></div><div class="footer"><b>Importante:</b> esta cotización no representa confirmación de pago ni reserva automática. Los productos se confirman según existencias.<div class="stamp">GAMER COMAYAGUA · Gracias por elegirnos</div></div><script>window.addEventListener('load',()=>window.print());<\/script></body></html>`;
  const w=window.open('','_blank');if(!w){toast('Permití ventanas emergentes para imprimir');return}w.document.write(html);w.document.close();
 }
-function handlePublic(data){if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};banks=Array.isArray(data.banks)?data.banks:[];renderCategories();render();cleanItems();renderBanks();if($('syncStatus')){$('syncStatus').textContent=`✓ ${products.length} productos sincronizados desde Google Sheets`;$('syncStatus').style.color='#0f9f6a';}}
-function renderBanks(){if(!$('bankAccounts'))return;const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim());const copyRow=(label,value)=>!String(value||'').trim()?'':`<div class="bank-copy-row" role="button" tabindex="0" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}"><div><small>${safe(label)}</small><strong>${safe(value)}</strong></div><button type="button" class="copy-btn" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}">Copiar</button></div>`;$('bankAccounts').innerHTML=published.length?published.map(x=>`<article class="bank-card"><div class="bank-card-head"><div class="bank-symbol">▣</div><div><div class="eyebrow">Cuenta para depósitos</div><h3>${safe(x.bank||'Banco')}</h3></div></div>${copyRow('Nombre del titular',x.owner)}${copyRow('Número de cuenta',x.account)}${copyRow('Número de identidad',x.identity)}</article>`).join(''):`<div class="bank-empty"><div class="bank-symbol">▣</div><h3>Datos bancarios pendientes de configurar</h3><p>Para mostrar tus cuentas aquí, completá la pestaña <strong>Cuentas</strong> de Google Sheets y marcá <strong>SI</strong> en la columna Visible. No mostramos números sin verificar.</p><a class="btn outline" href="https://wa.me/${String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito los datos para depositar mi pedido.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a></div>`;}
+function handlePublic(data){if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};if(Array.isArray(data.banks)&&data.banks.length)banks=data.banks;renderCategories();render();cleanItems();renderBanks();if($('syncStatus')){$('syncStatus').textContent=`✓ ${products.length} productos sincronizados desde Google Sheets`;$('syncStatus').style.color='#0f9f6a';}}
+function renderBanks(){if(!$('bankAccounts'))return;const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim());const copyRow=(label,value)=>!String(value||'').trim()?'':`<div class="bank-copy-row" role="button" tabindex="0" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}"><div><small>${safe(label)}</small><strong>${safe(value)}</strong></div><button type="button" class="copy-btn" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}">Copiar</button></div>`;$('bankAccounts').innerHTML=published.length?published.map(x=>`<article class="bank-card"><div class="bank-card-head"><div class="bank-symbol">▣</div><div><div class="eyebrow">Cuenta para depósitos</div><h3>${safe(x.bank||'Banco')}</h3></div></div>${copyRow('Nombre del titular',x.owner)}${copyRow('Número de cuenta',x.account)}${copyRow('Número de identidad',x.identity)}</article>`).join(''):`<div class="bank-empty"><div class="bank-symbol">▣</div><h3>Cuentas no disponibles en este momento</h3><p>Solicitá por WhatsApp los datos para transferir y confirmalos antes de pagar.</p><a class="btn outline" href="https://wa.me/${String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito los datos para depositar mi pedido.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a></div>`;}
 async function copyText(value){try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return true;}}catch{}const input=document.createElement('textarea');input.value=value;input.setAttribute('readonly','');input.style.cssText='position:fixed;top:-1000px;left:-1000px';document.body.append(input);input.select();let ok=false;try{ok=document.execCommand('copy')}catch{}input.remove();return ok;}
+
+/* Respaldo bancario dinámico: consulta SOLO la pestaña Cuentas. Nunca incrusta
+   números de cuenta o identidad dentro de este repositorio público. */
+function banksFromSheet(){
+ return new Promise((resolve,reject)=>{
+  const url=String(config.spreadsheetUrl||'');
+  const match=url.match(/\/spreadsheets\/d\/([\w-]+)/);
+  if(!match)return reject(Error('No hay Google Sheets configurado'));
+  const cb='gcBankSheet_'+Date.now()+'_'+Math.floor(Math.random()*100000);
+  const script=document.createElement('script');
+  let ended=false;
+  const finish=(err,result)=>{if(ended)return;ended=true;clearTimeout(timer);try{delete window[cb]}catch{}script.remove();err?reject(err):resolve(result)};
+  const timer=setTimeout(()=>finish(Error('Tiempo agotado consultando cuentas')),11000);
+  window[cb]=result=>{
+   try{
+    if(result?.status&&result.status!=='ok')throw Error('No se pudo consultar la pestaña Cuentas');
+    const cells=result?.table?.rows;
+    if(!Array.isArray(cells))throw Error('Tabla de cuentas no disponible');
+    const str=c=>c?.f!=null?String(c.f):c?.v!=null?String(c.v):'';
+    const resultBanks=cells.map(row=>{
+     const r=row?.c||[];
+     return {bank:str(r[0]),owner:str(r[1]),account:str(r[2]),identity:str(r[3]),visible:str(r[4])};
+    }).filter(x=>C.yes(x.visible)&&x.account.trim());
+    finish(null,resultBanks);
+   }catch(error){finish(error)}
+  };
+  script.onerror=()=>finish(Error('Sin acceso de lectura a Google Sheets'));
+  const query='out:json;responseHandler:'+cb;
+  script.src='https://docs.google.com/spreadsheets/d/'+match[1]+'/gviz/tq?gid=523704562&tqx='+encodeURIComponent(query)+'&t='+Date.now();
+  document.head.appendChild(script);
+ });
+}
+async function loadBanksFromSheet(){
+ if(!$('bankAccounts'))return;
+ try{const fresh=await banksFromSheet();banks=fresh;renderBanks();}
+ catch(err){console.warn('Cuentas bancarias: revisar publicación del Sheet o Apps Script',err);if(!banks.length)renderBanks();}
+}
 function jsonp(url){return new Promise((resolve,reject)=>{const callback='gcPublic_'+Date.now()+'_'+Math.floor(Math.random()*9999);const script=document.createElement('script');let timeout=setTimeout(()=>done(Error('Tiempo de espera agotado')),13000);function done(err,data){clearTimeout(timeout);delete window[callback];script.remove();err?reject(err):resolve(data)}window[callback]=d=>done(null,d);script.onerror=()=>done(Error('Sin conexión con Apps Script'));script.src=url+(url.includes('?')?'&':'?')+'action=public&callback='+callback+'&t='+Date.now();document.head.appendChild(script)})}
 async function load(){
  const url=String(config.apiUrl||'').trim();
  let localReady=false;
+  if($('bankAccounts'))loadBanksFromSheet();
  // Mostrar el respaldo primero, sin esperar a que finalice la consulta a Apps Script.
  try{
   const response=await fetch('data/catalogo-respaldo.json?actualizado='+Date.now(),{cache:'no-store'});
