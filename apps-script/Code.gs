@@ -1,6 +1,6 @@
 /**
  * GAMER COMAYAGUA · API para Google Sheets + GitHub Pages
- * No colocar claves privadas aquí ni en GitHub. El token se almacena
+ * No colocar claves privadas aquí ni en GitHub. El PIN se almacena
  * ÚNICAMENTE en Propiedades de secuencia de comandos (Script Properties).
  * Proyecto propietario de la hoja:
  * https://docs.google.com/spreadsheets/d/1ReprTmtpBpoxIps-c5O-0quUmYgdHSePGIpB2Ey-rQ0/edit
@@ -13,12 +13,6 @@ const GC_PRODUCT_COLUMNS = ['ID','Codigo','Nombre','Categoria','Precio','Costo',
 
 /** Ejecutar una sola vez. La clave NUEVA se imprime en Registro de ejecución. */
 function configurarSistema() {
-  const props = PropertiesService.getScriptProperties();
-  let token = props.getProperty('ADMIN_TOKEN');
-  if (!token) {
-    token = Utilities.getUuid() + Utilities.getUuid();
-    props.setProperty('ADMIN_TOKEN', token);
-  }
   const ss = book_();
   let sheet = ss.getSheetByName(GC_TAB_PRODUCTS);
   if (!sheet) sheet = ss.insertSheet(GC_TAB_PRODUCTS);
@@ -27,11 +21,11 @@ function configurarSistema() {
   if (!conf) { conf = ss.insertSheet(GC_TAB_SETTINGS); conf.appendRow(['Clave','Valor','Descripcion']); }
   let banks = ss.getSheetByName(GC_TAB_BANKS);
   if (!banks) { banks = ss.insertSheet(GC_TAB_BANKS); banks.appendRow(['Banco','Titular','Cuenta','Identidad','Visible']); }
-  Logger.log('ADMIN_TOKEN (copiá y guardá esta clave fuera de GitHub): ' + token);
+  const pin = PropertiesService.getScriptProperties().getProperty('ADMIN_PIN');
+  Logger.log(pin ? 'Clave privada configurada en propiedades.' : 'Configurá ADMIN_PIN en Propiedades de secuencia de comandos.');
   Logger.log('HOJA: ' + ss.getUrl());
-  return 'Configuración lista. Consultá el registro de ejecución para copiar ADMIN_TOKEN.';
+  return 'Configuración lista. El PIN se establece exclusivamente en las propiedades privadas de Apps Script.';
 }
-
 function doGet(e) {
   const args = (e && e.parameter) || {};
   const name = String(args.callback || '');
@@ -71,12 +65,33 @@ function doPost(e) {
 function book_(){return SpreadsheetApp.openById(GC_SHEET_ID);}
 function safeError_(err){return String((err&&err.message)||err||'Error desconocido').slice(0,380);}
 function assertAdmin_(candidate){
-  const real=PropertiesService.getScriptProperties().getProperty('ADMIN_TOKEN');
-  if (!real)throw Error('ADMIN_TOKEN no configurado: ejecutá configurarSistema().');
-  const s=String(candidate||'');
-  if (!s || s.length !== real.length) throw Error('Clave de administración incorrecta.');
-  let diff=0;for(let i=0;i<real.length;i++)diff|=real.charCodeAt(i)^s.charCodeAt(i);
-  if(diff!==0)throw Error('Clave de administración incorrecta.');
+  // ADMIN_PIN es una propiedad privada: nunca incluir su valor en GitHub.
+  const props=PropertiesService.getScriptProperties();
+  const pin=String(props.getProperty('ADMIN_PIN')||'');
+  if(!/^\d{6}$/.test(pin)) throw Error('Falta configurar ADMIN_PIN en Propiedades de Apps Script.');
+  const lock=LockService.getScriptLock();lock.waitLock(10000);
+  try {
+    const now=Date.now();
+    const blocked=Number(props.getProperty('ADMIN_BLOCK_UNTIL')||0);
+    if(blocked>now) throw Error('Demasiados intentos. Esperá 10 minutos.');
+    const from=Number(props.getProperty('ADMIN_FAIL_STARTED')||0);
+    const count=from && now-from<600000 ? Number(props.getProperty('ADMIN_FAIL_COUNT')||0):0;
+    const provided=String(candidate==null?'':candidate).trim();
+    if(provided!==pin){
+      const next=count+1;
+      props.setProperty('ADMIN_FAIL_STARTED',String(count?from:now));
+      props.setProperty('ADMIN_FAIL_COUNT',String(next));
+      if(next>=8){
+        props.setProperty('ADMIN_BLOCK_UNTIL',String(now+600000));
+        props.deleteProperty('ADMIN_FAIL_COUNT');props.deleteProperty('ADMIN_FAIL_STARTED');
+        throw Error('Demasiados intentos. Esperá 10 minutos.');
+      }
+      throw Error('Clave de administración incorrecta.');
+    }
+    props.deleteProperty('ADMIN_BLOCK_UNTIL');
+    props.deleteProperty('ADMIN_FAIL_COUNT');
+    props.deleteProperty('ADMIN_FAIL_STARTED');
+  } finally {lock.releaseLock();}
 }
 function yes_(x){return /^(sí|si|true|1|yes)$/i.test(String(x==null?'':x).trim());}
 function money_(v){
