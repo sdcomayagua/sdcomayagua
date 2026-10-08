@@ -14,3 +14,59 @@
 .ui-icon{width:20px;height:20px;display:inline-block;vertical-align:middle;flex:none}.photo.missing-photo{aspect-ratio:auto;height:110px}.missing-photo .photo-open{padding:0}.missing-photo img{opacity:.8;width:150px;max-width:100%;margin:auto}.product:has(.missing-photo) .product-price{min-height:32px}.product:has(.missing-photo) h3{min-height:42px}
 @media(max-width:700px){.photo.missing-photo{height:82px}.missing-photo img{width:110px}.product:has(.missing-photo) h3{min-height:35px}.product:has(.missing-photo) .product-price{min-height:32px}}
 #checkoutControls{display:flex;flex-direction:column}#checkoutControls>.row{display:contents}#clearCart{order:9;align-self:center;margin-top:8px}#checkoutControls>.admin-hint{order:10;margin-bottom:0}
+
+
+/* Gamer Comayagua • refinamiento visual 2026. Responsive sin alterar compras. */
+:root{--bg:#f2f5f9;--text:#1c2b3a;--muted:#637287;--blue:#1764c8;--line:#dee6f0;--line-2:#cbd6e3;--shadow:0 8px 25px rgba(20,42,70,.06)}
+body{background:var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px}.topbar{background:#edf2f8;border-color:#dce4ee;color:#526379}.topbar strong{color:#213c58}
+.header{background:#12243a;border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 5px 16px rgba(12,26,43,.1)}
+.header .wrap{min-height:70px;gap:14px}.brand img{width:185px;height:auto}.nav{gap:9px}
+.nav a{padding:10px 12px;color:#d4deeb;border-radius:9px;font-size:13px;font-weight:650;transition:background .18s}
+.nav a[aria-current],.nav a:hover{background:rgba(255,255,255,.12);color:#fff}
+.cart-trigger{border-radius:10px;background:#fff;color:#162f4a;font-weight:700}
+.btn{border-radius:10px;font-weight:650}.btn:active:not(:disabled){transform:translateY(1px)}
+.catalog{padding-top:29px}.section-top h2{font-size:clamp(23px,2.3vw,29px);letter-spacing:-.65px;line-height:1.25}
+.section-top p{font-size:13px;margin-top:5px}.eyebrow{letter-spacing:1.3px}
+.filters{gap:11px;margin:22px 0 12px}.field{border-radius:10px;border-color:#d4dfea}
+.field:focus{outline:2px solid #d3e6fc;outline-offset:0;border-color:#4384d0}
+.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:19px}
+.product{border-radius:16px;border-color:#e0e7f0;box-shadow:var(--shadow);transition:box-shadow .2s,border-color .2s,transform .2s}
+.product:hover{transform:translateY(-2px);border-color:#bfd5ef;box-shadow:0 14px 30px rgba(22,48,77,.09)}
+.photo,.photo.missing-photo{aspect-ratio:1/1;height:auto!important;background:#fff;border-bottom:1px solid #edf1f5}
+.photo-open{padding:7px}.photo img{width:100%;height:100%;object-fit:contain}
+.photo.missing-photo .photo-open{padding:20px}.photo.missing-photo img{width:72%;height:100%;max-width:210px;opacity:.72;margin:auto;object-fit:contain}
+.product-body{padding:16px;gap:9px}.product h3{font-size:15px;min-height:42px;font-weight:650}
+.price-current{font-size:23px}.product-price{min-height:44px}.product-actions{gap:9px}.product-actions .btn{min-height:42px}
+.tag{padding:5px 9px;font-size:10px;font-weight:700;border-radius:7px;box-shadow:0 1px 5px rgba(0,0,0,.05)}
+.page-banner{padding:35px 0 23px}.page-banner h1{font-size:clamp(24px,3vw,32px);letter-spacing:-.6px;line-height:1.2}
+.page-banner p{max-width:690px;font-size:14px;line-height:1.65;margin:8px 0 0}
+.bank-section{padding-bottom:46px}.bank-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;align-items:stretch}
+.bank-card,.bank-empty{border:1px solid #dde6f0;border-radius:17px;background:#fff;box-shadow:var(--shadow);padding:19px 20px;min-width:0}
+.bank-card-head{display:flex;align-items:center;gap:12px;margin-bottom:15px;padding-bottom:13px;border-bottom:1px solid #edf1f5}
+.bank-symbol{height:43px;width:43px;flex:none;border-radius:11px;background:#e9f2ff;color:#175db5;font-size:16px;font-weight:800}
+.bank-card h3,.bank-empty h3{font-size:18px;letter-spacing:-.3px;color:#172b43;line-height:1.25}
+.bank-card-head .eyebrow{font-size:9px;color:#6c809b;margin-bottom:4px;letter-spacing:1px}
+.bank-copy-row{min-width:0;padding:12px 0;gap:10px;border-top-color:#eff2f6}
+.bank-copy-row>div{flex:1;min-width:0}.bank-copy-row small{font-size:10px;color:#687a90;letter-spacing:.2px;font-weight:650}
+.bank-copy-row strong{font-size:13px;line-height:1.5;color:#263b50;overflow-wrap:anywhere;font-weight:650}
+.copy-btn{flex:none;font-size:11px;min-width:72px;padding:9px 11px;border-radius:9px;border-color:#d4e2f1;color:#175ca9;background:#f5f9ff}
+.copy-btn:hover{background:#e6f1ff;border-color:#a6c8ea}
+.bank-warning{background:#f1f6fc;border:1px solid #dae6f4;color:#536b84;border-radius:13px;font-size:12px;margin-top:20px;padding:15px 18px}
+.bank-empty{grid-column:1/-1}#checkoutControls{border-radius:14px}
+@media(max-width:980px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.photo-open{padding:5px}.nav{gap:2px}.nav a{padding:9px 8px}}
+@media(max-width:760px){
+.wrap{padding-left:15px;padding-right:15px}.topbar .wrap{font-size:11px;padding:7px 15px}
+.header .wrap{min-height:63px}.brand img{width:169px}.nav .cart-trigger{min-height:39px;padding:7px 10px;border-radius:9px;background:#fff;color:#17324d}
+.catalog{padding-top:23px}.section-top h2{font-size:22px;letter-spacing:-.55px}.section-top p{font-size:12px}
+.filters{gap:9px;margin-top:17px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.product{border-radius:13px}.product:hover{transform:none}
+.photo,.photo.missing-photo{aspect-ratio:1/1;height:auto!important}.photo-open{padding:4px}
+.photo.missing-photo .photo-open{padding:12px}.photo.missing-photo img{width:77%;max-width:160px}
+.product-body{padding:11px;gap:7px}.product h3{font-size:13px;min-height:37px}
+.product-price{min-height:39px}.price-current{font-size:21px}.tag{top:7px;left:7px;font-size:9px;padding:4px 6px}
+.bank-grid{grid-template-columns:1fr;gap:13px}.bank-card,.bank-empty{padding:17px;border-radius:14px}
+.bank-card h3{font-size:17px}.bank-copy-row{padding:11px 0}.page-banner{padding:26px 0 19px}
+.page-banner h1{font-size:26px}.page-banner p{font-size:13px}
+}
+@media(max-width:380px){.wrap{padding-left:11px;padding-right:11px}.grid{gap:8px}.product-body{padding:9px;gap:6px}.price-current{font-size:19px}.product h3{font-size:12px}.brand img{width:149px}.copy-btn{min-width:65px;padding:8px}}
