@@ -91,7 +91,35 @@ function handlePublic(data){if(!data||data.ok===false||!Array.isArray(data.produ
 function renderBanks(){if(!$('bankAccounts'))return;const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim());const copyRow=(label,value)=>!String(value||'').trim()?'':`<div class="bank-copy-row" role="button" tabindex="0" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}"><div><small>${safe(label)}</small><strong>${safe(value)}</strong></div><button type="button" class="copy-btn" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}">Copiar</button></div>`;$('bankAccounts').innerHTML=published.length?published.map(x=>`<article class="bank-card"><div class="bank-card-head"><div class="bank-symbol">▣</div><div><div class="eyebrow">Cuenta para depósitos</div><h3>${safe(x.bank||'Banco')}</h3></div></div>${copyRow('Nombre del titular',x.owner)}${copyRow('Número de cuenta',x.account)}${copyRow('Número de identidad',x.identity)}</article>`).join(''):`<div class="bank-empty"><div class="bank-symbol">▣</div><h3>Datos bancarios pendientes de configurar</h3><p>Para mostrar tus cuentas aquí, completá la pestaña <strong>Cuentas</strong> de Google Sheets y marcá <strong>SI</strong> en la columna Visible. No mostramos números sin verificar.</p><a class="btn outline" href="https://wa.me/${String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito los datos para depositar mi pedido.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a></div>`;}
 async function copyText(value){try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return true;}}catch{}const input=document.createElement('textarea');input.value=value;input.setAttribute('readonly','');input.style.cssText='position:fixed;top:-1000px;left:-1000px';document.body.append(input);input.select();let ok=false;try{ok=document.execCommand('copy')}catch{}input.remove();return ok;}
 function jsonp(url){return new Promise((resolve,reject)=>{const callback='gcPublic_'+Date.now()+'_'+Math.floor(Math.random()*9999);const script=document.createElement('script');let timeout=setTimeout(()=>done(Error('Tiempo de espera agotado')),13000);function done(err,data){clearTimeout(timeout);delete window[callback];script.remove();err?reject(err):resolve(data)}window[callback]=d=>done(null,d);script.onerror=()=>done(Error('Sin conexión con Apps Script'));script.src=url+(url.includes('?')?'&':'?')+'action=public&callback='+callback+'&t='+Date.now();document.head.appendChild(script)})}
-async function load(){const url=String(config.apiUrl||'').trim();if(url){try{handlePublic(await jsonp(url));return}catch(e){if($('syncStatus'))$('syncStatus').textContent='⚠ '+e.message+'. Mostrando respaldo local.';console.warn(e)}}else if($('syncStatus'))$('syncStatus').textContent='Mostrando catálogo de respaldo. Para activar los cambios en vivo, configurá Apps Script.';try{const r=await fetch('data/catalogo-respaldo.json',{cache:'no-cache'});if(!r.ok)throw Error();products=(await r.json()).map(C.cleanProduct).filter(p=>p.id);renderCategories();render();cleanItems();renderBanks()}catch(error){console.warn('No se pudo cargar respaldo local:',error);products=[];render()}}
+async function load(){
+ const url=String(config.apiUrl||'').trim();
+ let localReady=false;
+ // Mostrar el respaldo primero, sin esperar a que finalice la consulta a Apps Script.
+ try{
+  const response=await fetch('data/catalogo-respaldo.json',{cache:'no-cache'});
+  if(!response.ok)throw Error('No se pudo abrir el respaldo del catálogo');
+  const data=await response.json();
+  if(!Array.isArray(data))throw Error('El respaldo tiene un formato inválido');
+  products=data.map(C.cleanProduct).filter(p=>p.id&&p.name);
+  renderCategories();render();cleanItems();renderBanks();
+  localReady=true;
+  if($('syncStatus'))$('syncStatus').textContent='Catálogo de respaldo cargado. Comprobando actualización en Google Sheets…';
+ }catch(error){
+  console.warn('Respaldo no disponible:',error);
+  if($('syncStatus'))$('syncStatus').textContent='No se pudo cargar el respaldo; verificando catálogo en línea…';
+ }
+ if(!url){
+  if($('syncStatus'))$('syncStatus').textContent=localReady?'Catálogo de respaldo: confirmá existencias por WhatsApp.':'No hay conexión configurada con Google Sheets.';
+  return;
+ }
+ try{
+  handlePublic(await jsonp(url));
+ }catch(error){
+  console.warn('Sin conexión con Apps Script:',error);
+  if($('syncStatus'))$('syncStatus').textContent=localReady?'⚠ Catálogo de respaldo: los cambios recientes de inventario pueden no aparecer. Confirmá existencias.':'⚠ No se pudo conectar el catálogo. Intentá actualizar la página.';
+  if(!localReady){products=[];render();}
+ }
+}
 function binds(){
  if($('year'))$('year').textContent=new Date().getFullYear();
  if($('waHero'))$('waHero').href='https://wa.me/'+config.whatsapp+'?text='+encodeURIComponent('Hola, quiero información sobre sus productos.');
