@@ -58,3 +58,17 @@ body{background:var(--bg);color:var(--text)}
 .method{background:#fff;border-color:#d5deea;color:#1e3551}.method:has(input:checked){background:#eef5ff;border-color:#76a8f7}.total-row{color:#496176}.total-row strong,.total-row.big{color:#10294b}.deposit-row{border-top:1px solid #d7e3ef;color:#1563d8}.deposit-row small{display:none}.cash-row{color:#0d8e68}
 .warning{background:#fff3ee;border-color:#e7b39f;color:#8a3d23}.info{background:#edf5ff;border-color:#bfd7f5;color:#21578e}.bank-empty{background:#fff;border-color:#d7e0ea;color:#163353}.bank-empty p{color:#5c6f83}
 @media(max-width:660px){.hero{padding-top:18px;padding-bottom:14px;gap:14px}.hero h1{font-size:33px;margin:8px 0}.hero-actions{grid-template-columns:1fr 1fr}.hero-panel{padding:16px 16px 18px;border-radius:18px}.catalog,.catalog-page .catalog{padding-bottom:88px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.product h3{min-height:40px;font-size:13px}.cost{font-size:18px}.section-top h2{font-size:23px}.section-top p{font-size:13px}.product-actions{grid-template-columns:1fr}.product-actions .outline{display:none}}
+
+
+/* V5 · acceso privado Gamer Comayagua */
+.gc-login-card{max-width:515px!important;margin:24px auto 65px!important;padding:32px!important;border-radius:22px!important;border:1px solid #cfdaea!important;background:#fff!important;box-shadow:0 16px 48px rgba(20,47,85,.075)!important}
+.gc-login-card .gc-login-icon{display:grid;place-items:center;width:48px;height:48px;background:#e9f2ff;border-radius:14px;font-size:23px;margin-bottom:18px}
+.gc-login-card h1{font-size:clamp(26px,4vw,34px);color:#132945;line-height:1.15;margin:11px 0 9px;letter-spacing:-.035em}
+.gc-login-card .muted{font-size:14px;line-height:1.6;margin:0 0 23px;color:#64758b}
+.gc-login-card form{gap:11px!important}
+.gc-login-card form label{font-size:13px;font-weight:750;color:#243f62}
+.gc-login-card #secret{font-size:17px;letter-spacing:.15em;height:51px;background:#f8fafc;border:1px solid #cdd9e8;color:#122b49}
+.gc-login-card #loginBtn{min-height:49px;font-size:14px;margin-top:4px}
+.gc-login-card .admin-hint{margin-top:15px;color:#778ba2}
+.gc-login-card .warning{font-size:13px;line-height:1.55;margin-bottom:0}
+@media(max-width:660px){.gc-login-card{margin:15px auto 40px!important;padding:22px!important;border-radius:17px!important}.gc-login-card h1{font-size:26px}}
