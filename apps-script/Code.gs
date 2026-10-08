@@ -21,10 +21,11 @@ function configurarSistema() {
   if (!conf) { conf = ss.insertSheet(GC_TAB_SETTINGS); conf.appendRow(['Clave','Valor','Descripcion']); }
   let banks = ss.getSheetByName(GC_TAB_BANKS);
   if (!banks) { banks = ss.insertSheet(GC_TAB_BANKS); banks.appendRow(['Banco','Titular','Cuenta','Identidad','Visible']); }
-  const pin = PropertiesService.getScriptProperties().getProperty('ADMIN_PIN');
-  Logger.log(pin ? 'Clave privada configurada en propiedades.' : 'Configurá ADMIN_PIN en Propiedades de secuencia de comandos.');
+  const props = PropertiesService.getScriptProperties();
+  const pin = props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN');
+  Logger.log(pin ? 'Clave privada configurada en propiedades.' : 'Configurá ADMIN_PIN o ADMIN_TOKEN en Propiedades de secuencia de comandos.');
   Logger.log('HOJA: ' + ss.getUrl());
-  return 'Configuración lista. El PIN se establece exclusivamente en las propiedades privadas de Apps Script.';
+  return 'Sistema configurado. Se acepta ADMIN_PIN o ADMIN_TOKEN guardado en Propiedades de secuencia de comandos.';
 }
 function doGet(e) {
   const args = (e && e.parameter) || {};
@@ -32,7 +33,11 @@ function doGet(e) {
   if (!/^[A-Za-z_$][\w$]{0,90}$/.test(name)) return ContentService.createTextOutput('Callback inválido').setMimeType(ContentService.MimeType.TEXT);
   let result;
   try {
-    result = {ok:true, ...publicPayload_()};
+    if(String(args.action||'') === 'health') {
+      const props=PropertiesService.getScriptProperties();
+      const pin=String(props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN') || '');
+      result={ok:true,version:'GC-20261008-PIN-V6',pinConfigurado:/^\\d{6}$/.test(pin)};
+    } else result = {ok:true, ...publicPayload_()};
   } catch (err) {
     result = {ok:false, error:safeError_(err)};
   }
@@ -67,8 +72,8 @@ function safeError_(err){return String((err&&err.message)||err||'Error desconoci
 function assertAdmin_(candidate){
   // ADMIN_PIN es una propiedad privada: nunca incluir su valor en GitHub.
   const props=PropertiesService.getScriptProperties();
-  const pin=String(props.getProperty('ADMIN_PIN')||'');
-  if(!/^\d{6}$/.test(pin)) throw Error('Falta configurar ADMIN_PIN en Propiedades de Apps Script.');
+  const pin=String(props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN') || '');
+  if(!/^\d{6}$/.test(pin)) throw Error('No hay PIN válido. Configurá ADMIN_PIN o ADMIN_TOKEN con seis dígitos en Propiedades de Apps Script.');
   const lock=LockService.getScriptLock();lock.waitLock(10000);
   try {
     const now=Date.now();
