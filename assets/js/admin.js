@@ -10,7 +10,7 @@ const toast=x=>{const el=$('toast');el.textContent=x;el.style.display='block';cl
 const yes=v=>String(v??'').trim().toUpperCase()==='SI';
 function validApi(){return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(cfg.apiUrl||'')}
 function request(action,extra={}){
- if(!validApi())return Promise.reject(Error('Primero configurá la URL de Apps Script en assets/js/config.js.'));
+ if(!validApi())return Promise.reject(Error('No se encontró la dirección de Apps Script. Podés administrar el inventario desde Google Sheets mientras se revisa la conexión.'));
  return new Promise((resolve,reject)=>{
   const requestId='req'+Date.now()+Math.random().toString(36).slice(2),frame=document.createElement('iframe'),form=document.createElement('form');
   let timer,complete=false;
@@ -21,7 +21,7 @@ function request(action,extra={}){
   form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';
   const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,token,...extra});
   form.appendChild(field);document.body.appendChild(form);
-  timer=setTimeout(()=>finish(Error('No hubo respuesta del servidor. Revisá Apps Script.')),45000);
+  timer=setTimeout(()=>finish(Error('La administración no recibió respuesta de Google. Usá el botón para abrir Google Sheets o revisá los permisos de Apps Script.')),18000);
   form.submit();
  });
 }
@@ -91,15 +91,12 @@ async function logIn(e){
  if(e)e.preventDefault();
  const candidate=$('secret').value.trim();
  if(!candidate)return;
- token=candidate;$('loginBtn').disabled=true;$('loginMessage').classList.add('hidden');
+ token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
  try{
-  const health=await checkHealth();
-  if(health.version!=='GC-20261008-PIN-V6')throw Error('La versión de Apps Script está desactualizada. Actualizá la implementación existente.');
-  if(!health.pinConfigurado)throw Error('Revisá que ADMIN_PIN esté configurado en Apps Script.');
   await request('verify');sessionStorage.setItem('gc_admin_token',token);
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');reload();
  }catch(err){token='';$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
- finally{$('loginBtn').disabled=false}
+ finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
 }
 function showProduct(id){
  const p=products.find(p=>p.id===id)||{id:'',name:'',code:'',category:'',price:0,stock:0,cost:'',image:'',gallery:'',description:'',discounts:'',codAllowed:true,active:true};
