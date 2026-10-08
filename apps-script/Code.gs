@@ -36,7 +36,7 @@ function doGet(e) {
     if(String(args.action||'') === 'health') {
       const props=PropertiesService.getScriptProperties();
       const pin=String(props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN') || '');
-      result={ok:true,version:'GC-20261008-PIN-V6',pinConfigurado:/^\\d{6}$/.test(pin)};
+      result={ok:true,version:'GC-20261008-PIN-V6',pinConfigurado:/^\d{6}$/.test(pin)};
     } else result = {ok:true, ...publicPayload_()};
   } catch (err) {
     result = {ok:false, error:safeError_(err)};
