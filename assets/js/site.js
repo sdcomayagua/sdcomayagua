@@ -96,7 +96,7 @@ async function load(){
  let localReady=false;
  // Mostrar el respaldo primero, sin esperar a que finalice la consulta a Apps Script.
  try{
-  const response=await fetch('data/catalogo-respaldo.json',{cache:'no-cache'});
+  const response=await fetch('data/catalogo-respaldo.json?actualizado='+Date.now(),{cache:'no-store'});
   if(!response.ok)throw Error('No se pudo abrir el respaldo del catálogo');
   const data=await response.json();
   if(!Array.isArray(data))throw Error('El respaldo tiene un formato inválido');
