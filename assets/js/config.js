@@ -2,7 +2,7 @@
 window.GC_CONFIG = {
   brand: 'Gamer Comayagua',
   // Pegá aquí la URL terminada en /exec al publicar Apps Script.
-  apiUrl: '',
+  apiUrl: 'https://script.google.com/macros/s/AKfycbwwAW_byT_dJYWKfqRRK_j7AePtAcGczyjnTITE7E1jaedNUhJgMrhp6VELNX_jsgiR/exec',
   spreadsheetUrl: 'https://docs.google.com/spreadsheets/d/1ReprTmtpBpoxIps-c5O-0quUmYgdHSePGIpB2Ey-rQ0/edit',
   whatsapp: '50431517755',
   shipping: 110,
