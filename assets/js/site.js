@@ -32,7 +32,7 @@ function renderCategories(){if(!$('category'))return;const cats=[...new Set(prod
 function card(p){
  const offer=C.unitPrice(p,1),reduced=offer<p.price;
  const amount=reduced?`<div class="product-price is-promo"><span class="price-previous">Antes <s>${C.money(p.price)}</s></span><span class="price-line"><strong class="price-current">${C.money(offer)}</strong><span class="offer-badge">Oferta</span></span></div>`:`<div class="product-price"><strong class="price-current">${C.money(p.price)}</strong></div>`;
- return `<article class="product ${p.stock?'':'out'}"><div class="photo"><button type="button" class="photo-open" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}"><img loading="lazy" decoding="async" src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}';this.closest('.photo').classList.add('missing-photo')" alt="${safe(p.name)}"></button><span class="tag ${p.stock?'':'out'}">${p.stock?'En stock':'Agotado'}</span></div><div class="product-body"><div class="category">${safe(p.category)}</div><h3>${safe(p.name)}</h3>${amount}${p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:''}<div class="stock">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Sin existencias'}</div><div class="product-actions"><button type="button" class="btn" data-add="${escapeAttr(p.id)}" ${!p.stock?'disabled':''}>${p.stock?'+ Agregar':'Agotado'}</button><button type="button" class="btn outline" data-detail="${escapeAttr(p.id)}">Ver</button></div></div></article>`;
+ return `<article class="product ${p.stock?'':'out'}"><div class="photo"><button type="button" class="photo-open" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}"><img loading="lazy" decoding="async" src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}';this.closest('.photo').classList.add('missing-photo')" alt="${safe(p.name)}"></button><span class="tag ${p.stock?'':'out'}">${p.stock?'En stock':'Agotado'}</span></div><div class="product-body"><div class="category">${safe(p.category)}</div><h3>${safe(p.name)}</h3>${amount}${p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:''}<div class="stock">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Sin existencias'}</div><div class="product-actions"><button type="button" class="btn" data-add="${escapeAttr(p.id)}" ${!p.stock?'disabled':''}>${p.stock?'+ Agregar':'Agotado'}</button><button type="button" class="btn outline" data-detail="${escapeAttr(p.id)}">Detalles</button></div></div></article>`;
 }
 function render(){
  if(!$('productGrid'))return;
@@ -59,10 +59,24 @@ function open(id){
  const images=galleryOf(p).length?galleryOf(p):[imgFallback];
  const unit=C.unitPrice(p,1),reduced=unit<p.price;
  const amount=reduced?`<div class="product-price detail-price is-promo"><span class="price-previous">Antes <s>${C.money(p.price)}</s></span><span class="price-line"><strong class="price-current">${C.money(unit)}</strong><span class="offer-badge">Oferta</span></span></div>`:`<div class="product-price detail-price"><strong class="price-current">${C.money(unit)}</strong></div>`;
- const detailText=p.description?`<p>${safe(p.description)}</p>`:'';
- const colors=p.colors?`<p class="detail-optional"><b>Colores disponibles:</b> ${safe(p.colors)}</p>`:'';
- const promotion=p.promoText?`<p class="promo-note">${safe(p.promoText)}</p>`:'';
- $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)}"></div>${images.length>1?`<div class="detail-thumbs">${images.map((u,i)=>`<button type="button" class="detail-thumb ${i===0?'active':''}" data-photo="${escapeAttr(normalize(u))}"><img src="${escapeAttr(normalize(u))}" alt="Foto ${i+1}"></button>`).join('')}</div>`:''}</div><div><div class="category">${safe(p.category)}</div><h3 id="detailTitle">${safe(p.name)}</h3>${amount}${promotion}${detailText}${colors}<p>${p.stock?`<b>Existencias:</b> ${p.stock}`:'Sin existencias actualmente'}</p><div class="${p.codAllowed?'info':'warning'}">${p.codAllowed?'Este producto admite pago al recibir si el carrito reúne todas las condiciones.':'Este producto no admite pago al recibir. Podés pagar por transferencia o Tigo Money.'}</div><div class="detail-buttons"><button class="btn" id="detailAdd" type="button" ${p.stock?'':'disabled'}>Agregar al carrito</button><button class="btn outline" id="detailWA" type="button">Preguntar por WhatsApp</button></div></div></div>`;
+ const detailText=String(p.description||'').trim()
+   ?`<section class="gc-product-description"><h4>Descripción del producto</h4><p>${safe(p.description.trim())}</p></section>`:'';
+ const specs=C.cleanDetails(p.details);
+ const specRows=[];
+ const feature=(label,value)=>{if(value!==''&&value!==undefined&&value!==null)specRows.push(`<div class="gc-spec-row"><dt>${safe(label)}</dt><dd>${safe(value)}</dd></div>`);};
+ if(p.colors?.trim())feature('Color',p.colors.trim());
+ if(specs.weight)feature('Peso',specs.weight+' '+(specs.weightUnit||'kg'));
+ const unit=specs.measureUnit||'cm';
+ if(specs.width)feature('Ancho',specs.width+' '+unit);
+ if(specs.height)feature('Alto',specs.height+' '+unit);
+ if(specs.length)feature('Largo',specs.length+' '+unit);
+ feature('Tamaño',specs.size||'');
+ feature('Material',specs.material||'');
+ feature('Modelo',specs.model||'');
+ feature('Compatibilidad',specs.compatibility||'');
+ const technical=specRows.length?`<section class="gc-product-specifications"><h4>Características</h4><dl>${specRows.join('')}</dl></section>`:'';
+ const promotion=p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:'';
+ $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)}"></div>${images.length>1?`<div class="detail-thumbs">${images.map((u,i)=>`<button type="button" class="detail-thumb ${i===0?'active':''}" data-photo="${escapeAttr(normalize(u))}"><img src="${escapeAttr(normalize(u))}" alt="Foto ${i+1}"></button>`).join('')}</div>`:''}</div><div><div class="category">${safe(p.category)}</div><h3 id="detailTitle">${safe(p.name)}</h3>${amount}${promotion}${detailText}${technical}<p>${p.stock?`<b>Existencias:</b> ${p.stock}`:'Sin existencias actualmente'}</p><div class="${p.codAllowed?'info':'warning'}">${p.codAllowed?'Este producto admite pago al recibir si el carrito reúne todas las condiciones.':'Este producto no admite pago al recibir. Podés pagar por transferencia o Tigo Money.'}</div><div class="detail-buttons"><button class="btn" id="detailAdd" type="button" ${p.stock?'':'disabled'}>Agregar al carrito</button><button class="btn outline" id="detailWA" type="button">Preguntar por WhatsApp</button></div></div></div>`;
  $('detailPhoto').onerror=function(){this.onerror=null;this.src=imgFallback};
  $('detailContent').querySelectorAll('.detail-thumb').forEach(btn=>btn.addEventListener('click',()=>{const src=btn.dataset.photo;$('detailPhoto').src=src;$('detailContent').querySelectorAll('.detail-thumb').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));
  $('detailAdd').onclick=()=>{add(id);close('detailOverlay')};
