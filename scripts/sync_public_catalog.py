@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 ROOT=Path(__file__).resolve().parent.parent
 SOURCE=ROOT/"data/catalogo-csv.url"
 OUTPUT=ROOT/"data/catalogo-respaldo.json"
-HEADERS=["ID","Codigo","Nombre","Categoria","Precio","Stock","Imagen","Galeria","Descripcion","Descuentos","PagoAlRecibir","Activo","Colores","PrecioPromocion","PromocionTexto"]
+HEADERS=["ID","Codigo","Nombre","Categoria","Precio","Stock","Imagen","Galeria","Descripcion","Descuentos","PagoAlRecibir","Activo","Colores","PrecioPromocion","PromocionTexto","Detalles"]
 RESTRICTED={"costo","cost","ganancia","inversion","identidad","cuenta"}
 
 def number(value):
@@ -61,7 +61,8 @@ def main():
         "gallery":gallery(r["Galeria"]),"description":(r["Descripcion"] or "").strip(),
         "discounts":(r["Descuentos"] or "").strip(),"codAllowed":yes(r["PagoAlRecibir"]),
         "active":yes(r["Activo"]),"colors":(r["Colores"] or "").strip(),
-        "promoPrice":number(r["PrecioPromocion"]),"promoText":(r["PromocionTexto"] or "").strip()})
+        "promoPrice":number(r["PrecioPromocion"]),"promoText":(r["PromocionTexto"] or "").strip(),
+        "details":json.loads(r["Detalles"]) if (r["Detalles"] or "").strip().startswith("{") else {}})
     if len(entries)<40 or len({e["id"] for e in entries})!=len(entries):raise ValueError("CSV incomplete or duplicate products")
     if OUTPUT.exists():
         previous=json.loads(OUTPUT.read_text(encoding="utf8"))
