@@ -21,7 +21,7 @@ function request(action,extra={}){
   form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';
   const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,token,...extra});
   form.appendChild(field);document.body.appendChild(form);
-  timer=setTimeout(()=>finish(Error('La administración no recibió respuesta de Google. Usá el botón para abrir Google Sheets o revisá los permisos de Apps Script.')),60000);
+  timer=setTimeout(()=>finish(Error('Google no respondió al intento de acceso. Verificá que la implementación /exec sea una aplicación web ejecutada como vos, con acceso para cualquier persona sin iniciar sesión.')),60000);
   form.submit();
  });
 }
@@ -50,7 +50,7 @@ function connectionCheck(){
    }
    connectionReady=true;$('connectionStatus').textContent='Conexión disponible. Ingresá tu PIN.';$('connectionHelp').classList.add('hidden');return true;
   }catch(error){
-   $('connectionStatus').textContent='No se pudo verificar la conexión con Google.';
+   $('connectionStatus').textContent='Google no respondió públicamente. Revisá los permisos de la implementación /exec.';
    $('connectionHelp').classList.remove('hidden');return false;
   }finally{$('loginBtn').disabled=!connectionReady;$('retryConnection').disabled=false;checkingConnection=null;}
  })();
@@ -222,7 +222,7 @@ async function disable(id){
 function binds(){
  $('sheetLink').href=cfg.spreadsheetUrl;
  $('loginForm').onsubmit=logIn;
- $('googleConnection').href=cfg.apiUrl+'?action=health&callback=gcConnection';
+ $('googleConnection').href=cfg.apiUrl+'?action=health';
  $('retryConnection').onclick=connectionCheck;
  $('logout').onclick=()=>{token='';sessionStorage.removeItem('gc_admin_token');location.reload()};
  $('refresh').onclick=reload;
