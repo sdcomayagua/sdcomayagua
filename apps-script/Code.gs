@@ -30,7 +30,7 @@ function configurarSistema() {
 function doGet(e) {
   const args = (e && e.parameter) || {};
   const name = String(args.callback || '');
-  if (!/^[A-Za-z_$][\w$]{0,90}$/.test(name)) return ContentService.createTextOutput('Callback inválido').setMimeType(ContentService.MimeType.TEXT);
+  if (name && !/^[A-Za-z_$][\w$]{0,90}$/.test(name)) return ContentService.createTextOutput('Callback inválido').setMimeType(ContentService.MimeType.TEXT);
   let result;
   try {
     if(String(args.action||'') === 'health') {
@@ -42,7 +42,10 @@ function doGet(e) {
     result = {ok:false, error:safeError_(err)};
   }
   const data = JSON.stringify(result).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
-  return ContentService.createTextOutput(name + '(' + data + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  // Sin callback devuelve JSON legible para probar /exec en modo incógnito.
+  // Con callback conserva JSONP para la tienda y el panel en GitHub Pages.
+  return ContentService.createTextOutput(name ? name + '(' + data + ');' : data)
+    .setMimeType(name ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.TEXT);
 }
 
 /** POST de formulario enviado dentro de un iframe: evita los problemas CORS de Apps Script. */
