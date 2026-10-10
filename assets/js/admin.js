@@ -8,6 +8,12 @@ const fallback='assets/img/sin-foto.svg';
 const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const toast=x=>{const el=$('toast');el.textContent=x;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.display='none',3800)};
 const yes=v=>String(v??'').trim().toUpperCase()==='SI';
+/* namedItem evita choques con propiedades nativas como "length". */
+function formField(form,name){
+ const field=form.elements.namedItem(name);
+ if(!field||!('value' in field))throw Error('Campo inexistente: '+name);
+ return field;
+}
 function validApi(){return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(cfg.apiUrl||'')}
 function request(action,extra={}){
  if(!validApi())return Promise.reject(Error('No se encontró la dirección de Apps Script. Podés administrar el inventario desde Google Sheets mientras se revisa la conexión.'));
@@ -154,18 +160,18 @@ async function logIn(e){
 function showProduct(id){
  const p=products.find(p=>p.id===id)||{id:'',name:'',code:'',category:'',price:0,promoPrice:0,promoText:'',colors:'',stock:0,cost:'',image:'',gallery:'',description:'',discounts:'',codAllowed:true,active:true};
  const f=$('productForm');
- for(const [k,v] of Object.entries(p)){if(f.elements[k]&&k!=='cost'&&k!=='promoPrice')f.elements[k].value=v??'';}
- f.elements.promoPrice.value=p.promoPrice>0?p.promoPrice:'';
- f.elements.cost.value='';
+ for(const [k,v] of Object.entries(p)){if(k!=='cost'&&k!=='promoPrice'&&f.elements.namedItem(k))formField(f,k).value=v??'';}
+ formField(f,'promoPrice').value=p.promoPrice>0?p.promoPrice:'';
+ formField(f,'cost').value='';
  const specs=C.cleanDetails(p.details);
  for(const key of ['weight','width','height','length','size','material','model','compatibility']){
-  f.elements[key].value=specs[key]??'';
+  formField(f,key).value=specs[key]??'';
  }
- f.elements.weightUnit.value=specs.weightUnit||'kg';
- f.elements.measureUnit.value=specs.measureUnit||'cm';
+ formField(f,'weightUnit').value=specs.weightUnit||'kg';
+ formField(f,'measureUnit').value=specs.measureUnit||'cm';
  $('technicalEditor').open=Object.keys(specs).length>0;
- f.elements.codAllowed.value=p.codAllowed?'SI':'NO';
- f.elements.active.value=p.active?'SI':'NO';
+ formField(f,'codAllowed').value=p.codAllowed?'SI':'NO';
+ formField(f,'active').value=p.active?'SI':'NO';
  $('formTitle').textContent=id?'Editar producto':'Nuevo producto';
  $('formMessage').textContent='';
  selectedFiles=[];
@@ -179,13 +185,13 @@ async function save(e){
  if(busy)return;
  if(selectedFiles.length && !(await upload()))return;
  const f=$('productForm'),p={};
- for(const k of ['id','code','name','category','price','promoPrice','promoText','colors','cost','stock','image','gallery','discounts','description'])p[k]=f.elements[k].value.trim();
+ for(const k of ['id','code','name','category','price','promoPrice','promoText','colors','cost','stock','image','gallery','discounts','description'])p[k]=formField(f,k).value.trim();
  p.gallery=parseGallery(p.gallery).filter(u=>u!==p.image).slice(0,9).join(', ')||'[]';
- p.codAllowed=f.elements.codAllowed.value==='SI';
- p.active=f.elements.active.value==='SI';
+ p.codAllowed=formField(f,'codAllowed').value==='SI';
+ p.active=formField(f,'active').value==='SI';
  const rawDetails={};
  for(const key of ['weight','width','height','length','size','material','model','compatibility','weightUnit','measureUnit']){
-  rawDetails[key]=f.elements[key].value.trim();
+  rawDetails[key]=formField(f,key).value.trim();
  }
  p.details=C.cleanDetails(rawDetails);
  if(Object.keys(p.details).length&&!detailsSupported){
@@ -279,7 +285,15 @@ function binds(){
  $('refresh').onclick=reload;
  $('createNew').onclick=()=>showProduct('');
  $('adminSearch').oninput=render;
- $('adminRows').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.edit)showProduct(b.dataset.edit);if(b.dataset.disable)disable(b.dataset.disable)};
+ $('adminRows').onclick=e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.edit!==undefined){
+   try{showProduct(b.dataset.edit)}catch(error){
+    console.error('Error al abrir edición:',error);
+    toast('No se pudo abrir el editor. Actualizá la página e intentá de nuevo.');
+   }
+  }else if(b.dataset.disable!==undefined)disable(b.dataset.disable);
+ };
  $('closeForm').onclick=closeForm;$('cancelForm').onclick=closeForm;
  $('productForm').onsubmit=save;
  $('uploadBtn').onclick=upload;
