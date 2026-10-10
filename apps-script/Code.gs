@@ -9,7 +9,7 @@ const GC_SHEET_ID = '1ReprTmtpBpoxIps-c5O-0quUmYgdHSePGIpB2Ey-rQ0';
 const GC_TAB_PRODUCTS = 'Productos';
 const GC_TAB_SETTINGS = 'Configuracion';
 const GC_TAB_BANKS = 'Cuentas';
-const GC_PRODUCT_COLUMNS = ['ID','Codigo','Nombre','Categoria','Precio','Costo','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Revision'];
+const GC_PRODUCT_COLUMNS = ['ID','Codigo','Nombre','Categoria','Precio','PrecioPromocion','Costo','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Revision','Colores','PromocionTexto'];
 
 /** Ejecutar una sola vez. La clave NUEVA se imprime en Registro de ejecución. */
 function configurarSistema() {
@@ -59,6 +59,7 @@ function doPost(e) {
     requestId = String(req.requestId || '');
     assertAdmin_(req.token);
     if (req.action === 'verify') result = {ok:true,message:'Acceso autorizado'};
+    else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
     else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
     else if (req.action === 'disableProduct') result = disableProduct_(req.id);
     else if (req.action === 'uploadImage') result = uploadImage_(req.file || {});
@@ -150,34 +151,92 @@ function publicPayload_(){
   const out=JSON.stringify(result);if(out.length<90000)cache.put('public_catalog_v5',out,45);
   return result;
 }
+/**
+ * El panel obtiene TODOS los productos mediante POST autenticado.
+ * GET y el catálogo público jamás devuelven Costos privados.
+ */
+function adminPayload_(){
+  const s=book_().getSheetByName(GC_TAB_PRODUCTS);
+  if(!s)throw Error('No existe la pestaña Productos.');
+  const rows=s.getDataRange().getValues();
+  const h=(rows.shift()||[]).map(String);
+  const get=(r,key)=>r[h.indexOf(key)]??'';
+  return {products:rows.filter(r=>r.some(x=>String(x??'').trim())).map(r=>({
+    id:String(get(r,'ID')),code:String(get(r,'Codigo')),name:String(get(r,'Nombre')),
+    category:String(get(r,'Categoria')||'Otros'),price:money_(get(r,'Precio')),
+    promoPrice:money_(get(r,'PrecioPromocion')),cost:money_(get(r,'Costo')),
+    stock:Math.max(0,Math.floor(money_(get(r,'Stock')))),
+    image:String(get(r,'Imagen')),gallery:String(get(r,'Galeria')),
+    description:String(get(r,'Descripcion')),discounts:String(get(r,'Descuentos')),
+    codAllowed:yes_(get(r,'PagoAlRecibir')),active:yes_(get(r,'Activo')),
+    colors:String(get(r,'Colores')),promoText:String(get(r,'PromocionTexto'))
+  })).filter(p=>p.id&&p.name),settings:cfg_(),source:'privado'};
+}
+
+/** Escritura por NOMBRE de columna, compatible con orden histórico y nuevo. */
 function saveProduct_(p){
   if(!p || typeof p!=='object')throw Error('Producto inválido.');
   const name=String(p.name||'').trim(),category=String(p.category||'Otros').trim();
   if(name.length<3||name.length>180)throw Error('Escribí un nombre válido.');
   const price=money_(p.price),stock=money_(p.stock);
   if(price<0||stock<0||stock>100000||!Number.isInteger(stock))throw Error('Precio o existencias inválidas.');
+  const promo=p.promoPrice==null||String(p.promoPrice).trim()===''?'':money_(p.promoPrice);
+  if(promo!==''&&(!Number.isFinite(promo)||promo<=0||promo>price))
+    throw Error('El precio promocional debe ser mayor que cero y no superar el precio normal.');
   const img=String(p.image||'').trim();
   if(img&&!/^https:\/\//i.test(img)&&!/^assets\/products\/[\w.-]+$/.test(img))throw Error('La imagen debe ser URL HTTPS o una ruta existente.');
-  const id=String(p.id||Utilities.getUuid()).trim();const lock=LockService.getScriptLock();lock.waitLock(25000);
+  const id=String(p.id||Utilities.getUuid()).trim();
+  const lock=LockService.getScriptLock();lock.waitLock(25000);
   try{
-    const s=book_().getSheetByName(GC_TAB_PRODUCTS);const rows=s.getDataRange().getValues();let position=-1;
-    for(let i=1;i<rows.length;i++)if(String(rows[i][0])===id){position=i+1;break;}
-    const old=position>0?rows[position-1]:[];
-    const cost=p.cost===''||p.cost==null?(old[5]??0):money_(p.cost);
-    const row=[id,String(p.code||old[1]||'').trim(),name,category,price,cost,stock,img,
-      String(p.gallery||old[8]||''),String(p.description||'').slice(0,5000),String(p.discounts||'').slice(0,200),
-      p.codAllowed?'SI':'NO',p.active===false?'NO':'SI','edit-'+new Date().toISOString()];
-    if(position>0)s.getRange(position,1,1,row.length).setValues([row]);else s.appendRow(row);
-    CacheService.getScriptCache().remove('public_catalog_v4');return {ok:true,id,message:position>0?'Producto actualizado':'Producto agregado'};
+    const s=book_().getSheetByName(GC_TAB_PRODUCTS);
+    const rows=s.getDataRange().getValues();
+    const headers=(rows[0]||[]).map(String);
+    const at=key=>headers.indexOf(key);
+    const required=['ID','Codigo','Nombre','Categoria','Precio','Costo','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Revision'];
+    if(required.some(key=>at(key)<0))throw Error('Faltan columnas obligatorias en Productos.');
+    let position=-1;
+    for(let i=1;i<rows.length;i++)if(String(rows[i][at('ID')])===id){position=i+1;break;}
+    const row=position>0?rows[position-1].slice():Array(headers.length).fill('');
+    while(row.length<headers.length)row.push('');
+    const set=(key,value)=>{const i=at(key);if(i>=0)row[i]=value;};
+    const old=key=>at(key)<0?'':row[at(key)];
+    const amount=value=>{const n=money_(value);if(!Number.isFinite(n)||n<0)throw Error('Precio o costo inválido.');return n;};
+    set('ID',id);
+    set('Codigo',String(p.code??old('Codigo')??'').trim());
+    set('Nombre',name);
+    set('Categoria',category);
+    set('Precio',price);
+    set('Costo',p.cost===''||p.cost==null?old('Costo'):amount(p.cost));
+    set('Stock',stock);
+    set('Imagen',img);
+    set('Galeria',p.gallery==null?old('Galeria'):String(p.gallery).slice(0,5000));
+    set('Descripcion',String(p.description||'').slice(0,5000));
+    set('Descuentos',String(p.discounts||'').slice(0,250));
+    set('PagoAlRecibir',p.codAllowed?'SI':'NO');
+    set('Activo',p.active===false?'NO':'SI');
+    set('Revision','edit-'+new Date().toISOString());
+    if(p.colors!==undefined)set('Colores',String(p.colors||'').slice(0,500));
+    if(p.promoPrice!==undefined)set('PrecioPromocion',promo);
+    if(p.promoText!==undefined)set('PromocionTexto',String(p.promoText||'').slice(0,250));
+    if(position>0)s.getRange(position,1,1,headers.length).setValues([row]);else s.appendRow(row);
+    CacheService.getScriptCache().remove('public_catalog_v5');
+    CacheService.getScriptCache().remove('public_catalog_v4');
+    return {ok:true,id,message:position>0?'Producto actualizado':'Producto agregado'};
   } finally {lock.releaseLock();}
 }
 function disableProduct_(id){
-  const s=book_().getSheetByName(GC_TAB_PRODUCTS);const values=s.getDataRange().getValues();
-  for(let i=1;i<values.length;i++)if(String(values[i][0])===String(id)){
-    s.getRange(i+1,13).setValue('NO');CacheService.getScriptCache().remove('public_catalog_v4');return {ok:true,message:'Producto ocultado, sin borrarlo de la hoja.'};
+  const s=book_().getSheetByName(GC_TAB_PRODUCTS),values=s.getDataRange().getValues();
+  const hdr=(values[0]||[]).map(String),idCol=hdr.indexOf('ID'),activeCol=hdr.indexOf('Activo');
+  if(idCol<0||activeCol<0)throw Error('Faltan las columnas ID o Activo.');
+  for(let i=1;i<values.length;i++)if(String(values[i][idCol])===String(id)){
+    s.getRange(i+1,activeCol+1).setValue('NO');
+    CacheService.getScriptCache().remove('public_catalog_v5');
+    CacheService.getScriptCache().remove('public_catalog_v4');
+    return {ok:true,message:'Producto ocultado, sin borrarlo de la hoja.'};
   }
   throw Error('Producto no encontrado.');
 }
+
 function uploadImage_(f){
   const mime=String(f.mime||'');if(!/^image\/(png|jpeg|webp|gif)$/i.test(mime))throw Error('Solo JPG, PNG, WEBP o GIF.');
   const base64=String(f.base64||'');if(!base64||base64.length>2900000)throw Error('Foto muy grande. Usá una de hasta 2 MB.');
