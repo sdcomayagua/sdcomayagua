@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
-let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[];
+let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],connectionReady=false,checkingConnection=null;
 try{token=sessionStorage.getItem('gc_admin_token')||''}catch{}
 const fallback='assets/img/sin-foto.svg';
 const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -37,6 +37,25 @@ function jsonp(action='public'){
  })
 }
 function checkHealth(){return jsonp('health')}
+function connectionCheck(){
+ if(checkingConnection)return checkingConnection;
+ checkingConnection=(async()=>{
+  connectionReady=false;$('loginBtn').disabled=true;$('retryConnection').disabled=true;
+  $('connectionStatus').textContent='Comprobando conexión con Google…';
+  try{
+   const health=await checkHealth();
+   if(health.pinConfigurado===false){
+    $('connectionStatus').textContent='La conexión funciona, pero todavía no hay un PIN configurado en el servidor.';
+    $('connectionHelp').classList.add('hidden');return false;
+   }
+   connectionReady=true;$('connectionStatus').textContent='Conexión disponible. Ingresá tu PIN.';$('connectionHelp').classList.add('hidden');return true;
+  }catch(error){
+   $('connectionStatus').textContent='No se pudo verificar la conexión con Google.';
+   $('connectionHelp').classList.remove('hidden');return false;
+  }finally{$('loginBtn').disabled=!connectionReady;$('retryConnection').disabled=false;checkingConnection=null;}
+ })();
+ return checkingConnection;
+}
 function parseGallery(raw){
  const out=[];
  let text=String(raw||'').trim();try{const parsed=JSON.parse(text);if(Array.isArray(parsed))text=parsed.join('\n')}catch{}
@@ -91,8 +110,9 @@ async function reload(){
 }
 async function logIn(e){
  if(e)e.preventDefault();
+ if(!connectionReady && !(await connectionCheck()))return;
  const candidate=$('secret').value.trim();
- if(!candidate)return;
+ if(!/^\d{6}$/.test(candidate)){toast('Ingresá tu PIN de seis dígitos.');return;}
  token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
  try{
   await request('verify');sessionStorage.setItem('gc_admin_token',token);
@@ -202,6 +222,8 @@ async function disable(id){
 function binds(){
  $('sheetLink').href=cfg.spreadsheetUrl;
  $('loginForm').onsubmit=logIn;
+ $('googleConnection').href=cfg.apiUrl+'?action=health&callback=gcConnection';
+ $('retryConnection').onclick=connectionCheck;
  $('logout').onclick=()=>{token='';sessionStorage.removeItem('gc_admin_token');location.reload()};
  $('refresh').onclick=reload;
  $('createNew').onclick=()=>showProduct('');
@@ -230,7 +252,7 @@ function binds(){
  document.onkeydown=e=>{if(e.key==='Escape')closeForm()};
  renderGalleryPreview();
  if(!validApi()){$('loginMessage').textContent='Todavía falta conectar el sitio con Apps Script: editá assets/js/config.js.';$('loginMessage').classList.remove('hidden')}
- else if(token){$('secret').value=token;logIn();}
+ else {connectionCheck().then(ok=>{if(ok&&token){$('secret').value=token;logIn();}});}
 }
 binds();
 })();
