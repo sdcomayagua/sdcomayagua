@@ -57,13 +57,19 @@ function doPost(e) {
     if (!raw || raw.length > 4200000) throw Error('La solicitud está vacía o es demasiado grande.');
     const req = JSON.parse(raw);
     requestId = String(req.requestId || '');
-    assertAdmin_(req.token);
-    if (req.action === 'verify') result = {ok:true,message:'Acceso autorizado'};
-    else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
-    else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
-    else if (req.action === 'disableProduct') result = disableProduct_(req.id);
-    else if (req.action === 'uploadImage') result = uploadImage_(req.file || {});
-    else throw Error('Operación no reconocida.');
+    // Solo el catálogo público (sin costos) puede consultarse sin PIN.
+    // Todas las demás operaciones siguen autenticadas por el servidor.
+    if (req.action === 'publicCatalog') {
+      result = {ok:true,...publicPayload_()};
+    } else {
+      assertAdmin_(req.token);
+      if (req.action === 'verify') result = {ok:true,message:'Acceso autorizado'};
+      else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
+      else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
+      else if (req.action === 'disableProduct') result = disableProduct_(req.id);
+      else if (req.action === 'uploadImage') result = uploadImage_(req.file || {});
+      else throw Error('Operación no reconocida.');
+    }
   } catch (err) { result = {ok:false,error:safeError_(err)}; }
   const message = JSON.stringify({__gcResponse:true,requestId,...result})
     .replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
