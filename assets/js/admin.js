@@ -154,8 +154,16 @@ async function logIn(e){
 function showProduct(id){
  const p=products.find(p=>p.id===id)||{id:'',name:'',code:'',category:'',price:0,promoPrice:0,promoText:'',colors:'',stock:0,cost:'',image:'',gallery:'',description:'',discounts:'',codAllowed:true,active:true};
  const f=$('productForm');
- for(const [k,v] of Object.entries(p)){if(f.elements[k]&&k!=='cost')f.elements[k].value=v??'';}
+ for(const [k,v] of Object.entries(p)){if(f.elements[k]&&k!=='cost'&&k!=='promoPrice')f.elements[k].value=v??'';}
+ f.elements.promoPrice.value=p.promoPrice>0?p.promoPrice:'';
  f.elements.cost.value='';
+ const specs=C.cleanDetails(p.details);
+ for(const key of ['weight','width','height','length','size','material','model','compatibility']){
+  f.elements[key].value=specs[key]??'';
+ }
+ f.elements.weightUnit.value=specs.weightUnit||'kg';
+ f.elements.measureUnit.value=specs.measureUnit||'cm';
+ $('technicalEditor').open=Object.keys(specs).length>0;
  f.elements.codAllowed.value=p.codAllowed?'SI':'NO';
  f.elements.active.value=p.active?'SI':'NO';
  $('formTitle').textContent=id?'Editar producto':'Nuevo producto';
@@ -175,7 +183,13 @@ async function save(e){
  p.gallery=parseGallery(p.gallery).filter(u=>u!==p.image).slice(0,9).join(', ')||'[]';
  p.codAllowed=f.elements.codAllowed.value==='SI';
  p.active=f.elements.active.value==='SI';
- p.price=Number(p.price);p.stock=Number(p.stock);p.promoPrice=p.promoPrice===''?'':Number(p.promoPrice);
+ const rawDetails={};
+ for(const key of ['weight','width','height','length','size','material','model','compatibility','weightUnit','measureUnit']){
+  rawDetails[key]=f.elements[key].value.trim();
+ }
+ p.details=C.cleanDetails(rawDetails);
+ p.price=Number(p.price);p.stock=Number(p.stock);
+ p.promoPrice=p.promoPrice===''||Number(p.promoPrice)===0?'':Number(p.promoPrice);
  if(!Number.isFinite(p.price)||p.price<0||p.stock<0||!Number.isInteger(p.stock))return toast('Verificá precio y stock');
  if(p.promoPrice!==''&&(!Number.isFinite(p.promoPrice)||p.promoPrice<=0||p.promoPrice>p.price))return toast('La promoción debe ser mayor que cero y no superar el precio normal.');
  setBusy(true);$('formMessage').textContent='Guardando en Google Sheets...';
