@@ -28,10 +28,13 @@ function request(action,extra={}){
 function jsonp(action='public'){
  return new Promise((resolve,reject)=>{
   const n='gcAdminList'+Date.now(),s=document.createElement('script');
-  const t=setTimeout(()=>end(Error('Sin respuesta de Apps Script')),14000);
-  function end(err,result){clearTimeout(t);delete window[n];s.remove();err?reject(err):resolve(result)}
+  let done=false;
+  const t=setTimeout(()=>end(Error('Sin respuesta de Apps Script. Revisá el acceso público de la implementación /exec.')),14000);
+  function end(err,result){if(done)return;done=true;clearTimeout(t);delete window[n];s.remove();err?reject(err):resolve(result)}
   window[n]=result=>result.ok?end(null,result):end(Error(result.error||'Error al consultar'));
-  s.onerror=()=>end(Error('Fallo al consultar'));
+  // Una pantalla de inicio de sesión cargada como script no ejecuta el callback JSONP.
+  s.onload=()=>{if(!done)end(Error('Google devolvió una página sin respuesta de la API. Revisá el acceso anónimo de Apps Script.'));};
+  s.onerror=()=>end(Error('Google rechazó o bloqueó la conexión. Revisá los permisos de Apps Script.'));
   s.src=cfg.apiUrl+'?action='+encodeURIComponent(action)+'&callback='+n+'&t='+Date.now();
   document.head.appendChild(s)
  })
