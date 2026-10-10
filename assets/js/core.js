@@ -12,8 +12,25 @@
   return Number(s)||0;
  }
  const yes=v=>v===true||['si','sí','true','1','yes'].includes(String(v??'').trim().toLowerCase());
+ function cleanDetails(raw){
+  let value=raw;
+  if(typeof value==='string'){try{value=JSON.parse(value||'{}')}catch(e){return {}}}
+  if(!value||typeof value!=='object'||Array.isArray(value))return {};
+  const out={};
+  for(const key of ['weight','width','height','length']){
+   const source=value[key];if(source==null||String(source).trim()==='')continue;
+   const n=Number(String(source).replace(',','.'));
+   if(Number.isFinite(n)&&n>0&&n<1000000)out[key]=n;
+  }
+  for(const key of ['size','material','compatibility','model']){
+   const v=String(value[key]??'').trim().slice(0,200);if(v)out[key]=v;
+  }
+  if(out.weight&&['kg','lb','g'].includes(value.weightUnit))out.weightUnit=value.weightUnit;
+  if((out.width||out.height||out.length)&&['cm','mm','m','in'].includes(value.measureUnit))out.measureUnit=value.measureUnit;
+  return out;
+ }
  function cleanProduct(p){
-  return {id:String(p.id||p.ID||p.Codigo||'').trim(),code:String(p.code||p.Codigo||'').trim(),name:String(p.name||p.Nombre||'').trim(),category:String(p.category||p.Categoria||'Otros').trim(),price:num(p.price??p.Precio),stock:Math.max(0,Math.floor(num(p.stock??p.Stock))),image:String(p.image||p.Imagen||'').trim(),gallery:p.gallery||p.Galeria||'',description:String(p.description||p.Descripcion||''),discounts:String(p.discounts||p.Descuentos||''),colors:String(p.colors||p.Colores||'').trim(),promoPrice:num(p.promoPrice??p.PrecioPromocion),promoText:String(p.promoText||p.PromocionTexto||'').trim(),codAllowed:yes(p.codAllowed??p.PagoAlRecibir??'SI'),active:yes(p.active??p.Activo??'SI')};
+  return {id:String(p.id||p.ID||p.Codigo||'').trim(),code:String(p.code||p.Codigo||'').trim(),name:String(p.name||p.Nombre||'').trim(),category:String(p.category||p.Categoria||'Otros').trim(),price:num(p.price??p.Precio),stock:Math.max(0,Math.floor(num(p.stock??p.Stock))),image:String(p.image||p.Imagen||'').trim(),gallery:p.gallery||p.Galeria||'',description:String(p.description||p.Descripcion||''),discounts:String(p.discounts||p.Descuentos||''),colors:String(p.colors||p.Colores||'').trim(),promoPrice:num(p.promoPrice??p.PrecioPromocion),promoText:String(p.promoText||p.PromocionTexto||'').trim(),details:cleanDetails(p.details??p.Detalles),codAllowed:yes(p.codAllowed??p.PagoAlRecibir??'SI'),active:yes(p.active??p.Activo??'SI')};
  }
  function tiers(str){return String(str||'').split(/[,;|]/).map(x=>x.trim()).map(x=>{const m=x.match(/^(\d+)\s*:\s*([\d.,]+)$/);return m?{min:+m[1],price:num(m[2])}:null}).filter(Boolean).sort((a,b)=>a.min-b.min);}
  function unitPrice(p,qty){let x=num(p.price),promo=num(p.promoPrice);if(promo>0&&promo<=x)x=promo;for(const t of tiers(p.discounts))if(qty>=t.min)x=Math.min(x,t.price);return x;}
@@ -45,5 +62,5 @@
   if(q.mode==='cod')lines.push(`*ANTICIPO A DEPOSITAR (envío + comisión): ${money(q.deposit)}*`,`*SALDO EN EFECTIVO AL RECIBIR: ${money(q.balance)}*`);
   lines.push('','Solicito confirmar disponibilidad y datos de pago.');return lines.join('\n');
  }
- return {num,yes,cleanProduct,tiers,unitPrice,integerTotal,quote,money,number,waMessage};
+ return {num,yes,cleanProduct,cleanDetails,tiers,unitPrice,integerTotal,quote,money,number,waMessage};
 });
