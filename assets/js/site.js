@@ -66,10 +66,10 @@ function open(id){
  const feature=(label,value)=>{if(value!==''&&value!==undefined&&value!==null)specRows.push(`<div class="gc-spec-row"><dt>${safe(label)}</dt><dd>${safe(value)}</dd></div>`);};
  if(p.colors?.trim())feature('Color',p.colors.trim());
  if(specs.weight)feature('Peso',specs.weight+' '+(specs.weightUnit||'kg'));
- const unit=specs.measureUnit||'cm';
- if(specs.width)feature('Ancho',specs.width+' '+unit);
- if(specs.height)feature('Alto',specs.height+' '+unit);
- if(specs.length)feature('Largo',specs.length+' '+unit);
+ const measureUnit=specs.measureUnit||'cm';
+ if(specs.width)feature('Ancho',specs.width+' '+measureUnit);
+ if(specs.height)feature('Alto',specs.height+' '+measureUnit);
+ if(specs.length)feature('Largo',specs.length+' '+measureUnit);
  feature('Tamaño',specs.size||'');
  feature('Material',specs.material||'');
  feature('Modelo',specs.model||'');
