@@ -13,7 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Actualizar catálogo solo desde la pestaña publicada
+      - name: Verificar integridad del sincronizador
+        run: python3 -m py_compile scripts/sync_public_catalog.py
+      - name: Actualizar catálogo público desde Apps Script
         run: python3 scripts/sync_public_catalog.py
       - name: Guardar cambios en GitHub Pages
         shell: bash
