@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
-let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],connectionReady=false,checkingConnection=null;
+let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null;
 try{token=sessionStorage.getItem('gc_admin_token')||''}catch{}
 const fallback='assets/img/sin-foto.svg';
 const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -21,7 +21,7 @@ function request(action,extra={}){
   form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';
   const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,token,...extra});
   form.appendChild(field);document.body.appendChild(form);
-  timer=setTimeout(()=>finish(Error('Google no respondió al intento de acceso. Verificá que la implementación /exec sea una aplicación web ejecutada como vos, con acceso para cualquier persona sin iniciar sesión.')),60000);
+  timer=setTimeout(()=>finish(Error(action==='verify'?'Google no respondió al validar el PIN. Podés abrir el diagnóstico para revisar la conexión.':'Google no respondió a la operación. Revisá el diagnóstico de conexión.')),action==='verify'?28000:action==='uploadImage'?90000:60000);
   form.submit();
  });
 }
@@ -43,19 +43,21 @@ function checkHealth(){return jsonp('health')}
 function connectionCheck(){
  if(checkingConnection)return checkingConnection;
  checkingConnection=(async()=>{
-  connectionReady=false;$('loginBtn').disabled=true;$('retryConnection').disabled=true;
-  $('connectionStatus').textContent='Comprobando conexión con Google…';
+  $('retryConnection').disabled=true;
+  $('connectionStatus').textContent='Comprobando conexión… Podés ingresar tu PIN.';
   try{
    const health=await checkHealth();
    if(health.pinConfigurado===false){
-    $('connectionStatus').textContent='La conexión funciona, pero todavía no hay un PIN configurado en el servidor.';
-    $('connectionHelp').classList.add('hidden');return false;
+    $('connectionStatus').textContent='Google responde, pero falta configurar el PIN en Apps Script.';
+    $('connectionHelp').classList.remove('hidden');return false;
    }
-   connectionReady=true;$('connectionStatus').textContent='Conexión disponible. Ingresá tu PIN.';$('connectionHelp').classList.add('hidden');return true;
+   $('connectionStatus').textContent='Conexión disponible. Ingresá tu PIN.';
+   $('connectionHelp').classList.add('hidden');return true;
   }catch(error){
-   $('connectionStatus').textContent='Google no respondió públicamente. Revisá los permisos de la implementación /exec.';
+   // La prueba pública usa GET/JSONP. No bloqueamos el POST que valida el PIN.
+   $('connectionStatus').textContent='No se pudo comprobar la conexión automáticamente. Podés intentar ingresar.';
    $('connectionHelp').classList.remove('hidden');return false;
-  }finally{$('loginBtn').disabled=!connectionReady;$('retryConnection').disabled=false;checkingConnection=null;}
+  }finally{$('retryConnection').disabled=false;checkingConnection=null;}
  })();
  return checkingConnection;
 }
@@ -113,7 +115,7 @@ async function reload(){
 }
 async function logIn(e){
  if(e)e.preventDefault();
- if(!connectionReady && !(await connectionCheck()))return;
+ // El PIN se comprueba directamente en el servidor; no dependemos del test público JSONP.
  const candidate=$('secret').value.trim();
  if(!/^\d{6}$/.test(candidate)){toast('Ingresá tu PIN de seis dígitos.');return;}
  token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
@@ -256,7 +258,7 @@ function binds(){
  document.onkeydown=e=>{if(e.key==='Escape')closeForm()};
  renderGalleryPreview();
  if(!validApi()){$('loginMessage').textContent='Todavía falta conectar el sitio con Apps Script: editá assets/js/config.js.';$('loginMessage').classList.remove('hidden')}
- else {connectionCheck().then(ok=>{if(ok&&token){$('secret').value=token;logIn();}});}
+ else {connectionCheck().then(ok=>{if(token){$('secret').value=token;if(ok)logIn();}});}
 }
 binds();
 })();
