@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
-let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null;
+let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='';
 try{token=sessionStorage.getItem('gc_admin_token')||''}catch{}
 const fallback='assets/img/sin-foto.svg';
 const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -90,28 +90,54 @@ function renderGalleryPreview(){
 function render(){
  const q=$('adminSearch').value.toLowerCase().trim();
  const rows=products.filter(p=>(p.name+' '+p.category).toLowerCase().includes(q));
- $('statProducts').textContent=products.length;
+ $('statProducts').textContent=products.filter(p=>p.active).length;
  $('statAvailable').textContent=products.filter(p=>p.stock>0).length;
  $('statOut').textContent=products.filter(p=>!p.stock).length;
  $('statCod').textContent=products.filter(p=>p.codAllowed).length;
  $('adminRows').innerHTML=rows.map(p=>`<tr>
    <td data-label="Producto"><strong>${esc(p.name)}</strong><br><span class="muted">${esc(p.category)}</span></td>
    <td data-label="Precio">${C.money(p.price)}</td>
+   <td data-label="Promoción">${p.promoPrice>0?C.money(p.promoPrice):'—'}</td>
+   <td data-label="Costo">${catalogSource==='privado'?C.money(p.cost):'—'}</td>
    <td data-label="Stock">${p.stock}</td>
    <td data-label="Pago al recibir"><span style="color:${p.codAllowed?'#0f9f6a':'#d64545'}">${p.codAllowed?'✓ Permitido':'× Prohibido'}</span></td>
    <td data-label="Estado">${p.active?'Activo':'Oculto'}</td>
    <td data-label="Acciones"><button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> <button type="button" class="btn small red" data-disable="${esc(p.id)}" >Ocultar</button></td>
- </tr>`).join('')||'<tr><td colspan="6" class="muted">No hay resultados.</td></tr>';
+ </tr>`).join('')||'<tr><td colspan="8" class="muted">No hay resultados.</td></tr>';
  $('settingsSummary').textContent=`Envío: ${C.money(settings.shipping||110)} | Mínimo pago al recibir: ${C.money(settings.codMinimum||350)} | Cantidad mínima: ${settings.codMinimumUnits||2} | Comisión al recibir: ${Math.round((settings.codRate||.1)*100)}% | Tigo Money: ${Math.round((settings.tigoRate||.07)*100)}%`;
 
 }
 async function reload(){
+ const label=$('adminStatus');
+ label.textContent='Sincronizando inventario…';
+ // El canal POST ya funciona para autenticar y modificar datos. Lo usamos
+ // también para leer productos, sin depender del GET/JSONP bloqueado.
  try{
-  $('adminStatus').textContent='Sincronizando catálogo...';
-  const data=await jsonp();
-  products=data.products.map(C.cleanProduct);settings=data.settings||{};render();
-  $('adminStatus').textContent='✓ Inventario actualizado desde Google Sheets.';
- }catch(e){$('adminStatus').textContent='⚠ '+e.message;toast(e.message)}
+  const data=await request('adminCatalog');
+  if(!Array.isArray(data.products))throw Error('El servidor no devolvió productos.');
+  catalogSource='privado';
+  products=data.products.map(p=>({...C.cleanProduct(p),cost:C.num(p.cost)}));
+  settings=data.settings||{};
+  render();
+  label.textContent='✓ Inventario actualizado desde Google Sheets.';
+  return true;
+ }catch(error){
+  try{
+   const response=await fetch('data/catalogo-respaldo.json?admin='+Date.now(),{cache:'no-store'});
+   if(!response.ok)throw Error('No se pudo abrir el respaldo.');
+   const data=await response.json();
+   if(!Array.isArray(data)||!data.length)throw Error('Respaldo vacío.');
+   catalogSource='respaldo';
+   products=data.map(C.cleanProduct);
+   render();
+   label.textContent='Catálogo de respaldo cargado. Para sincronizar cambios al instante, publicá la última versión de Code.gs en Apps Script.';
+   return false;
+  }catch(backupError){
+   label.textContent='No se pudieron consultar los productos. Revisá la implementación de Apps Script.';
+   toast(backupError.message);
+   return false;
+  }
+ }
 }
 async function logIn(e){
  if(e)e.preventDefault();
@@ -126,7 +152,7 @@ async function logIn(e){
  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
 }
 function showProduct(id){
- const p=products.find(p=>p.id===id)||{id:'',name:'',code:'',category:'',price:0,stock:0,cost:'',image:'',gallery:'',description:'',discounts:'',codAllowed:true,active:true};
+ const p=products.find(p=>p.id===id)||{id:'',name:'',code:'',category:'',price:0,promoPrice:0,promoText:'',colors:'',stock:0,cost:'',image:'',gallery:'',description:'',discounts:'',codAllowed:true,active:true};
  const f=$('productForm');
  for(const [k,v] of Object.entries(p)){if(f.elements[k]&&k!=='cost')f.elements[k].value=v??'';}
  f.elements.cost.value='';
@@ -145,14 +171,15 @@ async function save(e){
  if(busy)return;
  if(selectedFiles.length && !(await upload()))return;
  const f=$('productForm'),p={};
- for(const k of ['id','code','name','category','price','cost','stock','image','gallery','discounts','description'])p[k]=f.elements[k].value.trim();
+ for(const k of ['id','code','name','category','price','promoPrice','promoText','colors','cost','stock','image','gallery','discounts','description'])p[k]=f.elements[k].value.trim();
  p.gallery=parseGallery(p.gallery).filter(u=>u!==p.image).slice(0,9).join(', ')||'[]';
  p.codAllowed=f.elements.codAllowed.value==='SI';
  p.active=f.elements.active.value==='SI';
- p.price=Number(p.price);p.stock=Number(p.stock);
- if(p.price<0||p.stock<0||!Number.isInteger(p.stock))return toast('Verificá precio y stock');
+ p.price=Number(p.price);p.stock=Number(p.stock);p.promoPrice=p.promoPrice===''?'':Number(p.promoPrice);
+ if(!Number.isFinite(p.price)||p.price<0||p.stock<0||!Number.isInteger(p.stock))return toast('Verificá precio y stock');
+ if(p.promoPrice!==''&&(!Number.isFinite(p.promoPrice)||p.promoPrice<=0||p.promoPrice>p.price))return toast('La promoción debe ser mayor que cero y no superar el precio normal.');
  setBusy(true);$('formMessage').textContent='Guardando en Google Sheets...';
- try{const out=await request('saveProduct',{product:p});toast(out.message||'Guardado');setBusy(false);closeForm();await reload()}catch(err){$('formMessage').textContent='⚠ '+err.message;toast(err.message)}finally{setBusy(false)}
+ try{const out=await request('saveProduct',{product:p});toast(out.message||'Guardado');setBusy(false);closeForm();if(catalogSource==='respaldo'){const merged=C.cleanProduct({...p,cost:0});const i=products.findIndex(x=>x.id===(out.id||p.id));merged.id=out.id||p.id;if(i>=0)products[i]=merged;else products.unshift(merged);render();$('adminStatus').textContent='✓ Guardado en Google Sheets. La vista de respaldo puede requerir actualización cuando se publique la nueva versión de Apps Script.';}else await reload()}catch(err){$('formMessage').textContent='⚠ '+err.message;toast(err.message)}finally{setBusy(false)}
 }
 function mergeSelectedFiles(list){
  const incoming=Array.from(list||[]).filter(Boolean);
@@ -222,7 +249,7 @@ async function upload(){
 }
 async function disable(id){
  const p=products.find(x=>x.id===id);if(!p||!confirm('¿Ocultar "'+p.name+'" de la tienda? El registro se conservará en Sheets.'))return;
- try{await request('disableProduct',{id});toast('Producto ocultado');await reload()}catch(e){toast(e.message)}
+ try{await request('disableProduct',{id});toast('Producto ocultado');if(catalogSource==='respaldo'){p.active=false;render();$('adminStatus').textContent='✓ Producto ocultado en Google Sheets. Vista temporal con datos de respaldo.';}else await reload()}catch(e){toast(e.message)}
 }
 function binds(){
  $('sheetLink').href=cfg.spreadsheetUrl;
