@@ -10,6 +10,7 @@ from urllib.request import Request, urlopen
 ROOT=Path(__file__).resolve().parent.parent
 SOURCE=ROOT/"data/catalogo-csv.url"
 OUTPUT=ROOT/"data/catalogo-respaldo.json"
+INITIAL=ROOT/"data/catalogo-inicial.js"
 HEADERS=["ID","Codigo","Nombre","Categoria","Precio","Stock","Imagen","Galeria","Descripcion","Descuentos","PagoAlRecibir","Activo","Colores","PrecioPromocion","PromocionTexto","Detalles"]
 RESTRICTED={"costo","cost","ganancia","inversion","identidad","cuenta"}
 
@@ -73,6 +74,11 @@ def main():
         OUTPUT.write_text(result,encoding="utf8")
         print(f"Updated {len(entries)} public products")
     else:print("No changes")
+    # Mantener al día la copia que dibuja el catálogo antes de conectar con Google.
+    initial="/* Catálogo público sin información privada. */\\nwindow.GC_CATALOGO_INICIAL="+json.dumps(entries,ensure_ascii=False,separators=(",",":"))+";\\n"
+    if not INITIAL.exists() or INITIAL.read_text(encoding="utf8")!=initial:
+        INITIAL.write_text(initial,encoding="utf8")
+        print("Updated immediate catalog bootstrap")
 
 if __name__=="__main__":
     main()
