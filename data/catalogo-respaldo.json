@@ -8,14 +8,19 @@
     "stock": 1,
     "image": "https://drive.google.com/thumbnail?id=1WaWz0ie7LaPdiNOQX8oZr_BD_OE3_GTQ&sz=w1200",
     "gallery": "https://drive.google.com/thumbnail?id=1ArA65lciCbifGPetgEaaNnoUXCTk_TAz&sz=w1200, https://drive.google.com/thumbnail?id=1VkbwU5iJ0oqvVeH09yfZv1ahwIKN7wi9&sz=w1200",
-    "description": "La nueva serie de cables Dura Speed está diseñada para dispositivos tipo C de alta potencia. El cable está construido con materiales de primera calidad y trenzado en nailon. Además, está diseñado para ser  flexible y tener una experiencia sin enredos. Está fabricado con juntas reforzadas para evitar roturas y roturas. Es seis veces más fuerte que sus cables tradicionales. El cable de 65 W puede cargar tus dispositivos instantáneamente y rápido. Compatible con dispositivos habilitados para Tipo C, como tabletas, teléfonos inteligentes y computadoras portátiles de 45 W o 65 W. \n\nEspecificaciones\n\n• 10 pies/3 m\n\n• Calibre: 20 + 30AWG\n\n• Corriente máxima: 3A/65W\n\n• Material: carcasa de ABS de primera calidad + nailon trenzado\n\n• Tasa de Transferencia: Hasta 480Mbps\n\n• Diámetro exterior: 3,5 mm\n\n• Compatible con portátiles de tipo C de 45 W o 65 W.",
+    "description": "La nueva serie de cables Dura Speed está diseñada para dispositivos tipo C de alta potencia. El cable está construido con materiales de primera calidad y trenzado en nailon. Además, está diseñado para ser  flexible y tener una experiencia sin enredos. Está fabricado con juntas reforzadas para evitar roturas y roturas. \n\nEs seis veces más fuerte que sus cables tradicionales. El cable de 65 W puede cargar tus dispositivos instantáneamente y rápido. Compatible con dispositivos habilitados para Tipo C, como tabletas, teléfonos inteligentes y computadoras portátiles de 45 W o 65 W.",
     "discounts": "",
     "codAllowed": true,
     "active": true,
     "colors": "Negro",
     "promoPrice": 0,
     "promoText": "",
-    "details": {}
+    "details": {
+      "length": 3,
+      "size": "10 Pies (3 Metros)",
+      "material": "Nylon Trenzado",
+      "measureUnit": "m"
+    }
   },
   {
     "id": "bbbd6304-be2a-4f81-bc54-c97211520faa",
