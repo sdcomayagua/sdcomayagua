@@ -197,9 +197,14 @@ async function load(){
  }
  // Refrescar después con JSON local y, por último, con Google Sheets.
  try{
-  const response=await fetch('data/catalogo-respaldo.json?actualizado='+Date.now(),{cache:'no-store'});
-  if(!response.ok)throw Error('No se pudo abrir el respaldo del catálogo');
-  const data=await response.json();
+  const controller=typeof AbortController==='function'?new AbortController():null;
+  const stop=controller?setTimeout(()=>controller.abort(),7000):null;
+  let data;
+  try{
+   const response=await fetch('data/catalogo-respaldo.json?actualizado='+Date.now(),{cache:'no-store',...(controller?{signal:controller.signal}:{})});
+   if(!response.ok)throw Error('No se pudo abrir el respaldo del catálogo');
+   data=await response.json();
+  }finally{if(stop!==null)clearTimeout(stop)}
   if(!Array.isArray(data))throw Error('El respaldo tiene un formato inválido');
   products=data.map(C.cleanProduct).filter(p=>p.id&&p.name);
   renderCategories();render();cleanItems();renderBanks();
