@@ -182,3 +182,20 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
   .admin-area p.muted,
   #productForm textarea[name="description"] {line-height:1.65}
 }
+
+
+/* Corrección real: la ventana de detalles está FUERA de .catalog-page.
+   El selector anterior no alcanzaba los párrafos del modal. */
+#detailOverlay .gc-product-description p {
+  text-align: justify !important;
+  text-align-last: left;
+  text-justify: inter-word;
+  hyphens: auto;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  line-height: 1.78;
+}
+#detailOverlay .gc-product-description {
+  width: 100%;
+  min-width: 0;
+}
