@@ -153,7 +153,7 @@ function detailsClean_(raw){
   return data;
 }
 function publicPayload_(){
-  const cache=CacheService.getScriptCache();const cached=cache.get('public_catalog_v5');if(cached)return JSON.parse(cached);
+  const cache=CacheService.getScriptCache();const cached=cache.get('public_catalog_v6');if(cached)return JSON.parse(cached);
   const ss=book_(),sheet=ss.getSheetByName(GC_TAB_PRODUCTS);if(!sheet)throw Error('No existe la pestaña Productos.');
   const vals=sheet.getDataRange().getDisplayValues();const headers=vals.shift()||[];const idx=k=>headers.indexOf(k);
   const value=(row,k)=>idx(k)>=0?row[idx(k)]:'';
@@ -164,6 +164,7 @@ function publicPayload_(){
     gallery:String(value(r,'Galeria')),description:String(value(r,'Descripcion')),
     discounts:String(value(r,'Descuentos')),colors:String(value(r,'Colores')),
     promoPrice:money_(value(r,'PrecioPromocion')),promoText:String(value(r,'PromocionTexto')),
+    details:detailsClean_(value(r,'Detalles')),
     codAllowed:yes_(value(r,'PagoAlRecibir')),active:yes_(value(r,'Activo'))
   })).filter(p=>p.id&&p.name&&p.active);
   const bankSheet=ss.getSheetByName(GC_TAB_BANKS);const banks=[];
@@ -171,7 +172,7 @@ function publicPayload_(){
     if(yes_(r[4])&&r[2])banks.push({bank:r[0],owner:r[1],account:r[2],identity:r[3],visible:true});
   });}
   const result={products,settings:cfg_(),banks,updatedAt:new Date().toISOString()};
-  const out=JSON.stringify(result);if(out.length<90000)cache.put('public_catalog_v5',out,45);
+  const out=JSON.stringify(result);if(out.length<90000)cache.put('public_catalog_v6',out,45);
   return result;
 }
 /**
@@ -192,7 +193,8 @@ function adminPayload_(){
     image:String(get(r,'Imagen')),gallery:String(get(r,'Galeria')),
     description:String(get(r,'Descripcion')),discounts:String(get(r,'Descuentos')),
     codAllowed:yes_(get(r,'PagoAlRecibir')),active:yes_(get(r,'Activo')),
-    colors:String(get(r,'Colores')),promoText:String(get(r,'PromocionTexto'))
+    colors:String(get(r,'Colores')),promoText:String(get(r,'PromocionTexto')),
+    details:detailsClean_(get(r,'Detalles'))
   })).filter(p=>p.id&&p.name),settings:cfg_(),source:'privado'};
 }
 
@@ -203,7 +205,7 @@ function saveProduct_(p){
   if(name.length<3||name.length>180)throw Error('Escribí un nombre válido.');
   const price=money_(p.price),stock=money_(p.stock);
   if(price<0||stock<0||stock>100000||!Number.isInteger(stock))throw Error('Precio o existencias inválidas.');
-  const promo=p.promoPrice==null||String(p.promoPrice).trim()===''?'':money_(p.promoPrice);
+  const promo=p.promoPrice==null||String(p.promoPrice).trim()===''||Number(p.promoPrice)===0?'':money_(p.promoPrice);
   if(promo!==''&&(!Number.isFinite(promo)||promo<=0||promo>price))
     throw Error('El precio promocional debe ser mayor que cero y no superar el precio normal.');
   const img=String(p.image||'').trim();
@@ -241,7 +243,9 @@ function saveProduct_(p){
     if(p.colors!==undefined)set('Colores',String(p.colors||'').slice(0,500));
     if(p.promoPrice!==undefined)set('PrecioPromocion',promo);
     if(p.promoText!==undefined)set('PromocionTexto',String(p.promoText||'').slice(0,250));
+    if(p.details!==undefined)set('Detalles',JSON.stringify(detailsClean_(p.details)));
     if(position>0)s.getRange(position,1,1,headers.length).setValues([row]);else s.appendRow(row);
+    CacheService.getScriptCache().remove('public_catalog_v6');
     CacheService.getScriptCache().remove('public_catalog_v5');
     CacheService.getScriptCache().remove('public_catalog_v4');
     return {ok:true,id,message:position>0?'Producto actualizado':'Producto agregado'};
@@ -253,6 +257,7 @@ function disableProduct_(id){
   if(idCol<0||activeCol<0)throw Error('Faltan las columnas ID o Activo.');
   for(let i=1;i<values.length;i++)if(String(values[i][idCol])===String(id)){
     s.getRange(i+1,activeCol+1).setValue('NO');
+    CacheService.getScriptCache().remove('public_catalog_v6');
     CacheService.getScriptCache().remove('public_catalog_v5');
     CacheService.getScriptCache().remove('public_catalog_v4');
     return {ok:true,message:'Producto ocultado, sin borrarlo de la hoja.'};
