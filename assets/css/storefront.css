@@ -39,3 +39,60 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
 @media(prefers-reduced-motion:reduce){.catalog-page .photo img{transition:none}.catalog-page .product:hover .photo:not(.missing-photo) img{transform:none}}
 /* Entrada permanente al panel de administración. */
 .footer .admin-entry{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:8px 13px;border:1px solid #cfdaea;border-radius:8px;background:#fff;color:#466486;font-size:11px;font-weight:650;letter-spacing:.6px}.footer .admin-entry:hover{color:#155fd2;border-color:#86ade3}.admin-entry .ui-icon{width:15px;height:15px}.footer .wrap{align-items:center}.connection-status{font-size:12px;color:#60738c;margin:14px 0 5px;line-height:1.5}.connection-help{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:0;background:transparent;border:0;font-size:12px;line-height:1.5}.connection-help.hidden{display:none!important}.connection-help .btn{font-size:11px;min-height:34px;padding:7px 12px}.connection-help a{color:#315e96;font-size:11px;text-decoration:underline;text-underline-offset:2px}#secret{letter-spacing:4px;font-size:20px}#secret::placeholder{letter-spacing:0;font-size:14px}
+
+
+/* Panel de inventario: tarjetas completas en celular, sin desplazamiento horizontal. */
+@media (max-width: 760px) {
+  #adminPanel .table-scroller { overflow: visible !important; width: 100%; max-width: 100%; }
+  #adminPanel .products-table,
+  #adminPanel .products-table tbody {
+    display: block !important; width: 100% !important; max-width: 100%;
+    min-width: 0 !important; border: 0 !important;
+  }
+  #adminPanel .products-table thead { display: none !important; }
+  #adminPanel #adminRows { display: grid !important; gap: 13px; }
+  #adminPanel #adminRows tr {
+    display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start; gap: 12px 14px;
+    width: 100%; min-width: 0; margin: 0; padding: 16px;
+    border: 1px solid #dae5f3; border-radius: 16px; background: #fff;
+    box-shadow: 0 3px 11px rgba(19, 48, 85, .035);
+  }
+  #adminPanel #adminRows td {
+    display: block !important; min-width: 0; width: auto !important;
+    padding: 0 !important; margin: 0 !important; border: 0 !important;
+    font-size: 14px; line-height: 1.4; overflow-wrap: anywhere;
+  }
+  #adminPanel #adminRows td::before {
+    content: attr(data-label); display: block; margin-bottom: 5px;
+    font-size: 10px; font-weight: 750; line-height: 1.35;
+    letter-spacing: .055em; text-transform: uppercase; color: #70829a;
+  }
+  #adminPanel #adminRows td[data-label="Producto"],
+  #adminPanel #adminRows td[data-label="Acciones"],
+  #adminPanel #adminRows td[colspan] { grid-column: 1 / -1; }
+  #adminPanel #adminRows td[data-label="Producto"] {
+    padding-bottom: 12px !important; border-bottom: 1px solid #e9eff7 !important;
+    font-size: 15px; color: #183353;
+  }
+  #adminPanel #adminRows td[data-label="Producto"] strong { font-size: 15px; line-height: 1.4; }
+  #adminPanel #adminRows td[data-label="Acciones"] {
+    display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 9px; align-items: center; margin-top: 2px !important;
+    padding-top: 12px !important; border-top: 1px solid #e9eff7 !important;
+  }
+  #adminPanel #adminRows td[data-label="Acciones"]::before { display: none; }
+  #adminPanel #adminRows td[data-label="Acciones"] button {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 100% !important; min-width: 0; min-height: 44px;
+    margin: 0 !important; padding: 9px 10px !important; border-radius: 9px;
+    font-size: 13px; font-weight: 750; white-space: normal; cursor: pointer;
+  }
+  #adminPanel #adminRows td[data-label="Acciones"] button[data-edit] {
+    background: #edf4ff; color: #1156bc; border: 1px solid #cadbf4;
+  }
+  #adminPanel #adminRows td[data-label="Acciones"] button[data-disable] {
+    background: #b92c30; color: #fff; border: 1px solid #b92c30;
+  }
+  #adminPanel #adminSearch { max-width: 100% !important; width: 100%; }
+}
