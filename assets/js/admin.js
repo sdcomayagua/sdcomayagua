@@ -222,7 +222,8 @@ async function disable(id){
 function binds(){
  $('sheetLink').href=cfg.spreadsheetUrl;
  $('loginForm').onsubmit=logIn;
- $('googleConnection').href=cfg.apiUrl+'?action=health';
+ // El enlace de diagnóstico también funciona con implementaciones anteriores que exigen JSONP.
+ $('googleConnection').href=cfg.apiUrl+'?action=health&callback=gcConnection';
  $('retryConnection').onclick=connectionCheck;
  $('logout').onclick=()=>{token='';sessionStorage.removeItem('gc_admin_token');location.reload()};
  $('refresh').onclick=reload;
