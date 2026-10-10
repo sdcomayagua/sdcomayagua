@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
-let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='';
+let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false;
 try{token=sessionStorage.getItem('gc_admin_token')||''}catch{}
 const fallback='assets/img/sin-foto.svg';
 const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -146,7 +146,7 @@ async function logIn(e){
  if(!/^\d{6}$/.test(candidate)){toast('Ingresá tu PIN de seis dígitos.');return;}
  token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
  try{
-  await request('verify');sessionStorage.setItem('gc_admin_token',token);
+  const verification=await request('verify');detailsSupported=verification.features?.details===true;sessionStorage.setItem('gc_admin_token',token);
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');reload();
  }catch(err){token='';$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
@@ -188,6 +188,10 @@ async function save(e){
   rawDetails[key]=f.elements[key].value.trim();
  }
  p.details=C.cleanDetails(rawDetails);
+ if(Object.keys(p.details).length&&!detailsSupported){
+  const msg='Para guardar estas características, primero actualizá Code.gs en Google Apps Script y publicá una nueva versión. El resto del producto no se modificó.';
+  $('formMessage').textContent=msg;toast(msg);return;
+ }
  p.price=Number(p.price);p.stock=Number(p.stock);
  p.promoPrice=p.promoPrice===''||Number(p.promoPrice)===0?'':Number(p.promoPrice);
  if(!Number.isFinite(p.price)||p.price<0||p.stock<0||!Number.isInteger(p.stock))return toast('Verificá precio y stock');
