@@ -18,12 +18,12 @@ jobs:
       - name: Guardar cambios en GitHub Pages
         shell: bash
         run: |
-          if git diff --quiet -- data/catalogo-respaldo.json; then
+          if git diff --quiet -- data/catalogo-respaldo.json data/catalogo-inicial.js; then
             echo "No hay cambios de inventario."
             exit 0
           fi
           git config user.name "Gamer Comayagua Sync"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/catalogo-respaldo.json
+          git add data/catalogo-respaldo.json data/catalogo-inicial.js
           git commit -m "Actualizar inventario desde catálogo público Google Sheets"
           git push
