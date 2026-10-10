@@ -199,3 +199,22 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
   width: 100%;
   min-width: 0;
 }
+
+
+/* Mensaje de activación de características: claro y accesible. */
+.gc-deploy-notice {
+  margin:0 16px 18px;padding:16px;border:1px solid #cfddf0;
+  border-radius:12px;background:#f2f7ff;color:#274765;
+  font-size:12px;line-height:1.65;
+}
+.gc-deploy-notice strong {display:block;font-size:14px;color:#183e70;margin-bottom:7px}
+.gc-deploy-notice p {margin:0 0 12px;text-align:left}
+.gc-deploy-notice ol {margin:0 0 14px;padding-left:19px}
+.gc-deploy-notice li {margin-bottom:6px}
+.gc-deploy-actions {display:flex;gap:9px;flex-wrap:wrap}
+.gc-deploy-actions .btn {white-space:normal;text-align:center;min-height:39px}
+.gc-deploy-notice .gc-deploy-footnote {font-size:11px;color:#627994;margin:12px 0 0}
+@media (max-width:560px) {
+ .gc-deploy-actions {flex-direction:column}
+ .gc-deploy-actions .btn {width:100%}
+}
