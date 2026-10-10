@@ -14,6 +14,9 @@ let bad=context.doPost({parameter:{payload:JSON.stringify({requestId:'bad',actio
 assert.match(bad,/incorrecta/);assert.equal(products.length,59);
 let saved=context.doPost({parameter:{payload:JSON.stringify({requestId:'good',action:'saveProduct',token:'secret123',product:{name:'Producto de prueba',category:'Gamepad',price:450,stock:2,codAllowed:false,active:true}})}}).data;
 assert.match(saved,/'?Producto agregado/);assert.equal(products.length,60);assert.equal(products.at(-1)[11],'NO');
+// /exec?action=health sin callback devuelve JSON legible, no requiere inicio de sesión.
+let health=JSON.parse(context.doGet({parameter:{action:'health'}}).data);
+assert.equal(health.ok,true);assert.equal(health.pinConfigurado,false);
 let get=context.doGet({parameter:{callback:'gcSafeCallback'}}).data;assert.match(get,/^gcSafeCallback\(/);assert.match(get,/Producto de prueba/);
 let disabled=context.doPost({parameter:{payload:JSON.stringify({requestId:'disable',action:'disableProduct',token:'secret123',id:'FAKE-NEW-ID'})}}).data;assert.match(disabled,/ocultado/);assert.equal(products.at(-1)[12],'NO');
 console.log('PASS 10 verificaciones API: 56 productos activos, hoja nueva, restricciones, lectura pública sin costos, escritura con token, nueva alta y ocultado.');
