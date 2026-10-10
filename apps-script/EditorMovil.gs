@@ -66,6 +66,20 @@ function gcMobileSource_(ss){
   return products;
 }
 
+/** Busca por encabezado, no por letra de columna: soporta ambos órdenes. */
+function gcMobileColumns_(source){
+  const header=(source.getDataRange().getValues()[0]||[]).map(String);
+  const pos={};header.forEach((name,i)=>{if(name)pos[name]=i;});
+  ['ID','Codigo','Nombre','Categoria','Precio','Costo','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Revision'].forEach(name=>{
+    if(pos[name]===undefined)throw Error('Falta columna en Productos: '+name);
+  });
+  return {header,pos};
+}
+function gcMobileValue_(row,columns,name){
+  const idx=columns.pos[name];
+  return idx===undefined?'':(row[idx]??'');
+}
+
 function gcMobileFind_(products,needle){
   const all=products.getDataRange().getValues();
   const label=String(needle||'').trim();
@@ -91,19 +105,22 @@ function gcMobileLoad_(sh,ss){
   if(!key||key==='Seleccioná un producto...'||key==='NUEVO PRODUCTO'){
     sh.getRange('B5').setValue('Elegí un producto arriba.');return;
   }
-  const record=gcMobileFind_(gcMobileSource_(ss),key);
-  const v=record.values;
+  const source=gcMobileSource_(ss);
+  const col=gcMobileColumns_(source);
+  const record=gcMobileFind_(source,key);
+  const v=record.values, val=name=>gcMobileValue_(v,col,name);
   sh.getRange('B7:B20').setValues([
-    [v[2]||''],[v[3]||''],[v[4]==null?'':v[4]],
-    [v[15]==null?'':v[15]],[v[5]==null?'':v[5]],[v[6]==null?'':v[6]],
-    [v[14]||''],[v[9]||''],[v[16]||''],[v[10]||''],
-    [v[7]||''],[v[8]==='[]'?'':(v[8]||'')],
-    [String(v[11]||'SI').toUpperCase()],[String(v[12]||'SI').toUpperCase()]
+    [val('Nombre')],[val('Categoria')],[val('Precio')],
+    [val('PrecioPromocion')],[val('Costo')],[val('Stock')],
+    [val('Colores')],[val('Descripcion')],[val('PromocionTexto')],[val('Descuentos')],
+    [val('Imagen')],[val('Galeria')==='[]'?'':val('Galeria')],
+    [String(val('PagoAlRecibir')||'SI').toUpperCase()],
+    [String(val('Activo')||'SI').toUpperCase()]
   ]);
-  sh.getRange('D3').setValue(String(v[0]||''));
+  sh.getRange('D3').setValue(String(val('ID')));
   sh.getRange('D4').setValue('EDICION');
   sh.getRange('B4').setValue('Seleccioná una acción');
-  sh.getRange('B5').setValue('✓ '+v[2]+' cargado. Modificá lo necesario y elegí GUARDAR CAMBIOS.');
+  sh.getRange('B5').setValue('✓ '+val('Nombre')+' cargado. Modificá lo necesario y elegí GUARDAR CAMBIOS.');
 }
 
 function gcMobileNumber_(v){
@@ -127,6 +144,7 @@ function gcMobileSave_(sh,ss){
   if(promo!==''&&(!Number.isFinite(promo)||promo<=0||promo>p))
     throw Error('El precio promocional debe ser mayor que cero y no superar el precio normal.');
   const source=gcMobileSource_(ss);
+  const col=gcMobileColumns_(source);
   const id=String(sh.getRange('D3').getDisplayValue()||'').trim();
   const status=String(sh.getRange('D4').getDisplayValue()||'').trim();
   let row,record;
@@ -135,42 +153,40 @@ function gcMobileSave_(sh,ss){
     const found=gcMobileFind_(source,id);
     row=found.index;record=found.values.slice();
     const selected=String(sh.getRange('B3').getDisplayValue()||'').trim();
-    if(selected!==String(record[2])+' · '+String(record[1]))
+    if(selected!==String(gcMobileValue_(record,col,'Nombre'))+' · '+String(gcMobileValue_(record,col,'Codigo')))
       throw Error('Cambiaste la selección. Esperá a que cargue el nuevo producto.');
   }else if(status==='NUEVO'){
     row=Math.max(2,source.getLastRow()+1);
-    record=Array(17).fill('');
-    record[0]=Utilities.getUuid();
-    record[1]='GC-'+Utilities.getUuid().slice(0,8).toUpperCase();
+    record=Array(col.header.length).fill('');
+    record[col.pos.ID]=Utilities.getUuid();
+    record[col.pos.Codigo]='GC-'+Utilities.getUuid().slice(0,8).toUpperCase();
   }else{
     throw Error('Antes de guardar, seleccioná un producto o elegí NUEVO PRODUCTO.');
   }
-  while(record.length<17)record.push('');
-  record[2]=title;
-  record[3]=cat;
-  record[4]=p;
+  while(record.length<col.header.length)record.push('');
+  const set=(name,v)=>{if(col.pos[name]!==undefined)record[col.pos[name]]=v;};
+  set('Nombre',title);set('Categoria',cat);set('Precio',p);
   if(String(cost==null?'':cost).trim()!==''){
     const cp=gcMobileNumber_(cost);
     if(!Number.isFinite(cp)||cp<0)throw Error('Costo inválido.');
-    record[5]=cp;
-  }else if(status==='NUEVO')record[5]='';
-  record[6]=n;
-  record[7]=String(image||'').trim();
-  record[8]=String(gallery||'').trim();
-  record[9]=String(description||'').trim().slice(0,5000);
-  record[10]=String(discounts||'').trim().slice(0,250);
-  record[11]=String(cod).toUpperCase()==='NO'?'NO':'SI';
-  record[12]=String(active).toUpperCase()==='NO'?'NO':'SI';
-  record[13]='editor-movil-'+new Date().toISOString();
-  record[14]=String(colors||'').trim().slice(0,500);
-  record[15]=promo;
-  record[16]=String(promoText||'').trim().slice(0,250);
-  source.getRange(row,1,1,17).setValues([record]);
+    set('Costo',cp);
+  }else if(status==='NUEVO')set('Costo','');
+  set('Stock',n);set('Imagen',String(image||'').trim());
+  set('Galeria',String(gallery||'').trim());
+  set('Descripcion',String(description||'').trim().slice(0,5000));
+  set('Descuentos',String(discounts||'').trim().slice(0,250));
+  set('PagoAlRecibir',String(cod).toUpperCase()==='NO'?'NO':'SI');
+  set('Activo',String(active).toUpperCase()==='NO'?'NO':'SI');
+  set('Revision','editor-movil-'+new Date().toISOString());
+  set('Colores',String(colors||'').trim().slice(0,500));
+  set('PrecioPromocion',promo);
+  set('PromocionTexto',String(promoText||'').trim().slice(0,250));
+  source.getRange(row,1,1,col.header.length).setValues([record]);
   try{CacheService.getScriptCache().remove('public_catalog_v5')}catch(_){}
   try{CacheService.getScriptCache().remove('public_catalog_v4')}catch(_){}
-  sh.getRange('D3').setValue(String(record[0]));
+  sh.getRange('D3').setValue(String(gcMobileValue_(record,col,'ID')));
   sh.getRange('D4').setValue('EDICION');
-  sh.getRange('B3').setValue(title+' · '+String(record[1]));
+  sh.getRange('B3').setValue(title+' · '+String(gcMobileValue_(record,col,'Codigo')));
   sh.getRange('B5').setValue('✓ Producto guardado correctamente: '+title+'.');
 }
 
