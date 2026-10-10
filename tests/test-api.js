@@ -54,6 +54,12 @@ for(const headers of [oldHeaders,newHeaders]){
  const get=context.doGet({parameter:{callback:'callback'}}).data;
  assert.match(get,/^callback\(/);
  assert.ok(!get.includes('"cost"'));
+ // La tienda puede leer imágenes y precios sin PIN, pero nunca datos privados.
+ const postPublic=context.doPost({parameter:{payload:JSON.stringify({requestId:'public',action:'publicCatalog'})}}).data;
+ assert.match(postPublic,/"ok":true/);
+ assert.match(postPublic,/"__gcResponse":true/);
+ assert.ok(!postPublic.includes('"cost"'));
+ assert.ok(!postPublic.includes('"Costo"'));
  let bad=context.doPost({parameter:{payload:JSON.stringify({requestId:'bad',action:'adminCatalog',token:'111111'})}}).data;
  assert.match(bad,/incorrecta/);
  assert.equal(products.length,sample.length+1);
