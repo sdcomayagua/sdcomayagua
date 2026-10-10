@@ -181,8 +181,21 @@ function catalogByPost(url){
 async function load(){
  const url=String(config.apiUrl||'').trim();
  let localReady=false;
-  if($('bankAccounts'))loadBanksFromSheet();
- // Mostrar el respaldo primero, sin esperar a que finalice la consulta a Apps Script.
+ if($('bankAccounts'))loadBanksFromSheet();
+ // Render inmediato a partir de un respaldo JS local. Si fetch o Google
+ // quedan pendientes, el cliente sigue viendo los productos y puede navegar.
+ const initial=window.GC_CATALOGO_INICIAL;
+ if(Array.isArray(initial)&&initial.length){
+  try{
+   products=initial.map(C.cleanProduct).filter(p=>p.id&&p.name);
+   renderCategories();render();cleanItems();renderBanks();
+   localReady=true;
+   if($('syncStatus'))$('syncStatus').textContent='Catálogo disponible. Comprobando actualizaciones…';
+  }catch(error){
+   console.warn('No se pudo dibujar el catálogo inicial:',error);
+  }
+ }
+ // Refrescar después con JSON local y, por último, con Google Sheets.
  try{
   const response=await fetch('data/catalogo-respaldo.json?actualizado='+Date.now(),{cache:'no-store'});
   if(!response.ok)throw Error('No se pudo abrir el respaldo del catálogo');
@@ -233,5 +246,16 @@ function binds(){
  $('bankAccounts')?.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.bank-copy-row')){e.preventDefault();onBankCopy(e.target)}});
  try{cart=JSON.parse(sessionStorage.getItem('gc_cart')||'{}')||{}}catch{cart={}};
 }
-binds();load();
+try{
+ binds();
+ load().catch(error=>{
+  console.error('No se pudo completar la carga del catálogo:',error);
+  if($('syncStatus'))$('syncStatus').textContent='No se pudo actualizar el catálogo. Recargá la página para reintentar.';
+  if($('resultsCount')&&$('resultsCount').textContent.includes('Cargando'))$('resultsCount').textContent='Catálogo temporalmente no disponible';
+ });
+}catch(error){
+ console.error('Error al iniciar catálogo:',error);
+ if($('syncStatus'))$('syncStatus').textContent='El catálogo no pudo iniciarse. Recargá la página.';
+ if($('resultsCount'))$('resultsCount').textContent='No se pudieron mostrar los productos';
+}
 })();
