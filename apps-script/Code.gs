@@ -63,7 +63,7 @@ function doPost(e) {
       result = {ok:true,...publicPayload_()};
     } else {
       assertAdmin_(req.token);
-      if (req.action === 'verify') result = {ok:true,message:'Acceso autorizado'};
+      if (req.action === 'verify') result = {ok:true,message:'Acceso autorizado',features:{details:true}};
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
       else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
       else if (req.action === 'disableProduct') result = disableProduct_(req.id);
