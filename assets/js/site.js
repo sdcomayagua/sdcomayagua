@@ -128,6 +128,42 @@ async function loadBanksFromSheet(){
  catch(err){console.warn('Cuentas bancarias: revisar publicación del Sheet o Apps Script',err);if(!banks.length)renderBanks();}
 }
 function jsonp(url){return new Promise((resolve,reject)=>{const callback='gcPublic_'+Date.now()+'_'+Math.floor(Math.random()*9999);const script=document.createElement('script');let timeout=setTimeout(()=>done(Error('Tiempo de espera agotado')),13000);function done(err,data){clearTimeout(timeout);delete window[callback];script.remove();err?reject(err):resolve(data)}window[callback]=d=>done(null,d);script.onerror=()=>done(Error('Sin conexión con Apps Script'));script.src=url+(url.includes('?')?'&':'?')+'action=public&callback='+callback+'&t='+Date.now();document.head.appendChild(script)})}
+/**
+ * Lectura alternativa: algunas implementaciones de Google permiten POST
+ * aunque el navegador bloquee la consulta JSONP GET.
+ * Solo pide el catálogo PÚBLICO, nunca datos administrativos.
+ */
+function catalogByPost(url){
+ return new Promise((resolve,reject)=>{
+  const requestId='pub_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+  const frame=document.createElement('iframe'),form=document.createElement('form');
+  let done=false,timer;
+  function finish(err,payload){
+   if(done)return;done=true;clearTimeout(timer);
+   window.removeEventListener('message',receive);
+   frame.remove();form.remove();err?reject(err):resolve(payload);
+  }
+  function receive(ev){
+   const allowed=ev.origin==='null'||/^https:\/\/(?:script\.google\.com|(?:[a-z0-9-]+\.)*googleusercontent\.com)$/i.test(ev.origin);
+   if(!allowed)return;
+   const data=ev.data;
+   if(!data||data.__gcResponse!==true||data.requestId!==requestId)return;
+   if(!data.ok)return finish(Error(data.error||'Sin respuesta del catálogo'));
+   if(!Array.isArray(data.products))return finish(Error('Respuesta de catálogo incompleta'));
+   finish(null,data);
+  }
+  frame.name='gc_catalog_'+requestId;
+  frame.style.cssText='position:absolute;width:0;height:0;visibility:hidden;border:0';
+  document.body.appendChild(frame);
+  window.addEventListener('message',receive);
+  form.action=url;form.method='POST';form.target=frame.name;form.style.display='none';
+  const input=document.createElement('input');input.type='hidden';input.name='payload';
+  input.value=JSON.stringify({requestId,action:'publicCatalog'});
+  form.appendChild(input);document.body.appendChild(form);
+  timer=setTimeout(()=>finish(Error('Google no respondió a la consulta pública')),16000);
+  try{form.submit()}catch(err){finish(err)}
+ });
+}
 async function load(){
  const url=String(config.apiUrl||'').trim();
  let localReady=false;
@@ -153,9 +189,14 @@ async function load(){
  try{
   handlePublic(await jsonp(url));
  }catch(error){
-  console.warn('Sin conexión con Apps Script:',error);
-  if($('syncStatus'))$('syncStatus').textContent=localReady?'Catálogo de respaldo · Confirmá precio y existencias por WhatsApp.':'⚠ No se pudo conectar el catálogo. Intentá actualizar la página.';
-  if(!localReady){products=[];render();}
+  console.warn('Consulta pública GET no disponible; probando POST:',error);
+  try{
+   handlePublic(await catalogByPost(url));
+  }catch(postError){
+   console.warn('Sin conexión en tiempo real; se mantiene respaldo local:',postError);
+   if($('syncStatus'))$('syncStatus').textContent=localReady?'Catálogo de respaldo · Confirmá precio y existencias por WhatsApp.':'⚠ No se pudo conectar el catálogo. Intentá actualizar la página.';
+   if(!localReady){products=[];render();}
+  }
  }
 }
 function binds(){
