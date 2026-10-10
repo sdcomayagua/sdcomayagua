@@ -9,7 +9,7 @@ const GC_SHEET_ID = '1ReprTmtpBpoxIps-c5O-0quUmYgdHSePGIpB2Ey-rQ0';
 const GC_TAB_PRODUCTS = 'Productos';
 const GC_TAB_SETTINGS = 'Configuracion';
 const GC_TAB_BANKS = 'Cuentas';
-const GC_PRODUCT_COLUMNS = ['ID','Codigo','Nombre','Categoria','Precio','PrecioPromocion','Costo','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Revision','Colores','PromocionTexto'];
+const GC_PRODUCT_COLUMNS = ['ID','Codigo','Nombre','Categoria','Precio','PrecioPromocion','Costo','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Revision','Colores','PromocionTexto','Detalles'];
 
 /** Ejecutar una sola vez. La clave NUEVA se imprime en Registro de ejecución. */
 function configurarSistema() {
