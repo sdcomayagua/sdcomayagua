@@ -82,6 +82,13 @@ def main():
         # La API oculta artículos desactivados: conservarlos solo en el respaldo
         # del administrador (nunca se muestran como activos al comprador).
         previous=json.loads(OUTPUT.read_text(encoding="utf8"))
+        previous_by_id={p["id"]:p for p in previous}
+        # Nunca sustituir características nuevas por una API de Google antigua
+        # que aún no publica el campo Detalles.
+        regressions=[p["id"] for p in entries
+            if previous_by_id.get(p["id"],{}).get("details") and not p.get("details")]
+        if regressions:
+            raise ValueError("La API devolvió fichas sin características ya guardadas. Revisar implementación de Apps Script: "+",".join(regressions[:3]))
         active_ids={item["id"] for item in entries}
         disappeared=[p for p in previous if p.get("active") and p["id"] not in active_ids]
         if len(disappeared)>max(5,int(len(previous)*.15)):
