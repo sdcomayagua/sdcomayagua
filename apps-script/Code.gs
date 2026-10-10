@@ -135,6 +135,23 @@ function cfg_(){
   if(sheet&&sheet.getLastRow()>1)sheet.getRange(2,1,sheet.getLastRow()-1,2).getDisplayValues().forEach(row=>{raw[row[0]]=row[1]});
   return {brand:String(raw.brand||'Gamer Comayagua'),shipping:money_(raw.shipping||110),codMinimum:money_(raw.codMin||350),codMinimumUnits:Math.max(2,Math.floor(money_(raw.codMinUnits||2))),codRate:rate_(raw.codRate,.1),tigoRate:rate_(raw.tigoRate,.07),whatsapp:String(raw.whatsapp||'50431517755').replace(/\D/g,'')};
 }
+function detailsClean_(raw){
+  let obj=raw;
+  if(typeof obj==='string'){try{obj=JSON.parse(obj||'{}')}catch(e){return {}}}
+  if(!obj||typeof obj!=='object'||Array.isArray(obj))return {};
+  const data={};
+  for(const key of ['weight','width','height','length']){
+    const n=Number(String(obj[key]??'').replace(',','.'));
+    if(String(obj[key]??'').trim()&&Number.isFinite(n)&&n>0&&n<1000000)data[key]=n;
+  }
+  for(const key of ['size','material','compatibility','model']){
+    const val=String(obj[key]??'').trim().slice(0,200);
+    if(val)data[key]=val;
+  }
+  if(data.weight&&['kg','lb','g'].includes(obj.weightUnit))data.weightUnit=obj.weightUnit;
+  if((data.width||data.height||data.length)&&['cm','mm','m','in'].includes(obj.measureUnit))data.measureUnit=obj.measureUnit;
+  return data;
+}
 function publicPayload_(){
   const cache=CacheService.getScriptCache();const cached=cache.get('public_catalog_v5');if(cached)return JSON.parse(cached);
   const ss=book_(),sheet=ss.getSheetByName(GC_TAB_PRODUCTS);if(!sheet)throw Error('No existe la pestaña Productos.');
