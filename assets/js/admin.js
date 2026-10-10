@@ -170,6 +170,7 @@ function showProduct(id){
  formField(f,'weightUnit').value=specs.weightUnit||'kg';
  formField(f,'measureUnit').value=specs.measureUnit||'cm';
  $('technicalEditor').open=Object.keys(specs).length>0;
+ $('technicalDeploymentNotice').classList.toggle('hidden',detailsSupported);
  formField(f,'codAllowed').value=p.codAllowed?'SI':'NO';
  formField(f,'active').value=p.active?'SI':'NO';
  $('formTitle').textContent=id?'Editar producto':'Nuevo producto';
@@ -195,8 +196,11 @@ async function save(e){
  }
  p.details=C.cleanDetails(rawDetails);
  if(Object.keys(p.details).length&&!detailsSupported){
-  const msg='Para guardar estas características, primero actualizá Code.gs en Google Apps Script y publicá una nueva versión. El resto del producto no se modificó.';
-  $('formMessage').textContent=msg;toast(msg);return;
+  $('technicalEditor').open=true;
+  $('technicalDeploymentNotice').classList.remove('hidden');
+  $('formMessage').textContent='Las características aún no se han guardado. Seguí los pasos de actualización del servidor indicados arriba.';
+  $('technicalDeploymentNotice').scrollIntoView?.({behavior:'smooth',block:'center'});
+  return;
  }
  p.price=Number(p.price);p.stock=Number(p.stock);
  p.promoPrice=p.promoPrice===''||Number(p.promoPrice)===0?'':Number(p.promoPrice);
