@@ -75,7 +75,7 @@ def main():
         print(f"Updated {len(entries)} public products")
     else:print("No changes")
     # Mantener al día la copia que dibuja el catálogo antes de conectar con Google.
-    initial="/* Catálogo público sin información privada. */\\nwindow.GC_CATALOGO_INICIAL="+json.dumps(entries,ensure_ascii=False,separators=(",",":"))+";\\n"
+    initial="/* Catálogo público sin información privada. */\nwindow.GC_CATALOGO_INICIAL="+json.dumps(entries,ensure_ascii=False,separators=(",",":"))+";\n"
     if not INITIAL.exists() or INITIAL.read_text(encoding="utf8")!=initial:
         INITIAL.write_text(initial,encoding="utf8")
         print("Updated immediate catalog bootstrap")
