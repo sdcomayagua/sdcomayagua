@@ -218,3 +218,32 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
  .gc-deploy-actions {flex-direction:column}
  .gc-deploy-actions .btn {width:100%}
 }
+
+/* Datos del destinatario correspondientes al método elegido en el carrito. */
+.tigo-payment {
+  margin:3px 0 18px;padding:15px;background:#fff;
+  border:1px solid #d5e3f4;border-radius:12px;min-width:0;
+}
+.tigo-payment[hidden] {display:none}
+.tigo-payment-head {display:flex;align-items:center;gap:8px;color:#135bb6;margin-bottom:4px}
+.tigo-payment-head .ui-icon {width:20px;height:20px}
+.tigo-payment-head strong {font-size:14px;font-weight:750}
+.tigo-payment-data {margin:0}
+.tigo-payment-row {padding:11px 0;border-bottom:1px solid #eaf0f7}
+.tigo-payment-row:last-child {padding-bottom:0;border-bottom:0}
+.tigo-payment-row dt {font-size:10px;color:#617792;margin-bottom:5px}
+.tigo-payment-row dd {display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0}
+.tigo-payment-row dd strong {font-size:12px;line-height:1.45;font-weight:650;color:#203b5b;overflow-wrap:anywhere;min-width:0}
+.tigo-payment-row.tigo-number dd strong {font-size:19px;letter-spacing:.3px;color:#135bb6;font-variant-numeric:tabular-nums}
+.tigo-copy {
+  flex:none;min-height:36px;padding:7px 9px;background:#eef5ff;color:#1457ad;
+  border:1px solid #d4e3f7;border-radius:7px;font-size:10px;font-weight:650;
+}
+.tigo-copy:hover {background:#e1edff;border-color:#a5c4ef}
+.tigo-payment-message {font-size:12px;color:#617792;line-height:1.6;margin:10px 0 0}
+.tigo-contact {display:inline-block;margin-top:10px;font-size:12px;font-weight:650;color:#135bb6}
+@media (max-width:380px) {
+  .tigo-payment {padding:12px}
+  .tigo-payment-row dd {gap:7px}
+  .tigo-payment-row.tigo-number dd strong {font-size:17px}
+}

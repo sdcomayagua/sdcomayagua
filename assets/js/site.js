@@ -3,6 +3,7 @@
 const C=window.GC,config=window.GC_CONFIG,$=id=>document.getElementById(id);
 const imgFallback='assets/img/sin-foto.svg',page=document.body.dataset.page||'inicio';
 let products=[],settings={...config},banks=[],cart={},currentId='',visible=24,latest=null,currentQuoteId='';
+let banksRequest=null,banksStatus='idle';
 const safe=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const toast=msg=>{const el=$('toast');el.textContent=msg;el.style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display='none',3500)};
 const escapeAttr=s=>safe(s);
@@ -87,7 +88,32 @@ function add(id){const p=products.find(x=>x.id===id);if(!p||p.stock<=0)return to
 function close(overlay){const el=$(overlay);if(!el)return;el.hidden=true;document.body.style.overflow='';}
 function cartOpen(){$('toast').style.display='none';$('cartOverlay').hidden=false;document.body.style.overflow='hidden';cartRender();}
 function cartRender(){const rows=items();$('cartLines').innerHTML=rows.length?rows.map(({product:p,qty})=>`<div class="cart-line"><img src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}'" alt=""><div><strong>${safe(p.name)}</strong><p>${C.money(C.unitPrice(p,qty))} × ${qty}</p><strong>${C.money(qty*C.unitPrice(p,qty))}</strong></div><div class="actions"><button data-qty="${escapeAttr(p.id)}" data-step="-1" title="Restar">−</button><b>${qty}</b><button data-qty="${escapeAttr(p.id)}" data-step="1" title="Sumar">+</button><button data-remove="${escapeAttr(p.id)}" title="Eliminar">×</button></div></div>`).join(''):'<div class="empty">El carrito está vacío.</div>';$('checkoutControls').classList.toggle('hidden',!rows.length);calc();}
-function calc(){const selection=document.querySelector('[name=payMethod]:checked')?.value||'transfer',q=C.quote(items(),selection,settings);latest=q;const n=$('deniedNotice');n.classList.toggle('hidden',!(selection==='cod'&&!q.codAllowed));n.textContent=q.reasons.join(' ');const showFee=(q.mode==='cod'||q.mode==='tigo');$('checkoutTotals').innerHTML=`<div class="totals"><div class="total-row"><span>Productos</span><strong>${C.money(q.subtotal)}</strong></div><div class="total-row"><span>Envío</span><strong>${C.money(q.shipping)}</strong></div>${showFee?`<div class="total-row"><span>${q.mode==='cod'?'Comisión por pagar al recibir':'Comisión de Tigo Money'}</span><strong>${C.money(q.fee)}</strong></div>`:''}<div class="total-row big"><span>Total</span><strong>${C.money(q.total)}</strong></div>${q.mode==='cod'?`<div class="payment-split"><div class="deposit-row"><span>Anticipo</span><strong>${C.money(q.deposit)}</strong><small>Envío + comisión</small></div><div class="cash-row"><span>Al recibir</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:''}</div>`;if($('codDepositHelp'))$('codDepositHelp').hidden=selection!=='cod';$('sendQuote').disabled=selection==='cod'&&!q.codAllowed;$('printQuote').disabled=selection==='cod'&&!q.codAllowed;}
+function calc(){const selection=document.querySelector('[name=payMethod]:checked')?.value||'transfer',q=C.quote(items(),selection,settings);latest=q;const n=$('deniedNotice');n.classList.toggle('hidden',!(selection==='cod'&&!q.codAllowed));n.textContent=q.reasons.join(' ');const showFee=(q.mode==='cod'||q.mode==='tigo');$('checkoutTotals').innerHTML=`<div class="totals"><div class="total-row"><span>Productos</span><strong>${C.money(q.subtotal)}</strong></div><div class="total-row"><span>Envío</span><strong>${C.money(q.shipping)}</strong></div>${showFee?`<div class="total-row"><span>${q.mode==='cod'?'Comisión por pagar al recibir':'Comisión de Tigo Money'}</span><strong>${C.money(q.fee)}</strong></div>`:''}<div class="total-row big"><span>Total</span><strong>${C.money(q.total)}</strong></div>${q.mode==='cod'?`<div class="payment-split"><div class="deposit-row"><span>Anticipo</span><strong>${C.money(q.deposit)}</strong><small>Envío + comisión</small></div><div class="cash-row"><span>Al recibir</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:''}</div>`;if($('codDepositHelp'))$('codDepositHelp').hidden=selection!=='cod';$('sendQuote').disabled=selection==='cod'&&!q.codAllowed;$('printQuote').disabled=selection==='cod'&&!q.codAllowed;renderPaymentDetails();}
+function renderPaymentDetails(){
+ const target=$('tigoPaymentDetails');
+ if(!target)return;
+ const selected=document.querySelector('[name=payMethod]:checked')?.value==='tigo';
+ target.hidden=!selected;
+ document.querySelector('#checkoutControls .bank-cart-link')?.classList.toggle('hidden',selected);
+ if(!selected)return;
+ const account=banks.find(x=>{
+  const name=String(x.bank||'').toLowerCase().replace(/[^a-z]/g,'');
+  return C.yes(x.visible)&&String(x.account||'').trim()&&(name==='tigo'||name.includes('tigomoney'));
+ });
+ const heading='<div class="tigo-payment-head"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4M11 18h2"/></svg><strong>Tigo Money</strong></div>';
+ if(account){
+  const row=(label,value,number=false)=>!String(value||'').trim()?'':`<div class="tigo-payment-row ${number?'tigo-number':''}"><dt>${safe(label)}</dt><dd><strong>${safe(value)}</strong><button type="button" class="tigo-copy" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}">Copiar</button></dd></div>`;
+  target.innerHTML=heading+`<dl class="tigo-payment-data">${row('Nombre del titular',account.owner)}${row('Número de Tigo Money',account.account,true)}${row('Número de identidad',account.identity)}</dl>`;
+  return;
+ }
+ if(banksStatus==='idle')loadBanksFromSheet();
+ if(banksStatus==='loading'){
+  target.innerHTML=heading+'<p class="tigo-payment-message">Consultando datos de Tigo Money…</p>';
+ }else{
+  const phone=String(settings.whatsapp||config.whatsapp).replace(/\D/g,'');
+  target.innerHTML=heading+'<p class="tigo-payment-message">Los datos de Tigo Money no están disponibles. Confirmalos antes de pagar.</p>'+`<a class="tigo-contact" href="https://wa.me/${phone}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito el nombre, número e identidad para pagar con Tigo Money.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp →</a>`;
+ }
+}
 function prepareQuote(){calc();if(!latest.valid.length){toast('Agregá productos');return null}if(latest.mode==='cod'&&!latest.codAllowed){toast('Pago al recibir no disponible para esta compra');return null}currentQuoteId=C.number();return {id:currentQuoteId,text:C.waMessage(items(),latest,currentQuoteId),q:latest};}
 function waQuote(){const q=prepareQuote();if(!q)return;window.open('https://wa.me/'+String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')+'?text='+encodeURIComponent(q.text),'_blank','noopener');}
 function printQuote(){
@@ -101,7 +127,7 @@ function printQuote(){
  const html=`<!doctype html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${uid} - Gamer Comayagua</title><style>@page{size:A4;margin:17mm}*{box-sizing:border-box}body{max-width:850px;margin:25px auto;padding:0 20px;color:#172b46;font:14px/1.55 Arial,sans-serif}header{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;border-bottom:4px solid #1269d9;padding-bottom:24px}.name{font-weight:900;color:#1068d7;font-size:27px;line-height:1.1;letter-spacing:-1px}header p{margin:7px 0;color:#667b92}.flag{font-size:11px;text-transform:uppercase;letter-spacing:2px;font-weight:800;color:#4875a9}.meta{text-align:right}.folio{font-size:18px;font-weight:800;color:#122842}.intro{display:flex;justify-content:space-between;gap:20px;padding:26px 0}h2{margin:0 0 10px;font-size:19px}table{width:100%;border-collapse:collapse}thead th{background:#e9f1fb;color:#244267;text-align:left;font-size:12px;padding:12px 10px}tbody td{border-bottom:1px solid #e3eaf2;padding:12px 10px}tbody td:nth-child(2),tbody td:nth-child(3){white-space:nowrap}.right{text-align:right;white-space:nowrap}.sku{font-size:11px;color:#8aa0b8;padding-right:4px}.bottom{display:flex;justify-content:flex-end;margin-top:24px}.totals{width:min(370px,100%);background:#f3f7fc;border-radius:12px;padding:15px 19px}.sumrow{display:flex;justify-content:space-between;gap:20px;padding:8px 0;border-bottom:1px solid #dee8f3}.sumrow:last-child{border-bottom:0}.sumrow.highlight{font-size:18px;font-weight:850;color:#075bc1;border-top:2px solid #a5c6ef;padding-top:12px}.footer{border-top:1px solid #cddceb;margin-top:48px;padding-top:14px;font-size:12px;color:#667b92}.stamp{margin-top:18px;color:#466b9b;font-size:12px}.print{position:fixed;top:10px;right:10px;background:#146fe3;color:white;border:0;border-radius:9px;font-weight:bold;padding:10px 16px;cursor:pointer}@media print{body{margin:0;padding:0}.print{display:none}}</style></head><body><button class="print" onclick="window.print()">Imprimir / Guardar PDF</button><header><div><div class="name">GAMER COMAYAGUA</div><p>Comayagua · Envíos a toda Honduras</p><p>WhatsApp: +504 3151-7755</p></div><div class="meta"><div class="flag">Cotización</div><div class="folio">${uid}</div><p>${safe(date)}</p></div></header><div class="intro"><div><div class="flag">Detalles del pedido</div><h2>Cotización de productos</h2><span>Confirmación de inventario por WhatsApp</span></div><div><div class="flag">Modalidad</div><strong>${safe(labels[q.mode])}</strong></div></div><table><thead><tr><th>Descripción</th><th>Cant.</th><th>Precio unit.</th><th class="right">Subtotal</th></tr></thead><tbody>${rows}</tbody></table><div class="bottom"><div class="totals">${line('Subtotal productos',q.subtotal)}${line('Envío nacional',q.shipping)}${fees}${line('TOTAL A PAGAR',q.total,true)}${balances}</div></div><div class="footer"><b>Importante:</b> esta cotización no representa confirmación de pago ni reserva automática. Los productos se confirman según existencias.<div class="stamp">GAMER COMAYAGUA · Gracias por elegirnos</div></div><script>window.addEventListener('load',()=>window.print());<\/script></body></html>`;
  const w=window.open('','_blank');if(!w){toast('Permití ventanas emergentes para imprimir');return}w.document.write(html);w.document.close();
 }
-function handlePublic(data){if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};if(Array.isArray(data.banks)&&data.banks.length)banks=data.banks;renderCategories();render();cleanItems();renderBanks();if($('syncStatus')){$('syncStatus').textContent=`✓ ${products.length} productos sincronizados desde Google Sheets`;$('syncStatus').style.color='#0f9f6a';}}
+function handlePublic(data){if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};if(Array.isArray(data.banks)&&data.banks.length)banks=data.banks;renderCategories();render();cleanItems();renderBanks();renderPaymentDetails();if($('syncStatus')){$('syncStatus').textContent=`✓ ${products.length} productos sincronizados desde Google Sheets`;$('syncStatus').style.color='#0f9f6a';}}
 function renderBanks(){if(!$('bankAccounts'))return;const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim());const copyRow=(label,value)=>!String(value||'').trim()?'':`<div class="bank-copy-row" role="button" tabindex="0" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}"><div><small>${safe(label)}</small><strong>${safe(value)}</strong></div><button type="button" class="copy-btn" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}">Copiar</button></div>`;$('bankAccounts').innerHTML=published.length?published.map(x=>`<article class="bank-card"><div class="bank-card-head"><div class="bank-symbol">▣</div><div><div class="eyebrow">Cuenta para depósitos</div><h3>${safe(x.bank||'Banco')}</h3></div></div>${copyRow('Nombre del titular',x.owner)}${copyRow('Número de cuenta',x.account)}${copyRow('Número de identidad',x.identity)}</article>`).join(''):`<div class="bank-empty"><div class="bank-symbol">▣</div><h3>Cuentas no disponibles en este momento</h3><p>Solicitá por WhatsApp los datos para transferir y confirmalos antes de pagar.</p><a class="btn outline" href="https://wa.me/${String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito los datos para depositar mi pedido.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a></div>`;}
 async function copyText(value){try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return true;}}catch{}const input=document.createElement('textarea');input.value=value;input.setAttribute('readonly','');input.style.cssText='position:fixed;top:-1000px;left:-1000px';document.body.append(input);input.select();let ok=false;try{ok=document.execCommand('copy')}catch{}input.remove();return ok;}
 
@@ -136,10 +162,16 @@ function banksFromSheet(){
   document.head.appendChild(script);
  });
 }
-async function loadBanksFromSheet(){
- if(!$('bankAccounts'))return;
- try{const fresh=await banksFromSheet();banks=fresh;renderBanks();}
- catch(err){console.warn('Cuentas bancarias: revisar publicación del Sheet o Apps Script',err);if(!banks.length)renderBanks();}
+function loadBanksFromSheet(){
+ if(!$('bankAccounts')&&!$('tigoPaymentDetails'))return;
+ if(banksRequest)return banksRequest;
+ banksStatus='loading';
+ banksRequest=(async()=>{
+  try{banks=await banksFromSheet();banksStatus='ready';renderBanks();}
+  catch(err){banksStatus='failed';console.warn('Cuentas bancarias: revisar publicación del Sheet o Apps Script',err);if(!banks.length)renderBanks();}
+  finally{renderPaymentDetails();}
+ })();
+ return banksRequest;
 }
 function jsonp(url){return new Promise((resolve,reject)=>{const callback='gcPublic_'+Date.now()+'_'+Math.floor(Math.random()*9999);const script=document.createElement('script');let timeout=setTimeout(()=>done(Error('Tiempo de espera agotado')),13000);function done(err,data){clearTimeout(timeout);delete window[callback];script.remove();err?reject(err):resolve(data)}window[callback]=d=>done(null,d);script.onerror=()=>done(Error('Sin conexión con Apps Script'));script.src=url+(url.includes('?')?'&':'?')+'action=public&callback='+callback+'&t='+Date.now();document.head.appendChild(script)})}
 /**
@@ -248,6 +280,7 @@ function binds(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){close('detailOverlay');close('cartOverlay')}});
  const onBankCopy=async b=>{if(!b)return;const ok=await copyText(b.dataset.copy);toast(ok?b.dataset.label+' copiado al portapapeles':'No se pudo copiar. Mantené presionado el dato para copiarlo.');if(ok){const button=b.matches('button')?b:b.querySelector('button');if(button){button.textContent='✓ Copiado';setTimeout(()=>{if(button.isConnected)button.textContent='Copiar'},2000)}}};
  $('bankAccounts')?.addEventListener('click',e=>onBankCopy(e.target.closest('[data-copy]')));
+ $('tigoPaymentDetails')?.addEventListener('click',e=>onBankCopy(e.target.closest('[data-copy]')));
  $('bankAccounts')?.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.bank-copy-row')){e.preventDefault();onBankCopy(e.target)}});
  try{cart=JSON.parse(sessionStorage.getItem('gc_cart')||'{}')||{}}catch{cart={}};
 }
