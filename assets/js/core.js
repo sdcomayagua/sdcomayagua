@@ -36,11 +36,10 @@
  function unitPrice(p,qty){let x=num(p.price),promo=num(p.promoPrice);if(promo>0&&promo<=x)x=promo;for(const t of tiers(p.discounts))if(qty>=t.min)x=Math.min(x,t.price);return x;}
  function integerTotal(v){const rounded=Math.round(v*100)/100;return Math.abs(rounded-Math.round(rounded))<1e-8?Math.round(rounded):Math.ceil(rounded)+1;}
  function quote(items,mode,config={}){
-  const shipping=num(config.shipping??110),min=num(config.codMinimum??350),unitsMin=Math.max(2,num(config.codMinimumUnits??2)),codRate=num(config.codRate??.1),tigoRate=num(config.tigoRate??.07);
+  const shipping=num(config.shipping??110),min=num(config.codMinimum??350),codRate=num(config.codRate??.1),tigoRate=num(config.tigoRate??.07);
   const valid=items.filter(i=>i.product&&i.qty>0&&i.product.active&&i.product.stock>0);
   const subtotal=valid.reduce((v,i)=>v+unitPrice(i.product,i.qty)*i.qty,0);
   const qty=valid.reduce((v,i)=>v+i.qty,0),violations=[];
-  if(qty<unitsMin) violations.push(`Se requieren al menos ${unitsMin} unidades para pagar al recibir.`);
   if(subtotal<min)violations.push(`La compra mínima para pagar al recibir es ${money(min)} en productos.`);
   const forbidden=valid.filter(i=>!i.product.codAllowed).map(i=>i.product.name);
   if(forbidden.length)violations.push('Estos productos no permiten pago al recibir: '+forbidden.join(', ')+'.');

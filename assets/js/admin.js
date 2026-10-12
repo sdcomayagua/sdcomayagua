@@ -110,7 +110,7 @@ function render(){
    <td data-label="Estado">${p.active?'Activo':'Oculto'}</td>
    <td data-label="Acciones"><button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> <button type="button" class="btn small red" data-disable="${esc(p.id)}" >Ocultar</button></td>
  </tr>`).join('')||'<tr><td colspan="8" class="muted">No hay resultados.</td></tr>';
- $('settingsSummary').textContent=`Envío: ${C.money(settings.shipping||110)} | Mínimo pago al recibir: ${C.money(settings.codMinimum||350)} | Cantidad mínima: ${settings.codMinimumUnits||2} | Comisión al recibir: ${Math.round((settings.codRate||.1)*100)}% | Tigo Money: ${Math.round((settings.tigoRate||.07)*100)}%`;
+ $('settingsSummary').textContent=`Envío: ${C.money(settings.shipping||110)} | Mínimo pago al recibir: ${C.money(settings.codMinimum||350)} en productos | Comisión al recibir: ${Math.round((settings.codRate||.1)*100)}% | Tigo Money: ${Math.round((settings.tigoRate||.07)*100)}%`;
 
 }
 async function reload(){

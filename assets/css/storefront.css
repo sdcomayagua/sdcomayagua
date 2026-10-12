@@ -247,3 +247,40 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
   .tigo-payment-row dd {gap:7px}
   .tigo-payment-row.tigo-number dd strong {font-size:17px}
 }
+
+/* Carrito: elegir pago, revisar el resumen y continuar con el pedido. */
+#cartOverlay .dialog {border:1px solid #e2e7ef;box-shadow:0 16px 60px #13223926}
+#checkoutControls {padding:19px;background:#f7f9fc;border-color:#dde5f0;border-radius:15px}
+#checkoutControls>h3 {font-size:15px;font-weight:700;color:#18304c;margin:0 0 12px!important}
+#checkoutControls .method {border-radius:10px;min-height:69px;gap:7px;border-color:#dce4ef;font-size:11px}
+#checkoutControls .method:has(input:checked) {background:#edf4ff;border-color:#2466bd;color:#1859ad;box-shadow:inset 0 0 0 1px #2466bd}
+#checkoutControls .totals {margin:14px 0}
+#checkoutControls .total-row {padding:8px 0}
+#checkoutControls .total-row.big {padding-top:14px;margin-top:9px;color:#172d49}
+#checkoutControls .total-row.big strong {font-size:27px;font-variant-numeric:tabular-nums}
+#checkoutControls .payment-split {gap:10px;margin-top:16px}
+#checkoutControls .payment-split>div {padding:14px 12px;border-radius:11px;background:#fff;border:1px solid #dce5f0;border-top:3px solid #2c6cbf}
+#checkoutControls .payment-split .cash-row {border-top-color:#208360}
+#checkoutControls .payment-split span {font-size:10px;font-weight:600}
+#checkoutControls .payment-split strong {font-size:24px;margin:3px 0;font-variant-numeric:tabular-nums}
+#checkoutControls .payment-split small {font-size:10px}
+#checkoutControls .bank-cart-link {font-size:12px;margin-bottom:15px;line-height:1.5}
+#checkoutControls #sendQuote {order:7;min-height:46px;border-radius:10px;background:#08764d;font-size:13px;margin-top:4px;box-shadow:none}
+#checkoutControls #printQuote {order:8;min-height:43px;border-radius:10px;font-size:12px;background:#fff;border-color:#ccd9e8}
+#checkoutControls #clearCart {order:9;margin-top:12px;font-size:11px;min-height:32px}
+#checkoutControls>.admin-hint {order:10;font-size:10px;line-height:1.55}
+.cod-availability {display:flex;align-items:center;gap:9px;padding:11px 12px;border:1px solid #d5e5fa;border-radius:9px;background:#edf5ff;color:#2c5e96;margin:12px 0 0}
+.cod-availability[hidden] {display:none}
+.cod-availability strong {display:block;font-size:11px;font-weight:650;line-height:1.4}
+.cod-availability small {display:block;font-size:10px;color:#667e9a;margin-top:2px}
+.cod-check {display:grid;place-items:center;flex:none;width:23px;height:23px;border-radius:7px;background:#d8e8fc;color:#2263b3;font-weight:700}
+#cartOverlay .cart-line .actions button:disabled {opacity:.35;cursor:not-allowed;background:#f1f4f8}
+@media (max-width:760px) {
+ #cartOverlay .dialog {padding:16px;border-radius:16px}
+ #checkoutControls {padding:14px}
+ #checkoutControls .method {font-size:10px;min-height:63px;padding:8px 4px}
+ #checkoutControls .total-row {font-size:12px;padding:7px 0}
+ #checkoutControls .total-row.big strong {font-size:25px}
+ #checkoutControls .payment-split>div {padding:12px 10px}
+ #checkoutControls .payment-split strong {font-size:23px}
+}

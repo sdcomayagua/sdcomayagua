@@ -3,9 +3,9 @@ const C = require('../assets/js/core.js');
 const P=(name,price,stock,codAllowed=true,discounts='')=>({id:name,name,price,stock,codAllowed,active:true,discounts});
 function cart(...lines){return lines.map(([product,qty])=>({product,qty}));}
 const yes=cart([P('Mouse',200,5),2]);
-assert.equal(C.quote(yes,'cod',{codMinimum:350,codMinimumUnits:2,codRate:.1}).codAllowed,true);
-assert.equal(C.quote(yes,'cod',{codMinimum:350,codMinimumUnits:2,codRate:.1}).total,561); // 400+110+51 =561
-assert.equal(C.quote(cart([P('Mouse',390,3),1]),'cod').codAllowed,false); // producto único
+assert.equal(C.quote(yes,'cod',{codMinimum:350,codRate:.1}).codAllowed,true);
+assert.equal(C.quote(yes,'cod',{codMinimum:350,codRate:.1}).total,561); // 400+110+51 =561
+assert.equal(C.quote(cart([P('Mouse',390,3),1]),'cod').codAllowed,true);
 assert.equal(C.quote(cart([P('Mouse',100,3),3]),'cod').codAllowed,false); // menos L350
 assert.equal(C.quote(cart([P('Mouse',200,4),2],[P('Excluido',100,4,false),1]),'cod').codAllowed,false);
 assert.equal(C.quote(cart([P('Mouse',200,4),2]),'transfer').total,510);
@@ -33,3 +33,22 @@ assert.deepEqual([decimal.subtotal,decimal.fee,decimal.total,decimal.deposit,dec
 const w=C.waMessage(cart([P('Dedales V1',25,50,true,'20:20'),40]),c40,'GC-TEST');
 assert.match(w,/ANTICIPO A DEPOSITAR.*L 201/);assert.match(w,/SALDO EN EFECTIVO.*L 800/);
 console.log('PASS ejemplos reales: L 800 => L 201/L 800; L 370 => L 158/L 370; decimales; WhatsApp.');
+
+// El mínimo depende del subtotal después de descuentos, sin exigir unidades.
+for(const [price,total,deposit] of [[700,891,191],[900,1111,211]]){
+ const q=C.quote(cart([P('Producto único',price,1),1]),'cod');
+ assert.equal(q.codAllowed,true);
+ assert.deepEqual([q.subtotal,q.total,q.deposit,q.balance],[price,total,deposit,price]);
+ assert.deepEqual(q.reasons,[]);
+}
+assert.equal(C.quote(cart([P('Mínimo exacto',350,1),1]),'cod').codAllowed,true);
+assert.equal(C.quote(cart([P('Bajo mínimo',349,1),1]),'cod').codAllowed,false);
+assert.equal(C.quote(cart([P('Varios baratos',100,10),3]),'cod').codAllowed,false);
+assert.equal(C.quote(cart([P('Varios suficientes',125,10),3]),'cod').codAllowed,true);
+assert.equal(C.quote(cart([P('Con descuento',400,5,true,'1:340'),1]),'cod').codAllowed,false);
+assert.equal(C.quote(cart([{...P('Promoción',400,5),promoPrice:340},1]),'cod').codAllowed,false);
+assert.equal(C.quote(cart([P('Restringido',900,1,false),1]),'cod').codAllowed,false);
+assert.equal(C.quote([], 'cod').codAllowed,false);
+assert.equal(C.quote(cart([P('Configuración antigua',700,1),1]),'cod',{codMinimum:350,codMinimumUnits:10}).codAllowed,true);
+assert.equal(C.quote(cart([P('Mínimo configurable',700,1),1]),'cod',{codMinimum:750}).codAllowed,false);
+console.log('PASS mínimo por importe: una unidad, límite exacto, descuentos, restricciones y configuración antigua.');

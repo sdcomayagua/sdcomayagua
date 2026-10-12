@@ -7,7 +7,6 @@ window.GC_CONFIG = {
   whatsapp: '50431517755',
   shipping: 110,
   codMinimum: 350,
-  codMinimumUnits: 2,
   codRate: 0.10,
   tigoRate: 0.07,
   logo: 'assets/img/logo-provisional.svg'

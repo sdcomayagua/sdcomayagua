@@ -133,7 +133,7 @@ function rate_(v,def){if(v===''||v==null)return def;const n=money_(v);return /%/
 function cfg_(){
   const sheet=book_().getSheetByName(GC_TAB_SETTINGS),raw={};
   if(sheet&&sheet.getLastRow()>1)sheet.getRange(2,1,sheet.getLastRow()-1,2).getDisplayValues().forEach(row=>{raw[row[0]]=row[1]});
-  return {brand:String(raw.brand||'Gamer Comayagua'),shipping:money_(raw.shipping||110),codMinimum:money_(raw.codMin||350),codMinimumUnits:Math.max(2,Math.floor(money_(raw.codMinUnits||2))),codRate:rate_(raw.codRate,.1),tigoRate:rate_(raw.tigoRate,.07),whatsapp:String(raw.whatsapp||'50431517755').replace(/\D/g,'')};
+  return {brand:String(raw.brand||'Gamer Comayagua'),shipping:money_(raw.shipping||110),codMinimum:money_(raw.codMin||350),codRate:rate_(raw.codRate,.1),tigoRate:rate_(raw.tigoRate,.07),whatsapp:String(raw.whatsapp||'50431517755').replace(/\D/g,'')};
 }
 function detailsClean_(raw){
   let obj=raw;

@@ -26,7 +26,7 @@ function setup(headers){
  })[k]??''));
  const products=[headers.slice(),...initial];
  const cache={},props={ADMIN_PIN:'123456'};
- const tabs={Productos:sheet(products),Configuracion:sheet([['Clave','Valor','Descripcion'],['shipping','110',''],['codMin','350','']]),Cuentas:sheet([['Banco','Titular','Cuenta','Identidad','Visible']])};
+ const tabs={Productos:sheet(products),Configuracion:sheet([['Clave','Valor','Descripcion'],['shipping','110',''],['codMin','350',''],['codMinUnits','8','Configuración antigua']]),Cuentas:sheet([['Banco','Titular','Cuenta','Identidad','Visible']])};
  const context={console,Date,SpreadsheetApp:{openById:()=>({getSheetByName:n=>tabs[n]})},
  CacheService:{getScriptCache:()=>({get:k=>cache[k]||null,put:(k,v)=>{cache[k]=v},remove:k=>{delete cache[k]}})},
  PropertiesService:{getScriptProperties:()=>({getProperty:k=>props[k]??null,setProperty:(k,v)=>{props[k]=v},deleteProperty:k=>{delete props[k]}})},
@@ -44,6 +44,8 @@ for(const headers of [oldHeaders,newHeaders]){
  const pub=context.publicPayload_();
  assert.equal(pub.products.length,sample.filter(p=>p.active).length);
  assert.equal(pub.settings.shipping,110);
+ assert.equal(pub.settings.codMinimum,350);
+ assert.equal('codMinimumUnits' in pub.settings,false);
  assert.ok(pub.products.every(p=>!('cost' in p)));
  assert.equal(pub.products.find(p=>p.promoPrice>0)?.promoPrice,80);
  const admin=context.adminPayload_();
