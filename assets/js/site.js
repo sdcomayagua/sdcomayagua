@@ -27,13 +27,31 @@ function normalize(url){
  return imgFallback;
 }
 const pic=p=>normalize(galleryOf(p)[0]);
-function cleanItems(){for(const [id,n] of Object.entries(cart)){const p=products.find(x=>x.id===id);if(!p||!p.active||p.stock<=0)delete cart[id];else cart[id]=Math.min(Math.max(1,Number(n)||1),p.stock)}try{sessionStorage.setItem('gc_cart',JSON.stringify(cart))}catch{};if($('cartCount'))$('cartCount').textContent=Object.values(cart).reduce((a,b)=>a+b,0);}
+function cleanItems(){for(const [id,n] of Object.entries(cart)){const p=products.find(x=>x.id===id);if(!p||!p.active||p.stock<=0)delete cart[id];else cart[id]=Math.min(Math.max(1,Number(n)||1),p.stock)}try{sessionStorage.setItem('gc_cart',JSON.stringify(cart))}catch{};const count=Object.values(cart).reduce((a,b)=>a+b,0);if($('cartCount'))$('cartCount').textContent=count;document.querySelectorAll('[data-cart-count]').forEach(el=>{el.textContent=count;el.hidden=count===0});if($('mobileCart'))$('mobileCart').setAttribute('aria-label',count?`Abrir carrito, ${count} producto${count===1?'':'s'}`:'Abrir carrito');}
 function items(){cleanItems();return Object.entries(cart).map(([id,qty])=>({product:products.find(x=>x.id===id),qty:Number(qty)})).filter(x=>x.product)}
-function renderCategories(){if(!$('category'))return;const cats=[...new Set(products.filter(p=>p.active).map(p=>p.category))].filter(Boolean).sort((a,b)=>a.localeCompare(b,'es'));const selection=$('category').value;$('category').innerHTML='<option value="">Todas las categorías</option>'+cats.map(x=>`<option value="${escapeAttr(x)}">${safe(x)}</option>`).join('');$('category').value=cats.includes(selection)?selection:'';}
+function renderCategories(){if(!$('category'))return;const cats=[...new Set(products.filter(p=>p.active).map(p=>p.category))].filter(Boolean).sort((a,b)=>a.localeCompare(b,'es'));const selection=$('category').value;$('category').innerHTML='<option value="">Categorías</option>'+cats.map(x=>`<option value="${escapeAttr(x)}">${safe(x)}</option>`).join('');$('category').value=cats.includes(selection)?selection:'';renderCategoryShortcuts();}
+function renderCategoryShortcuts(){
+ const target=$('categoryShortcuts');if(!target)return;
+ const counts=new Map();
+ products.filter(p=>p.active&&p.category).forEach(p=>counts.set(p.category,(counts.get(p.category)||0)+1));
+ const popular=[...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'es')).slice(0,5).map(([name])=>name);
+ target.innerHTML=['',...popular].map(category=>`<button type="button" class="category-shortcut" data-category="${escapeAttr(category)}" aria-pressed="${category===($('category')?.value||'')}">${safe(category||'Todos')}</button>`).join('');
+}
+function updateCategoryShortcuts(){
+ const category=$('category')?.value||'';
+ $('categoryShortcuts')?.querySelectorAll('[data-category]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.category===category)));
+ if($('catalogHeading'))$('catalogHeading').textContent=$('search')?.value.trim()?'Resultados de búsqueda':category||'Todos los productos';
+}
 function card(p){
  const offer=C.unitPrice(p,1),reduced=offer<p.price;
- const amount=reduced?`<div class="product-price is-promo"><span class="price-previous">Antes <s>${C.money(p.price)}</s></span><span class="price-line"><strong class="price-current">${C.money(offer)}</strong><span class="offer-badge">Oferta</span></span></div>`:`<div class="product-price"><strong class="price-current">${C.money(p.price)}</strong></div>`;
- return `<article class="product ${p.stock?'':'out'}"><div class="photo"><button type="button" class="photo-open" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}"><img loading="lazy" decoding="async" src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}';this.closest('.photo').classList.add('missing-photo')" alt="${safe(p.name)}"></button><span class="tag ${p.stock?'':'out'}">${p.stock?'En stock':'Agotado'}</span></div><div class="product-body"><div class="category">${safe(p.category)}</div><h3>${safe(p.name)}</h3>${amount}${p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:''}<div class="stock">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Sin existencias'}</div><div class="product-actions"><button type="button" class="btn" data-add="${escapeAttr(p.id)}" ${!p.stock?'disabled':''}>${p.stock?'+ Agregar':'Agotado'}</button><button type="button" class="btn outline" data-detail="${escapeAttr(p.id)}">Detalles</button></div></div></article>`;
+ const price=value=>`<span class="price-currency">L</span> ${safe(C.money(value).slice(2))}`;
+ const amount=reduced?`<div class="product-price is-promo"><span class="price-previous">Antes <s>${C.money(p.price)}</s></span><span class="price-line"><strong class="price-current">${price(offer)}</strong><span class="offer-badge">Oferta</span></span></div>`:`<div class="product-price"><strong class="price-current">${price(p.price)}</strong></div>`;
+ const zoom='<span class="photo-inspect" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M10 7v6M7 10h6"/></svg></span>';
+ const cartIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01M14 7v6M11 10h6"/></svg>';
+ return `<article class="product ${p.stock?'':'out'}">
+  <div class="photo"><button type="button" class="photo-open" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}"><img loading="lazy" decoding="async" src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}';this.closest('.photo').classList.add('missing-photo')" alt="${safe(p.name)}">${zoom}</button><span class="tag ${p.stock?'':'out'}">${p.stock?'En stock':'Agotado'}</span></div>
+  <div class="product-body"><div class="category">${safe(p.category)}</div><h3><button type="button" class="product-name" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}">${safe(p.name)}</button></h3>${amount}${p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:''}<div class="stock">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Sin existencias'}</div><div class="product-actions"><button type="button" class="btn" data-add="${escapeAttr(p.id)}" aria-label="${p.stock?'Agregar':'Agotado'}: ${escapeAttr(p.name)}" ${!p.stock?'disabled':''}>${p.stock?cartIcon+'<span>Agregar</span>':'Agotado'}</button></div></div>
+ </article>`;
 }
 function render(){
  if(!$('productGrid'))return;
@@ -52,6 +70,7 @@ function render(){
  else if(sort==='name')list.sort((a,b)=>a.name.localeCompare(b.name,'es'));
  else list.sort((a,b)=>(b.stock>0)-(a.stock>0));
  if($('resultsCount'))$('resultsCount').textContent=`${list.length} productos`;
+ updateCategoryShortcuts();
  $('productGrid').innerHTML=list.slice(0,visible).map(card).join('')||'<div class="empty">No se encontraron productos.</div>';
  $('showMore')?.classList.toggle('hidden',list.length<=visible);
 }
@@ -127,7 +146,7 @@ function printQuote(){
  const html=`<!doctype html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${uid} - Gamer Comayagua</title><style>@page{size:A4;margin:17mm}*{box-sizing:border-box}body{max-width:850px;margin:25px auto;padding:0 20px;color:#172b46;font:14px/1.55 Arial,sans-serif}header{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;border-bottom:4px solid #1269d9;padding-bottom:24px}.name{font-weight:900;color:#1068d7;font-size:27px;line-height:1.1;letter-spacing:-1px}header p{margin:7px 0;color:#667b92}.flag{font-size:11px;text-transform:uppercase;letter-spacing:2px;font-weight:800;color:#4875a9}.meta{text-align:right}.folio{font-size:18px;font-weight:800;color:#122842}.intro{display:flex;justify-content:space-between;gap:20px;padding:26px 0}h2{margin:0 0 10px;font-size:19px}table{width:100%;border-collapse:collapse}thead th{background:#e9f1fb;color:#244267;text-align:left;font-size:12px;padding:12px 10px}tbody td{border-bottom:1px solid #e3eaf2;padding:12px 10px}tbody td:nth-child(2),tbody td:nth-child(3){white-space:nowrap}.right{text-align:right;white-space:nowrap}.sku{font-size:11px;color:#8aa0b8;padding-right:4px}.bottom{display:flex;justify-content:flex-end;margin-top:24px}.totals{width:min(370px,100%);background:#f3f7fc;border-radius:12px;padding:15px 19px}.sumrow{display:flex;justify-content:space-between;gap:20px;padding:8px 0;border-bottom:1px solid #dee8f3}.sumrow:last-child{border-bottom:0}.sumrow.highlight{font-size:18px;font-weight:850;color:#075bc1;border-top:2px solid #a5c6ef;padding-top:12px}.footer{border-top:1px solid #cddceb;margin-top:48px;padding-top:14px;font-size:12px;color:#667b92}.stamp{margin-top:18px;color:#466b9b;font-size:12px}.print{position:fixed;top:10px;right:10px;background:#146fe3;color:white;border:0;border-radius:9px;font-weight:bold;padding:10px 16px;cursor:pointer}@media print{body{margin:0;padding:0}.print{display:none}}</style></head><body><button class="print" onclick="window.print()">Imprimir / Guardar PDF</button><header><div><div class="name">GAMER COMAYAGUA</div><p>Comayagua · Envíos a toda Honduras</p><p>WhatsApp: +504 3151-7755</p></div><div class="meta"><div class="flag">Cotización</div><div class="folio">${uid}</div><p>${safe(date)}</p></div></header><div class="intro"><div><div class="flag">Detalles del pedido</div><h2>Cotización de productos</h2><span>Confirmación de inventario por WhatsApp</span></div><div><div class="flag">Modalidad</div><strong>${safe(labels[q.mode])}</strong></div></div><table><thead><tr><th>Descripción</th><th>Cant.</th><th>Precio unit.</th><th class="right">Subtotal</th></tr></thead><tbody>${rows}</tbody></table><div class="bottom"><div class="totals">${line('Subtotal productos',q.subtotal)}${line('Envío nacional',q.shipping)}${fees}${line('TOTAL A PAGAR',q.total,true)}${balances}</div></div><div class="footer"><b>Importante:</b> esta cotización no representa confirmación de pago ni reserva automática. Los productos se confirman según existencias.<div class="stamp">GAMER COMAYAGUA · Gracias por elegirnos</div></div><script>window.addEventListener('load',()=>window.print());<\/script></body></html>`;
  const w=window.open('','_blank');if(!w){toast('Permití ventanas emergentes para imprimir');return}w.document.write(html);w.document.close();
 }
-function handlePublic(data){if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};if(Array.isArray(data.banks)&&data.banks.length)banks=data.banks;renderCategories();render();cleanItems();renderBanks();renderPaymentDetails();if($('syncStatus')){$('syncStatus').textContent=`✓ ${products.length} productos sincronizados desde Google Sheets`;$('syncStatus').style.color='#0f9f6a';}}
+function handlePublic(data){if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};if(Array.isArray(data.banks)&&data.banks.length)banks=data.banks;renderCategories();render();cleanItems();renderBanks();renderPaymentDetails();if($('syncStatus')){$('syncStatus').textContent='Catálogo actualizado';$('syncStatus').style.color='#6f7f92';}}
 function renderBanks(){if(!$('bankAccounts'))return;const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim());const copyRow=(label,value)=>!String(value||'').trim()?'':`<div class="bank-copy-row" role="button" tabindex="0" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}"><div><small>${safe(label)}</small><strong>${safe(value)}</strong></div><button type="button" class="copy-btn" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}">Copiar</button></div>`;$('bankAccounts').innerHTML=published.length?published.map(x=>`<article class="bank-card"><div class="bank-card-head"><div class="bank-symbol">▣</div><div><div class="eyebrow">Cuenta para depósitos</div><h3>${safe(x.bank||'Banco')}</h3></div></div>${copyRow('Nombre del titular',x.owner)}${copyRow('Número de cuenta',x.account)}${copyRow('Número de identidad',x.identity)}</article>`).join(''):`<div class="bank-empty"><div class="bank-symbol">▣</div><h3>Cuentas no disponibles en este momento</h3><p>Solicitá por WhatsApp los datos para transferir y confirmalos antes de pagar.</p><a class="btn outline" href="https://wa.me/${String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito los datos para depositar mi pedido.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a></div>`;}
 async function copyText(value){try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return true;}}catch{}const input=document.createElement('textarea');input.value=value;input.setAttribute('readonly','');input.style.cssText='position:fixed;top:-1000px;left:-1000px';document.body.append(input);input.select();let ok=false;try{ok=document.execCommand('copy')}catch{}input.remove();return ok;}
 
@@ -222,7 +241,7 @@ async function load(){
    products=initial.map(C.cleanProduct).filter(p=>p.id&&p.name);
    renderCategories();render();cleanItems();renderBanks();
    localReady=true;
-   if($('syncStatus'))$('syncStatus').textContent='Catálogo disponible. Comprobando actualizaciones…';
+   if($('syncStatus'))$('syncStatus').textContent='Actualizando catálogo…';
   }catch(error){
    console.warn('No se pudo dibujar el catálogo inicial:',error);
   }
@@ -241,13 +260,13 @@ async function load(){
   products=data.map(C.cleanProduct).filter(p=>p.id&&p.name);
   renderCategories();render();cleanItems();renderBanks();
   localReady=true;
-  if($('syncStatus'))$('syncStatus').textContent='Catálogo de respaldo cargado. Comprobando actualización en Google Sheets…';
+  if($('syncStatus'))$('syncStatus').textContent='Actualizando catálogo…';
  }catch(error){
   console.warn('Respaldo no disponible:',error);
   if($('syncStatus'))$('syncStatus').textContent='No se pudo cargar el respaldo; verificando catálogo en línea…';
  }
  if(!url){
-  if($('syncStatus'))$('syncStatus').textContent=localReady?'Catálogo de respaldo: confirmá existencias por WhatsApp.':'No hay conexión configurada con Google Sheets.';
+  if($('syncStatus'))$('syncStatus').textContent=localReady?'Confirmá precio y existencias por WhatsApp.':'No hay conexión configurada con Google Sheets.';
   return;
  }
  try{
@@ -258,7 +277,7 @@ async function load(){
    handlePublic(await catalogByPost(url));
   }catch(postError){
    console.warn('Sin conexión en tiempo real; se mantiene respaldo local:',postError);
-   if($('syncStatus'))$('syncStatus').textContent=localReady?'Catálogo de respaldo · Confirmá precio y existencias por WhatsApp.':'⚠ No se pudo conectar el catálogo. Intentá actualizar la página.';
+   if($('syncStatus'))$('syncStatus').textContent=localReady?'Confirmá precio y existencias por WhatsApp.':'⚠ No se pudo conectar el catálogo. Intentá actualizar la página.';
    if(!localReady){products=[];render();}
   }
  }
@@ -268,6 +287,7 @@ function binds(){
  if($('waHero'))$('waHero').href='https://wa.me/'+config.whatsapp+'?text='+encodeURIComponent('Hola, quiero información sobre sus productos.');
  $('search')?.addEventListener('input',()=>{visible=24;render()});
  $('category')?.addEventListener('change',()=>{visible=24;render()});
+ $('categoryShortcuts')?.addEventListener('click',event=>{const button=event.target.closest('[data-category]');if(!button||!$('category'))return;$('category').value=button.dataset.category;visible=24;render()});
  $('sort')?.addEventListener('change',render);
  $('showMore')?.addEventListener('click',()=>{visible+=24;render()});
  $('openCart')?.addEventListener('click',cartOpen);$('mobileCart')?.addEventListener('click',cartOpen);
