@@ -94,8 +94,16 @@ function open(id){
  feature('Tamaño',specs.size||'');
  feature('Material',specs.material||'');
  feature('Modelo',specs.model||'');
+ feature('Marca',specs.brand||'');
+ feature('Voltaje de entrada',specs.voltage||'');
+ feature('Corriente de entrada',specs.current||'');
+ feature('Potencia',specs.power||'');
+ feature('Conexión',specs.connection||'');
+ feature('Tecnología',specs.technology||'');
+ feature('Incluye',specs.included||'');
  feature('Compatibilidad',specs.compatibility||'');
- const technical=specRows.length?`<section class="gc-product-specifications"><h4>Características</h4><dl>${specRows.join('')}</dl></section>`:'';
+ const references=specs.references?.length?`<div class="detail-references"><span>Ficha técnica consultada</span>${specs.references.map(ref=>`<a href="${escapeAttr(ref.url)}" target="_blank" rel="noopener noreferrer">${safe(ref.title)} ↗</a>`).join('')}</div>`:'';
+ const technical=specRows.length||references?`<section class="gc-product-specifications"><h4>${specRows.length?'Características':'Fuente de la descripción'}</h4>${specRows.length?`<dl>${specRows.join('')}</dl>`:''}${references}</section>`:'';
  const promotion=p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:'';
  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>';
  const navigation=images.length>1?`<button class="detail-gallery-arrow previous" type="button" data-gallery-step="-1" aria-label="Ver foto anterior">${arrow}</button><button class="detail-gallery-arrow next" type="button" data-gallery-step="1" aria-label="Ver foto siguiente">${arrow}</button>`:'';

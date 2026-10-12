@@ -2,7 +2,11 @@
 (function(){
 'use strict';
 const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
-let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false;
+let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false;
+let researchBusy=false,researchEpoch=0,researchDraft=null;
+const technicalFields=['weight','width','height','length','size','material','model','compatibility','brand','voltage','current','power','connection','technology','included'];
+const extendedFields=['brand','voltage','current','power','connection','technology','included'];
+const technicalLabels={weight:'Peso',width:'Ancho',height:'Alto',length:'Largo / profundidad',size:'Tamaño',material:'Material',model:'Modelo',compatibility:'Compatibilidad',brand:'Marca',voltage:'Voltaje de entrada',current:'Corriente de entrada',power:'Potencia',connection:'Conexión',technology:'Tecnología',included:'Incluye'};
 try{token=sessionStorage.getItem('gc_admin_token')||''}catch{}
 const fallback='assets/img/sin-foto.svg';
 const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -27,7 +31,7 @@ function request(action,extra={}){
   form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';
   const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,token,...extra});
   form.appendChild(field);document.body.appendChild(form);
-  timer=setTimeout(()=>finish(Error(action==='verify'?'Google no respondió al validar el PIN. Podés abrir el diagnóstico para revisar la conexión.':'Google no respondió a la operación. Revisá el diagnóstico de conexión.')),action==='verify'?28000:action==='uploadImage'?90000:60000);
+  timer=setTimeout(()=>finish(Error(action==='verify'?'Google no respondió al validar el PIN. Podés abrir el diagnóstico para revisar la conexión.':action==='researchProduct'?'La búsqueda está tardando más de lo esperado. Esperá un momento antes de reintentar.':'Google no respondió a la operación. Revisá el diagnóstico de conexión.')),action==='verify'?28000:action==='researchProduct'?120000:action==='uploadImage'?90000:60000);
   form.submit();
  });
 }
@@ -152,23 +156,25 @@ async function logIn(e){
  if(!/^\d{6}$/.test(candidate)){toast('Ingresá tu PIN de seis dígitos.');return;}
  token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
  try{
-  const verification=await request('verify');detailsSupported=verification.features?.details===true;sessionStorage.setItem('gc_admin_token',token);
+  const verification=await request('verify');detailsSupported=verification.features?.details===true;extendedDetailsSupported=verification.features?.extendedDetails===true;researchSupported=verification.features?.productResearch===true;sessionStorage.setItem('gc_admin_token',token);
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');reload();
  }catch(err){token='';$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
 }
 function showProduct(id){
+ resetResearch();
  const p=products.find(p=>p.id===id)||{id:'',name:'',code:'',category:'',price:0,promoPrice:0,promoText:'',colors:'',stock:0,cost:'',image:'',gallery:'',description:'',discounts:'',codAllowed:true,active:true};
  const f=$('productForm');
  for(const [k,v] of Object.entries(p)){if(k!=='cost'&&k!=='promoPrice'&&f.elements.namedItem(k))formField(f,k).value=v??'';}
  formField(f,'promoPrice').value=p.promoPrice>0?p.promoPrice:'';
  formField(f,'cost').value='';
  const specs=C.cleanDetails(p.details);
- for(const key of ['weight','width','height','length','size','material','model','compatibility']){
+ for(const key of technicalFields){
   formField(f,key).value=specs[key]??'';
  }
  formField(f,'weightUnit').value=specs.weightUnit||'kg';
  formField(f,'measureUnit').value=specs.measureUnit||'cm';
+ formField(f,'researchReferences').value=JSON.stringify(specs.references||[]);
  $('technicalEditor').open=Object.keys(specs).length>0;
  $('technicalDeploymentNotice').classList.toggle('hidden',detailsSupported);
  formField(f,'codAllowed').value=p.codAllowed?'SI':'NO';
@@ -180,10 +186,65 @@ function showProduct(id){
  renderGalleryPreview();
  $('formOverlay').hidden=false;document.body.style.overflow='hidden';
 }
-function closeForm(){if(busy)return;$('formOverlay').hidden=true;document.body.style.overflow='';}
+function closeForm(){if(busy)return;resetResearch();$('formOverlay').hidden=true;document.body.style.overflow='';}
+function resetResearch(){
+ researchEpoch++;researchBusy=false;researchDraft=null;
+ $('researchPreview').hidden=true;$('researchPreview').innerHTML='';
+ $('researchApply').hidden=true;$('researchSetup').hidden=researchSupported;
+ $('researchButton').disabled=busy||!researchSupported;$('researchButton').textContent='Buscar ficha';
+ $('researchStatus').textContent=researchSupported?'Escribí marca y modelo, luego buscá su ficha.':'Búsqueda pendiente de conexión.';
+ $('saveBtn').disabled=busy;
+}
+async function researchProduct(){
+ if(busy||researchBusy)return;
+ if(!researchSupported){$('researchSetup').hidden=false;return;}
+ const f=$('productForm'),name=formField(f,'name').value.trim(),category=formField(f,'category').value.trim();
+ if(name.length<3){$('researchStatus').textContent='Escribí primero la marca y el modelo del producto.';formField(f,'name').focus();return;}
+ resetResearch();const epoch=researchEpoch;
+ researchBusy=true;$('researchButton').disabled=true;$('saveBtn').disabled=true;$('researchButton').textContent='Buscando…';$('researchStatus').textContent='Consultando fuentes y comprobando el modelo…';
+ try{
+  const result=await request('researchProduct',{name,category});
+  if(epoch!==researchEpoch||$('formOverlay').hidden||formField(f,'name').value.trim()!==name)return;
+  const data=result.research;if(!data||!['exact','ambiguous','not_found'].includes(data.match))throw Error('La búsqueda no devolvió una ficha válida.');
+  const details=C.cleanDetails(data.details),sources=C.cleanDetails({references:data.sources}).references||[];
+  const rows=technicalFields.filter(key=>details[key]!==undefined).map(key=>{
+   const unit=key==='weight'?details.weightUnit:['width','height','length'].includes(key)?details.measureUnit:'';
+   return `<div><dt>${esc(technicalLabels[key])}</dt><dd>${esc(details[key])}${unit?' '+esc(unit):''}</dd></div>`;
+  }).join('');
+  const noteList=(Array.isArray(data.notes)?data.notes:[]).map(note=>`<li>${esc(note)}</li>`).join('');
+  const missing=(Array.isArray(data.missing)?data.missing:[]).map(String).filter(Boolean);
+  const sourceLinks=sources.map(source=>`<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title)} ↗</a>`).join('');
+  const exact=data.match==='exact'&&sources.length>0&&(String(data.description||'').trim()||rows);
+  $('researchPreview').innerHTML=`<strong>${exact?'Ficha encontrada':data.match==='ambiguous'?'Modelo por confirmar':'No se encontró una ficha confirmada'}</strong>${data.matchedModel?`<p class="research-model">${esc(data.matchedModel)}</p>`:''}${exact&&data.description?`<p class="research-description">${esc(data.description)}</p>`:''}${exact&&rows?`<dl>${rows}</dl>`:''}${noteList?`<ul>${noteList}</ul>`:''}${exact&&missing.length?`<p class="research-missing">Sin confirmar: ${esc(missing.join(', '))}.</p>`:''}${sourceLinks?`<div class="research-sources"><span>Fuentes consultadas</span>${sourceLinks}</div>`:''}`;
+  $('researchPreview').hidden=false;$('researchApply').hidden=!exact;
+  researchDraft=exact?{...data,details,sources,requestedName:name}:null;
+  $('researchStatus').textContent=exact?'Revisá la propuesta antes de completar el formulario.':'Precisá el modelo o revisá la etiqueta del producto y volvé a buscar.';
+ }catch(error){if(epoch===researchEpoch)$('researchStatus').textContent=error.message;}
+ finally{if(epoch===researchEpoch){researchBusy=false;$('researchButton').disabled=busy||!researchSupported;$('researchButton').textContent='Buscar ficha';$('saveBtn').disabled=busy;}}
+}
+function applyResearch(){
+ const draft=researchDraft,f=$('productForm');if(!draft||draft.requestedName!==formField(f,'name').value.trim())return;
+ let filled=0;
+ if(draft.description&&!formField(f,'description').value.trim()){formField(f,'description').value=draft.description;filled++;}
+ const dimensions=['width','height','length'],hasDimensions=dimensions.some(key=>formField(f,key).value.trim());
+ for(const key of technicalFields){
+  const value=draft.details[key],field=formField(f,key);if(value===undefined||field.value.trim())continue;
+  if(dimensions.includes(key)&&hasDimensions&&draft.details.measureUnit!==formField(f,'measureUnit').value)continue;
+  field.value=value;filled++;
+  if(key==='weight')formField(f,'weightUnit').value=draft.details.weightUnit||'kg';
+  if(dimensions.includes(key))formField(f,'measureUnit').value=draft.details.measureUnit||'cm';
+ }
+ if(filled){
+  let old=[];try{old=JSON.parse(formField(f,'researchReferences').value||'[]')}catch{}
+  const refs=[...old,...draft.sources].filter((ref,i,all)=>all.findIndex(x=>x.url===ref.url)===i);
+  formField(f,'researchReferences').value=JSON.stringify(C.cleanDetails({references:refs}).references||[]);
+  $('technicalEditor').open=true;
+ }
+ $('researchStatus').textContent=filled?`${filled} campos completados. Revisalos y tocá Guardar producto para publicarlos.`:'Los campos sugeridos ya tienen información. Podés comparar la propuesta con tu ficha.';
+}
 async function save(e){
  e.preventDefault();
- if(busy)return;
+ if(busy||researchBusy)return;
  if(selectedFiles.length && !(await upload()))return;
  const f=$('productForm'),p={};
  for(const k of ['id','code','name','category','price','promoPrice','promoText','colors','cost','stock','image','gallery','discounts','description'])p[k]=formField(f,k).value.trim();
@@ -191,11 +252,13 @@ async function save(e){
  p.codAllowed=formField(f,'codAllowed').value==='SI';
  p.active=formField(f,'active').value==='SI';
  const rawDetails={};
- for(const key of ['weight','width','height','length','size','material','model','compatibility','weightUnit','measureUnit']){
+ for(const key of [...technicalFields,'weightUnit','measureUnit']){
   rawDetails[key]=formField(f,key).value.trim();
  }
+ try{rawDetails.references=JSON.parse(formField(f,'researchReferences').value||'[]')}catch{}
  p.details=C.cleanDetails(rawDetails);
- if(Object.keys(p.details).length&&!detailsSupported){
+ const needsExtended=extendedFields.some(key=>p.details[key])||p.details.references?.length;
+ if((Object.keys(p.details).length&&!detailsSupported)||(needsExtended&&!extendedDetailsSupported)){
   $('technicalEditor').open=true;
   $('technicalDeploymentNotice').classList.remove('hidden');
   $('formMessage').textContent='Las características aún no se han guardado. Seguí los pasos de actualización del servidor indicados arriba.';
@@ -232,6 +295,7 @@ function setGalleryFromUrls(urls){
 function setBusy(value){
  busy=value;
  for(const id of ['saveBtn','uploadBtn','pickGalleryBtn','pickCameraBtn','closeForm','cancelForm'])$(id).disabled=value;
+ $('researchButton').disabled=value||researchBusy||!researchSupported;
  $('productForm').setAttribute('aria-busy',String(value));
 }
 async function preparePhoto(file){
@@ -300,6 +364,8 @@ function binds(){
  };
  $('closeForm').onclick=closeForm;$('cancelForm').onclick=closeForm;
  $('productForm').onsubmit=save;
+ $('researchButton').onclick=researchProduct;$('researchApply').onclick=applyResearch;
+ formField($('productForm'),'name').addEventListener('input',resetResearch);
  $('uploadBtn').onclick=upload;
  $('galleryPreview').onclick=e=>{
   if(busy)return;

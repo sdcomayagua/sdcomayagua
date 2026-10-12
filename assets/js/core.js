@@ -22,11 +22,15 @@
    const n=Number(String(source).replace(',','.'));
    if(Number.isFinite(n)&&n>0&&n<1000000)out[key]=n;
   }
-  for(const key of ['size','material','compatibility','model']){
+  for(const key of ['size','material','compatibility','model','brand','voltage','current','power','connection','technology','included']){
    const v=String(value[key]??'').trim().slice(0,200);if(v)out[key]=v;
   }
   if(out.weight&&['kg','lb','g'].includes(value.weightUnit))out.weightUnit=value.weightUnit;
   if((out.width||out.height||out.length)&&['cm','mm','m','in'].includes(value.measureUnit))out.measureUnit=value.measureUnit;
+  if(Array.isArray(value.references)){
+   const links=value.references.filter(ref=>ref&&typeof ref.url==='string'&&/^https:\/\/[a-z0-9][a-z0-9.-]+(?:[/?#][^\s]*)?$/i.test(ref.url)&&ref.url.length<=800).slice(0,5).map(ref=>({url:ref.url,title:String(ref.title||'Ficha técnica').slice(0,160)}));
+   if(links.length)out.references=links;
+  }
   return out;
  }
  function cleanProduct(p){
