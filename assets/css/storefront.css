@@ -200,6 +200,97 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
   min-width: 0;
 }
 
+/* Ficha del producto: galería contenida y lectura cómoda en el celular. */
+#detailOverlay .dialog {
+  display:flex;flex-direction:column;min-width:0;width:min(940px,100%);
+  max-height:calc(100dvh - 48px);padding:0;overflow:hidden;
+  border:1px solid #e1e7ef;border-radius:20px;box-shadow:0 22px 70px #0c1b3033;
+}
+#detailOverlay .dialog-head {
+  position:static;flex:none;margin:0;padding:14px 24px;
+  background:#fff;border-bottom:1px solid #e9edf3;gap:12px;
+}
+#detailOverlay .dialog-head .eyebrow {color:#63758c;font-size:10px;letter-spacing:1.3px;min-width:0}
+#detailOverlay .dialog-head .icon {width:40px;height:40px;border-radius:12px;background:#f7f9fc;border-color:#e5eaf1}
+#detailContent {min-width:0;min-height:0;width:100%;padding:24px;overflow:auto;overscroll-behavior:contain}
+#detailOverlay .detail {width:100%;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:25px 28px}
+#detailOverlay .detail-media,#detailOverlay .detail-info,#detailOverlay .detail-extra {min-width:0;max-width:100%}
+#detailOverlay .detail-main {
+  position:relative;width:100%;height:clamp(260px,32vw,360px);aspect-ratio:auto;
+  border:1px solid #e9edf3;border-radius:15px;background:#f7f9fc;overflow:hidden;
+}
+#detailOverlay .detail-main img {display:block;width:100%;height:100%;aspect-ratio:auto;object-fit:contain;object-position:center;padding:16px}
+#detailOverlay .detail-gallery-arrow {
+  position:absolute;top:50%;transform:translateY(-50%);display:grid;place-items:center;
+  width:40px;height:44px;padding:0;border:1px solid #dce4ed;border-radius:12px;
+  color:#1b354f;background:#ffffffed;box-shadow:0 2px 8px #17345709;
+}
+#detailOverlay .detail-gallery-arrow.previous {left:8px}
+#detailOverlay .detail-gallery-arrow.next {right:8px}
+#detailOverlay .detail-gallery-arrow svg {width:19px;height:19px}
+#detailOverlay .detail-gallery-arrow.next svg {transform:rotate(180deg)}
+#detailOverlay .detail-gallery-arrow:hover {background:#edf3fb;border-color:#bdcde0}
+#detailOverlay .detail-gallery-meta {display:flex;justify-content:space-between;gap:12px;margin:12px 0 5px;color:#7b8a9d;font-size:11px}
+#detailPhotoCount {color:#3d536e;font-variant-numeric:tabular-nums;white-space:nowrap}
+#detailOverlay .detail-thumbs {
+  width:100%;max-width:100%;min-width:0;gap:8px;margin:0;padding:3px 2px 7px;
+  overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
+  scrollbar-width:thin;scrollbar-color:#b9c8da transparent;
+}
+#detailOverlay .detail-thumb {flex:0 0 56px;width:56px;min-width:56px;height:56px;padding:4px;border-color:#e1e7ef;border-radius:9px}
+#detailOverlay .detail-thumb.active {border-color:#244966;box-shadow:0 0 0 1px #244966;background:#f4f8fd}
+#detailOverlay .detail-thumb:focus-visible {outline-width:2px;outline-offset:0}
+#detailOverlay .detail-thumb img {width:100%;height:100%;aspect-ratio:auto;object-fit:contain}
+#detailOverlay .detail-topline {display:flex;justify-content:space-between;align-items:center;gap:12px;min-width:0;margin:1px 0 10px}
+#detailOverlay .detail-topline .category {min-width:0;font-size:10px;letter-spacing:.7px;color:#7b899b}
+#detailOverlay .detail-stock {display:inline-flex;align-items:center;gap:5px;flex:none;color:#477261;background:#eef7f2;border:1px solid #e0ece6;border-radius:6px;padding:4px 7px;font-size:10px;line-height:1.3}
+#detailOverlay .detail-stock::before {content:"";width:5px;height:5px;flex:none;background:#3c9570;border-radius:50%}
+#detailOverlay .detail-stock.sold-out {color:#7c8695;background:#f3f5f8;border-color:#e5e9ef}
+#detailOverlay .detail-stock.sold-out::before {background:#97a2b2}
+#detailOverlay #detailTitle {margin:0 0 17px;font-size:26px;font-weight:700;line-height:1.26;letter-spacing:-.65px;overflow-wrap:anywhere}
+#detailOverlay .detail-price {min-height:0;margin:0 0 17px;gap:5px}
+#detailOverlay .detail-price .price-current {font-size:30px;font-weight:750;color:#18334e;line-height:1.15;font-variant-numeric:tabular-nums}
+#detailOverlay .detail-price.is-promo .price-current {color:#1764c8}
+#detailOverlay .detail-price .price-previous {font-size:11px}
+#detailOverlay .detail-info>.promo-note {margin:-5px 0 15px;overflow-wrap:anywhere}
+#detailOverlay .detail-payment-note {display:flex;align-items:flex-start;gap:9px;padding:12px;background:#f3f7fc;border:1px solid #e3ebf5;border-radius:10px;color:#355677}
+#detailOverlay .detail-payment-note>div {min-width:0}
+#detailOverlay .detail-payment-note strong {display:block;font-size:12px;font-weight:650;line-height:1.5}
+#detailOverlay .detail-payment-note span:not(.detail-payment-symbol) {display:block;font-size:11px;color:#72839a;line-height:1.5;margin-top:3px;overflow-wrap:anywhere}
+#detailOverlay .detail-payment-symbol {display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:7px;background:#e1ebf8;color:#366497;font-size:12px;font-weight:700}
+#detailOverlay .detail-buttons {display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin-top:18px}
+#detailOverlay .detail-buttons .btn {width:100%;min-width:0;min-height:45px;padding:11px 14px;font-size:14px;white-space:normal;line-height:1.4;box-shadow:none}
+#detailOverlay #detailAdd {background:#18354f;border-color:#18354f;border-radius:10px}
+#detailOverlay #detailAdd svg {width:18px;height:18px;flex:none}
+#detailOverlay #detailWA {color:#526780;background:#fff;border-color:#dce4ee;border-radius:10px;font-size:13px}
+#detailOverlay .detail-extra {grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding-top:22px;border-top:1px solid #e9edf3}
+#detailOverlay .detail-extra.has-both {grid-template-columns:repeat(2,minmax(0,1fr))}
+#detailOverlay .detail-extra>section {min-width:0;margin:0;padding:18px;background:#f8fafc;border-color:#e7edf4;border-radius:12px}
+#detailOverlay .detail-extra h4 {font-size:13px;margin-bottom:12px}
+#detailOverlay .gc-product-description p {font-size:12px}
+#detailOverlay .gc-spec-row {padding:10px;border-color:#e8edf3;border-radius:8px}
+#detailOverlay .gc-spec-row dd {font-size:12px}
+@media (max-width:760px) {
+  #detailOverlay {padding:10px}
+  #detailOverlay .dialog {width:100%;max-width:560px;max-height:calc(100dvh - 20px);border-radius:17px}
+  #detailOverlay .dialog-head {padding:10px 16px}
+  #detailOverlay .dialog-head .eyebrow {font-size:10px;letter-spacing:1px}
+  #detailContent {padding:16px}
+  #detailOverlay .detail {grid-template-columns:minmax(0,1fr);gap:18px}
+  #detailOverlay .detail-main {height:clamp(200px,32dvh,285px);border-radius:12px}
+  #detailOverlay .detail-main img {padding:13px}
+  #detailOverlay .detail-gallery-arrow {width:36px;height:44px;border-radius:10px}
+  #detailOverlay .detail-thumb {flex-basis:52px;width:52px;min-width:52px;height:52px}
+  #detailOverlay .detail-gallery-meta {margin-top:10px}
+  #detailOverlay #detailTitle {font-size:22px;margin-bottom:13px;letter-spacing:-.45px}
+  #detailOverlay .detail-price {margin-bottom:15px}
+  #detailOverlay .detail-price .price-current {font-size:28px}
+  #detailOverlay .detail-topline {margin:0 0 9px}
+  #detailOverlay .detail-buttons {margin-top:14px;gap:8px}
+  #detailOverlay .detail-extra,#detailOverlay .detail-extra.has-both {grid-template-columns:minmax(0,1fr);gap:12px;padding-top:18px}
+  #detailOverlay .detail-extra>section {padding:15px}
+}
+
 
 /* Mensaje de activación de características: claro y accesible. */
 .gc-deploy-notice {

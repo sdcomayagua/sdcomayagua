@@ -3,7 +3,7 @@
 const C=window.GC,config=window.GC_CONFIG,$=id=>document.getElementById(id);
 const imgFallback='assets/img/sin-foto.svg',page=document.body.dataset.page||'inicio';
 let products=[],settings={...config},banks=[],cart={},currentId='',visible=24,latest=null,currentQuoteId='';
-let banksRequest=null,banksStatus='idle';
+let banksRequest=null,banksStatus='idle',detailTrigger=null;
 const safe=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const toast=msg=>{const el=$('toast');el.textContent=msg;el.style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display='none',3500)};
 const escapeAttr=s=>safe(s);
@@ -76,6 +76,7 @@ function render(){
 }
 function open(id){
  const p=products.find(x=>x.id===id);if(!p)return;currentId=id;
+ detailTrigger=document.activeElement;
  const images=galleryOf(p).length?galleryOf(p):[imgFallback];
  const unit=C.unitPrice(p,1),reduced=unit<p.price;
  const amount=reduced?`<div class="product-price detail-price is-promo"><span class="price-previous">Antes <s>${C.money(p.price)}</s></span><span class="price-line"><strong class="price-current">${C.money(unit)}</strong><span class="offer-badge">Oferta</span></span></div>`:`<div class="product-price detail-price"><strong class="price-current">${C.money(unit)}</strong></div>`;
@@ -96,15 +97,35 @@ function open(id){
  feature('Compatibilidad',specs.compatibility||'');
  const technical=specRows.length?`<section class="gc-product-specifications"><h4>Características</h4><dl>${specRows.join('')}</dl></section>`:'';
  const promotion=p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:'';
- $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)}"></div>${images.length>1?`<div class="detail-thumbs">${images.map((u,i)=>`<button type="button" class="detail-thumb ${i===0?'active':''}" data-photo="${escapeAttr(normalize(u))}"><img src="${escapeAttr(normalize(u))}" alt="Foto ${i+1}"></button>`).join('')}</div>`:''}</div><div><div class="category">${safe(p.category)}</div><h3 id="detailTitle">${safe(p.name)}</h3>${amount}${promotion}${detailText}${technical}<p>${p.stock?`<b>Existencias:</b> ${p.stock}`:'Sin existencias actualmente'}</p><div class="${p.codAllowed?'info':'warning'}">${p.codAllowed?'Este producto admite pago al recibir si el carrito reúne todas las condiciones.':'Este producto no admite pago al recibir. Podés pagar por transferencia o Tigo Money.'}</div><div class="detail-buttons"><button class="btn" id="detailAdd" type="button" ${p.stock?'':'disabled'}>Agregar al carrito</button><button class="btn outline" id="detailWA" type="button">Preguntar por WhatsApp</button></div></div></div>`;
- $('detailPhoto').onerror=function(){this.onerror=null;this.src=imgFallback};
- $('detailContent').querySelectorAll('.detail-thumb').forEach(btn=>btn.addEventListener('click',()=>{const src=btn.dataset.photo;$('detailPhoto').src=src;$('detailContent').querySelectorAll('.detail-thumb').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}));
+ const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>';
+ const navigation=images.length>1?`<button class="detail-gallery-arrow previous" type="button" data-gallery-step="-1" aria-label="Ver foto anterior">${arrow}</button><button class="detail-gallery-arrow next" type="button" data-gallery-step="1" aria-label="Ver foto siguiente">${arrow}</button>`:'';
+ const thumbs=images.length>1?`<div class="detail-gallery-meta"><span>Fotos del producto</span><span id="detailPhotoCount" aria-live="polite" aria-atomic="true">1 de ${images.length}</span></div><div class="detail-thumbs" role="group" aria-label="Elegir foto del producto">${images.map((u,i)=>`<button type="button" class="detail-thumb ${i===0?'active':''}" data-photo-index="${i}" aria-pressed="${i===0}" aria-label="Ver foto ${i+1} de ${images.length}"><img loading="lazy" decoding="async" src="${escapeAttr(normalize(u))}" alt="" onerror="this.onerror=null;this.src='${imgFallback}'"></button>`).join('')}</div>`:'';
+ const paymentNote=p.codAllowed?`<strong>Admite pago al recibir</strong><span>Compra mínima de ${C.money(settings.codMinimum??config.codMinimum)} en productos elegibles.</span>`:'<strong>Transferencia o Tigo Money</strong><span>Este producto no admite pago al recibir.</span>';
+ const extra=detailText||technical?`<div class="detail-extra ${detailText&&technical?'has-both':''}">${detailText}${technical}</div>`:'';
+ const cartIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01M14 7v6M11 10h6"/></svg>';
+ $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)} — Foto 1 de ${images.length}">${navigation}</div>${thumbs}</div><div class="detail-info"><div class="detail-topline"><div class="category">${safe(p.category)}</div><span class="detail-stock ${p.stock?'':'sold-out'}">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Agotado'}</span></div><h3 id="detailTitle">${safe(p.name)}</h3>${amount}${promotion}<div class="detail-payment-note"><span class="detail-payment-symbol" aria-hidden="true">${p.codAllowed?'✓':'i'}</span><div>${paymentNote}</div></div><div class="detail-buttons"><button class="btn" id="detailAdd" type="button" ${p.stock?'':'disabled'}>${cartIcon}<span>${p.stock?'Agregar al carrito':'Sin existencias'}</span></button><button class="btn outline" id="detailWA" type="button">Consultar por WhatsApp</button></div></div>${extra}</div>`;
+ const photo=$('detailPhoto'),media=$('detailContent').querySelector('.detail-media');
+ const photoFallback=()=>{photo.onerror=()=>{photo.onerror=null;photo.src=imgFallback}};
+ photoFallback();
+ let photoIndex=0;
+ const showPhoto=index=>{
+  photoIndex=(index+images.length)%images.length;
+  photoFallback();photo.src=normalize(images[photoIndex]);photo.alt=`${p.name} — Foto ${photoIndex+1} de ${images.length}`;
+  if($('detailPhotoCount'))$('detailPhotoCount').textContent=`${photoIndex+1} de ${images.length}`;
+  media.querySelectorAll('.detail-thumb').forEach((button,i)=>{button.classList.toggle('active',i===photoIndex);button.setAttribute('aria-pressed',String(i===photoIndex))});
+  const strip=media.querySelector('.detail-thumbs'),selected=strip?.children[photoIndex];
+  if(selected){const a=selected.getBoundingClientRect(),b=strip.getBoundingClientRect();if(a.left<b.left)strip.scrollLeft+=a.left-b.left-3;else if(a.right>b.right)strip.scrollLeft+=a.right-b.right+3;}
+ };
+ media.querySelectorAll('.detail-thumb').forEach(button=>button.addEventListener('click',()=>showPhoto(Number(button.dataset.photoIndex))));
+ media.querySelectorAll('[data-gallery-step]').forEach(button=>button.addEventListener('click',()=>showPhoto(photoIndex+Number(button.dataset.galleryStep))));
+ media.addEventListener('keydown',event=>{if(images.length>1&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){event.preventDefault();showPhoto(photoIndex+(event.key==='ArrowRight'?1:-1))}});
  $('detailAdd').onclick=()=>{add(id);close('detailOverlay')};
  $('detailWA').onclick=()=>window.open('https://wa.me/'+config.whatsapp+'?text='+encodeURIComponent('Hola Gamer Comayagua, quiero consultar por '+p.name),'_blank','noopener');
- $('detailOverlay').hidden=false;document.body.style.overflow='hidden';
+ $('detailOverlay').hidden=false;$('detailContent').scrollTop=0;document.body.style.overflow='hidden';
+ $('detailOverlay').querySelector('[data-close]').focus({preventScroll:true});
 }
 function add(id){const p=products.find(x=>x.id===id);if(!p||p.stock<=0)return toast('Producto agotado');if((cart[id]||0)>=p.stock)return toast('No hay más unidades disponibles');cart[id]=(cart[id]||0)+1;cleanItems();toast('Producto agregado al carrito');}
-function close(overlay){const el=$(overlay);if(!el)return;el.hidden=true;document.body.style.overflow='';}
+function close(overlay){const el=$(overlay);if(!el||el.hidden)return;el.hidden=true;document.body.style.overflow=document.querySelector('.overlay:not([hidden])')?'hidden':'';if(overlay==='detailOverlay'&&detailTrigger?.isConnected){detailTrigger.focus({preventScroll:true});detailTrigger=null;}}
 function cartOpen(){$('toast').style.display='none';$('cartOverlay').hidden=false;document.body.style.overflow='hidden';cartRender();}
 function cartRender(){const rows=items();$('cartLines').innerHTML=rows.length?rows.map(({product:p,qty})=>`<div class="cart-line"><img src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}'" alt=""><div><strong>${safe(p.name)}</strong><p>${C.money(C.unitPrice(p,qty))} × ${qty}</p><strong>${C.money(qty*C.unitPrice(p,qty))}</strong></div><div class="actions"><button data-qty="${escapeAttr(p.id)}" data-step="-1" title="Restar" aria-label="Restar una unidad de ${escapeAttr(p.name)}">−</button><b>${qty}</b><button data-qty="${escapeAttr(p.id)}" data-step="1" title="Sumar" aria-label="Sumar una unidad de ${escapeAttr(p.name)}" ${qty>=p.stock?'disabled':''}>+</button><button data-remove="${escapeAttr(p.id)}" title="Eliminar" aria-label="Eliminar ${escapeAttr(p.name)}">×</button></div></div>`).join(''):'<div class="empty">El carrito está vacío.</div>';$('checkoutControls').classList.toggle('hidden',!rows.length);calc();}
 function calc(){const selection=document.querySelector('[name=payMethod]:checked')?.value||'transfer',q=C.quote(items(),selection,settings);latest=q;const n=$('deniedNotice');n.classList.toggle('hidden',!(selection==='cod'&&!q.codAllowed));n.textContent=q.reasons.join(' ');const showFee=(q.mode==='cod'||q.mode==='tigo');$('checkoutTotals').innerHTML=`<div class="totals"><div class="total-row"><span>Productos</span><strong>${C.money(q.subtotal)}</strong></div><div class="total-row"><span>Envío</span><strong>${C.money(q.shipping)}</strong></div>${showFee?`<div class="total-row"><span>${q.mode==='cod'?'Comisión por pagar al recibir':'Comisión de Tigo Money'}</span><strong>${C.money(q.fee)}</strong></div>`:''}<div class="total-row big"><span>Total</span><strong>${C.money(q.total)}</strong></div>${q.mode==='cod'?`<div class="payment-split"><div class="deposit-row"><span>Anticipo a depositar</span><strong>${C.money(q.deposit)}</strong><small>Envío + comisión</small></div><div class="cash-row"><span>Al recibir</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:''}</div>`;if($('codDepositHelp'))$('codDepositHelp').hidden=selection!=='cod';$('sendQuote').disabled=selection==='cod'&&!q.codAllowed;$('printQuote').disabled=selection==='cod'&&!q.codAllowed;renderPaymentDetails();renderCodAvailability(q,selection);}
@@ -308,6 +329,13 @@ function binds(){
  $('sendQuote')?.addEventListener('click',waQuote);$('printQuote')?.addEventListener('click',printQuote);$('clearCart')?.addEventListener('click',()=>{cart={};cartRender()});
  document.querySelectorAll('[data-close]').forEach(x=>x.onclick=()=>close(x.closest('.overlay').id));
  document.querySelectorAll('.overlay').forEach(x=>x.onclick=e=>{if(e.target===x)close(x.id)});
+ $('detailOverlay')?.addEventListener('keydown',event=>{
+  if(event.key!=='Tab')return;
+  const controls=[...$('detailOverlay').querySelectorAll('button:not(:disabled),a[href],[tabindex="0"]')].filter(el=>el.getClientRects().length);
+  const first=controls[0],last=controls[controls.length-1];
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}
+ });
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){close('detailOverlay');close('cartOverlay')}});
  const onBankCopy=async b=>{if(!b)return;const ok=await copyText(b.dataset.copy);toast(ok?b.dataset.label+' copiado al portapapeles':'No se pudo copiar. Mantené presionado el dato para copiarlo.');if(ok){const button=b.matches('button')?b:b.querySelector('button');if(button){button.textContent='✓ Copiado';setTimeout(()=>{if(button.isConnected)button.textContent='Copiar'},2000)}}};
  $('bankAccounts')?.addEventListener('click',e=>onBankCopy(e.target.closest('[data-copy]')));
