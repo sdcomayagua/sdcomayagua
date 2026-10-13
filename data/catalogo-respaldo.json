@@ -49,14 +49,34 @@
     "stock": 2,
     "image": "https://drive.google.com/thumbnail?id=1x2vw-6qZ5IdetfxOY0IIMNjAMyHFw0Da&sz=w1200",
     "gallery": "https://drive.google.com/thumbnail?id=1rndUq2qVrQwZMmjdU11vzeqHBxG3Tbsp&sz=w1200, https://drive.google.com/thumbnail?id=1cNwShj6aGLhTnWOByLYfJa6LwbcRpZ0O&sz=w1200",
-    "description": "",
+    "description": "Mouse gamer con cable Primus GLADIUS 12400T edición Darth Vader de Star Wars. Incorpora sensor óptico PixArt PAW3327DB, resolución ajustable de 800 a 12,400 DPI (máximo mediante software), 10 botones (9 programables), microinterruptores OMRON e iluminación RGB con 11 modos. Diseño ambidiestro, conexión USB y cable trenzado de 182 cm.",
     "discounts": "",
     "codAllowed": true,
     "active": true,
     "colors": "",
     "promoPrice": 0,
     "promoText": "",
-    "details": {}
+    "details": {
+      "weight": 130.0,
+      "width": 6.6,
+      "height": 3.8,
+      "length": 12.8,
+      "size": "12.8 × 6.6 × 3.8 cm (largo × ancho × alto)",
+      "compatibility": "Windows 2000, XP, Vista, 7, 8, 10 y 11; Mac, ANDROID, IPHONE",
+      "model": "PMO-S203DV",
+      "brand": "Primus Gaming",
+      "connection": "USB con cable trenzado de 182 cm",
+      "technology": "Sensor óptico PixArt PAW3327DB; hasta 12,400 DPI vía software; 10 botones (9 programables); iluminación RGB con 11 modos",
+      "included": "Certificado de autenticidad",
+      "weightUnit": "g",
+      "measureUnit": "cm",
+      "references": [
+        {
+          "url": "https://api.primusgaming.com/images/PMO-S203DV_DS_SPA.pdf",
+          "title": "Primus Gaming · Ficha técnica oficial PMO-S203DV en español"
+        }
+      ]
+    }
   },
   {
     "id": "790de833-40d5-4b0d-9455-989138e6af4c",
