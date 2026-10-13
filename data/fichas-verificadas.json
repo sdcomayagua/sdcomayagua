@@ -1,6 +1,9 @@
 [
   {
-    "aliases": ["MEMO CX16", "Enfriador MEMO CX16"],
+    "aliases": [
+      "MEMO CX16",
+      "Enfriador MEMO CX16"
+    ],
     "checkedAt": "2026-10-12",
     "match": "exact",
     "matchedModel": "MEMO CX16",
@@ -25,7 +28,61 @@
         "title": "MEMO · Especificaciones oficiales del CX16"
       }
     ],
-    "notes": ["Ficha oficial del CX16 consultada el 12/10/2026. No confirma una variante diferente Pro o 2026. Comprobá el modelo de la caja y los accesorios de tu unidad antes de guardar."],
-    "missing": ["Accesorios de la unidad que vendés"]
+    "notes": [
+      "Ficha oficial del CX16 consultada el 12/10/2026. No confirma una variante diferente Pro o 2026. Comprobá el modelo de la caja y los accesorios de tu unidad antes de guardar."
+    ],
+    "missing": [
+      "Accesorios de la unidad que vendés"
+    ]
+  },
+  {
+    "aliases": [
+      "PRIMUS PMO-S203DV",
+      "PRIMUS GLADIUS 12400T DARTH VADER",
+      "PRIMUS GLADIUS12400T DARTH VADER",
+      "PRIMUS GLADIUS 12400T EDICIÓN DARTH VADER",
+      "GLADIUS 12400T DARTH VADER",
+      "PMO-S203DV"
+    ],
+    "conditionalAliases": [
+      {
+        "query": "PRIMUS GLADIUS 12400T",
+        "productIncludes": "DARTH VADER"
+      }
+    ],
+    "checkedAt": "2026-10-13",
+    "match": "exact",
+    "matchedModel": "PRIMUS GLADIUS 12400T · Darth Vader (PMO-S203DV)",
+    "description": "Mouse gamer con cable Primus GLADIUS 12400T edición Darth Vader de Star Wars. Incorpora sensor óptico PixArt PAW3327DB, resolución ajustable de 800 a 12,400 DPI (máximo mediante software), 10 botones (9 programables), microinterruptores OMRON e iluminación RGB con 11 modos. Diseño ambidiestro, conexión USB y cable trenzado de 182 cm.",
+    "details": {
+      "model": "PMO-S203DV",
+      "brand": "Primus Gaming",
+      "weight": 130,
+      "weightUnit": "g",
+      "width": 6.6,
+      "height": 3.8,
+      "length": 12.8,
+      "measureUnit": "cm",
+      "size": "12.8 × 6.6 × 3.8 cm (largo × ancho × alto)",
+      "compatibility": "Windows 2000, XP, Vista, 7, 8, 10 y 11; Mac",
+      "connection": "USB con cable trenzado de 182 cm",
+      "technology": "Sensor óptico PixArt PAW3327DB; hasta 12,400 DPI vía software; 10 botones (9 programables); iluminación RGB con 11 modos",
+      "included": "Certificado de autenticidad"
+    },
+    "sources": [
+      {
+        "url": "https://api.primusgaming.com/images/PMO-S203DV_DS_SPA.pdf",
+        "title": "Primus Gaming · Ficha técnica oficial PMO-S203DV en español"
+      }
+    ],
+    "notes": [
+      "Ficha de Primus para la edición Darth Vader, código PMO-S203DV. Existen otras ediciones GLADIUS 12400T: corroborá que la caja corresponde a Darth Vader. No se asignaron voltaje, corriente, potencia ni materiales porque la ficha no los confirma."
+    ],
+    "missing": [
+      "Material",
+      "Voltaje de entrada",
+      "Corriente de entrada",
+      "Potencia"
+    ]
   }
 ]
