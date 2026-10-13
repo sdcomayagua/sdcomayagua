@@ -1,0 +1,31 @@
+[
+  {
+    "aliases": ["MEMO CX16", "Enfriador MEMO CX16"],
+    "checkedAt": "2026-10-12",
+    "match": "exact",
+    "matchedModel": "MEMO CX16",
+    "description": "El MEMO CX16 es un enfriador para celular con refrigeración termoeléctrica, ventilador y disipador de aluminio. Ofrece sujeción magnética y admite clips para teléfonos de 62 a 105 mm de ancho. Tiene iluminación RGB, indicador de temperatura y alimentación por USB-C de 5 V / 2 A.",
+    "details": {
+      "model": "CX16",
+      "brand": "MEMO",
+      "weight": 72,
+      "weightUnit": "g",
+      "size": "82 × 91 × 52 mm",
+      "voltage": "5 V",
+      "current": "2 A",
+      "power": "Placa de enfriamiento: 10 W; consumo total declarado: 11 W",
+      "connection": "USB-C",
+      "technology": "Refrigeración termoeléctrica (TEC) y ventilador",
+      "material": "ABS y metal; disipador de aluminio",
+      "compatibility": "Sujeción magnética compatible; con clips, teléfonos de 62 a 105 mm de ancho"
+    },
+    "sources": [
+      {
+        "url": "https://www.memo-develop.com/phone-cooler/semiconductor-cooling-phone-cooler/memo-cx16-universal-magnetic-mobile-cooling.html",
+        "title": "MEMO · Especificaciones oficiales del CX16"
+      }
+    ],
+    "notes": ["Ficha oficial del CX16 consultada el 12/10/2026. No confirma una variante diferente Pro o 2026. Comprobá el modelo de la caja y los accesorios de tu unidad antes de guardar."],
+    "missing": ["Accesorios de la unidad que vendés"]
+  }
+]

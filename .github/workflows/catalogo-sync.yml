@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verificar integridad del sincronizador
         run: python3 -m py_compile scripts/sync_public_catalog.py
-      - name: Actualizar catálogo público desde Apps Script
+      - name: Actualizar catálogo desde la pestaña pública de Google Sheets
         run: python3 scripts/sync_public_catalog.py
       - name: Guardar cambios en GitHub Pages
         shell: bash

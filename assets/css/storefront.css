@@ -319,7 +319,21 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
 .gc-research .research-sources span {color:#8491a3;font-size:10px}
 .gc-research .research-sources a {color:#2e64a0;line-height:1.6}
 #researchApply {margin-top:12px;background:#18354f;font-size:12px;white-space:normal}
+.gc-research .research-query {display:grid;gap:7px;margin-top:14px;font-size:12px;color:#284763}
+.gc-research .research-query span {font-size:11px;line-height:1.5;color:#74859b;font-weight:400}
+#formOverlay .dialog {display:flex;flex-direction:column;padding:0;overflow:hidden;max-height:calc(100dvh - 28px)}
+#formOverlay .dialog-head {position:static;flex:none;padding:14px 20px;margin:0}
+#productForm {display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#productEditorBody {overflow:auto;min-height:0;padding:20px;overscroll-behavior:contain}
+#productSaveActions {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 20px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #dce5f0;flex:none}
+#productSaveActions .btn {min-height:44px;font-size:12px;white-space:normal}
+#productSaveActions #saveBtn {flex:1;max-width:290px}
+#adminStatus a {display:inline-block;margin-left:8px;font-weight:650;color:#195cae}
 @media (max-width:560px) {
+ #formOverlay .dialog {max-height:calc(100dvh - 20px)}
+ #formOverlay .dialog-head {padding:12px 14px}
+ #productEditorBody {padding:14px}
+ #productSaveActions {padding:10px 14px calc(10px + env(safe-area-inset-bottom));gap:8px}
  #formOverlay .gc-research {padding:13px}
  .gc-research .research-heading {align-items:flex-start;flex-direction:column;gap:10px}
  .gc-research .research-heading .btn {width:100%}

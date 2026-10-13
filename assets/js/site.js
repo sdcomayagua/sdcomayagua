@@ -4,6 +4,8 @@ const C=window.GC,config=window.GC_CONFIG,$=id=>document.getElementById(id);
 const imgFallback='assets/img/sin-foto.svg',page=document.body.dataset.page||'inicio';
 let products=[],settings={...config},banks=[],cart={},currentId='',visible=24,latest=null,currentQuoteId='';
 let banksRequest=null,banksStatus='idle',detailTrigger=null;
+let onlineRequest=null,lastOnlineCheck=0,linkedProductOpened=false,pendingOnlineRefresh=false;
+const linkedProductId=new URLSearchParams(location.search).get('producto');
 const safe=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const toast=msg=>{const el=$('toast');el.textContent=msg;el.style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display='none',3500)};
 const escapeAttr=s=>safe(s);
@@ -185,7 +187,60 @@ function printQuote(){
  const html=`<!doctype html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${uid} - Gamer Comayagua</title><style>@page{size:A4;margin:17mm}*{box-sizing:border-box}body{max-width:850px;margin:25px auto;padding:0 20px;color:#172b46;font:14px/1.55 Arial,sans-serif}header{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;border-bottom:4px solid #1269d9;padding-bottom:24px}.name{font-weight:900;color:#1068d7;font-size:27px;line-height:1.1;letter-spacing:-1px}header p{margin:7px 0;color:#667b92}.flag{font-size:11px;text-transform:uppercase;letter-spacing:2px;font-weight:800;color:#4875a9}.meta{text-align:right}.folio{font-size:18px;font-weight:800;color:#122842}.intro{display:flex;justify-content:space-between;gap:20px;padding:26px 0}h2{margin:0 0 10px;font-size:19px}table{width:100%;border-collapse:collapse}thead th{background:#e9f1fb;color:#244267;text-align:left;font-size:12px;padding:12px 10px}tbody td{border-bottom:1px solid #e3eaf2;padding:12px 10px}tbody td:nth-child(2),tbody td:nth-child(3){white-space:nowrap}.right{text-align:right;white-space:nowrap}.sku{font-size:11px;color:#8aa0b8;padding-right:4px}.bottom{display:flex;justify-content:flex-end;margin-top:24px}.totals{width:min(370px,100%);background:#f3f7fc;border-radius:12px;padding:15px 19px}.sumrow{display:flex;justify-content:space-between;gap:20px;padding:8px 0;border-bottom:1px solid #dee8f3}.sumrow:last-child{border-bottom:0}.sumrow.highlight{font-size:18px;font-weight:850;color:#075bc1;border-top:2px solid #a5c6ef;padding-top:12px}.footer{border-top:1px solid #cddceb;margin-top:48px;padding-top:14px;font-size:12px;color:#667b92}.stamp{margin-top:18px;color:#466b9b;font-size:12px}.print{position:fixed;top:10px;right:10px;background:#146fe3;color:white;border:0;border-radius:9px;font-weight:bold;padding:10px 16px;cursor:pointer}@media print{body{margin:0;padding:0}.print{display:none}}</style></head><body><button class="print" onclick="window.print()">Imprimir / Guardar PDF</button><header><div><div class="name">GAMER COMAYAGUA</div><p>Comayagua · Envíos a toda Honduras</p><p>WhatsApp: +504 3151-7755</p></div><div class="meta"><div class="flag">Cotización</div><div class="folio">${uid}</div><p>${safe(date)}</p></div></header><div class="intro"><div><div class="flag">Detalles del pedido</div><h2>Cotización de productos</h2><span>Confirmación de inventario por WhatsApp</span></div><div><div class="flag">Modalidad</div><strong>${safe(labels[q.mode])}</strong></div></div><table><thead><tr><th>Descripción</th><th>Cant.</th><th>Precio unit.</th><th class="right">Subtotal</th></tr></thead><tbody>${rows}</tbody></table><div class="bottom"><div class="totals">${line('Subtotal productos',q.subtotal)}${line('Envío nacional',q.shipping)}${fees}${line('TOTAL A PAGAR',q.total,true)}${balances}</div></div><div class="footer"><b>Importante:</b> esta cotización no representa confirmación de pago ni reserva automática. Los productos se confirman según existencias.<div class="stamp">GAMER COMAYAGUA · Gracias por elegirnos</div></div><script>window.addEventListener('load',()=>window.print());<\/script></body></html>`;
  const w=window.open('','_blank');if(!w){toast('Permití ventanas emergentes para imprimir');return}w.document.write(html);w.document.close();
 }
-function handlePublic(data){if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};if(Array.isArray(data.banks)&&data.banks.length)banks=data.banks;renderPaymentTerms();renderCategories();render();cleanItems();renderBanks();renderPaymentDetails();if($('syncStatus')){$('syncStatus').textContent='Catálogo actualizado';$('syncStatus').style.color='#6f7f92';}}
+function handlePublic(data){if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};if(Array.isArray(data.banks)&&data.banks.length)banks=data.banks;renderPaymentTerms();renderCategories();render();cleanItems();renderBanks();renderPaymentDetails();if($('syncStatus')){$('syncStatus').textContent='Catálogo actualizado';$('syncStatus').style.color='#6f7f92';}openLinkedProduct();}
+
+function openLinkedProduct(){
+ if(!linkedProductOpened&&linkedProductId&&$('detailOverlay')&&products.some(p=>p.id===linkedProductId&&p.active)){
+  linkedProductOpened=true;open(linkedProductId);
+ }
+}
+
+/** Lee exclusivamente CATALOGO PUBLICO WEB, con encabezados públicos comprobados. */
+function catalogFromSheet(){
+ return new Promise((resolve,reject)=>{
+  const id=String(config.spreadsheetUrl||'').match(/\/spreadsheets\/d\/([\w-]+)/)?.[1],gid=config.publicCatalogGid;
+  if(!id||!Number.isInteger(gid))return reject(Error('No hay pestaña pública configurada'));
+  const headers=['ID','Codigo','Nombre','Categoria','Precio','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Colores','PrecioPromocion','PromocionTexto','Detalles'];
+  const callback='gcCatalogSheet_'+Date.now()+'_'+Math.floor(Math.random()*100000),script=document.createElement('script');
+  let ended=false;
+  const finish=(error,data)=>{if(ended)return;ended=true;clearTimeout(timer);delete window[callback];script.remove();error?reject(error):resolve(data)};
+  const timer=setTimeout(()=>finish(Error('La hoja pública no respondió')),12000);
+  window[callback]=data=>{
+   try{
+    if(data?.status!=='ok'||!Array.isArray(data.table?.rows)||!Array.isArray(data.table?.cols))throw Error('Catálogo público no disponible');
+    if(data.table.cols.length!==headers.length||data.table.cols.some((column,i)=>column.label!==headers[i]))throw Error('Encabezados del catálogo público no válidos');
+    const rows=data.table.rows.map(row=>Object.fromEntries(headers.map((header,i)=>[header,row.c?.[i]?.v??''])));
+    finish(null,{ok:true,products:rows.map(C.cleanProduct)});
+   }catch(error){finish(error)}
+  };
+  script.onerror=()=>finish(Error('Sin acceso al catálogo público'));
+  script.onload=()=>{if(!ended)finish(Error('Google no devolvió el catálogo público'))};
+  const query='select A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P where A is not null limit 500';
+  script.src='https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?gid='+gid+'&headers=1&tq='+encodeURIComponent(query)+'&tqx='+encodeURIComponent('out:json;responseHandler:'+callback)+'&t='+Date.now();
+  document.head.appendChild(script);
+ });
+}
+
+function refreshOnlineCatalog(force=false){
+ if(onlineRequest){if(force)pendingOnlineRefresh=true;return onlineRequest;}
+ lastOnlineCheck=Date.now();
+ onlineRequest=(async()=>{
+  let sheetProducts=null,ready=false;
+  const sheetTask=catalogFromSheet().then(data=>{sheetProducts=data.products;handlePublic(data);ready=true});
+  const apiTask=(async()=>{
+   const url=String(config.apiUrl||'').trim();if(!url)return;
+   let data;try{data=await jsonp(url)}catch(error){
+    try{await sheetTask;return}catch(sheetError){}
+    data=await catalogByPost(url);
+   }
+   handlePublic(sheetProducts?{...data,products:sheetProducts}:data);ready=true;
+  })();
+  await Promise.allSettled([sheetTask,apiTask]);
+  if(!ready&&$('syncStatus'))$('syncStatus').textContent=products.length?'Confirmá precio y existencias por WhatsApp.':'No se pudo actualizar el catálogo. Recargá la página.';
+  return ready;
+ })().finally(()=>{onlineRequest=null;if(pendingOnlineRefresh){pendingOnlineRefresh=false;refreshOnlineCatalog();}});
+ return onlineRequest;
+}
 function renderBanks(){if(!$('bankAccounts'))return;const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim());const copyRow=(label,value)=>!String(value||'').trim()?'':`<div class="bank-copy-row" role="button" tabindex="0" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}"><div><small>${safe(label)}</small><strong>${safe(value)}</strong></div><button type="button" class="copy-btn" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}">Copiar</button></div>`;$('bankAccounts').innerHTML=published.length?published.map(x=>`<article class="bank-card"><div class="bank-card-head"><div class="bank-symbol">▣</div><div><div class="eyebrow">Cuenta para depósitos</div><h3>${safe(x.bank||'Banco')}</h3></div></div>${copyRow('Nombre del titular',x.owner)}${copyRow('Número de cuenta',x.account)}${copyRow('Número de identidad',x.identity)}</article>`).join(''):`<div class="bank-empty"><div class="bank-symbol">▣</div><h3>Cuentas no disponibles en este momento</h3><p>Solicitá por WhatsApp los datos para transferir y confirmalos antes de pagar.</p><a class="btn outline" href="https://wa.me/${String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito los datos para depositar mi pedido.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a></div>`;}
 async function copyText(value){try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return true;}}catch{}const input=document.createElement('textarea');input.value=value;input.setAttribute('readonly','');input.style.cssText='position:fixed;top:-1000px;left:-1000px';document.body.append(input);input.select();let ok=false;try{ok=document.execCommand('copy')}catch{}input.remove();return ok;}
 
@@ -304,24 +359,18 @@ async function load(){
   console.warn('Respaldo no disponible:',error);
   if($('syncStatus'))$('syncStatus').textContent='No se pudo cargar el respaldo; verificando catálogo en línea…';
  }
- if(!url){
+ if(!url&&!Number.isInteger(config.publicCatalogGid)){
   if($('syncStatus'))$('syncStatus').textContent=localReady?'Confirmá precio y existencias por WhatsApp.':'No hay conexión configurada con Google Sheets.';
   return;
  }
- try{
-  handlePublic(await jsonp(url));
- }catch(error){
-  console.warn('Consulta pública GET no disponible; probando POST:',error);
-  try{
-   handlePublic(await catalogByPost(url));
-  }catch(postError){
-   console.warn('Sin conexión en tiempo real; se mantiene respaldo local:',postError);
-   if($('syncStatus'))$('syncStatus').textContent=localReady?'Confirmá precio y existencias por WhatsApp.':'⚠ No se pudo conectar el catálogo. Intentá actualizar la página.';
-   if(!localReady){products=[];render();}
-  }
- }
+ await refreshOnlineCatalog();
+ openLinkedProduct();
 }
 function binds(){
+ const refreshWhenVisible=()=>{if(document.visibilityState==='visible'&&Date.now()-lastOnlineCheck>30000)refreshOnlineCatalog();};
+ document.addEventListener('visibilitychange',refreshWhenVisible);
+ window.addEventListener('focus',refreshWhenVisible);
+ window.addEventListener('storage',event=>{if(event.key==='gc_catalog_revision')refreshOnlineCatalog(true);});
  renderPaymentTerms();
  if($('year'))$('year').textContent=new Date().getFullYear();
  if($('waHero'))$('waHero').href='https://wa.me/'+config.whatsapp+'?text='+encodeURIComponent('Hola, quiero información sobre sus productos.');

@@ -28,7 +28,7 @@
   if(out.weight&&['kg','lb','g'].includes(value.weightUnit))out.weightUnit=value.weightUnit;
   if((out.width||out.height||out.length)&&['cm','mm','m','in'].includes(value.measureUnit))out.measureUnit=value.measureUnit;
   if(Array.isArray(value.references)){
-   const links=value.references.filter(ref=>ref&&typeof ref.url==='string'&&/^https:\/\/[a-z0-9][a-z0-9.-]+(?:[/?#][^\s]*)?$/i.test(ref.url)&&ref.url.length<=800).slice(0,5).map(ref=>({url:ref.url,title:String(ref.title||'Ficha técnica').slice(0,160)}));
+   const links=value.references.filter(ref=>ref&&typeof ref.url==='string'&&/^https?:\/\/[a-z0-9][a-z0-9.-]+(?:[/?#][^\s]*)?$/i.test(ref.url)&&ref.url.length<=800).slice(0,5).map(ref=>({url:ref.url,title:String(ref.title||'Ficha técnica').slice(0,160)}));
    if(links.length)out.references=links;
   }
   return out;

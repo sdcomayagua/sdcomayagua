@@ -3,6 +3,7 @@
 import csv
 import io
 import json
+import re
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlparse, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
@@ -20,6 +21,7 @@ HEADERS = [
 DETAIL_KEYS = {
     "weight", "weightUnit", "width", "height", "length", "measureUnit",
     "size", "material", "model", "compatibility",
+    "brand", "voltage", "current", "power", "connection", "technology", "included",
 }
 PRIVATE_FIELDS = {"costo", "cost", "ganancia", "inversion", "identidad", "cuenta"}
 
@@ -84,6 +86,18 @@ def details_public(raw):
         result.pop("weightUnit", None)
     if not any(k in result for k in ("width", "height", "length")):
         result.pop("measureUnit", None)
+    references = data.get("references")
+    if isinstance(references, list):
+        links = []
+        for ref in references:
+            if not isinstance(ref, dict):
+                continue
+            url = ref.get("url")
+            if (isinstance(url, str) and len(url) <= 800
+                    and re.fullmatch(r"https?://[a-z0-9][a-z0-9.-]+(?:[/?#][^\s]*)?", url, re.I)):
+                links.append({"url": url, "title": str(ref.get("title") or "Ficha técnica")[:160]})
+        if links:
+            result["references"] = links[:5]
     return result
 
 def source_url(file):
@@ -141,8 +155,11 @@ def fetch_api(url):
 
 def fetch_csv(url):
     parsed = urlparse(url)
-    if (parsed.scheme != "https" or parsed.hostname != "docs.google.com"
-            or "/pub?" not in url or "single=true" not in url or "output=csv" not in url):
+    params = dict(parse_qsl(parsed.query))
+    published = "/pub" in parsed.path and params.get("single") == "true" and params.get("output") == "csv"
+    public_tab = (parsed.path.endswith("/gviz/tq") and params.get("gid") == "87012030"
+                  and params.get("headers") == "1" and params.get("tqx") == "out:csv")
+    if parsed.scheme != "https" or parsed.hostname != "docs.google.com" or not (published or public_tab):
         raise ValueError("El CSV debe publicar una única pestaña sin datos privados")
     with urlopen(Request(url, headers={"User-Agent": "GamerComayaguaSync/2.0"}), timeout=30) as response:
         data = response.read(3000001)
@@ -180,8 +197,10 @@ def main():
     if not api and not csv_url:
         print("Sin fuente pública configurada; se conservan los archivos existentes")
         return
-    from_public_api = bool(api)
-    entries = fetch_api(api) if from_public_api else fetch_csv(csv_url)
+    # La pestaña pública responde sin sesión aunque /exec rechace el acceso.
+    # Preferirla también evita que un servidor antiguo quite datos nuevos.
+    from_public_api = not bool(csv_url)
+    entries = fetch_csv(csv_url) if csv_url else fetch_api(api)
     if len(entries) < 40 or len({e["id"] for e in entries}) != len(entries):
         raise ValueError("Catálogo incompleto o con productos duplicados: no se escribe ningún archivo")
     if OUTPUT.exists():
