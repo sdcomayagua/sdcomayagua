@@ -205,7 +205,7 @@ function resetResearch(){
  researchEpoch++;researchBusy=false;researchDraft=null;
  $('researchPreview').hidden=true;$('researchPreview').innerHTML='';
  $('researchApply').hidden=true;$('researchSetup').hidden=researchSupported&&researchVersion>=2;
- $('researchSetup').querySelector('p').textContent=researchSupported?'La conexión ya está configurada. Para corregir las búsquedas nuevas, actualizá Code.gs en Google y publicá una nueva versión. La ficha verificada MEMO CX16 ya está disponible.':'Las fichas verificadas, como MEMO CX16, están disponibles. Para investigar otros modelos, conectá la búsqueda desde Google Apps Script.';
+ $('researchSetup').querySelector('p').textContent=researchSupported?'El servidor tiene activada la investigación. Los modelos sin fuentes oficiales quedarán vacíos; comprobá la etiqueta de la caja.':'Podés activar el buscador SIN PAGOS con las claves gratuitas de Tavily y Gemini. Abrí la guía de configuración.';
  $('researchButton').disabled=busy;$('researchButton').textContent='Buscar ficha';
  $('researchStatus').textContent='Escribí el modelo de la caja y tocá Buscar ficha.';
  $('saveBtn').disabled=busy;
