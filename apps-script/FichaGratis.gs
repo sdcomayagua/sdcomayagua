@@ -86,14 +86,17 @@ function gcFreeResearch_(rawName,rawCategory) {
     const knownShopping=/^(www\.)?(amazon\.|mercadolibre\.|ebay\.|aliexpress\.|temu\.|walmart\.|shopee\.|bestbuy\.)/i;
     const isOfficial=u=>{
       const r=sourceMap[u];if(!r)return false;
-      let host='';try{host=new URL(u).hostname.toLowerCase()}catch(e){return false}
+      const parsed=String(u).match(/^https?:\/\/([^\/:?#]+)/i);
+      const host=parsed?parsed[1].toLowerCase():'';
+      if(!host)return false;
       if(knownShopping.test(host))return false;
       // Para autorizar una ficha como verificada, el dominio debe identificar la marca.
       return brand.length>=3&&host.includes(brand);
     };
     const matched=String(data.matched_model||'').trim().slice(0,180);
     const identifiers=(name.match(/\b[A-Z][A-Z0-9-]*\d[A-Z0-9-]*\b/gi)||[]);
-    const verified=match==='exact'&&matched&&
+    const uniqueIdentifiers=identifiers.filter(id=>!/^[0-9]+(?:W|M|CM|MM|GB|TB|MAH|V|A)$/i.test(id));
+    const verified=match==='exact'&&matched&&uniqueIdentifiers.length>0&&
       identifiers.every(id=>norm(matched).includes(norm(id)))&&
       (hits.some(r=>isOfficial(r.url)&&r.excerpt.toUpperCase().includes(matched.toUpperCase())) ||
        hits.some(r=>isOfficial(r.url)&&identifiers.length&&identifiers.some(id=>r.excerpt.toUpperCase().includes(id.toUpperCase()))));
