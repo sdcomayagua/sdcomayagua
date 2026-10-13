@@ -7,8 +7,10 @@
  * 3. Ejecutá instalarFichaRapida y autorizá los permisos de Google.
  * 4. En la hoja FICHA RAPIDA pegá el nombre en B3; elegí una acción en B4.
  *
- * BUSCAR FICHA requiere Code.gs actualizado y PRODUCT_RESEARCH_API_KEY
- * configurada en Script Properties. CARGAR y GUARDAR funcionan sin la API.
+ * Al pegar el nombre en B3 se intenta investigar automáticamente (solo si
+ * la API está configurada). También puede usarse B4 > BUSCAR FICHA.
+ * Code.gs actualizado y PRODUCT_RESEARCH_API_KEY son necesarios para buscar;
+ * CARGAR y GUARDAR funcionan sin la API.
  * Nunca se modifican precios, costo, fotos, stock ni datos bancarios.
  */
 const GC_QUICK_TAB = 'FICHA RAPIDA';
@@ -39,7 +41,11 @@ function gcQuickOnEdit(e) {
     return;
   }
   try {
-    if(r===3) { gcQuickLoad_(sh); return; }
+    if(r===3) {
+      gcQuickLoad_(sh);
+      gcQuickMaybeAutoSearch_(sh,e);
+      return;
+    }
     const action=String(sh.getRange('B4').getDisplayValue()||'').trim().toUpperCase();
     if(action==='BUSCAR FICHA')gcQuickSearch_(sh);
     else if(action==='GUARDAR EN INVENTARIO')gcQuickSave_(sh);
@@ -119,6 +125,47 @@ function gcQuickLoad_(sh) {
   sh.getRange('D3:D4').setValues([[String(v('ID')||'')],[String(v('Codigo')||'')]]);
   sh.getRange('B8:B30').setValues(gcQuickToArray_(v('Descripcion'),gcQuickReadDetails_(v('Detalles'))));
   sh.getRange('B5').setValue('✓ Producto existente: '+String(v('Nombre'))+' ('+String(v('Codigo'))+'). Podés buscar o modificar y guardar la ficha.');
+}
+
+/**
+ * Investiga automáticamente SOLO cuando se pega/confirma el nombre en B3.
+ * No toca los campos ya rellenos, ni publica nada. Requiere clave privada.
+ * Usa una pausa de hasta 6 horas por producto para evitar cobros duplicados.
+ * Para repetir una búsqueda manualmente: B4 > BUSCAR FICHA.
+ */
+function gcQuickMaybeAutoSearch_(sh,e) {
+  if(e.range.getNumRows()!==1||e.range.getNumColumns()!==1)return;
+  const name=String(sh.getRange('B3').getDisplayValue()||'').trim();
+  if(name.length<3)return;
+  const props=PropertiesService.getScriptProperties();
+  const setting=String(props.getProperty('FICHA_RAPIDA_BUSQUEDA_AUTOMATICA')||'SI').trim().toUpperCase();
+  if(['NO','FALSE','0'].includes(setting))return;
+  const apiKey=String(props.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim();
+  if(!apiKey) {
+    sh.getRange('B5').setValue('✓ Datos existentes cargados. Para completar los faltantes automáticamente, configurá PRODUCT_RESEARCH_API_KEY en Apps Script.');
+    return;
+  }
+  if(typeof researchProduct_!=='function') {
+    sh.getRange('B5').setValue('✓ Producto cargado. Falta instalar Code.gs actualizado para habilitar la investigación automática.');
+    return;
+  }
+  const record=gcQuickFind_(name);
+  if(!record) {
+    sh.getRange('B5').setValue('El nombre no corresponde todavía a un producto del inventario. Crealo en ADMIN y volvé a pegarlo para buscar su ficha.');
+    return;
+  }
+  // No consultar cuando nombre no cambió ni al pegar rangos grandes.
+  if(String(e.oldValue??'').trim()===name)return;
+  const md5=Utilities.computeDigest(Utilities.DigestAlgorithm.MD5,name.toLowerCase());
+  const hash=md5.map(n=>('0'+((n+256)%256).toString(16)).slice(-2)).join('');
+  const cache=CacheService.getScriptCache(),id='gc_quick_auto_'+hash;
+  if(cache.get(id)) {
+    sh.getRange('B5').setValue('✓ Ficha cargada. La búsqueda automática ya se hizo recientemente; para repetirla elegí BUSCAR FICHA en B4.');
+    return;
+  }
+  gcQuickSearch_(sh);
+  // Un resultado ambiguo también se considera una búsqueda, para no gastar varias veces.
+  cache.put(id,'1',21600);
 }
 
 function gcQuickSearch_(sh) {
