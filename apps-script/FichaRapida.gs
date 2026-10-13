@@ -195,10 +195,18 @@ function gcQuickSave_(sh) {
       throw Error('Revisá el enlace en B'+row+'. Debe ser una URL válida.');
     if(!refs.some(x=>x.url===url))refs.push({url,title:'Ficha técnica / fuente consultada'});
   }
-  if(refs.length)details.references=refs;
-  // No inventar fuentes ni publicar búsquedas ambiguas como fichas comprobadas.
-  if(String(values[22]||'').toUpperCase()==='REVISAR'&&Object.keys(details).length)
-    throw Error('El modelo quedó pendiente de confirmar. Revisalo manualmente antes de guardar.');
+  if(refs.length){
+    // Conservá otras fuentes previas cuando los tres enlaces visibles no cambiaron.
+    const old=gcQuickReadDetails_(found.row[found.columns.Detalles]);
+    const original=Array.isArray(old.references)?old.references:[];
+    const unchanged=refs.every((ref,i)=>original[i]&&original[i].url===ref.url);
+    if(unchanged&&original.length>refs.length)
+      original.slice(refs.length,5).forEach(ref=>{if(ref&&ref.url&&!refs.some(x=>x.url===ref.url))refs.push(ref);});
+    details.references=refs.slice(0,5);
+  }
+  // No guardar información encontrada de un modelo ambiguo.
+  if(String(values[22]||'').toUpperCase()==='REVISAR')
+    throw Error('El modelo quedó pendiente de confirmar. Corregí la ficha y cambiá coincidencia a MANUAL para guardar.');
   const description=String(values[0]||'').trim().slice(0,5000);
   const source=found.source,p=found.columns;
   const guard=String(source.getRange(found.rowNumber,p.ID+1).getDisplayValue()||'');
