@@ -198,7 +198,7 @@ function researchProduct_(rawName,rawCategory){
     ].join('\n');
     // Buscar con citas y extraer JSON son operaciones separadas: una llamada
     // forzada a la herramienta no garantiza un mensaje final con JSON.
-    const search=researchApi_(key,{model,store:false,instructions:instructions+'\nEn esta primera etapa, entregá un resumen en texto con citas, modelo exacto y datos confirmados. No uses JSON.',input:JSON.stringify({product_name:name,category}),tools:[{type:'web_search',search_context_size:'medium'}],tool_choice:'auto',max_tool_calls:3,max_output_tokens:4500,include:['web_search_call.action.sources']});
+    const search=researchApi_(key,{model,store:false,instructions:instructions+'\nEn esta primera etapa, entregá un resumen en texto con citas, modelo exacto y datos confirmados. No uses JSON.',input:JSON.stringify({product_name:name,category}),tools:[{type:'web_search',search_context_size:'medium'}],tool_choice:'required',max_tool_calls:3,max_output_tokens:4500,include:['web_search_call.action.sources']});
     const evidence=researchEvidence_(search);
     if(!evidence.searched)throw Error('El servicio no realizó la búsqueda web. Reintentá la consulta.');
     if(!Object.keys(evidence.links).length)throw Error('La búsqueda no devolvió enlaces verificables. Probá con el modelo de la caja.');
