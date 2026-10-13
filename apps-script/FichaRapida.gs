@@ -9,8 +9,9 @@
  *
  * Al pegar el nombre en B3 se intenta investigar automáticamente (solo si
  * la API está configurada). También puede usarse B4 > BUSCAR FICHA.
- * Code.gs actualizado y PRODUCT_RESEARCH_API_KEY son necesarios para buscar;
- * CARGAR y GUARDAR funcionan sin la API.
+ * Para buscar GRATIS: Code.gs + FichaGratis.gs, y claves gratuitas
+ * GC_FREE_TAVILY_API_KEY y GC_FREE_GEMINI_API_KEY en Script Properties.
+ * CARGAR y GUARDAR funcionan sin esas claves.
  * Nunca se modifican precios, costo, fotos, stock ni datos bancarios.
  */
 const GC_QUICK_TAB = 'FICHA RAPIDA';
@@ -140,9 +141,12 @@ function gcQuickMaybeAutoSearch_(sh,e) {
   const props=PropertiesService.getScriptProperties();
   const setting=String(props.getProperty('FICHA_RAPIDA_BUSQUEDA_AUTOMATICA')||'SI').trim().toUpperCase();
   if(['NO','FALSE','0'].includes(setting))return;
-  const apiKey=String(props.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim();
-  if(!apiKey) {
-    sh.getRange('B5').setValue('✓ Datos existentes cargados. Para completar los faltantes automáticamente, configurá PRODUCT_RESEARCH_API_KEY en Apps Script.');
+  const isFree=String(props.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').trim().toUpperCase()!=='OPENAI';
+  const ready=isFree
+    ? !!(String(props.getProperty('GC_FREE_TAVILY_API_KEY')||'').trim()&&String(props.getProperty('GC_FREE_GEMINI_API_KEY')||'').trim())
+    : !!String(props.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim();
+  if(!ready) {
+    sh.getRange('B5').setValue('✓ Producto cargado. Para investigar gratis configurá GC_FREE_TAVILY_API_KEY y GC_FREE_GEMINI_API_KEY en Apps Script.');
     return;
   }
   if(typeof researchProduct_!=='function') {
@@ -275,14 +279,18 @@ function gcQuickSave_(sh) {
  */
 function comprobarConexionFichaRapida() {
   const properties=PropertiesService.getScriptProperties();
-  const keyConfigured=!!String(properties.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim();
+  const freeMode=String(properties.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').toUpperCase()!=='OPENAI';
+  const keyConfigured=freeMode?
+    !!(String(properties.getProperty('GC_FREE_TAVILY_API_KEY')||'').trim()&&String(properties.getProperty('GC_FREE_GEMINI_API_KEY')||'').trim()):
+    !!String(properties.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim();
   const researchInstalled=typeof researchProduct_==='function';
   const active=ScriptApp.getProjectTriggers()
     .some(t=>t.getHandlerFunction()==='gcQuickOnEdit');
   let message='';
   if(!active)message='⚠ Falta ejecutar instalarFichaRapida para activar el disparador.';
   else if(!researchInstalled)message='⚠ La búsqueda no está en Código.gs. Actualizá ese archivo sin borrar tu PIN.';
-  else if(!keyConfigured)message='⚠ Falta PRODUCT_RESEARCH_API_KEY en Propiedades de secuencia de comandos.';
+  else if(freeMode&&typeof gcFreeResearch_!=='function')message='⚠ Falta pegar FichaGratis.gs en el mismo proyecto de Apps Script.';
+  else if(!keyConfigured)message=freeMode?'⚠ Para buscar gratis agregá GC_FREE_TAVILY_API_KEY y GC_FREE_GEMINI_API_KEY en las propiedades privadas.':'⚠ Falta PRODUCT_RESEARCH_API_KEY para el modo OPENAI.';
   else message='✓ Configuración lista para probar. Pegá el nombre de un producto existente en B3. La búsqueda puede generar cargos de API.';
   const sh=SpreadsheetApp.openById(GC_QUICK_BOOK).getSheetByName(GC_QUICK_TAB);
   if(sh)sh.getRange('B5').setValue(message);
