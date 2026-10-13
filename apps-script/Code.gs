@@ -63,7 +63,7 @@ function doPost(e) {
       result = {ok:true,...publicPayload_()};
     } else {
       assertAdmin_(req.token);
-      if (req.action === 'verify') result = {ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:2,productResearch:!!String(PropertiesService.getScriptProperties().getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim()}};
+      if (req.action === 'verify') { const p=PropertiesService.getScriptProperties(),provider=String(p.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').toUpperCase(); const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_(); result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:3,productResearch:ready,productResearchMode:provider==='OPENAI'?'openai':'gratis'}}; }
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
       else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category);
       else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
@@ -162,7 +162,14 @@ function detailsClean_(raw){
 function researchProduct_(rawName,rawCategory){
   const name=String(rawName||'').trim(),category=String(rawCategory||'').trim().slice(0,120);
   if(name.length<3||name.length>180)throw Error('Escribí marca y modelo del producto para buscar su ficha.');
-  const props=PropertiesService.getScriptProperties(),key=String(props.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim();
+  const props=PropertiesService.getScriptProperties();
+  // Predeterminado GRATIS; NUNCA llamar a la API de pago si no se solicita
+  // expresamente PRODUCT_RESEARCH_PROVIDER=OPENAI en propiedades privadas.
+  if(String(props.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').trim().toUpperCase()!=='OPENAI'){
+    if(typeof gcFreeResearch_!=='function')throw Error('Instalá FichaGratis.gs para activar las búsquedas gratuitas.');
+    return gcFreeResearch_(name,category);
+  }
+  const key=String(props.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim();
   if(!key)throw Error('La búsqueda web todavía no está conectada. Abrí la guía de activación del panel.');
   const model=String(props.getProperty('PRODUCT_RESEARCH_MODEL')||'gpt-4.1-mini').trim();
   if(!/^[a-z0-9.-]{3,80}$/i.test(model))throw Error('Revisá el modelo configurado para la búsqueda.');
