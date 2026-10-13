@@ -269,6 +269,27 @@ function gcQuickSave_(sh) {
   sh.getRange('B5').setValue('✓ Ficha guardada en Productos para '+String(found.row[p.Nombre])+'. Verificá la tienda tras actualizar la página.');
 }
 
+/**
+ * Diagnóstico gratuito: NO envía solicitudes a OpenAI y nunca muestra la clave.
+ * Ejecutá esta función después de agregar la propiedad privada.
+ */
+function comprobarConexionFichaRapida() {
+  const properties=PropertiesService.getScriptProperties();
+  const keyConfigured=!!String(properties.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim();
+  const researchInstalled=typeof researchProduct_==='function';
+  const active=ScriptApp.getProjectTriggers()
+    .some(t=>t.getHandlerFunction()==='gcQuickOnEdit');
+  let message='';
+  if(!active)message='⚠ Falta ejecutar instalarFichaRapida para activar el disparador.';
+  else if(!researchInstalled)message='⚠ La búsqueda no está en Código.gs. Actualizá ese archivo sin borrar tu PIN.';
+  else if(!keyConfigured)message='⚠ Falta PRODUCT_RESEARCH_API_KEY en Propiedades de secuencia de comandos.';
+  else message='✓ Configuración lista para probar. Pegá el nombre de un producto existente en B3. La búsqueda puede generar cargos de API.';
+  const sh=SpreadsheetApp.openById(GC_QUICK_BOOK).getSheetByName(GC_QUICK_TAB);
+  if(sh)sh.getRange('B5').setValue(message);
+  Logger.log(message);
+  return message;
+}
+
 /** Prueba sin buscar en internet ni modificar Productos. */
 function probarFichaRapida() {
   const sh=SpreadsheetApp.openById(GC_QUICK_BOOK).getSheetByName(GC_QUICK_TAB);
