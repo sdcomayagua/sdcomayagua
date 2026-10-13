@@ -70,7 +70,7 @@ function gcFreeResearch_(rawName,rawCategory) {
     const model='gemini-3.5-flash-lite'; // En modalidad GRATUITA sin Grounding.
     const ai=gcFreePost_('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
       contents:[{parts:[{text:rules+'\n\n'+JSON.stringify(task)}]}],
-      generationConfig:{temperature:0,maxOutputTokens:3000,responseMimeType:'application/json'}
+      generationConfig:{temperature:0,maxOutputTokens:3000,responseMimeType:'application/json',thinkingConfig:{thinkingLevel:'minimal'}}
     },{'x-goog-api-key':geminiKey},'Gemini');
     const candidate=Array.isArray(ai.candidates)?ai.candidates[0]:null;
     const output=candidate&&candidate.content&&Array.isArray(candidate.content.parts)
@@ -155,14 +155,19 @@ function gcFreeResearch_(rawName,rawCategory) {
   }
 }
 function gcFreePost_(url,payload,headers,label) {
-  let response;
+  const started=Date.now();let response;
+  // Registrar solo el proveedor y tiempo, nunca claves, URL con tokens ni datos de clientes.
   try {
     response=UrlFetchApp.fetch(url,{
       method:'post',contentType:'application/json',headers,payload:JSON.stringify(payload),
       muteHttpExceptions:true,followRedirects:false
     });
-  }catch(err){throw Error(label+': no se pudo contactar el servicio gratuito.');}
+  }catch(err){
+    Logger.log('GC ficha gratis · '+label+' · error de conexión tras '+(Date.now()-started)+' ms');
+    throw Error(label+': no se pudo contactar el servicio gratuito.');
+  }
   const code=response.getResponseCode();
+  Logger.log('GC ficha gratis · '+label+' · HTTP '+code+' · '+(Date.now()-started)+' ms');
   if(code===401||code===403)throw Error(label+': clave privada inválida o sin acceso al nivel gratuito.');
   if([402,429,432,433].includes(code))throw Error(label+': cuota gratuita agotada. Esperá al reinicio. No se hicieron cargos.');
   if(code<200||code>=300)throw Error(label+': error HTTP '+code+'. Revisá las claves y cuotas gratuitas.');
