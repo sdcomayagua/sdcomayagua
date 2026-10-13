@@ -6,14 +6,22 @@ let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],
 let researchBusy=false,researchEpoch=0,researchDraft=null,automaticQuery=true,researchVersion=0;
 let verifiedProfiles=null;
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
-async function verifiedProfile(name){
+async function verifiedProfile(name,productName=''){
  if(!verifiedProfiles){
-  const response=await fetch('data/fichas-verificadas.json?v=gc-research-36',{cache:'no-cache'});
+  const response=await fetch('data/fichas-verificadas.json?v=gc-research-37',{cache:'no-cache'});
   if(!response.ok)throw Error('No se pudieron cargar las fichas verificadas.');
   const data=await response.json();verifiedProfiles=Array.isArray(data)?data:[];
  }
  const normalize=value=>String(value).toUpperCase().replace(/[^A-Z0-9]/g,'');
- return verifiedProfiles.find(profile=>(profile.aliases||[]).some(alias=>normalize(alias)===normalize(name)))||null;
+ const query=normalize(name),product=normalize(productName);
+ return verifiedProfiles.find(profile=>
+  (profile.aliases||[]).some(alias=>normalize(alias)===query)||
+  (profile.conditionalAliases||[]).some(alias=>
+   normalize(alias.query)===query &&
+   !!normalize(alias.productIncludes) &&
+   product.includes(normalize(alias.productIncludes))
+  )
+ )||null;
 }
 const technicalFields=['weight','width','height','length','size','material','model','compatibility','brand','voltage','current','power','connection','technology','included'];
 const extendedFields=['brand','voltage','current','power','connection','technology','included'];
@@ -42,7 +50,7 @@ function request(action,extra={}){
   form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';
   const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,token,...extra});
   form.appendChild(field);document.body.appendChild(form);
-  timer=setTimeout(()=>finish(Error(action==='verify'?'Google no respondió al validar el PIN. Podés abrir el diagnóstico para revisar la conexión.':action==='researchProduct'?'La búsqueda está tardando más de lo esperado. Esperá un momento antes de reintentar.':'Google no respondió a la operación. Revisá el diagnóstico de conexión.')),action==='verify'?28000:action==='researchProduct'?120000:action==='uploadImage'?90000:60000);
+  timer=setTimeout(()=>finish(Error(action==='verify'?'Google no respondió al validar el PIN. Podés abrir el diagnóstico para revisar la conexión.':action==='researchProduct'?'La consulta automática superó los 120 segundos. No se cambió ningún dato. Revisá en Apps Script el Registro de ejecución de la búsqueda, o buscá usando el código exacto del fabricante.':'Google no respondió a la operación. Revisá el diagnóstico de conexión.')),action==='verify'?28000:action==='researchProduct'?120000:action==='uploadImage'?90000:60000);
   form.submit();
  });
 }
@@ -217,7 +225,7 @@ async function researchProduct(){
  resetResearch();const epoch=researchEpoch;
  researchBusy=true;$('researchButton').disabled=true;$('saveBtn').disabled=true;$('researchButton').textContent='Buscando…';$('researchStatus').textContent='Consultando fuentes y comprobando el modelo…';
  try{
-  let profile=null;try{profile=await verifiedProfile(name)}catch(error){if(!researchSupported)throw error}
+  let profile=null;try{profile=await verifiedProfile(name,formField(f,'name').value)}catch(error){if(!researchSupported)throw error}
   if(epoch!==researchEpoch||$('formOverlay').hidden)return;
   if(!profile&&!researchSupported)throw Error('Ese modelo aún no tiene una ficha verificada. Conectá la búsqueda web para investigarlo.');
   const result=profile?{research:profile}:await request('researchProduct',{name,category});
