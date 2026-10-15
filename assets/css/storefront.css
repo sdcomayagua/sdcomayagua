@@ -426,3 +426,25 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
  #checkoutControls .payment-split>div {padding:12px 10px}
  #checkoutControls .payment-split strong {font-size:23px}
 }
+
+/* Emblema original: conservar su forma cuadrada en todas las páginas. */
+.header .brand {gap:13px;flex-shrink:0;text-decoration:none}
+.header .brand img.brand-mark {display:block;width:88px;height:88px;object-fit:contain;flex:none}
+.header .brand-wordmark {display:flex;flex-direction:column;gap:2px;line-height:1.05;letter-spacing:-.3px}
+.header .brand-wordmark b {color:#15253b;font-size:21px;font-weight:850}
+.header .brand-wordmark>span {color:#b51f27;font-size:16px;font-weight:750}
+.header .brand:focus-visible {outline:2px solid #b51f27;outline-offset:5px;border-radius:6px}
+@media (max-width:760px) {
+ .header .brand {gap:10px}
+ .header .brand img.brand-mark {width:72px;height:72px}
+ .header .brand-wordmark b {font-size:18px}
+ .header .brand-wordmark>span {font-size:13px}
+ body[data-page="admin"] .header .brand-wordmark {display:none}
+ body[data-page="admin"] .header .nav {gap:8px;flex-wrap:wrap;justify-content:flex-end}
+}
+@media (max-width:360px) {
+ .header .brand {gap:8px}
+ .header .brand img.brand-mark {width:64px;height:64px}
+ .header .brand-wordmark b {font-size:16px}
+ .header .brand-wordmark>span {font-size:12px}
+}

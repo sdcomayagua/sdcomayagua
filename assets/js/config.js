@@ -10,5 +10,5 @@ window.GC_CONFIG = {
   codMinimum: 350,
   codRate: 0.10,
   tigoRate: 0.07,
-  logo: 'assets/img/logo-provisional.svg'
+  logo: 'assets/img/logo-rojo.webp?v=gc-brand-38'
 };

@@ -298,6 +298,9 @@ async function save(e){
  try{
   const out=await request('saveProduct',{product:p}),id=out.id||p.id;
   const confirmed=await reload(),saved=confirmed&&products.find(product=>product.id===id);
+  if(confirmed&&!saved){
+   $('formMessage').textContent='Google respondió al guardado, pero el producto todavía no aparece al comprobarlo. Conservá el formulario y sincronizá antes de volver a guardar.';return;
+  }
   if(saved&&(saved.description!==p.description||JSON.stringify(saved.details)!==JSON.stringify(p.details))){
    $('formMessage').textContent='Google guardó el producto, pero la ficha recibida no coincide. Conservá este formulario y revisá la versión de Code.gs.';return;
   }
@@ -308,7 +311,7 @@ async function save(e){
   try{localStorage.setItem('gc_catalog_revision',JSON.stringify({id,at:Date.now()}))}catch{}
   setBusy(false);closeForm();toast(confirmed?'Ficha guardada y comprobada.':'Producto guardado. No se pudo comprobar la lectura.');
   $('adminStatus').textContent=confirmed?'✓ Ficha guardada y comprobada en Google Sheets.':'✓ Guardado. La lectura de comprobación no respondió; revisá la ficha en la tienda.';
-  const link=document.createElement('a');link.href='productos.html?producto='+encodeURIComponent(id)+'&v=gc-research-36';link.target='_blank';link.rel='noopener';link.textContent='Ver ficha en tienda ↗';$('adminStatus').appendChild(link);
+  const link=document.createElement('a');link.href='productos.html?producto='+encodeURIComponent(id)+'&v=gc-brand-38';link.target='_blank';link.rel='noopener';link.textContent='Ver ficha en tienda ↗';$('adminStatus').appendChild(link);
  }catch(err){$('formMessage').textContent='⚠ '+err.message;toast(err.message)}finally{setBusy(false)}
 }
 function mergeSelectedFiles(list){

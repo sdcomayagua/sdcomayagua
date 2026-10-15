@@ -88,6 +88,7 @@ console.log('PASS API: lectura pública sin costos, POST privado, promoción/cos
 // La investigación usa respuestas simuladas: no hay llamadas de API ni cargos.
 const crypto=require('node:crypto');
 const {context:research,products:researchProducts,props:researchProps}=setup(oldHeaders);
+researchProps.PRODUCT_RESEARCH_PROVIDER='OPENAI';
 research.Utilities.DigestAlgorithm={SHA_256:'sha256'};
 research.Utilities.computeDigest=(_,text)=>Array.from(crypto.createHash('sha256').update(text).digest());
 const sourceUrl='https://maker.example/model-x',otherUrl='https://maker.example/other-page';
@@ -109,7 +110,7 @@ research.UrlFetchApp={fetch:(url,options)=>{
  assert.equal(body.store,false);assert.equal(body.model,'gpt-4.1-mini');
  const searching=Array.isArray(body.tools);
  if(searching){
-  assert.equal(body.tools[0].type,'web_search');assert.equal(body.tool_choice,'auto');
+  assert.equal(body.tools[0].type,'web_search');assert.equal(body.tool_choice,'required');
   assert.equal(body.text,undefined,'La búsqueda no fuerza salida JSON');assert.equal(body.max_tool_calls,3);
   assert.deepEqual(Object.keys(JSON.parse(body.input)),['product_name','category']);
  }else{

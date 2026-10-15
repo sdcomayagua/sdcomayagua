@@ -22,7 +22,7 @@ function gcFreeResearch_(rawName,rawCategory) {
   const cache=CacheService.getScriptCache();
   const hash=Utilities.computeDigest(Utilities.DigestAlgorithm.MD5,name.toLowerCase()+':'+category.toLowerCase())
     .map(n=>('0'+((n+256)%256).toString(16)).slice(-2)).join('');
-  const cacheKey='gc_free_ficha_'+hash,cached=cache.get(cacheKey);
+  const cacheKey='gc_free_ficha_v2_'+hash,cached=cache.get(cacheKey);
   if(cached)return JSON.parse(cached);
   const lock=LockService.getScriptLock();lock.waitLock(10000);
   const props=PropertiesService.getScriptProperties(),reservation=Utilities.getUuid();
@@ -82,24 +82,35 @@ function gcFreeResearch_(rawName,rawCategory) {
     const norm=x=>String(x||'').replace(/\W/g,'').toUpperCase();
     const sourceMap={};
     hits.forEach(r=>{sourceMap[r.url]=r;});
-    const brand=String(name.split(/\s+/)[0]||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-    const knownShopping=/^(www\.)?(amazon\.|mercadolibre\.|ebay\.|aliexpress\.|temu\.|walmart\.|shopee\.|bestbuy\.)/i;
+    const matched=String(data.matched_model||'').trim().slice(0,180);
+    const parts=x=>(String(x||'').match(/[A-Z0-9]+(?:-[A-Z0-9]+)*/gi)||[]).map(norm);
+    const namedParts=parts(name),matchedParts=parts(matched);
+    // El nombre comercial puede comenzar con "Cable" o "Enfriador".
+    // La marca extraída debe figurar también en el nombre que escribió el dueño.
+    const suppliedBrand=(Array.isArray(data.specifications)?data.specifications:[])
+      .find(s=>s&&s.field==='brand');
+    const brandCandidates=[suppliedBrand&&suppliedBrand.value,matched.split(/\s+/)[0]];
+    const brand=brandCandidates.map(norm).find(b=>b&&/^[A-Z]{3,}$/.test(b)&&namedParts.includes(b)&&matchedParts.includes(b))||'';
+    const knownShopping=/(?:^|\.)(amazon|mercadolibre|ebay|aliexpress|temu|walmart|shopee|bestbuy)\.[a-z.]+$/i;
+    const manufacturerDomains={MEMO:['memo-develop.com'],ARGOM:['argomtech.com'],ARGOMTECH:['argomtech.com'],PRIMUS:['primusgaming.com']};
     const isOfficial=u=>{
       const r=sourceMap[u];if(!r)return false;
       const parsed=String(u).match(/^https?:\/\/([^\/:?#]+)/i);
       const host=parsed?parsed[1].toLowerCase():'';
       if(!host)return false;
       if(knownShopping.test(host))return false;
-      // Para autorizar una ficha como verificada, el dominio debe identificar la marca.
-      return brand.length>=3&&host.includes(brand);
+      // Evitar coincidencias por fragmentos: "notmemo.com" no identifica MEMO.
+      const official=manufacturerDomains[brand];
+      if(official)return official.some(domain=>host===domain||host.endsWith('.'+domain));
+      return !!brand&&host.split('.').slice(0,-1).some(label=>norm(label)===brand);
     };
-    const matched=String(data.matched_model||'').trim().slice(0,180);
     const identifiers=(name.match(/\b[A-Z][A-Z0-9-]*\d[A-Z0-9-]*\b/gi)||[]);
     const uniqueIdentifiers=identifiers.filter(id=>!/^[0-9]+(?:W|M|CM|MM|GB|TB|MAH|V|A)$/i.test(id));
+    const variants=(name.match(/\b(?:pro|plus|ultra|max|ai|v\d+|20\d{2})\b/gi)||[]);
+    const requiredParts=[...uniqueIdentifiers,...variants].map(norm);
     const verified=match==='exact'&&matched&&uniqueIdentifiers.length>0&&
-      identifiers.every(id=>norm(matched).includes(norm(id)))&&
-      (hits.some(r=>isOfficial(r.url)&&r.excerpt.toUpperCase().includes(matched.toUpperCase())) ||
-       hits.some(r=>isOfficial(r.url)&&identifiers.length&&identifiers.some(id=>r.excerpt.toUpperCase().includes(id.toUpperCase()))));
+      requiredParts.every(id=>matchedParts.includes(id))&&
+      hits.some(r=>isOfficial(r.url)&&requiredParts.every(id=>parts(r.title+' '+r.excerpt).includes(id)));
     if(!verified) return {ok:true,research:{
       match:match==='exact'?'ambiguous':match,matchedModel:matched,description:'',details:{},
       sources:hits.slice(0,4).map(r=>({url:r.url,title:r.title})),
