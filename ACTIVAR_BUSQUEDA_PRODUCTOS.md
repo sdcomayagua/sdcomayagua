@@ -47,6 +47,8 @@ Los botones **Rellenar fotos** y **Rellenar información** aparecen encima de la
 
 El guardado vuelve a leer el inventario y escribe únicamente descripción, color, características o fotos aprobadas. Conserva precios, promociones, costos, stock, descuentos y condiciones comerciales, incluidos los cambios que se hagan mientras revisás. Las fotos nuevas se agregan a la galería; una imagen principal existente se conserva, salvo que marques **Usar la primera foto elegida como principal** en ese artículo. La foto anterior queda en la galería. Máximo diez fotos por artículo.
 
+Después de guardar un artículo, **Preparar de nuevo** permite consultar otra propuesta para ese mismo artículo.
+
 Si falla una fuente o una foto, los demás artículos pueden continuar. Al reintentar se omiten los artículos guardados y se reutilizan las fotos ya copiadas. Si se agota una cuota o Google deja de responder, el lote se detiene y muestra el motivo. No cambia de proveedor ni activa un servicio de pago.
 
 Las propuestas y las copias preparadas se guardan temporalmente hasta seis horas; la caché de Google puede vencer antes. Si una propuesta ya no está disponible, volvé a buscar ese artículo y revisalo nuevamente. La ventana de revisión se conserva al cerrarla y volver a abrirla en esta misma página; recargar la página descarta esa revisión pendiente.

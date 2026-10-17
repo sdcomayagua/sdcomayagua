@@ -9,7 +9,7 @@ const inventory=[make('A',{image:'https://cdn.example/principal.jpg'}),make('B',
  const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname);if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}fs.readFile(file,(error,data)=>{if(error){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',({'.js':'application/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.webp':'image/webp'})[path.extname(file)]||'text/html');res.end(data);});});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const browser=await chromium.launch({headless:true,...(process.env.GC_TEST_BROWSER?{executablePath:process.env.GC_TEST_BROWSER,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--use-gl=angle','--use-angle=swiftshader']}: {})});
- const page=await browser.newPage({viewport:{width:1440,height:1080}}),errors=[],requests=[],proposals=new Map(),copies=new Map();let serial=0,failC=true,failB=true,stageDelay=0;
+ const page=await browser.newPage({viewport:{width:1440,height:1080}}),errors=[],requests=[],proposals=new Map(),copies=new Map();let serial=0,failC=true,failB=true,stageDelay=0,bulkReady=true;
  page.on('pageerror',error=>errors.push(error.message));
  await page.route(/^https?:\/\/(?!127\.0\.0\.1)/,async route=>{
   const url=new URL(route.request().url()),callback=url.searchParams.get('callback');
@@ -19,14 +19,14 @@ const inventory=[make('A',{image:'https://cdn.example/principal.jpg'}),make('B',
  });
  await page.exposeFunction('__bulkTestBackend',async req=>{
   requests.push(req);
-  if(req.action==='verify')return {ok:true,features:{details:true,extendedDetails:true,productResearch:true,productResearchSelection:true,bestSellers:true,publicCatalogMetadata:true,researchImageImport:true,researchPhotos:true,bulkResearch:true}};
+  if(req.action==='verify')return {ok:true,features:{details:true,extendedDetails:true,productResearch:true,productResearchSelection:true,bestSellers:true,publicCatalogMetadata:true,researchImageImport:true,researchPhotos:true,bulkResearch:bulkReady}};
   if(req.action==='adminCatalog')return {ok:true,products:inventory,settings:{shipping:110,codMinimum:350}};
   if(req.action==='researchBulkItem'){
    if(stageDelay)await new Promise(resolve=>setTimeout(resolve,stageDelay));
    if(req.mode==='info'&&req.id==='C'&&failC){failC=false;return {ok:false,error:'Esta fuente no respondió. Probá otra búsqueda.'};}
    const previous=proposals.get(req.previousProposalId),p=inventory.find(p=>p.id===req.id),pageIndex=req.more?(previous.page+1):0;
    const fields=[{key:'description',label:'Descripción',value:'Descripción encontrada para '+p.id,unit:''},{key:'brand',label:'Marca',value:'Marca encontrada',unit:''},{key:'material',label:'Material',value:'Aluminio',unit:''}].filter(field=>field.key==='description'?!p.description:!p.details[field.key]);
-   const data={ok:true,proposalId:'PROPOSAL-'+(++serial),productId:p.id,query:req.query,candidates:[{id:'0',title:'Fuente correcta para '+p.name,url:'https://maker.example/'+p.id},{id:'1',title:'Otra fuente de '+p.name,url:'https://other.example/'+p.id}],candidateId:req.candidateId||'0',source:{title:'Fuente del producto',url:'https://maker.example/'+p.id},fields:req.mode==='info'?fields:[],images:req.mode==='photos'?[0,1,2].map(i=>'https://cdn.example/'+p.id+'-'+pageIndex+'-'+i+'.jpg'):[],page:pageIndex,photoCapacity:10-(p.image?1:0),mode:req.mode,id:p.id};
+   const data={ok:true,proposalId:'PROPOSAL-'+(++serial),productId:p.id,query:req.query,candidates:[{id:'0',title:'Fuente correcta para '+p.name,url:'https://maker.example/'+p.id},{id:'1',title:'Otra fuente de '+p.name,url:'https://other.example/'+p.id}],candidateId:req.candidateId||'0',source:{title:'Fuente del producto',url:'https://maker.example/'+p.id},fields:req.mode==='info'?fields:[],images:req.mode==='photos'?[0,1,2].map(i=>'https://cdn.example/'+p.id+'-'+pageIndex+'-'+i+'.jpg'):[],page:pageIndex,photoCapacity:10-[p.image,...p.gallery.split(', ')].filter(Boolean).length,mode:req.mode,id:p.id};
    proposals.set(data.proposalId,data);return data;
   }
   if(req.action==='importBulkResearchImage'){
@@ -63,6 +63,7 @@ const inventory=[make('A',{image:'https://cdn.example/principal.jpg'}),make('B',
  assert.equal(inventory[0].image,'https://cdn.example/principal.jpg');assert.equal(inventory[0].gallery.split(', ').length,2,'Se agregan fotos de dos páginas distintas');
  await page.locator('#bulkSave').click();await page.locator('#bulkStatus').filter({hasText:'Proceso terminado. 1 artículo guardado.'}).waitFor();
  assert.equal(requests.filter(req=>req.action==='applyBulkResearch'&&req.id==='A').length,1,'El reintento omite los artículos ya guardados');assert.equal(requests.filter(req=>req.action==='applyBulkResearch'&&req.id==='B').length,1);assert.equal(inventory[2].image,'','No modifica el artículo desmarcado');
+ await row('A').locator('[data-row-search]').filter({hasText:'Preparar de nuevo'}).click();await page.locator('#bulkStatus').filter({hasText:'Propuesta actualizada'}).waitFor();assert.equal(await row('A').locator('.bulk-chosen-photo').count(),0,'Preparar otro lote omite las fotos ya aplicadas');
  await page.locator('#bulkClose').click();await page.locator('#bulkInfo').click();await page.locator('#bulkSelectAll').click();await page.locator('#bulkSearchSelected').click();await page.locator('#bulkStatus').filter({hasText:'Búsqueda terminada'}).waitFor();
  assert.equal(await row('C').locator('.bulk-item-error').count(),1);assert.equal(await row('B').locator('[data-bulk-field="description"]').count(),0,'No ofrece reemplazar datos escritos a mano');
  await row('A').locator('[data-bulk-field="brand"]').uncheck();await page.locator('#bulkSelectReady').click();await row('B').locator('[data-bulk-approve]').uncheck();
@@ -76,6 +77,7 @@ const inventory=[make('A',{image:'https://cdn.example/principal.jpg'}),make('B',
  await page.locator('#bulkClose').click();await page.reload();await page.locator('[data-edit="A"]').waitFor();
  stageDelay=250;const start=requests.filter(req=>req.action==='researchBulkItem').length;
  await page.locator('#bulkInfo').click();await page.locator('#bulkSelectAll').click();await page.locator('#bulkSearchSelected').click();await page.locator('#bulkStop').click();await page.locator('#bulkStatus').filter({hasText:'Búsqueda detenida'}).waitFor();assert.equal(requests.filter(req=>req.action==='researchBulkItem').length,start+1,'Detener espera al actual y no inicia el siguiente');
+ bulkReady=false;await page.locator('#bulkClose').click();await page.reload();await page.locator('[data-edit="A"]').waitFor();await page.locator('#bulkPhotos').click();await page.locator('#bulkSelectAll').click();assert.equal(await page.locator('#bulkSetup').isVisible(),true);assert.equal(await page.locator('#bulkSearchSelected').isDisabled(),true,'El servidor anterior muestra activación y conserva el panel');
  for(const p of inventory){assert.equal(p.price,220);assert.equal(p.promoPrice,200);assert.equal(p.stock,5);assert.equal(p.cost,80);}
  assert.deepEqual(errors,[]);await browser.close();server.close();
  console.log('PASS UI lotes: selección múltiple, buscar más sin perder fotos, campos por artículo, guardado elegido, reintentos parciales, progreso, detener y móvil.');
