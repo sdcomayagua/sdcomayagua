@@ -169,7 +169,16 @@
     "colors": "",
     "promoPrice": 0,
     "promoText": "",
-    "details": {}
+    "details": {
+      "connection": "USB‑C a Lightning ·",
+      "technology": "PD30 garantiza una",
+      "references": [
+        {
+          "url": "https://www.celuinfo.com/es/blog-moviles/noticias/cargadores-originales-para-iphone-por-que-elegirlos-y-como-aprovechar-sus-ventajas",
+          "title": "Cómo elegir el mejor cargador para iPhone"
+        }
+      ]
+    }
   },
   {
     "catalogOrder": 7,
@@ -190,7 +199,15 @@
     "colors": "",
     "promoPrice": 0,
     "promoText": "",
-    "details": {}
+    "details": {
+      "model": "G200. · Portabilidad: Diseño ligero y \"Ultra-Portable\". ·",
+      "references": [
+        {
+          "url": "https://vesmayorista.empretienda.com.ar/audio-y-bluetooth/parlante-bluetooth-g200-5w-con-luces-led-y-soporte-magnetico",
+          "title": "Parlante Bluetooth G200 - 5W con Luces LED y Soporte Magnético"
+        }
+      ]
+    }
   },
   {
     "catalogOrder": 8,
@@ -345,7 +362,7 @@
     "createdAt": "",
     "id": "SDC-003",
     "code": "SDC-003",
-    "name": "Dedales Gamer Pro Hilo de Plata para Celular",
+    "name": "Dedales V3 | MEMO | Hilo de Plata",
     "category": "Dedales",
     "price": 190,
     "stock": 12,
@@ -497,7 +514,7 @@
     "category": "Audio",
     "price": 0,
     "stock": 0,
-    "image": "",
+    "image": "https://drive.google.com/thumbnail?id=1SAAMk1H6jAiKlWVMfUSd_IjU1JD1Ul3F&sz=w1200",
     "gallery": "",
     "description": "Audífonos Tipo C para celulares con entrada USB-C, ideales para música, llamadas, videos y juegos. Una opción práctica para teléfonos que no tienen entrada auxiliar 3.5 mm.",
     "discounts": "",
@@ -652,8 +669,8 @@
     "category": "Gamepad",
     "price": 490,
     "stock": 0,
-    "image": "",
-    "gallery": "",
+    "image": "https://drive.google.com/thumbnail?id=1UGhPNtr3ctsIS2ekrzhvz1s4RGb8emv_&sz=w1200",
+    "gallery": "https://drive.google.com/thumbnail?id=1ZqXA0SEJ12w210TC3Bp-JlzHmKHg7PGX&sz=w1200, https://drive.google.com/thumbnail?id=1XamrxDY9Iq_xLxZvMZWhQFDpkyW7YcTC&sz=w1200",
     "description": "Gamepad con cooler para celular, compatible con Android y iOS según el equipo. Combina mejor agarre, controles físicos y enfriamiento para jugar con más comodidad.",
     "discounts": "",
     "codAllowed": true,
@@ -694,7 +711,7 @@
     "category": "Gamepad",
     "price": 300,
     "stock": 0,
-    "image": "",
+    "image": "https://drive.google.com/thumbnail?id=1AHhCOPz-PTdZnGYQ4YQ3rTQZPhHXimJ4&sz=w1200",
     "gallery": "",
     "description": "Gamepad con cooler y joystick para celular, ideal para quienes buscan mejor control y comodidad al jugar. Su diseño ayuda a sujetar mejor el teléfono y mantenerlo más fresco.",
     "discounts": "",
@@ -715,7 +732,7 @@
     "category": "Gamepad",
     "price": 490,
     "stock": 0,
-    "image": "",
+    "image": "https://drive.google.com/thumbnail?id=1o8F0V15Ckyh8f-cX9ONrSUkcJxcprjh9&sz=w1200",
     "gallery": "",
     "description": "Control PRO inalámbrico Bluetooth para Android, iOS, PC y Nintendo Switch. Incluye funciones Turbo y Macro para una experiencia más completa en juegos compatibles.",
     "discounts": "",
@@ -799,7 +816,7 @@
     "category": "Mascotas",
     "price": 270,
     "stock": 0,
-    "image": "",
+    "image": "https://drive.google.com/thumbnail?id=1vvc0HJSdaqQSZAFqxK_3whhRuv_-3JBn&sz=w1200",
     "gallery": "",
     "description": "Fuente de agua para gato o perro de 3 litros con conexión USB y filtro. Mantiene el agua en movimiento para incentivar a las mascotas a beber con mayor frecuencia.",
     "discounts": "",
@@ -957,7 +974,7 @@
     "category": "Memorias USB",
     "price": 1.05,
     "stock": 0,
-    "image": "",
+    "image": "https://drive.google.com/thumbnail?id=1AjAhSYC_gSRfZT2RwRVWGkYT4Y4cXLkD&sz=w1200",
     "gallery": "",
     "description": "Memoria USB 3.2 de 256GB, ideal para guardar fotos, videos, documentos, música y respaldos importantes. Portátil, práctica y fácil de usar en computadoras compatibles.",
     "discounts": "",
@@ -999,7 +1016,7 @@
     "category": "Memorias USB",
     "price": 320,
     "stock": 0,
-    "image": "",
+    "image": "https://drive.google.com/thumbnail?id=1NuH3av_P0TE9H5dwMbdp2j8wB3lLh5zT&sz=w1200",
     "gallery": "",
     "description": "Memoria USB 3.2 de 64GB, compacta y útil para guardar documentos, música, fotos y archivos de uso diario. Ideal para estudiantes, oficina y respaldo rápido.",
     "discounts": "",
@@ -1020,7 +1037,7 @@
     "category": "Memorias USB",
     "price": 240,
     "stock": 0,
-    "image": "",
+    "image": "https://drive.google.com/thumbnail?id=1Dt9ydEVw5bo19mI4arxJn1UfucCrTOru&sz=w1200",
     "gallery": "",
     "description": "Memoria USB 3.2 de 32GB, práctica para transferir y guardar documentos, tareas, fotos y archivos pequeños. Fácil de llevar y usar en computadoras compatibles.",
     "discounts": "",
@@ -1041,7 +1058,7 @@
     "category": "Memorias USB",
     "price": 190,
     "stock": 0,
-    "image": "",
+    "image": "https://drive.google.com/thumbnail?id=1m-84PqlpU_85wI6M8sUWtNM5_v9jWxgZ&sz=w1200",
     "gallery": "",
     "description": "Memoria USB de 16GB, ideal para guardar documentos, tareas, música y archivos personales. Una opción económica y práctica para uso diario.",
     "discounts": "",
