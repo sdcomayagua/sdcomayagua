@@ -25,7 +25,9 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
   return route.abort();
  });
  await page.addInitScript(({product})=>{
-  window.__requests=[];
+  window.__requests=[];window.__copied='';
+  Object.defineProperty(navigator,'share',{configurable:true,value:undefined});
+  Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async value=>{window.__copied=value;}}});
   HTMLFormElement.prototype.submit=function(){
    const input=this.querySelector('[name=payload]');if(!input)throw Error('Formulario inesperado');
    const req=JSON.parse(input.value);window.__requests.push(req);
@@ -63,14 +65,34 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  assert.match(await page.locator('#shippingEstimate').innerText(),/L 480/);
  await page.locator('#estimateMethod').selectOption('cod');assert.match(await page.locator('#shippingEstimate').innerText(),/L 528/);assert.match(await page.locator('#shippingEstimate').innerText(),/L 158/);
  await page.locator('#estimateSubtotal').fill('349');assert.match(await page.locator('#shippingEstimate').innerText(),/mínima/);
- await page.locator('#estimateSubtotal').fill('400');await page.locator('#estimateMethod').selectOption('tigo');assert.match(await page.locator('#shippingEstimate').innerText(),/L 546/);
+ await page.locator('#estimateSubtotal').fill('400');await page.locator('#estimateMethod').selectOption('tigo');assert.match(await page.locator('#shippingEstimate').innerText(),/L 547/);
  await page.setViewportSize({width:1440,height:1080});if(artifacts)await page.screenshot({path:path.join(artifacts,'shipping-desktop.png'),fullPage:true});
  await page.setViewportSize({width:390,height:844});if(artifacts)await page.screenshot({path:path.join(artifacts,'shipping-mobile.png'),fullPage:true});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Envíos móvil sin desborde horizontal');
- await page.goto(base+'/productos.html');await page.locator('[data-add]').first().waitFor();await page.locator('[data-add]').first().click();await page.locator('#openCart').click();
+ await page.goto(base+'/productos.html?categoria=Adaptador');
+ await page.waitForFunction(()=>document.querySelectorAll('[data-add]').length===1&&document.querySelector('[data-add]').dataset.add==='OTG-001');
+ assert.equal(await page.locator('#category').inputValue(),'Adaptador','Un enlace de categoría abre el filtro correcto');
+ await page.locator('#shareCategory').click();await page.waitForFunction(()=>window.__copied.includes('categoria=Adaptador'));
+ const categoryLink=await page.evaluate(()=>window.__copied);assert.ok(!categoryLink.includes('producto='));
+ await page.locator('[data-detail="OTG-001"]').first().click();await page.locator('#detailShare').click();
+ await page.waitForFunction(()=>window.__copied.includes('producto=OTG-001'));
+ const productLink=await page.evaluate(()=>window.__copied);
+ assert.ok(!productLink.includes('categoria='),'El enlace del producto no hereda filtros');
+ await page.locator('#detailOverlay [data-close]').click();
+ await page.locator('#search').fill('producto que no existe');await page.locator('.catalog-empty').waitFor();
+ assert.equal(await page.locator('#clearFilters').isVisible(),true);assert.ok(new URL(page.url()).searchParams.has('buscar'));
+ await page.locator('#clearFilters').click();assert.equal(await page.locator('#category').inputValue(),'');assert.equal(await page.locator('#search').inputValue(),'');assert.equal(new URL(page.url()).searchParams.has('buscar'),false);
+ if(artifacts)await page.screenshot({path:path.join(artifacts,'catalog-mobile.png')});
+ await page.locator('[data-add="OTG-001"]').click();await page.locator('#openCart').click();
+ assert.match(await page.locator('#codAvailability').innerText(),/Te faltan L 130/);
+ await page.locator('[data-qty="OTG-001"][data-step="1"]').click();assert.match(await page.locator('#codAvailability').innerText(),/disponible/);
+ await page.locator('[name=payMethod][value=tigo]').check();assert.match(await page.locator('#checkoutTotals').innerText(),/L 590/);
  await page.locator('#deliveryFields summary').click();await page.locator('#delivery_name').fill('Cliente de prueba');await page.locator('#delivery_city').fill('Comayagua');
  assert.equal(await page.locator('#delivery_name').inputValue(),'Cliente de prueba');
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Carrito móvil sin desborde horizontal');
+ if(artifacts)await page.screenshot({path:path.join(artifacts,'cart-mobile.png')});
+ await page.goto(productLink);await page.locator('#detailTitle').filter({hasText:'Adaptador OTG USB a TYPE C'}).waitFor();
+ assert.equal(await page.locator('#detailOverlay').isVisible(),true,'El enlace compartido abre directamente su producto');
  assert.deepEqual(errors,[]);
- await browser.close();server?.close();console.log('PASS UI: selección y cambio de fuente, campos manuales, fotos opcionales, Enter sin guardado, calculadora y móvil.');
+ await browser.close();server?.close();console.log('PASS UI: selección y cambio de fuente, campos manuales, fotos opcionales, Enter sin guardado, calculadora, redondeo adicional, enlaces para compartir, filtros y móvil.');
 })().catch(error=>{console.error(error);process.exit(1)});

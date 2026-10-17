@@ -160,3 +160,14 @@ body[data-page="productos"] .wrap,.header .wrap,.topbar .wrap {max-width:1200px}
 @media (prefers-reduced-motion:reduce) {
   .catalog-page .product,.catalog-page .product-actions .btn {transition:none}
 }
+
+/* Acciones breves para volver al catálogo y compartir un enlace directo. */
+.catalog-filter-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:-10px 0 18px}
+.catalog-filter-actions button{min-height:38px;border:1px solid #dbe3ed;border-radius:9px;padding:8px 12px;background:#fff;color:#35526f;font-size:12px;font-weight:600}
+.catalog-filter-actions button:hover{background:#edf3fa;border-color:#bdcedf}
+.catalog-filter-actions #shareCategory{margin-left:auto}
+.catalog-filter-actions button[hidden]{display:none}
+.catalog-empty{grid-column:1/-1;padding:32px 20px;text-align:center}
+.catalog-empty strong{display:block;font-size:16px;color:#2d4866}
+.catalog-empty p{font-size:13px;color:#708297;line-height:1.7;max-width:430px;margin:10px auto 0}
+@media(max-width:700px){.catalog-filter-actions{margin:-5px 0 16px;gap:8px}.catalog-filter-actions button{font-size:11px;min-height:40px}}

@@ -39,7 +39,7 @@
  function matchesSearch(text,query){const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const haystack=normalize(text);return normalize(query).trim().split(/\s+/).every(word=>haystack.includes(word));}
  function tiers(str){return String(str||'').split(/[,;|]/).map(x=>x.trim()).map(x=>{const m=x.match(/^(\d+)\s*:\s*([\d.,]+)$/);return m?{min:+m[1],price:num(m[2])}:null}).filter(Boolean).sort((a,b)=>a.min-b.min);}
  function unitPrice(p,qty){let x=num(p.price),promo=num(p.promoPrice);if(promo>0&&promo<=x)x=promo;for(const t of tiers(p.discounts))if(qty>=t.min)x=Math.min(x,t.price);return x;}
- function integerTotal(v){const rounded=Math.round(v*100)/100;return Math.abs(rounded-Math.round(rounded))<1e-8?Math.round(rounded):Math.ceil(rounded);}
+ function integerTotal(v){const rounded=Math.round(v*100)/100;return Math.abs(rounded-Math.round(rounded))<1e-8?Math.round(rounded):Math.ceil(rounded)+1;}
  function quote(items,mode,config={}){
   const shipping=num(config.shipping??110),min=num(config.codMinimum??350),codRate=num(config.codRate??.1),tigoRate=num(config.tigoRate??.07);
   const valid=items.filter(i=>i.product&&i.qty>0&&i.product.active&&i.product.stock>0);

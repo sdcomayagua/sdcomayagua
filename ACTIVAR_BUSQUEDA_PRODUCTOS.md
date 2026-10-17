@@ -19,7 +19,7 @@ GitHub Pages y Google Apps Script se publican por separado. Actualizar GitHub no
 3. Reemplazá **FichaGratis.gs** por [apps-script/FichaGratis.gs](apps-script/FichaGratis.gs). Si no existe, crealo con ese nombre. No dupliqués las funciones de Code.gs ni borres EditorMovil.gs o FichaRapida.gs.
 4. Conservá tus propiedades privadas del PIN y las claves `GC_FREE_TAVILY_API_KEY` y `GC_FREE_GEMINI_API_KEY`. Si todavía faltan, seguí [la guía de conexión](BUSCADOR_GRATIS_SIN_PAGOS.md). No pegues claves en GitHub ni en el formulario.
 5. **Implementar → Administrar implementaciones → lápiz → Nueva versión → Implementar**. Editá la implementación existente para conservar la URL `/exec`. Conservá su acceso público y la ejecución como propietario; las operaciones administrativas siguen protegidas por PIN.
-6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-search-39), recargá con **Ctrl + F5** e ingresá con tu PIN.
+6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-store-40), recargá con **Ctrl + F5** e ingresá con tu PIN.
 
 El servidor nuevo anuncia versión de búsqueda 4. El panel informa si falta activar la selección. Mientras tanto mantiene las fichas verificadas y las consultas exactas del servidor anterior.
 
@@ -37,4 +37,4 @@ El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la p
 
 La página **Pagos y envíos** incluye una calculadora que comparte las reglas del carrito: tarifa de envío, mínimo por importe, comisiones y anticipo. Los importes se actualizan desde Configuracion cuando responde Google. Los datos opcionales de destino se incluyen en la cotización de WhatsApp y en su impresión.
 
-Se conserva el anticipo vigente de **envío + comisión**, con el valor de los productos en efectivo al recibir. El redondeo sube al siguiente entero, sin sumar un lempira adicional: L 374.50 → L 375. La tarifa actual de respaldo es L 110 y el mínimo para pagar al recibir es L 350 en productos, sujeto a permisos por artículo.
+Se conserva el anticipo vigente de **envío + comisión**, con el valor de los productos en efectivo al recibir. Cuando hay fracción, el total sube al siguiente entero y se suma L 1 adicional: L 374.50 → L 376. Los totales que ya son enteros se conservan; el ajuste queda integrado al total. La tarifa actual de respaldo es L 110 y el mínimo para pagar al recibir es L 350 en productos, sujeto a permisos por artículo.
