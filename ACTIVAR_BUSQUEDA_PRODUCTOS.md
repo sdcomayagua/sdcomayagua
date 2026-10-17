@@ -21,9 +21,9 @@ GitHub Pages y Google Apps Script se publican por separado. Actualizar GitHub no
 3. Reemplazá **FichaGratis.gs** por [apps-script/FichaGratis.gs](apps-script/FichaGratis.gs). Si no existe, crealo con ese nombre. No dupliqués las funciones de Code.gs ni borres EditorMovil.gs o FichaRapida.gs.
 4. Conservá tus propiedades privadas del PIN y las claves `GC_FREE_TAVILY_API_KEY` y `GC_FREE_GEMINI_API_KEY`. Si todavía faltan, seguí [la guía de conexión](BUSCADOR_GRATIS_SIN_PAGOS.md). No pegues claves en GitHub ni en el formulario.
 5. **Implementar → Administrar implementaciones → lápiz → Nueva versión → Implementar**. Editá la implementación existente para conservar la URL `/exec`. Conservá su acceso público y la ejecución como propietario; las operaciones administrativas siguen protegidas por PIN.
-6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-43), recargá con **Ctrl + F5** e ingresá con tu PIN.
+6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-44), recargá con **Ctrl + F5** e ingresá con tu PIN.
 
-El servidor nuevo anuncia versión de búsqueda 7 y catálogo 2. El panel informa si falta activar la selección, las fotos o el relleno por lotes. Mientras tanto mantiene las fichas verificadas y las consultas exactas del servidor anterior.
+El servidor nuevo anuncia versión de búsqueda 8 y catálogo 2. El panel informa si falta activar la selección, las fotos, el relleno por lotes o la búsqueda con referencia. Mientras tanto mantiene las funciones compatibles del servidor anterior.
 
 El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la propuesta. El modelo predeterminado es `gemini-2.5-flash-lite`, configurable con la propiedad privada `GC_FREE_GEMINI_MODEL`. No activa facturación ni cambia automáticamente a otro proveedor; las cuotas y condiciones dependen de las cuentas configuradas.
 
@@ -54,6 +54,21 @@ Si falla una fuente o una foto, los demás artículos pueden continuar. Al reint
 Las propuestas y las copias preparadas se guardan temporalmente hasta seis horas; la caché de Google puede vencer antes. Si una propuesta ya no está disponible, volvé a buscar ese artículo y revisalo nuevamente. La ventana de revisión se conserva al cerrarla y volver a abrirla en esta misma página; recargar la página descarta esa revisión pendiente.
 
 Para activar estas funciones actualizá **Code.gs y FichaGratis.gs** con los pasos anteriores. No hay un tercer archivo que instalar en Apps Script.
+
+## Buscar otras fotos usando la imagen que ya subiste
+
+1. Guardá el producto con su nombre y al menos una foto real. En la fila del inventario o en **Editar → Fotos del producto**, tocá **Buscar con mi foto**.
+2. El servidor lee los bytes de tu foto con Gemini para identificar textos y rasgos visibles. Busca imágenes reales con Tavily y compara cada candidata con la referencia: modelo, variante, color, botones, conectores y forma. No genera ni modifica fotografías.
+3. Se ofrecen únicamente las coincidencias visuales de confianza alta. Las imágenes de otro modelo, las dudosas y las duplicadas se descartan. La comparación automática puede equivocarse: revisá las imágenes antes de copiarlas; una apariencia parecida no garantiza identidad exacta.
+4. En **Cuántas querés copiar**, elegí la cantidad y tocá **Elegir hasta N fotos** o marcá las imágenes manualmente. Podés quitar cualquiera y combinar imágenes de búsquedas distintas, hasta el espacio disponible (diez fotos en total).
+5. **Buscar más fotos** cambia la consulta y los sitios, omite las fotos vistas en esta revisión y conserva las elegidas. No vuelve a completar con las anteriores si no encuentra coincidencias nuevas. Si hay varias fotos propias, podés elegir otra como referencia; ese cambio requiere revisar nuevamente la selección.
+6. Desde el inventario, **Guardar seleccionados** agrega las fotos aprobadas y conserva la principal. Desde el editor, **Copiar al formulario** agrega las fotos a la ficha abierta: cerrá la revisión y tocá **Guardar y actualizar tienda** para publicarlas. Conserva la descripción y los demás cambios que estés preparando.
+
+En **Rellenar fotos** también podés marcar **Usar mi foto como referencia** para los artículos elegidos que ya tengan una. El filtro **Con una sola foto** ayuda a encontrar los que necesitan más vistas. La opción se puede usar por artículo sin aplicarla a todo el lote.
+
+Se usan las mismas claves privadas de Gemini y Tavily. La referencia se envía a Gemini para compararla; esta modalidad consume más consultas que una búsqueda solo por nombre. Los errores de cuota se muestran y detienen el lote. Si cambiás el nombre o quitás la referencia antes de copiar, volvé a buscar con los datos actuales.
+
+Esta mejora requiere **reemplazar nuevamente Code.gs y FichaGratis.gs y publicar Nueva versión** de la implementación existente. El panel 44 funciona con el servidor anterior para las tareas que ya estaban activadas; el botón de referencia muestra los pasos de actualización hasta que Google anuncie la nueva función.
 
 ## Envíos
 
