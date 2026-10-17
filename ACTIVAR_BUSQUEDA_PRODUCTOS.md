@@ -1,49 +1,40 @@
-# Completar fichas de productos desde la web
+# Buscador de productos y envíos — actualización de octubre 2026
 
-El panel tiene el botón **Buscar ficha**. Escribís la marca y el modelo de la caja en **Marca y modelo para buscar**. La búsqueda completa automáticamente los campos vacíos y muestra las fuentes. Revisás los datos y tocás **Guardar y actualizar tienda**, que queda visible al pie del editor. El nombre de venta se conserva.
+## Lo que cambia
 
-## Corrección de la búsqueda existente
+- Buscá por nombre o modelo. Se muestran resultados con título, fragmento y enlace.
+- Tocá **Usar este resultado** en el producto correcto. El servidor lee esa página y busca coincidencias del mismo producto.
+- También admite artículos genéricos sin modelo de fabricante, como un adaptador OTG. Para estos, los datos técnicos provienen de la fuente que elegiste.
+- Completa los campos vacíos de descripción, categoría, color y características confirmadas. Las fotos se ofrecen aparte con **Agregar foto**.
+- Cambiar de resultado retira la propuesta anterior y conserva lo que modificaste a mano, incluidas sus unidades. No guarda nada hasta tocar **Guardar y actualizar tienda**.
+- Precio, costo, existencias, SKU, promociones, descuentos y condiciones de pago son decisiones del negocio y se mantienen.
+- Las medidas, potencias u otros datos ausentes no se inventan ni se copian de artículos simplemente parecidos.
 
-Si ya configuraste la clave, **conservála**. Para activar el procesamiento corregido de búsquedas nuevas, reemplazá **Code.gs** por [la versión actualizada](https://github.com/sdcomayagua/sdcomayagua/blob/main/apps-script/Code.gs), guardá y publicá una **nueva versión de la implementación existente**. Conservá la URL `/exec`, el PIN y las propiedades privadas.
+## Activar en el servidor existente
 
-El **MEMO CX16** tiene una ficha del fabricante ya verificada que funciona desde el panel sin otra consulta de API. No se aplica automáticamente a nombres con una variante diferente. La tienda consulta directamente **CATALOGO PUBLICO WEB**, por lo que un fallo de lectura de Apps Script no la obliga a mostrar un inventario antiguo. El respaldo de GitHub también conserva las características eléctricas y las fuentes.
+GitHub Pages y Google Apps Script se publican por separado. Actualizar GitHub no modifica el servidor de Google.
 
-La función necesita una conexión privada a la API de OpenAI y una nueva versión de tu Google Apps Script. Subir los archivos a GitHub actualiza el panel, pero no modifica el proyecto de Google ni configura una clave.
+1. Abrí tu [inventario](https://docs.google.com/spreadsheets/d/1ReprTmtpBpoxIps-c5O-0quUmYgdHSePGIpB2Ey-rQ0/edit) → **Extensiones → Apps Script**.
+2. Reemplazá el contenido de **Code.gs** por [apps-script/Code.gs](apps-script/Code.gs).
+3. Reemplazá **FichaGratis.gs** por [apps-script/FichaGratis.gs](apps-script/FichaGratis.gs). Si no existe, crealo con ese nombre. No dupliqués las funciones de Code.gs ni borres EditorMovil.gs o FichaRapida.gs.
+4. Conservá tus propiedades privadas del PIN y las claves `GC_FREE_TAVILY_API_KEY` y `GC_FREE_GEMINI_API_KEY`. Si todavía faltan, seguí [la guía de conexión](BUSCADOR_GRATIS_SIN_PAGOS.md). No pegues claves en GitHub ni en el formulario.
+5. **Implementar → Administrar implementaciones → lápiz → Nueva versión → Implementar**. Editá la implementación existente para conservar la URL `/exec`. Conservá su acceso público y la ejecución como propietario; las operaciones administrativas siguen protegidas por PIN.
+6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-search-39), recargá con **Ctrl + F5** e ingresá con tu PIN.
 
-## Activación, una sola vez
+El servidor nuevo anuncia versión de búsqueda 4. El panel informa si falta activar la selección. Mientras tanto mantiene las fichas verificadas y las consultas exactas del servidor anterior.
 
-1. Creá una clave de proyecto en [OpenAI API](https://platform.openai.com/api-keys) y verificá que tu cuenta de API tenga facturación y acceso a Responses con búsqueda web. Esta conexión utiliza facturación de API por uso; no utiliza tu sesión de ChatGPT.
-2. Abrí [tu inventario](https://docs.google.com/spreadsheets/d/1ReprTmtpBpoxIps-c5O-0quUmYgdHSePGIpB2Ey-rQ0/edit) → **Extensiones → Apps Script**.
-3. Reemplazá todo **Code.gs** con [el archivo completo actualizado](https://github.com/sdcomayagua/sdcomayagua/blob/main/apps-script/Code.gs) y guardá. El código conserva el PIN y la hoja actuales; agrega la columna `Detalles` al final de Productos cuando sea necesaria para guardar una ficha.
-4. En **Configuración del proyecto → Propiedades de secuencia de comandos**, agregá **PRODUCT_RESEARCH_API_KEY** y pegá tu clave de API como valor. Conservá las propiedades existentes de tu PIN. No pegues la clave en Google Sheets, en el formulario de productos, en GitHub ni en este chat.
-5. Entrá en **Implementar → Administrar implementaciones → Editar → Nueva versión → Implementar**. Usá la implementación web existente para conservar la misma URL `/exec` y sus opciones actuales de ejecución y acceso.
-6. Recargá [el panel](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-research-36), ingresá tu PIN y abrí un producto. Las fichas verificadas están disponibles; las búsquedas nuevas necesitan que el servidor anuncie la conexión configurada.
+El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la propuesta. El modelo predeterminado es `gemini-2.5-flash-lite`, configurable con la propiedad privada `GC_FREE_GEMINI_MODEL`. No activa facturación ni cambia automáticamente a otro proveedor; las cuotas y condiciones dependen de las cuentas configuradas.
 
-El modelo predeterminado es `gpt-4.1-mini`. La propiedad opcional **PRODUCT_RESEARCH_MODEL** permite usar otro modelo compatible con Responses, `web_search` y salidas estructuradas. Consultá la documentación antes de cambiarlo.
+## Comprobar sin alterar el inventario
 
-## Qué completa
+1. Abrí un producto genérico como el adaptador OTG y tocá **Buscar ficha**.
+2. Elegí una coincidencia, revisá la descripción y los campos resaltados en verde.
+3. Probá elegir otro resultado: los datos propuestos anteriormente deben retirarse; los escritos a mano se conservan.
+4. Revisá modelo, conectores, color, unidades y fuente. Agregá fotos solo si corresponden a tu artículo.
+5. Guardá y comprobá **Ver ficha en tienda**. Los costos siguen siendo privados.
 
-- Descripción propia y breve, modelo, marca, material, compatibilidad y tecnología.
-- Peso y unidad; medidas con unidad o tamaño completo cuando los ejes no están identificados.
-- Voltaje de entrada, corriente, potencia, conexión y accesorios incluidos, cuando la fuente los confirme.
-- Referencias de la ficha técnica, visibles en las características del producto.
+## Envíos
 
-La búsqueda usa documentación del fabricante o manuales oficiales. Cada dato debe estar respaldado por una URL obtenida durante la búsqueda. Los datos desconocidos quedan vacíos. Si el nombre tiene varias variantes, la propuesta pide precisar el modelo y no completa una ficha de otra versión.
+La página **Pagos y envíos** incluye una calculadora que comparte las reglas del carrito: tarifa de envío, mínimo por importe, comisiones y anticipo. Los importes se actualizan desde Configuracion cuando responde Google. Los datos opcionales de destino se incluyen en la cotización de WhatsApp y en su impresión.
 
-No reemplaza campos que ya llenaste. Tampoco decide precio, stock, costo, descuentos, fotos ni formas de pago. Los datos completados no se guardan hasta que tocás **Guardar y actualizar tienda**.
-
-**Ejemplo MEMO:** la página oficial encontrada corresponde a **CX16**, no confirma la denominación **CXD16 Pro 2026**. Revisá la caja y la etiqueta antes de usar sus cifras de peso, potencia o tamaño para tu artículo:
-https://www.memo-develop.com/phone-cooler/semiconductor-cooling-phone-cooler/memo-cx16-universal-magnetic-mobile-cooling.html
-
-## Uso y comprobación
-
-1. Buscá un producto con marca y modelo exactos. Revisá que las fuentes sean del mismo modelo.
-2. Si se muestra **Modelo por confirmar**, precisá el modelo de búsqueda según la etiqueta y volvé a buscar.
-3. Revisá los campos completados y sus unidades; tocá **Guardar y actualizar tienda**.
-4. El panel comprueba lo guardado y muestra **Ver ficha en tienda** para abrir directamente el producto.
-
-Las búsquedas se ejecutan al tocar el botón; escribir letras en el nombre no inicia llamadas de API. Las propuestas del mismo nombre, categoría y modelo de IA se reutilizan durante 30 minutos para reducir consultas repetidas. Solo se admite una búsqueda en curso por tienda.
-
-Si faltan saldo, permisos o conexión, el panel explica el problema y conserva lo que escribiste. Las búsquedas nuevas separan la consulta web con citas de la extracción de datos estructurados. Sus pruebas usan respuestas simuladas; la conexión privada de tu servidor debe comprobarse después de desplegar el Code.gs corregido.
-
-Documentación de referencia: [búsqueda web](https://developers.openai.com/api/docs/guides/tools-web-search), [salidas estructuradas](https://developers.openai.com/api/docs/guides/structured-outputs), [modelo](https://developers.openai.com/api/docs/models/gpt-4.1-mini) y [precios vigentes](https://developers.openai.com/api/docs/pricing).
+Se conserva el anticipo vigente de **envío + comisión**, con el valor de los productos en efectivo al recibir. El redondeo sube al siguiente entero, sin sumar un lempira adicional: L 374.50 → L 375. La tarifa actual de respaldo es L 110 y el mínimo para pagar al recibir es L 350 en productos, sujeto a permisos por artículo.

@@ -63,9 +63,16 @@ function doPost(e) {
       result = {ok:true,...publicPayload_()};
     } else {
       assertAdmin_(req.token);
-      if (req.action === 'verify') { const p=PropertiesService.getScriptProperties(),provider=String(p.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').toUpperCase(); const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_(); result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:3,productResearch:ready,productResearchMode:provider==='OPENAI'?'openai':'gratis'}}; }
+      if (req.action === 'verify') {
+        const p=PropertiesService.getScriptProperties();
+        const provider=String(p.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').trim().toUpperCase();
+        const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
+        const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
+        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:4,productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+      }
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
-      else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category);
+      else if (req.action === 'researchCandidates') result = gcFreeCandidates_(req.name,req.category);
+      else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category,req.selection);
       else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
       else if (req.action === 'disableProduct') result = disableProduct_(req.id);
       else if (req.action === 'uploadImage') result = uploadImage_(req.file || {});
@@ -159,10 +166,14 @@ function detailsClean_(raw){
 }
 
 /** Búsqueda privada. La clave vive en Script Properties y nunca llega al navegador. */
-function researchProduct_(rawName,rawCategory){
+function researchProduct_(rawName,rawCategory,selection){
   const name=String(rawName||'').trim(),category=String(rawCategory||'').trim().slice(0,120);
   if(name.length<3||name.length>180)throw Error('Escribí marca y modelo del producto para buscar su ficha.');
   const props=PropertiesService.getScriptProperties();
+  if(selection){
+    if(typeof gcFreeSelected_!=='function')throw Error('Actualizá FichaGratis.gs para elegir una fuente.');
+    return gcFreeSelected_(name,category,selection);
+  }
   // Predeterminado GRATIS; NUNCA llamar a la API de pago si no se solicita
   // expresamente PRODUCT_RESEARCH_PROVIDER=OPENAI en propiedades privadas.
   if(String(props.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').trim().toUpperCase()!=='OPENAI'){

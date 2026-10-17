@@ -5,7 +5,7 @@ Esta versión permite investigar fichas técnicas en `ADMIN` y en la pestaña `F
 ## 1. Crear dos claves GRATUITAS, sin tarjetas
 
 1. Entrá en **https://app.tavily.com/** y registrate en el plan **Researcher Free**. Según Tavily (https://www.tavily.com/pricing), incluye **1,000 créditos por mes**, sin tarjeta. Copiá su API key en privado.
-2. Entrá en **https://aistudio.google.com/api-keys** con Google y creá una clave para un proyecto que aparezca en **Free Tier**. **No activés facturación ni selecciones un plan de pago**. Usamos solo el modelo `gemini-3.5-flash-lite` para organizar resultados de Tavily. Su tier gratuito está sujeto a límites y disponibilidad geográfica.
+2. Entrá en **https://aistudio.google.com/api-keys** con Google y creá una clave para un proyecto que aparezca en **Free Tier**. **No activés facturación ni selecciones un plan de pago**. Usamos solo el modelo `gemini-2.5-flash-lite` para organizar resultados de Tavily. Su tier gratuito está sujeto a límites y disponibilidad geográfica.
 3. No compartás las claves en chats, capturas, GitHub, Google Sheets o páginas públicas. El nombre del producto y fragmentos públicos de resultados se envían a ambos servicios. El tier gratuito de Gemini puede utilizar datos enviados para mejorar sus productos; no se envían costos, inventario ni datos bancarios.
 
 **IMPORTANTE SI YA TENÉS UNA CLAVE DE OPENAI:** La versión anterior de `Code.gs` podía llamar a la API facturable. Para evitar futuros cobros, primero dejá de presionar `Buscar ficha` hasta actualizar el servidor y considerá **eliminar la propiedad `PRODUCT_RESEARCH_API_KEY`**. La versión nueva usa GRATIS por defecto; OpenAI únicamente se usa si cambiás expresamente la propiedad `PRODUCT_RESEARCH_PROVIDER` a `OPENAI` (no lo hagás si no querés pagar).
@@ -40,10 +40,13 @@ Abrí https://sdcomayagua.github.io/sdcomayagua/admin.html y recargá con **Ctrl
 
 ## Cómo trabaja
 
-- Tavily hace **una búsqueda básica por producto**, con créditos de su tier Free.
-- Gemini Free Tier organiza la información de los fragmentos encontrados; **no utiliza Google Search integrado**, que en muchos modelos requiere modalidad paga.
-- Se exige **marca y modelo específico**, URL exacta de fuentes de búsqueda y un dominio relacionado con la marca; las variantes ambiguas se dejan vacías. Tampoco se infieren medidas, voltajes, compatibilidad o potencia.
-- No altera fotos, precio, costo, stock ni descuentos. Los datos se muestran como **propuesta** y se guardan solo cuando tocás **Guardar y actualizar tienda** (ADMIN) o **GUARDAR EN INVENTARIO** (Sheets).
-- El sistema no tiene forma de verificar la autenticidad de cada página por completo; revisá las fuentes antes de publicar. Si el producto se llama genéricamente `ARGOM Cable USB Tipo-C Carga rápida 65w – 3m` y falta el SKU/modelo del fabricante, podría quedar pendiente de identificación, que es correcto.
+En ADMIN la búsqueda muestra coincidencias para elegir. **Usar este resultado** lee esa página y busca el mismo modelo en otras fuentes. Los productos genéricos pueden completarse desde la fuente elegida. Las fichas de FICHA RAPIDA conservan el modo de coincidencia oficial exacta.
 
-Los planes gratuitos tienen límites y condiciones de uso. Si tu cuenta muestra opciones de pago, **no las aceptés**. No podemos garantizar que el proveedor mantenga sus precios o cuotas.
+- Usa consultas básicas de Tavily y Gemini sin Google Search integrado. Las cuentas y sus cuotas se administran en cada proveedor.
+- Para la selección nueva actualizá **Code.gs y FichaGratis.gs**, y publicá una nueva versión de la implementación existente. La guía [ACTIVAR_BUSQUEDA_PRODUCTOS.md](ACTIVAR_BUSQUEDA_PRODUCTOS.md) explica la comprobación.
+- El modelo se puede cambiar con `GC_FREE_GEMINI_MODEL`. No hace falta configurar esa propiedad para usar el predeterminado.
+- No cambia precios, costos, stock, descuentos ni reglas de pago. Ofrece fotos para agregar manualmente, sin sustituir las existentes.
+- Guarda solo al tocar **Guardar y actualizar tienda** o **GUARDAR EN INVENTARIO** en Sheets. Revisá la variante y las fuentes antes de publicar.
+- Si una página no permite lectura completa, puede usar su fragmento e informa la limitación. Lo que no se confirma queda vacío.
+
+Los planes gratuitos tienen límites y condiciones de uso. Comprobá el plan de tus cuentas antes de crear claves; el código no modifica la facturación de esos proveedores.

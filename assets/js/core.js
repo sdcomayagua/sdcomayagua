@@ -36,9 +36,10 @@
  function cleanProduct(p){
   return {id:String(p.id||p.ID||p.Codigo||'').trim(),code:String(p.code||p.Codigo||'').trim(),name:String(p.name||p.Nombre||'').trim(),category:String(p.category||p.Categoria||'Otros').trim(),price:num(p.price??p.Precio),stock:Math.max(0,Math.floor(num(p.stock??p.Stock))),image:String(p.image||p.Imagen||'').trim(),gallery:p.gallery||p.Galeria||'',description:String(p.description||p.Descripcion||''),discounts:String(p.discounts||p.Descuentos||''),colors:String(p.colors||p.Colores||'').trim(),promoPrice:num(p.promoPrice??p.PrecioPromocion),promoText:String(p.promoText||p.PromocionTexto||'').trim(),details:cleanDetails(p.details??p.Detalles),codAllowed:yes(p.codAllowed??p.PagoAlRecibir??'SI'),active:yes(p.active??p.Activo??'SI')};
  }
+ function matchesSearch(text,query){const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const haystack=normalize(text);return normalize(query).trim().split(/\s+/).every(word=>haystack.includes(word));}
  function tiers(str){return String(str||'').split(/[,;|]/).map(x=>x.trim()).map(x=>{const m=x.match(/^(\d+)\s*:\s*([\d.,]+)$/);return m?{min:+m[1],price:num(m[2])}:null}).filter(Boolean).sort((a,b)=>a.min-b.min);}
  function unitPrice(p,qty){let x=num(p.price),promo=num(p.promoPrice);if(promo>0&&promo<=x)x=promo;for(const t of tiers(p.discounts))if(qty>=t.min)x=Math.min(x,t.price);return x;}
- function integerTotal(v){const rounded=Math.round(v*100)/100;return Math.abs(rounded-Math.round(rounded))<1e-8?Math.round(rounded):Math.ceil(rounded)+1;}
+ function integerTotal(v){const rounded=Math.round(v*100)/100;return Math.abs(rounded-Math.round(rounded))<1e-8?Math.round(rounded):Math.ceil(rounded);}
  function quote(items,mode,config={}){
   const shipping=num(config.shipping??110),min=num(config.codMinimum??350),codRate=num(config.codRate??.1),tigoRate=num(config.tigoRate??.07);
   const valid=items.filter(i=>i.product&&i.qty>0&&i.product.active&&i.product.stock>0);
@@ -55,7 +56,7 @@
   return {valid,subtotal,units:qty,shipping:qty?shipping:0,base,fee,total,deposit:mode==='cod'?shipping+fee:total,balance:mode==='cod'?subtotal:0,mode,codAllowed,reasons:violations};
  }
  function number(){const d=new Date();const z=x=>String(x).padStart(2,'0');let s='';if(typeof crypto!=='undefined'&&crypto.getRandomValues){const a=new Uint32Array(1);crypto.getRandomValues(a);s=(a[0]%1000000).toString().padStart(6,'0')}else s=Math.floor(Math.random()*1000000).toString().padStart(6,'0');return `GC-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}-${s}`;}
- function waMessage(items,q,id){
+ function waMessage(items,q,id,delivery={}){
   const names={transfer:'Depósito / transferencia',tigo:'Tigo Money',cod:'Pagar al recibir'};
   const lines=[`*GAMER COMAYAGUA - COTIZACIÓN*`,`Número: *${id}*`,'','*PRODUCTOS*'];
   items.forEach(i=>lines.push(`• ${i.product.name}\n  ${i.qty} × ${money(unitPrice(i.product,i.qty))} = *${money(i.qty*unitPrice(i.product,i.qty))}*`));
@@ -63,7 +64,10 @@
   if(q.mode==='cod'||q.mode==='tigo')lines.push(`${q.mode==='tigo'?'Comisión de Tigo Money':'Comisión por pagar al recibir'}: ${money(q.fee)}`);
   lines.push(`*TOTAL: ${money(q.total)}*`);
   if(q.mode==='cod')lines.push(`*ANTICIPO A DEPOSITAR (envío + comisión): ${money(q.deposit)}*`,`*SALDO EN EFECTIVO AL RECIBIR: ${money(q.balance)}*`);
+  const shippingFields=[['name','Nombre'],['phone','Celular'],['department','Departamento'],['city','Municipio / ciudad'],['address','Dirección y referencia']];
+  const destination=shippingFields.filter(([key])=>String(delivery[key]||'').trim()).map(([key,label])=>`${label}: ${String(delivery[key]).trim()}`);
+  if(destination.length)lines.push('','*DATOS PARA EL ENVÍO*',...destination);
   lines.push('','Solicito confirmar disponibilidad y datos de pago.');return lines.join('\n');
  }
- return {num,yes,cleanProduct,cleanDetails,tiers,unitPrice,integerTotal,quote,money,number,waMessage};
+ return {matchesSearch,num,yes,cleanProduct,cleanDetails,tiers,unitPrice,integerTotal,quote,money,number,waMessage};
 });
