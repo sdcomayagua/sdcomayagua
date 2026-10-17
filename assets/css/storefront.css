@@ -538,3 +538,12 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
  .gc-payments .payments-hero{padding:22px 18px;margin-top:18px}
  .gc-payments .payments-actions{padding:20px 18px}
 }
+#detailOverlay .detail-share{display:inline-flex;align-items:center;min-height:42px;margin-top:10px;padding:7px 0;border:0;background:transparent;color:#38638d;font-size:12px;font-weight:600;text-align:left}
+#detailOverlay .detail-share:hover{text-decoration:underline}
+#checkoutControls .cod-availability.cod-pending{background:#f0f4f9;border-color:#d7e1ed;color:#3d5875}
+#checkoutControls .cod-availability.cod-pending strong{color:#35516d}
+#checkoutControls .cod-availability.cod-pending>div{width:100%;min-width:0}
+#checkoutControls .cod-availability progress{display:block;width:100%;height:7px;margin-top:11px;border:0;border-radius:10px;overflow:hidden;accent-color:#557caa}
+#checkoutControls .cod-availability progress::-webkit-progress-bar{background:#dce5f0;border-radius:10px}
+#checkoutControls .cod-availability progress::-webkit-progress-value{background:#557caa;border-radius:10px}
+#checkoutControls .cod-availability progress::-moz-progress-bar{background:#557caa;border-radius:10px}
