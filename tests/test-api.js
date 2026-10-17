@@ -179,3 +179,21 @@ const C=require('../assets/js/core.js');
 assert.equal(C.cleanProduct({id:'x',name:'x',details:savedDetails}).details.power,'10 W');
 assert.deepEqual(C.cleanDetails({references:[{url:'javascript:alert(1)'},{url:'https://maker.example/model-x',title:'Ficha'}]}).references,[{url:'https://maker.example/model-x',title:'Ficha'}]);
 console.log('PASS fichas: PIN y clave privados, fuentes consultadas, coincidencia exacta, datos contradictorios omitidos, caché, fallos sin pérdida, columna Detalles y guardado de atributos eléctricos.');
+
+// Más pedidos se escribe sin regrabar datos comerciales; la creación conserva fecha.
+const meta=setup(oldHeaders),c=meta.context;
+const record=meta.products[1],beforeRecord=record.slice();
+const changed=c.setBestSeller_(String(record[oldHeaders.indexOf('ID')]),true);
+assert.equal(changed.bestSeller,true);
+assert.deepEqual(record.slice(0,oldHeaders.length),beforeRecord);
+assert.equal(meta.products[0].includes('MasPedidos'),true);
+assert.equal(c.adminPayload_().products[0].bestSeller,true);
+assert.equal(c.publicPayload_().catalogSchemaVersion,2);
+c.saveProduct_({name:'Nuevo reciente',category:'Prueba',price:100,stock:1,active:true,codAllowed:true});
+const headers=meta.products[0],createdRow=meta.products.at(-1),createdAt=createdRow[headers.indexOf('FechaCreacion')];
+assert.ok(Date.parse(createdAt)>0);
+c.saveProduct_({id:'FAKE-NEW-ID',name:'Nuevo reciente editado',category:'Prueba',price:120,stock:1,active:true,codAllowed:true});
+assert.equal(meta.products.at(-1)[headers.indexOf('FechaCreacion')],createdAt);
+assert.throws(()=>c.setBestSeller_('inexistente',true),/No se encontró/);
+assert.throws(()=>c.setBestSeller_(String(record[0]),'SI'),/no es válida/);
+console.log('PASS metadatos: estrella persistida, precio/costo/stock intactos y fecha de creación conservada.');

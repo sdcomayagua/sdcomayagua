@@ -106,7 +106,7 @@ def source_url(file):
     return next((line.strip() for line in file.read_text(encoding="utf-8").splitlines()
                  if line.strip() and not line.strip().startswith("#")), "")
 
-def fetch_api(url):
+def fetch_api(url, with_schema=False):
     endpoint = urlsplit(url)
     if (endpoint.scheme != "https" or endpoint.hostname != "script.google.com"
             or not endpoint.path.startswith("/macros/s/") or not endpoint.path.endswith("/exec")):
@@ -127,13 +127,16 @@ def fetch_api(url):
     if not isinstance(response, dict) or response.get("ok") is not True or not isinstance(response.get("products"), list):
         raise ValueError("Respuesta inválida del catálogo público")
     entries = []
-    for p in response["products"]:
+    for index, p in enumerate(response["products"]):
         if not isinstance(p, dict) or not p.get("id") or not p.get("name"):
             continue
         stock = number(p.get("stock", 0))
         if not isinstance(stock, int):
             raise ValueError("El stock debe ser entero")
         entries.append({
+            "bestSeller": yes(p.get("bestSeller", False)),
+            "createdAt": str(p.get("createdAt") or ""),
+            "catalogOrder": int(p.get("catalogOrder", index)),
             "id": str(p["id"]).strip(),
             "code": str(p.get("code") or "").strip(),
             "name": str(p["name"]).strip(),
@@ -151,7 +154,7 @@ def fetch_api(url):
             "promoText": str(p.get("promoText") or "").strip(),
             "details": details_public(p.get("details", {})),
         })
-    return entries
+    return (entries, response.get("catalogSchemaVersion", 0)) if with_schema else entries
 
 def fetch_csv(url):
     parsed = urlparse(url)
@@ -167,16 +170,19 @@ def fetch_csv(url):
         raise ValueError("Archivo CSV demasiado grande")
     decoded = data.decode("utf-8-sig")
     reader = csv.DictReader(io.StringIO(decoded))
-    if reader.fieldnames != HEADERS or any(k.lower() in PRIVATE_FIELDS for k in reader.fieldnames or []):
+    if not reader.fieldnames or reader.fieldnames[:len(HEADERS)] != HEADERS or any(k not in HEADERS + ["MasPedidos", "FechaCreacion"] for k in reader.fieldnames) or any(k.lower() in PRIVATE_FIELDS for k in reader.fieldnames):
         raise ValueError("El CSV no contiene las columnas públicas esperadas")
     entries = []
-    for r in reader:
+    for index, r in enumerate(reader):
         if not r["ID"] or not r["Nombre"]:
             continue
         stock = number(r["Stock"])
         if not isinstance(stock, int):
             raise ValueError("El stock debe ser entero")
         entries.append({
+            "catalogOrder": index,
+            **({"bestSeller": yes(r["MasPedidos"])} if "MasPedidos" in r else {}),
+            **({"createdAt": str(r["FechaCreacion"] or "")} if "FechaCreacion" in r else {}),
             "id": r["ID"].strip(), "code": r["Codigo"].strip(),
             "name": r["Nombre"].strip(), "category": r["Categoria"].strip(),
             "price": number(r["Precio"]), "stock": stock,
@@ -191,6 +197,16 @@ def fetch_csv(url):
         })
     return entries
 
+def merge_csv_metadata(entries, previous):
+    for p in entries:
+        old = previous.get(p["id"], {})
+        for key in ("bestSeller", "createdAt"):
+            if key not in p and key in old:
+                p[key] = old[key]
+        if not p.get("details") and old.get("details"):
+            p["details"] = old["details"]
+    return entries
+
 def main():
     api = source_url(SOURCE_API)
     csv_url = source_url(SOURCE_CSV)
@@ -199,8 +215,18 @@ def main():
         return
     # La pestaña pública responde sin sesión aunque /exec rechace el acceso.
     # Preferirla también evita que un servidor antiguo quite datos nuevos.
-    from_public_api = not bool(csv_url)
-    entries = fetch_csv(csv_url) if csv_url else fetch_api(api)
+    from_public_api = False
+    entries = None
+    if api:
+        try:
+            api_entries, schema = fetch_api(api, with_schema=True)
+            if schema >= 2 or not csv_url:
+                entries, from_public_api = api_entries, True
+        except Exception:
+            if not csv_url:
+                raise
+    if entries is None:
+        entries = fetch_csv(csv_url)
     if len(entries) < 40 or len({e["id"] for e in entries}) != len(entries):
         raise ValueError("Catálogo incompleto o con productos duplicados: no se escribe ningún archivo")
     if OUTPUT.exists():
@@ -209,11 +235,14 @@ def main():
         overlap = sum(1 for p in entries if p["id"] in old)
         if overlap < int(len(previous) * .75):
             raise ValueError("Identificadores de producto inesperados: se conserva la copia anterior")
+        if not from_public_api:
+            # Una lectura antigua de la pestaña no debe borrar la ficha ni las marcas.
+            entries = merge_csv_metadata(entries, old)
         if from_public_api:
             # La API solo publica artículos activos. Conservar los inactivos
             # para el respaldo del panel y marcarlos ocultos para la tienda.
             regressions = [p["id"] for p in entries if old.get(p["id"], {}).get("details") and not p.get("details")]
-            if regressions:
+            if regressions and schema < 2:
                 raise ValueError("Apps Script devolvió características antiguas, sincronización cancelada: "
                                  + ",".join(regressions[:3]))
             now = {p["id"] for p in entries}

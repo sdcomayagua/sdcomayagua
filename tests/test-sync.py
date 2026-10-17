@@ -26,6 +26,13 @@ class CatalogSyncTests(unittest.TestCase):
         self.assertEqual(details["references"], [{"url": "https://maker.example/cx16", "title": "Ficha oficial"}])
         self.assertNotIn("cost", details)
 
+    def test_old_csv_preserves_metadata_and_saved_details(self):
+        old = {"p": {"bestSeller": True, "createdAt": "2026-10-17T02:00:00Z", "details": {"brand": "MEMO"}}}
+        fresh = sync.merge_csv_metadata([{"id": "p", "price": 120, "details": {}}], old)[0]
+        self.assertTrue(fresh["bestSeller"])
+        self.assertEqual(fresh["details"]["brand"], "MEMO")
+        self.assertEqual(fresh["price"], 120)
+
     def test_private_sheet_url_is_rejected_before_reading(self):
         with patch.object(sync, "urlopen") as read:
             with self.assertRaises(ValueError):

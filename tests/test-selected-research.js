@@ -60,3 +60,27 @@ variant.data.matched_model='MEMO CX16';
 const rejected=variant.context.researchProduct_('MEMO CX16 Pro','Enfriadores',{searchId:variantPool.searchId,candidateId:'0'}).research;
 assert.equal(rejected.match,'ambiguous');assert.equal(Object.keys(rejected.details).length,0);
 console.log('PASS selección: genéricos, PIN, resultados vigentes, fuentes del mismo producto, unidades, imágenes, datos comerciales preservados, caché y fallos.');
+
+// Caso real de regresión: Gamer Pro es nombre comercial, no un modelo Pro.
+const sleeve=setup(),snippet='Especificación Marca MEMO Modelo FS01 Tipo Dedales gamer Material Fibra conductiva de plata + spandex Grosor 0,15 mm aprox. Tamaño 4 × 3 cm aprox. Peso neto FS';
+sleeve.context.gcFreePost_=(url,payload)=>{
+ if(url.endsWith('/search'))return {results:[{url:primary,title:'Dedales Gamer Memo Finger Sleeve',content:snippet},{url:'https://www.youtube.com/watch?v=1',title:'Video'}, {url:'https://www.tiktok.com/video/1',title:'Video'}]};
+ if(url.endsWith('/extract'))return {results:[{url:primary,raw_content:'Verificá que no eres un robot. Captcha.',images:[]}]};
+ assert.ok(payload.generationConfig.responseSchema.properties.specifications);
+ return {candidates:[{content:{parts:[{text:JSON.stringify({match:'ambiguous',matched_model:'MEMO FS01',description:'',description_sources:[],specifications:[],same_product_sources:[],notes:[],missing:['Peso']})}]}}]};
+};
+const sleeveName='Dedales Gamer Pro Hilo de Plata para Celular',sleevePool=sleeve.context.gcFreeCandidates_(sleeveName,'Dedales');
+assert.equal(sleevePool.candidates.length,1,'Los videos se excluyen en el servidor');
+const filled=sleeve.context.researchProduct_(sleeveName,'Dedales',{searchId:sleevePool.searchId,candidateId:'0'}).research;
+assert.equal(filled.match,'partial');assert.equal(filled.details.brand,'MEMO');assert.equal(filled.details.model,'FS01');assert.match(filled.details.material,/plata/);assert.match(filled.details.size,/4 × 3/);assert.equal(filled.details.weight,undefined);
+// Una foto autorizada se copia; HTML y fuentes arbitrarias se rechazan.
+const photo=setup(),photoPool=photo.context.gcFreeCandidates_(name,'Adaptador'),photoSelection={searchId:photoPool.searchId,candidateId:'0'};
+photo.context.researchProduct_(name,'Adaptador',photoSelection);
+photo.context.UrlFetchApp={fetch:(url)=>{assert.equal(url,'https://cdn.example/otg.jpg');return {getResponseCode:()=>200,getContent:()=>[255,216,255,1,2,3]};}};
+photo.context.Utilities.base64Encode=bytes=>Buffer.from(bytes).toString('base64');
+photo.context.uploadImage_=file=>{assert.equal(file.mime,'image/jpeg');return {ok:true,url:'https://drive.google.com/thumbnail?id=GUARDADA'};};
+assert.match(photo.context.gcFreeImportImage_(photoSelection,0).url,/GUARDADA/);
+assert.throws(()=>photo.context.gcFreeImportImage_(photoSelection,5),/no está disponible/);
+photo.context.UrlFetchApp.fetch=()=>({getResponseCode:()=>200,getContent:()=>Array.from(Buffer.from('<html>login</html>'))});
+assert.throws(()=>photo.context.gcFreeImportImage_(photoSelection,0),/imagen válida/);
+console.log('PASS fichas parciales: fragmentos conservados, nombre comercial Pro, atributos confirmados, videos filtrados e importación de fotos.');

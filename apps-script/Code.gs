@@ -9,7 +9,7 @@ const GC_SHEET_ID = '1ReprTmtpBpoxIps-c5O-0quUmYgdHSePGIpB2Ey-rQ0';
 const GC_TAB_PRODUCTS = 'Productos';
 const GC_TAB_SETTINGS = 'Configuracion';
 const GC_TAB_BANKS = 'Cuentas';
-const GC_PRODUCT_COLUMNS = ['ID','Codigo','Nombre','Categoria','Precio','PrecioPromocion','Costo','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Revision','Colores','PromocionTexto','Detalles'];
+const GC_PRODUCT_COLUMNS = ['ID','Codigo','Nombre','Categoria','Precio','PrecioPromocion','Costo','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Revision','Colores','PromocionTexto','Detalles','MasPedidos','FechaCreacion'];
 
 /** Ejecutar una sola vez. La clave NUEVA se imprime en Registro de ejecución. */
 function configurarSistema() {
@@ -36,7 +36,7 @@ function doGet(e) {
     if(String(args.action||'') === 'health') {
       const props=PropertiesService.getScriptProperties();
       const pin=String(props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN') || '');
-      result={ok:true,version:'GC-20261008-PIN-V6',pinConfigurado:/^\d{6}$/.test(pin)};
+      result={ok:true,version:'GC-20261017-FICHAS-V5',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
     } else result = {ok:true, ...publicPayload_()};
   } catch (err) {
     result = {ok:false, error:safeError_(err)};
@@ -68,11 +68,13 @@ function doPost(e) {
         const provider=String(p.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').trim().toUpperCase();
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
-        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:4,productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:5,bestSellers:true,researchImageImport:typeof gcFreeImportImage_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
       }
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
       else if (req.action === 'researchCandidates') result = gcFreeCandidates_(req.name,req.category);
       else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category,req.selection);
+      else if (req.action === 'setBestSeller') result = setBestSeller_(req.id,req.bestSeller);
+      else if (req.action === 'importResearchImage') result = gcFreeImportImage_(req.selection,req.imageIndex);
       else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
       else if (req.action === 'disableProduct') result = disableProduct_(req.id);
       else if (req.action === 'uploadImage') result = uploadImage_(req.file || {});
@@ -310,11 +312,12 @@ function readResearchResponse_(response,requestedName,evidence){
 }
 
 function publicPayload_(){
-  const cache=CacheService.getScriptCache();const cached=cache.get('public_catalog_v7');if(cached)return JSON.parse(cached);
+  const cache=CacheService.getScriptCache();const cached=cache.get('public_catalog_v8');if(cached)return JSON.parse(cached);
   const ss=book_(),sheet=ss.getSheetByName(GC_TAB_PRODUCTS);if(!sheet)throw Error('No existe la pestaña Productos.');
   const vals=sheet.getDataRange().getDisplayValues();const headers=vals.shift()||[];const idx=k=>headers.indexOf(k);
   const value=(row,k)=>idx(k)>=0?row[idx(k)]:'';
-  const products=vals.filter(r=>r.some(c=>String(c).trim())).map(r=>({
+  const products=vals.filter(r=>r.some(c=>String(c).trim())).map((r,index)=>({
+    bestSeller:yes_(value(r,'MasPedidos')),createdAt:String(value(r,'FechaCreacion')),catalogOrder:index,
     id:String(value(r,'ID')),code:String(value(r,'Codigo')),name:String(value(r,'Nombre')),
     category:String(value(r,'Categoria')||'Otros'),price:money_(value(r,'Precio')),
     stock:Math.max(0,Math.floor(money_(value(r,'Stock')))),image:String(value(r,'Imagen')),
@@ -328,8 +331,8 @@ function publicPayload_(){
   if(bankSheet&&bankSheet.getLastRow()>1){bankSheet.getRange(2,1,bankSheet.getLastRow()-1,5).getDisplayValues().forEach(r=>{
     if(yes_(r[4])&&r[2])banks.push({bank:r[0],owner:r[1],account:r[2],identity:r[3],visible:true});
   });}
-  const result={products,settings:cfg_(),banks,updatedAt:new Date().toISOString()};
-  const out=JSON.stringify(result);if(out.length<90000)cache.put('public_catalog_v7',out,45);
+  const result={catalogSchemaVersion:2,products,settings:cfg_(),banks,updatedAt:new Date().toISOString()};
+  const out=JSON.stringify(result);if(out.length<90000)cache.put('public_catalog_v8',out,45);
   return result;
 }
 /**
@@ -342,7 +345,8 @@ function adminPayload_(){
   const rows=s.getDataRange().getValues();
   const h=(rows.shift()||[]).map(String);
   const get=(r,key)=>r[h.indexOf(key)]??'';
-  return {products:rows.filter(r=>r.some(x=>String(x??'').trim())).map(r=>({
+  return {products:rows.filter(r=>r.some(x=>String(x??'').trim())).map((r,index)=>({
+    bestSeller:yes_(get(r,'MasPedidos')),createdAt:get(r,'FechaCreacion') instanceof Date?get(r,'FechaCreacion').toISOString():String(get(r,'FechaCreacion')),catalogOrder:index,
     id:String(get(r,'ID')),code:String(get(r,'Codigo')),name:String(get(r,'Nombre')),
     category:String(get(r,'Categoria')||'Otros'),price:money_(get(r,'Precio')),
     promoPrice:money_(get(r,'PrecioPromocion')),cost:money_(get(r,'Costo')),
@@ -376,7 +380,7 @@ function saveProduct_(p){
     const at=key=>headers.indexOf(key);
     const required=['ID','Codigo','Nombre','Categoria','Precio','Costo','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Revision'];
     if(required.some(key=>at(key)<0))throw Error('Faltan columnas obligatorias en Productos.');
-    if(p.details!==undefined&&at('Detalles')<0){s.getRange(1,headers.length+1).setValue('Detalles');headers.push('Detalles');}
+    for(const key of ['Detalles','MasPedidos','FechaCreacion'])if(at(key)<0){s.getRange(1,headers.length+1).setValue(key);headers.push(key);}
     let position=-1;
     for(let i=1;i<rows.length;i++)if(String(rows[i][at('ID')])===id){position=i+1;break;}
     const row=position>0?rows[position-1].slice():Array(headers.length).fill('');
@@ -384,6 +388,8 @@ function saveProduct_(p){
     const set=(key,value)=>{const i=at(key);if(i>=0)row[i]=value;};
     const old=key=>at(key)<0?'':row[at(key)];
     const amount=value=>{const n=money_(value);if(!Number.isFinite(n)||n<0)throw Error('Precio o costo inválido.');return n;};
+    if(!position||position<0)set('FechaCreacion',new Date().toISOString());
+    if(p.bestSeller!==undefined)set('MasPedidos',p.bestSeller===true?'SI':'NO');
     set('ID',id);
     set('Codigo',String(p.code??old('Codigo')??'').trim());
     set('Nombre',name);
@@ -403,6 +409,7 @@ function saveProduct_(p){
     if(p.promoText!==undefined)set('PromocionTexto',String(p.promoText||'').slice(0,250));
     if(p.details!==undefined)set('Detalles',JSON.stringify(detailsClean_(p.details)));
     if(position>0)s.getRange(position,1,1,headers.length).setValues([row]);else s.appendRow(row);
+    CacheService.getScriptCache().remove('public_catalog_v8');
     CacheService.getScriptCache().remove('public_catalog_v7');
     CacheService.getScriptCache().remove('public_catalog_v6');
     CacheService.getScriptCache().remove('public_catalog_v5');
@@ -416,6 +423,7 @@ function disableProduct_(id){
   if(idCol<0||activeCol<0)throw Error('Faltan las columnas ID o Activo.');
   for(let i=1;i<values.length;i++)if(String(values[i][idCol])===String(id)){
     s.getRange(i+1,activeCol+1).setValue('NO');
+    CacheService.getScriptCache().remove('public_catalog_v8');
     CacheService.getScriptCache().remove('public_catalog_v7');
     CacheService.getScriptCache().remove('public_catalog_v6');
     CacheService.getScriptCache().remove('public_catalog_v5');
@@ -436,4 +444,21 @@ function uploadImage_(f){
   try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK,DriveApp.Permission.VIEW); }
   catch(err){file.setTrashed(true);throw Error('Google Drive no permite compartir esta foto públicamente. Revisá los permisos de tu cuenta.');}
   return {ok:true,url:'https://drive.google.com/thumbnail?id='+file.getId()+'&sz=w1200',message:'Foto subida. Guardá el producto para usarla.'};
+}
+
+/** Marcación independiente: nunca reescribe precio, stock ni costo. */
+function setBestSeller_(id,enabled){
+  if(typeof enabled!=='boolean')throw Error('La selección de Más pedidos no es válida.');
+  const lock=LockService.getScriptLock();lock.waitLock(25000);
+  try{
+    const sheet=book_().getSheetByName(GC_TAB_PRODUCTS),rows=sheet.getDataRange().getValues();
+    const headers=(rows[0]||[]).map(String),idCol=headers.indexOf('ID');
+    const row=rows.findIndex((r,i)=>i>0&&String(r[idCol])===String(id));
+    if(idCol<0||row<1)throw Error('No se encontró el producto.');
+    let col=headers.indexOf('MasPedidos');
+    if(col<0){col=headers.length;sheet.getRange(1,col+1).setValue('MasPedidos');}
+    sheet.getRange(row+1,col+1).setValue(enabled?'SI':'NO');
+    CacheService.getScriptCache().remove('public_catalog_v8');CacheService.getScriptCache().remove('public_catalog_v7');
+    return {ok:true,id:String(id),bestSeller:enabled};
+  }finally{lock.releaseLock();}
 }
