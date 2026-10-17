@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
-let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false;
+let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false,bestSellersSupported=false,imageImportSupported=false;
 let researchBusy=false,researchEpoch=0,researchDraft=null,automaticQuery=true,researchSelectable=false,researchSearch=null,researchApplied=[],researchReferencesBefore=null;
 let verifiedProfiles=null;
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
@@ -118,20 +118,20 @@ function renderGalleryPreview(){
 }
 function render(){
  const q=$('adminSearch').value.toLowerCase().trim();
- const rows=products.filter(p=>C.matchesSearch([p.name,p.category,p.code,p.id].join(' '),q));
+ const rows=products.filter(p=>C.matchesSearch([p.name,p.category,p.code,p.id].join(' '),q)).sort(C.recentFirst);
  $('statProducts').textContent=products.filter(p=>p.active).length;
  $('statAvailable').textContent=products.filter(p=>p.stock>0).length;
  $('statOut').textContent=products.filter(p=>!p.stock).length;
  $('statCod').textContent=products.filter(p=>p.codAllowed).length;
  $('adminRows').innerHTML=rows.map(p=>`<tr>
-   <td data-label="Producto"><strong>${esc(p.name)}</strong><br><span class="muted">${esc(p.category)}</span></td>
+   <td data-label="Producto"><strong>${esc(p.name)}</strong><br><span class="muted">${esc(p.category)}</span>${p.bestSeller?'<span class="admin-requested-tag">★ Más pedidos</span>':''}</td>
    <td data-label="Precio">${C.money(p.price)}</td>
    <td data-label="Promoción">${p.promoPrice>0?C.money(p.promoPrice):'—'}</td>
    <td data-label="Costo">${catalogSource==='privado'?C.money(p.cost):'—'}</td>
    <td data-label="Stock">${p.stock}</td>
    <td data-label="Pago al recibir"><span style="color:${p.codAllowed?'#0f9f6a':'#d64545'}">${p.codAllowed?'✓ Permitido':'× Prohibido'}</span></td>
    <td data-label="Estado">${p.active?'Activo':'Oculto'}</td>
-   <td data-label="Acciones"><button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> <button type="button" class="btn small red" data-disable="${esc(p.id)}" >Ocultar</button></td>
+   <td data-label="Acciones"><button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> <button type="button" class="btn small red" data-disable="${esc(p.id)}" >Ocultar</button> <button type="button" class="btn small outline best-seller-toggle ${p.bestSeller?'selected':''}" data-best-seller="${esc(p.id)}" aria-pressed="${p.bestSeller}" aria-label="${p.bestSeller?'Quitar de':'Marcar en'} Más pedidos: ${esc(p.name)}">${p.bestSeller?'★ En Más pedidos':'☆ Más pedidos'}</button></td>
  </tr>`).join('')||'<tr><td colspan="8" class="muted">No hay resultados.</td></tr>';
  $('settingsSummary').textContent=`Envío: ${C.money(settings.shipping??110)} | Mínimo pago al recibir: ${C.money(settings.codMinimum||350)} en productos | Comisión al recibir: ${Math.round((settings.codRate||.1)*100)}% | Tigo Money: ${Math.round((settings.tigoRate||.07)*100)}%`;
 
@@ -145,7 +145,7 @@ async function reload(){
   const data=await request('adminCatalog');
   if(!Array.isArray(data.products))throw Error('El servidor no devolvió productos.');
   catalogSource='privado';
-  products=data.products.map(p=>({...C.cleanProduct(p),cost:C.num(p.cost)}));
+  products=data.products.map((p,index)=>({...C.cleanProduct(p,index),cost:C.num(p.cost)}));
   settings=data.settings||{};
   render();
   label.textContent='✓ Inventario actualizado desde Google Sheets.';
@@ -175,13 +175,13 @@ async function logIn(e){
  if(!/^\d{6}$/.test(candidate)){toast('Ingresá tu PIN de seis dígitos.');return;}
  token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
  try{
-  const verification=await request('verify');detailsSupported=verification.features?.details===true;extendedDetailsSupported=verification.features?.extendedDetails===true;researchSupported=verification.features?.productResearch===true;researchSelectable=verification.features?.productResearchSelection===true;sessionStorage.setItem('gc_admin_token',token);
+  const verification=await request('verify');detailsSupported=verification.features?.details===true;extendedDetailsSupported=verification.features?.extendedDetails===true;researchSupported=verification.features?.productResearch===true;researchSelectable=verification.features?.productResearchSelection===true;bestSellersSupported=verification.features?.bestSellers===true;imageImportSupported=verification.features?.researchImageImport===true;sessionStorage.setItem('gc_admin_token',token);
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');reload();
  }catch(err){token='';$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
 }
 function showProduct(id){
- resetResearch();
+ resetResearch(true);
  $('productForm').querySelectorAll('.research-filled').forEach(field=>field.classList.remove('research-filled'));
  const p=products.find(p=>p.id===id)||{id:'',name:'',code:'',category:'',price:0,promoPrice:0,promoText:'',colors:'',stock:0,cost:'',image:'',gallery:'',description:'',discounts:'',codAllowed:true,active:true};
  const f=$('productForm');
@@ -200,7 +200,7 @@ function showProduct(id){
  formField(f,'codAllowed').value=p.codAllowed?'SI':'NO';
  formField(f,'active').value=p.active?'SI':'NO';
  $('formTitle').textContent=id?'Editar producto':'Nuevo producto';
- $('formMessage').textContent='';
+ $('formMessage').textContent='';$('researchFieldSummary').hidden=true;
  $('researchQuery').value=specs.brand&&specs.model?specs.brand+' '+specs.model:p.name;
  automaticQuery=!(specs.brand&&specs.model);
  selectedFiles=[];
@@ -209,7 +209,7 @@ function showProduct(id){
  $('formOverlay').hidden=false;document.body.style.overflow='hidden';
  $('productEditorBody').scrollTop=0;
 }
-function closeForm(){if(busy)return;resetResearch();$('formOverlay').hidden=true;document.body.style.overflow='';}
+function closeForm(){if(busy)return;resetResearch(true);$('formOverlay').hidden=true;document.body.style.overflow='';}
 function undoResearch(){
  const f=$('productForm'),kept=researchApplied.filter(item=>{const field=formField(f,item.key);return field.value.trim()&&(!field.classList.contains('research-filled')||field.value!==item.value);}).map(item=>item.key);
  for(const item of researchApplied){
@@ -220,8 +220,8 @@ function undoResearch(){
  if(researchReferencesBefore!==null&&!kept.length)formField(f,'researchReferences').value=researchReferencesBefore;
  researchApplied=[];researchReferencesBefore=null;
 }
-function resetResearch(){
- undoResearch();
+function resetResearch(discard=false){
+ if(discard===true)undoResearch();
  researchEpoch++;researchBusy=false;researchDraft=null;researchSearch=null;
  $('researchPreview').hidden=true;$('researchPreview').innerHTML='';
  $('researchCandidates').hidden=true;$('researchCandidates').innerHTML='';
@@ -239,13 +239,13 @@ function researchLoading(value,message=''){
  if(message)$('researchStatus').textContent=message;
 }
 function showCandidates(candidates,searchId=''){
- const valid=(Array.isArray(candidates)?candidates:[]).filter(x=>x&&/^https:\/\//i.test(x.url)&&C.cleanDetails({references:[x]}).references?.length).slice(0,8);
+ const valid=(Array.isArray(candidates)?candidates:[]).filter(x=>x&&C.researchPage(x.url)&&C.cleanDetails({references:[x]}).references?.length).slice(0,8);
  $('researchCandidates').hidden=!valid.length;
  $('researchCandidates').innerHTML=valid.length?`<div class="research-step"><span>1</span><strong>Elegí el producto correcto</strong></div><p class="research-candidate-help">Compará el modelo, los conectores y la variante con tu artículo.</p><div class="research-result-list">${valid.map((source,i)=>`<article class="research-result"><div><strong>${esc(source.title||source.url)}</strong><small>${esc(new URL(source.url).hostname)}</small>${source.excerpt?`<p>${esc(source.excerpt.slice(0,280))}</p>`:''}<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">Ver página ↗</a></div><button type="button" class="btn small outline" data-research-source="${esc(source.id??i)}">Usar este resultado</button></article>`).join('')}</div>`:'';
  researchSearch=searchId?{id:searchId,name:researchQuery(),category:formField($('productForm'),'category').value.trim()}:null;
 }
 function presentResearch(data,name){
- if(!data||!['exact','ambiguous','not_found'].includes(data.match))throw Error('La búsqueda no devolvió una ficha válida.');
+ if(!data||!['exact','partial','ambiguous','not_found'].includes(data.match))throw Error('La búsqueda no devolvió una ficha válida.');
  const details=C.cleanDetails(data.details),sources=C.cleanDetails({references:data.sources}).references||[];
  const rows=technicalFields.filter(key=>details[key]!==undefined).map(key=>{
   const unit=key==='weight'?details.weightUnit:['width','height','length'].includes(key)?details.measureUnit:'';
@@ -253,15 +253,16 @@ function presentResearch(data,name){
  }).join('');
  const notes=(Array.isArray(data.notes)?data.notes:[]).map(note=>`<li>${esc(note)}</li>`).join('');
  const missing=(Array.isArray(data.missing)?data.missing:[]).map(String).filter(Boolean);
- const exact=data.match==='exact'&&sources.length>0&&(String(data.description||'').trim()||rows);
+ const exact=['exact','partial'].includes(data.match)&&sources.length>0&&(String(data.description||'').trim()||rows);
  const links=sources.map(source=>`<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title)} ↗</a>`).join('');
+ if(exact)undoResearch();
  $('researchPreview').innerHTML=`<strong>${exact?'Ficha propuesta para revisar':data.match==='ambiguous'?'Revisá la coincidencia':'No se encontraron datos confirmados'}</strong>${data.matchedModel?`<p class="research-model">${esc(data.matchedModel)}</p>`:''}${exact&&data.description?`<p class="research-description">${esc(data.description)}</p>`:''}${exact&&rows?`<dl>${rows}</dl>`:''}${notes?`<ul>${notes}</ul>`:''}${exact&&missing.length?`<p class="research-missing">Sin confirmar: ${esc(missing.join(', '))}.</p>`:''}${links?`<div class="research-sources"><span>Fuentes de los datos propuestos</span>${links}</div>`:''}`;
  $('researchPreview').hidden=false;$('researchApply').hidden=!exact;
  const photos=(Array.isArray(data.images)?data.images:[]).filter(url=>typeof url==='string'&&/^https:\/\//i.test(url)&&url.length<1500).slice(0,6);
  researchDraft=exact?{...data,details,sources,images:photos,requestedName:name}:null;
  $('researchPhotos').hidden=!exact||!photos.length;
  $('researchPhotos').innerHTML=exact&&photos.length?`<strong>Fotos encontradas</strong><p>Agregá solo las que correspondan a tu producto.</p><div class="research-photo-list">${photos.map((url,i)=>`<div><img src="${esc(url)}" alt="Foto propuesta ${i+1}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=\'assets/img/sin-foto.svg\'"><button type="button" class="btn small outline" data-research-photo="${i}">Agregar foto</button></div>`).join('')}</div>`:'';
- if(exact)applyResearch();else $('researchStatus').textContent='No se completaron datos. Elegí otra coincidencia o precisá el modelo y volvé a buscar.';
+ if(exact){applyResearch();$('researchPreview').scrollIntoView?.({behavior:'smooth',block:'start'});}else $('researchStatus').textContent='No se encontraron datos nuevos confirmados. La información del formulario se conserva; probá otra fuente.';
 }
 async function researchProduct(){
  if(busy||researchBusy)return;
@@ -294,16 +295,16 @@ async function selectResearchSource(candidateId){
   $('researchSetup').hidden=false;$('researchStatus').textContent='Para usar este resultado, publicá Code.gs y FichaGratis.gs actualizados en Apps Script. Abrí los pasos de activación.';
   return;
  }
- undoResearch();
  const search=researchSearch,epoch=researchEpoch,name=researchQuery(),category=formField($('productForm'),'category').value.trim();
- if(search.name!==name||search.category!==category){resetResearch();return;}
+ const automaticCategory=researchApplied.some(item=>item.key==='category'&&item.value===category);
+ if(search.name!==name||search.category!==category&&!automaticCategory){resetResearch();return;}
  researchDraft=null;$('researchApply').hidden=true;$('researchPreview').hidden=true;$('researchPhotos').hidden=true;
  $('researchCandidates').querySelectorAll('[data-research-source]').forEach(button=>button.closest('article').classList.toggle('selected',button.dataset.researchSource===candidateId));
  researchLoading(true,'Leyendo el resultado elegido y buscando el mismo producto en otras fuentes…');
  try{
-  const result=await request('researchProduct',{name,category,selection:{searchId:search.id,candidateId}});
+  const result=await request('researchProduct',{name,category:search.category,selection:{searchId:search.id,candidateId}});
   if(epoch!==researchEpoch||$('formOverlay').hidden||researchQuery()!==name||formField($('productForm'),'category').value.trim()!==category)return;
-  presentResearch(result.research,name);
+  presentResearch({...result.research,selection:{searchId:search.id,candidateId}},name);
  }catch(error){if(epoch===researchEpoch)$('researchStatus').textContent=error.message;}
  finally{if(epoch===researchEpoch)researchLoading(false);}
 }
@@ -328,6 +329,10 @@ function applyResearch(){
   formField(f,'researchReferences').value=JSON.stringify(C.cleanDetails({references:refs}).references||[]);
   $('technicalEditor').open=true;
  }
+ const keys=researchApplied.filter(item=>technicalFields.includes(item.key)).map(item=>technicalLabels[item.key]);
+ $('researchFieldSummary').textContent=keys.length?'Completados: '+keys.join(', ')+'. Lo que no tiene fuente queda vacío.':'Podés completar manualmente los datos que no estén publicados en la fuente.';
+ $('researchFieldSummary').hidden=false;
+ $('researchApply').textContent=filled?'Ver los '+filled+' campos completados':'Revisar características';
  $('researchStatus').textContent=filled?`${filled} campos vacíos completados. Revisalos y tocá Guardar y actualizar tienda.`:'Los campos que tienen información se conservaron. Comparalos con la ficha propuesta.';
 }
 async function save(e){
@@ -364,7 +369,7 @@ async function save(e){
   if(confirmed&&!saved){
    $('formMessage').textContent='Google respondió al guardado, pero el producto todavía no aparece al comprobarlo. Conservá el formulario y sincronizá antes de volver a guardar.';return;
   }
-  if(saved&&(saved.description!==p.description||JSON.stringify(saved.details)!==JSON.stringify(p.details))){
+  if(saved&&(saved.description!==p.description||JSON.stringify(saved.details)!==JSON.stringify(p.details)||saved.image!==p.image||JSON.stringify(parseGallery(saved.gallery))!==JSON.stringify(parseGallery(p.gallery)))){
    $('formMessage').textContent='Google guardó el producto, pero la ficha recibida no coincide. Conservá este formulario y revisá la versión de Code.gs.';return;
   }
   if(!confirmed){
@@ -374,7 +379,7 @@ async function save(e){
   try{localStorage.setItem('gc_catalog_revision',JSON.stringify({id,at:Date.now()}))}catch{}
   setBusy(false);closeForm();toast(confirmed?'Ficha guardada y comprobada.':'Producto guardado. No se pudo comprobar la lectura.');
   $('adminStatus').textContent=confirmed?'✓ Ficha guardada y comprobada en Google Sheets.':'✓ Guardado. La lectura de comprobación no respondió; revisá la ficha en la tienda.';
-  const link=document.createElement('a');link.href='productos.html?producto='+encodeURIComponent(id)+'&v=gc-store-40';link.target='_blank';link.rel='noopener';link.textContent='Ver ficha en tienda ↗';$('adminStatus').appendChild(link);
+  const link=document.createElement('a');link.href='productos.html?producto='+encodeURIComponent(id)+'&v=gc-catalog-41';link.target='_blank';link.rel='noopener';link.textContent='Ver ficha en tienda ↗';$('adminStatus').appendChild(link);
  }catch(err){$('formMessage').textContent='⚠ '+err.message;toast(err.message)}finally{setBusy(false)}
 }
 function mergeSelectedFiles(list){
@@ -448,6 +453,17 @@ async function disable(id){
  const p=products.find(x=>x.id===id);if(!p||!confirm('¿Ocultar "'+p.name+'" de la tienda? El registro se conservará en Sheets.'))return;
  try{await request('disableProduct',{id});toast('Producto ocultado');if(catalogSource==='respaldo'){p.active=false;render();$('adminStatus').textContent='✓ Producto ocultado en Google Sheets. Vista temporal con datos de respaldo.';}else await reload()}catch(e){toast(e.message)}
 }
+async function toggleBestSeller(button){
+ const product=products.find(p=>p.id===button.dataset.bestSeller);if(!product||button.disabled)return;
+ if(!bestSellersSupported){toast('Actualizá Code.gs en Apps Script para guardar Más pedidos.');$('adminStatus').textContent='Publicá la última versión de Code.gs para habilitar Más pedidos. La marca se guardará en la hoja Productos.';return;}
+ button.disabled=true;
+ try{
+  const result=await request('setBestSeller',{id:product.id,bestSeller:!product.bestSeller});
+  product.bestSeller=result.bestSeller===true;render();
+  try{localStorage.setItem('gc_catalog_revision',JSON.stringify({id:product.id,at:Date.now()}))}catch{}
+  toast(product.bestSeller?'Agregado a Más pedidos.':'Quitado de Más pedidos.');
+ }catch(error){button.disabled=false;toast(error.message);}
+}
 function binds(){
  $('sheetLink').href=cfg.spreadsheetUrl;
  $('loginForm').onsubmit=logIn;
@@ -465,20 +481,27 @@ function binds(){
     console.error('Error al abrir edición:',error);
     toast('No se pudo abrir el editor. Actualizá la página e intentá de nuevo.');
    }
-  }else if(b.dataset.disable!==undefined)disable(b.dataset.disable);
+  }else if(b.dataset.bestSeller!==undefined)toggleBestSeller(b);else if(b.dataset.disable!==undefined)disable(b.dataset.disable);
  };
  $('closeForm').onclick=closeForm;$('cancelForm').onclick=closeForm;
  $('productForm').onsubmit=save;
  $('researchButton').onclick=researchProduct;$('researchApply').onclick=()=>{$('technicalEditor').open=true;$('technicalEditor').scrollIntoView({behavior:'smooth',block:'start'});};
  $('researchQuery').addEventListener('input',()=>{automaticQuery=false;resetResearch()});
  $('researchQuery').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();researchProduct();}});
- formField($('productForm'),'category').addEventListener('input',resetResearch);
+ formField($('productForm'),'category').addEventListener('input',()=>resetResearch());
  $('researchCandidates').addEventListener('click',event=>{const button=event.target.closest('[data-research-source]');if(button)selectResearchSource(button.dataset.researchSource);});
- $('researchPhotos').addEventListener('click',event=>{
+ $('researchPhotos').addEventListener('click',async event=>{
   const button=event.target.closest('[data-research-photo]');if(!button||busy||researchBusy||!researchDraft)return;
-  const url=researchDraft.images[Number(button.dataset.researchPhoto)];if(!url)return;
   if([$('productImage').value.trim(),...parseGallery($('galleryInput').value)].filter(Boolean).length>=10){toast('Ya hay 10 fotos. Quitá una antes de agregar otra.');return;}
-  setGalleryFromUrls([url]);button.disabled=true;button.textContent='Agregada';toast('Foto agregada a la propuesta. Guardá el producto para publicarla.');
+  if(!imageImportSupported||!researchDraft.selection){$('researchSetup').hidden=false;toast('Publicá Code.gs y FichaGratis.gs actualizados para importar fotos.');return;}
+  const index=Number(button.dataset.researchPhoto),selection=researchDraft.selection;
+  setBusy(true);button.disabled=true;button.textContent='Importando…';
+  try{
+   const out=await request('importResearchImage',{selection,imageIndex:index});
+   if(!/^https:\/\//i.test(out.url||''))throw Error('No se recibió una foto guardada.');
+   setGalleryFromUrls([out.url]);button.textContent='Foto importada';toast('Foto guardada en tu alojamiento. Tocá Guardar y actualizar tienda.');
+  }catch(error){button.disabled=false;button.textContent='Reintentar foto';toast(error.message);}
+  finally{setBusy(false);}
  });
  $('productForm').addEventListener('input',event=>event.target.classList.remove('research-filled'));
  formField($('productForm'),'name').addEventListener('input',()=>{if(automaticQuery)$('researchQuery').value=formField($('productForm'),'name').value;resetResearch()});

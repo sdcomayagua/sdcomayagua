@@ -2,11 +2,12 @@
 
 ## Lo que cambia
 
+- TikTok, YouTube, Facebook, Instagram y páginas de videos se excluyen. Si una página bloquea la lectura completa, se conserva el fragmento que ya contiene atributos.
 - Buscá por nombre o modelo. Se muestran resultados con título, fragmento y enlace.
 - Tocá **Usar este resultado** en el producto correcto. El servidor lee esa página y busca coincidencias del mismo producto.
 - También admite artículos genéricos sin modelo de fabricante, como un adaptador OTG. Para estos, los datos técnicos provienen de la fuente que elegiste.
-- Completa los campos vacíos de descripción, categoría, color y características confirmadas. Las fotos se ofrecen aparte con **Agregar foto**.
-- Cambiar de resultado retira la propuesta anterior y conserva lo que modificaste a mano, incluidas sus unidades. No guarda nada hasta tocar **Guardar y actualizar tienda**.
+- Completa los campos vacíos de descripción, categoría, color y características confirmadas. Las fotos se ofrecen aparte con **Agregar foto**. El botón importa la imagen a tu alojamiento para no depender de un enlace externo que pueda bloquearse.
+- Una propuesta nueva válida reemplaza la propuesta anterior y conserva los campos escritos a mano. Cambiar el texto de búsqueda o el nombre ya no borra los campos completados. No se guarda nada hasta tocar **Guardar y actualizar tienda**.
 - Precio, costo, existencias, SKU, promociones, descuentos y condiciones de pago son decisiones del negocio y se mantienen.
 - Las medidas, potencias u otros datos ausentes no se inventan ni se copian de artículos simplemente parecidos.
 
@@ -19,9 +20,9 @@ GitHub Pages y Google Apps Script se publican por separado. Actualizar GitHub no
 3. Reemplazá **FichaGratis.gs** por [apps-script/FichaGratis.gs](apps-script/FichaGratis.gs). Si no existe, crealo con ese nombre. No dupliqués las funciones de Code.gs ni borres EditorMovil.gs o FichaRapida.gs.
 4. Conservá tus propiedades privadas del PIN y las claves `GC_FREE_TAVILY_API_KEY` y `GC_FREE_GEMINI_API_KEY`. Si todavía faltan, seguí [la guía de conexión](BUSCADOR_GRATIS_SIN_PAGOS.md). No pegues claves en GitHub ni en el formulario.
 5. **Implementar → Administrar implementaciones → lápiz → Nueva versión → Implementar**. Editá la implementación existente para conservar la URL `/exec`. Conservá su acceso público y la ejecución como propietario; las operaciones administrativas siguen protegidas por PIN.
-6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-store-40), recargá con **Ctrl + F5** e ingresá con tu PIN.
+6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-41), recargá con **Ctrl + F5** e ingresá con tu PIN.
 
-El servidor nuevo anuncia versión de búsqueda 4. El panel informa si falta activar la selección. Mientras tanto mantiene las fichas verificadas y las consultas exactas del servidor anterior.
+El servidor nuevo anuncia versión de búsqueda 5 y catálogo 2. El panel informa si falta activar la selección. Mientras tanto mantiene las fichas verificadas y las consultas exactas del servidor anterior.
 
 El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la propuesta. El modelo predeterminado es `gemini-2.5-flash-lite`, configurable con la propiedad privada `GC_FREE_GEMINI_MODEL`. No activa facturación ni cambia automáticamente a otro proveedor; las cuotas y condiciones dependen de las cuentas configuradas.
 
@@ -29,7 +30,7 @@ El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la p
 
 1. Abrí un producto genérico como el adaptador OTG y tocá **Buscar ficha**.
 2. Elegí una coincidencia, revisá la descripción y los campos resaltados en verde.
-3. Probá elegir otro resultado: los datos propuestos anteriormente deben retirarse; los escritos a mano se conservan.
+3. Probá elegir otro resultado: solo se reemplazan propuestas cuando la nueva fuente devuelve información confirmada. Cambiar la consulta conserva los campos para poder guardarlos.
 4. Revisá modelo, conectores, color, unidades y fuente. Agregá fotos solo si corresponden a tu artículo.
 5. Guardá y comprobá **Ver ficha en tienda**. Los costos siguen siendo privados.
 
@@ -38,3 +39,13 @@ El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la p
 La página **Pagos y envíos** incluye una calculadora que comparte las reglas del carrito: tarifa de envío, mínimo por importe, comisiones y anticipo. Los importes se actualizan desde Configuracion cuando responde Google. Los datos opcionales de destino se incluyen en la cotización de WhatsApp y en su impresión.
 
 Se conserva el anticipo vigente de **envío + comisión**, con el valor de los productos en efectivo al recibir. Cuando hay fracción, el total sube al siguiente entero y se suma L 1 adicional: L 374.50 → L 376. Los totales que ya son enteros se conservan; el ajuste queda integrado al total. La tarifa actual de respaldo es L 110 y el mínimo para pagar al recibir es L 350 en productos, sujeto a permisos por artículo.
+
+## Más recientes y Más pedidos
+
+- El catálogo abre en **Más recientes**. Los registros nuevos guardan fecha de creación; los antiguos usan su posición de registro como respaldo, sin inventar fechas.
+- En ADMIN cada fila tiene **☆ Más pedidos**. Tocala para marcar o quitar el producto; se guarda únicamente esa selección y conserva precio, costo y existencias.
+- Las marcas se almacenan en `Productos!MasPedidos` y se muestran en una franja compacta arriba del catálogo y en el filtro **Más pedidos**. La categoría original del producto se conserva.
+- Code.gs agrega las columnas `MasPedidos` y `FechaCreacion` al final cuando se necesitan. No hay que mover columnas ni editar fórmulas.
+- La tienda y el sincronizador dan prioridad al catálogo completo del servidor nuevo. Una lectura vieja de la pestaña pública no reemplaza sus características, fotos ni marcas.
+
+Para estas funciones reemplazá **los dos archivos del paso 2 y 3** y publicá una nueva versión. El PIN, las claves y la URL `/exec` se conservan.

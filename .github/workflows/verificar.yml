@@ -21,6 +21,7 @@ jobs:
         run: |
           node tests/test-api.js
           node tests/test-cart.js
+          node tests/test-catalog.js
           node tests/test-free-research.js
           node tests/test-selected-research.js
           node tests/test-photo-editor.js

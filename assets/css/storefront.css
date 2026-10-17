@@ -547,3 +547,8 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
 #checkoutControls .cod-availability progress::-webkit-progress-bar{background:#dce5f0;border-radius:10px}
 #checkoutControls .cod-availability progress::-webkit-progress-value{background:#557caa;border-radius:10px}
 #checkoutControls .cod-availability progress::-moz-progress-bar{background:#557caa;border-radius:10px}
+.admin-requested-tag{display:inline-block;margin:7px 0 0;padding:3px 7px;border-radius:6px;background:#eaf1f9;color:#31587d;font-size:10px;font-weight:650}
+.products-table .best-seller-toggle{margin-top:6px;white-space:normal}
+.products-table .best-seller-toggle.selected{background:#ecf5ef;color:#216644;border-color:#bad7c5}
+.gc-spec-summary{padding:12px 14px;border:1px solid #bfd8cb;background:#f1f9f4;color:#305e49;border-radius:9px;font-size:12px;line-height:1.7}
+#researchPreview{scroll-margin-top:15px}
