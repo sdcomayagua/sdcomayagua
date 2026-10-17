@@ -7,13 +7,14 @@ const fallback='assets/img/sin-foto.svg',states=new Map();let state=null,trigger
 const gallery=p=>[...new Set([p.image,...A.parseGallery(p.gallery)].filter(Boolean))];
 const currentProducts=()=>A.products().slice().sort(C.recentFirst);
 const capable=()=>A.features().bulkResearch===true&&A.features().productResearchSelection===true;
+const referenceCapable=()=>A.features().referencePhotoSearch===true;
 const rows=()=>state?[...state.rows.values()].filter(row=>state.selected.has(row.id)):[];
-const eligible=row=>!row.saved&&!row.dirty&&row.data&&(state.mode==='photos'?row.photos.size>0:row.fields.size>0);
+const eligible=row=>!row.saved&&!row.dirty&&row.data&&(state.mode==='photos'?row.photos.size>0&&row.photos.size<=row.limit:row.fields.size>0);
 const toSave=()=>rows().filter(row=>row.approved&&eligible(row));
-function newRow(p){return {id:p.id,name:p.name,category:p.category,query:p.details?.brand&&p.details?.model?p.details.brand+' '+p.details.model:p.name,data:null,fields:new Set(),photos:new Map(),useFirstAsMain:false,approved:false,saved:false,dirty:false,error:'',status:'Pendiente'};}
+function newRow(p){return {id:p.id,name:p.name,category:p.category,query:p.details?.brand&&p.details?.model?p.details.brand+' '+p.details.model:p.name,data:null,fields:new Set(),photos:new Map(),useReference:state?.useReference&&gallery(p).length>0,referenceIndex:0,limit:Math.min(3,10-gallery(p).length),useFirstAsMain:false,approved:false,saved:false,dirty:false,error:'',status:'Pendiente'};}
 function visibleProducts(){
  const q=$('bulkSearch').value.trim(),scope=$('bulkScope').value;
- return currentProducts().filter(p=>C.matchesSearch([p.name,p.category,p.code].join(' '),q)&&(scope==='pending'?(state.mode==='photos'?!gallery(p).length:!p.description.trim()):scope==='active'?p.active:true));
+ return currentProducts().filter(p=>(!state.singleId||p.id===state.singleId)&&C.matchesSearch([p.name,p.category,p.code].join(' '),q)&&(scope==='pending'?(state.mode==='photos'?!gallery(p).length:!p.description.trim()):scope==='active'?p.active:scope==='onephoto'?gallery(p).length===1:true));
 }
 function picker(){
  if(!state)return;
@@ -26,33 +27,49 @@ function controls(){
  $('bulkPickedCount').textContent='('+count+' seleccionados)';
  $('bulkSelectedCount').textContent=count+' artículo'+(count===1?' seleccionado':'s seleccionados');
  $('bulkReadyCount').textContent=ready+' artículo'+(ready===1?' listo':'s listos')+' para guardar';
- $('bulkSave').disabled=busy||!ready||!capable();
- $('bulkSearchSelected').disabled=busy||!count||!capable();
+ const needsReference=state.useReference||rows().some(row=>row.useReference),available=capable()&&(!needsReference||referenceCapable());
+ $('bulkSave').disabled=busy||!ready||!available;
+ $('bulkSearchSelected').disabled=busy||!count||!available;
+ $('bulkSave').textContent=state.editorId?'Copiar al formulario':'Guardar seleccionados';
+ $('bulkPickerPanel').hidden=!!state.singleId;
+ $('bulkOverlay').querySelector('.bulk-search-bar').hidden=!!state.singleId;
+ $('bulkOverlay').querySelector('.bulk-review-heading').hidden=!!state.singleId;
  $('bulkStop').hidden=!busy;$('bulkStop').disabled=state.stop;
  $('bulkStop').textContent=state.stop?'Se detendrá al terminar el actual':'Detener después del actual';
- $('bulkSetup').hidden=capable();
+ $('bulkSetup').hidden=available;
+ $('bulkReferenceOption').hidden=state.mode!=='photos'||!!state.singleId;$('bulkUseReference').disabled=busy;$('bulkUseReference').checked=!!state.useReference;
  $('bulkSelectAll').disabled=busy;$('bulkSelectNone').disabled=busy;
  $('bulkScope').disabled=busy;$('bulkPicker').querySelectorAll('input').forEach(el=>el.disabled=busy);
  $('bulkFirstPhotos').hidden=state.mode!=='photos';$('bulkFirstPhotos').disabled=busy;
  $('bulkSelectReady').disabled=busy;$('bulkClearReady').disabled=busy;
  $('bulkStatus').textContent=state.message;
- $('bulkProgress').hidden=!state.total;$('bulkProgress').max=state.total||1;$('bulkProgress').value=state.done;
- $('bulkResults').querySelectorAll('[data-row-search],[data-more-photos],[data-bulk-source],[data-bulk-query]').forEach(el=>{const row=state.rows.get(el.closest('[data-bulk-row]').dataset.bulkRow);el.disabled=busy||!row||(row.saved&&!el.hasAttribute('data-row-search'));});
+ $('bulkProgress').hidden=!state.total||!!state.singleId&&!busy;$('bulkProgress').max=state.total||1;$('bulkProgress').value=state.done;
+ $('bulkResults').querySelectorAll('[data-row-search],[data-more-photos],[data-bulk-source],[data-bulk-query],[data-reference-search],[data-reference-index],[data-photo-count],[data-choose-photos]').forEach(el=>{const row=state.rows.get(el.closest('[data-bulk-row]').dataset.bulkRow);el.disabled=busy||!row||(row.saved&&!el.hasAttribute('data-row-search')&&!el.hasAttribute('data-reference-search'))||row?.data?.photoCapacity===0&&(el.hasAttribute('data-photo-count')||el.hasAttribute('data-choose-photos'));});
  $('bulkResults').querySelectorAll('[data-bulk-approve],[data-bulk-field],[data-bulk-photo],[data-remove-chosen],[data-photo-main]').forEach(el=>{
   const row=state.rows.get(el.closest('[data-bulk-row]').dataset.bulkRow);
   el.disabled=state.saving||!row||row.saved||(el.hasAttribute('data-bulk-approve')&&!eligible(row));
  });
 }
 function chosenHTML(row){
- return row.photos.size?`<strong>${row.photos.size} foto${row.photos.size===1?' elegida':'s elegidas'}</strong><div class="bulk-chosen-list">${[...row.photos].map(([url,photo])=>`<div class="bulk-chosen-photo"><img src="${esc(url)}" alt="Foto elegida" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallback}'"><button type="button" data-remove-chosen="${esc(url)}" ${row.saved?'disabled':''}>Quitar</button></div>`).join('')}</div>`:'';
+ return row.photos.size?`<strong>${row.photos.size} de ${row.limit} fotos elegidas</strong><div class="bulk-chosen-list">${[...row.photos].map(([url,photo])=>`<div class="bulk-chosen-photo"><img src="${esc(url)}" alt="Foto elegida" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallback}'"><button type="button" data-remove-chosen="${esc(url)}" ${row.saved?'disabled':''}>Quitar</button></div>`).join('')}</div>`:'';
+}
+function referenceHTML(row){
+ const product=A.products().find(p=>p.id===row.id),images=product?gallery(product):[];
+ if(!images.length)return '<p class="bulk-item-help">Subí y guardá una foto para buscar usando una referencia visual.</p>';
+ return `<div class="bulk-reference"><img src="${esc(images[row.referenceIndex]||images[0])}" alt="Tu foto de referencia" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallback}'"><div><strong>${row.useReference?'Buscando a partir de tu foto':'¿Querés otras fotos de este mismo producto?'}</strong>${images.length>1?`<label>Foto de referencia<select class="field" data-reference-index aria-label="Foto de referencia de ${esc(row.name)}">${images.map((url,i)=>`<option value="${i}" ${i===row.referenceIndex?'selected':''}>${i===0?'Principal':'Foto '+(i+1)}</option>`).join('')}</select></label>`:'<p>Se usará tu foto principal para comparar las coincidencias.</p>'}<button type="button" class="btn small outline" data-reference-search>Buscar con mi foto</button>${row.data?.reference?`<p class="bulk-identity">Identificación visual: ${esc(row.data.reference.identity)}</p>`:''}</div></div>`;
+}
+function photoHTML(row){
+ const data=row.data;if(!data)return '';
+ const capacity=data.photoCapacity,countOptions=Array.from({length:capacity},(_,i)=>`<option value="${i+1}" ${row.limit===i+1?'selected':''}>${i+1} foto${i?'s':''}</option>`).join('');
+ return `<p class="bulk-item-help">${esc(data.notice||'Elegí las fotos que corresponden a tu artículo.')} ${capacity} espacios disponibles en la galería.</p><div class="bulk-photo-tools"><label>Cuántas querés copiar<select class="field" data-photo-count ${capacity?'':'disabled'} aria-label="Cantidad de fotos de ${esc(row.name)}">${countOptions||'<option>Sin espacio</option>'}</select></label><button class="btn small outline" type="button" data-choose-photos ${capacity?'':'disabled'}>Elegir hasta ${row.limit} fotos</button><small>Podés cambiar las fotos marcadas antes de copiar.</small></div><div class="bulk-photo-grid">${data.images.map((url,i)=>{const match=data.photoMatches?.find(item=>item.url===url);return `<label class="bulk-photo-choice"><input type="checkbox" data-bulk-photo="${i}" ${row.photos.has(url)?'checked':''} ${row.saved?'disabled':''}><img src="${esc(url)}" alt="Propuesta de foto ${i+1} para ${esc(row.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallback}'"><span>${match?'Coincidencia visual':'Foto '+(i+1)}</span><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Ampliar imagen ↗</a>${match?`<small class="bulk-match-reason">${esc(match.reason)}</small>`:''}</label>`;}).join('')||'<p class="bulk-empty">No hay fotos nuevas confirmadas en esta búsqueda. Probá Buscar más fotos u otra referencia.</p>'}</div><div class="bulk-photos-chosen">${chosenHTML(row)}</div>${state.editorId?'':`<label class="bulk-main-choice"><input type="checkbox" data-photo-main ${row.useFirstAsMain?'checked':''} ${row.saved?'disabled':''}>Usar la primera foto elegida como principal</label>`}<div class="bulk-item-photo-actions"><button class="btn small outline" type="button" data-more-photos>Buscar más fotos</button><small>Se omiten las anteriores y se conservan tus elegidas.</small></div>`;
 }
 function rowHTML(row){
  const data=row.data,busy=state.running,photoMode=state.mode==='photos';
  const source=data?.source&&C.researchPage(data.source.url)?`<a href="${esc(data.source.url)}" target="_blank" rel="noopener noreferrer">Consultar fuente: ${esc(data.source.title||data.source.url)} ↗</a>`:'';
  const sources=data?.candidates?.length?`<label class="bulk-source">Comparar otra fuente<select class="field" data-bulk-source ${busy||row.saved?'disabled':''}>${data.candidates.map(candidate=>`<option value="${esc(candidate.id)}" ${String(candidate.id)===String(data.candidateId)?'selected':''}>${esc(candidate.title||candidate.url)}</option>`).join('')}</select>${source}</label>`:'';
  const fields=data&&!photoMode?`<p class="bulk-item-help">Marcá los campos que querés completar. Solo se ofrecen datos vacíos con una fuente; los demás se conservan.</p><div class="bulk-field-list">${data.fields.map(field=>`<label class="bulk-field ${field.key==='description'?'is-description':''}"><input type="checkbox" data-bulk-field="${esc(field.key)}" ${row.fields.has(field.key)?'checked':''} ${row.saved?'disabled':''}><span><strong>${esc(field.label)}</strong><span class="bulk-value">${esc(field.value)}${field.unit?' '+esc(field.unit):''}</span></span></label>`).join('')||'<p class="bulk-empty">Esta fuente no aportó campos vacíos confirmados. Podés comparar otro resultado.</p>'}</div>`:'';
- const photos=data&&photoMode?`<p class="bulk-item-help">${data.broader?'Coincidencias de la web: compará modelo, variante y color.':'Elegí las fotos que corresponden a tu artículo.'} ${data.photoCapacity} espacio${data.photoCapacity===1?'':'s'} disponible${data.photoCapacity===1?'':'s'} en la galería.</p><div class="bulk-photo-grid">${data.images.map((url,i)=>`<label class="bulk-photo-choice"><input type="checkbox" data-bulk-photo="${i}" ${row.photos.has(url)?'checked':''} ${row.saved?'disabled':''}><img src="${esc(url)}" alt="Propuesta de foto ${i+1} para ${esc(row.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallback}'"><span>Foto ${i+1}</span></label>`).join('')||'<p class="bulk-empty">No hay fotos nuevas en esta búsqueda. Probá Buscar más u otro nombre.</p>'}</div><div class="bulk-photos-chosen">${chosenHTML(row)}</div><label class="bulk-main-choice"><input type="checkbox" data-photo-main ${row.useFirstAsMain?'checked':''} ${row.saved?'disabled':''}>Usar la primera foto elegida como principal</label><div class="bulk-item-photo-actions"><button class="btn small outline" type="button" data-more-photos ${busy||row.saved?'disabled':''}>Buscar más fotos</button><small>Las fotos elegidas se conservan al buscar más.</small></div>`:'';
- return `<article class="bulk-item ${row.approved&&eligible(row)?'is-approved':''} ${row.saved?'is-saved':''}" data-bulk-row="${esc(row.id)}"><div class="bulk-item-head"><label class="bulk-approve"><input type="checkbox" data-bulk-approve ${row.approved?'checked':''} ${!eligible(row)||row.saved?'disabled':''}><span><h4>${esc(row.name)}</h4><small>${esc(row.category)} · Marcar para guardar</small></span></label><span class="bulk-item-state">${esc(row.status)}</span></div>${row.error?`<p class="bulk-item-error">${esc(row.error)}</p>`:''}<div class="bulk-item-query"><input class="field" data-bulk-query value="${esc(row.query)}" aria-label="Nombre o modelo para buscar: ${esc(row.name)}" maxlength="180" ${busy||row.saved?'disabled':''}><button type="button" class="btn small outline" data-row-search ${busy?'disabled':''}>${row.saved?'Preparar de nuevo':data?'Volver a buscar':'Buscar este artículo'}</button></div>${sources}${fields}${photos}</article>`;
+ const photos=photoMode?referenceHTML(row)+photoHTML(row):'';
+ return `<article class="bulk-item ${row.approved&&eligible(row)?'is-approved':''} ${row.saved?'is-saved':''}" data-bulk-row="${esc(row.id)}"><div class="bulk-item-head"><label class="bulk-approve"><input type="checkbox" data-bulk-approve ${row.approved?'checked':''} ${!eligible(row)||row.saved?'disabled':''}><span><h4>${esc(row.name)}</h4><small>${esc(row.category)} · Marcar para guardar</small></span></label><span class="bulk-item-state">${esc(row.status)}</span></div>${row.error?`<p class="bulk-item-error">${esc(row.error)}</p>`:''}<div class="bulk-item-query"><input class="field" data-bulk-query value="${esc(row.query)}" aria-label="Nombre o modelo para buscar: ${esc(row.name)}" maxlength="180" ${busy||row.saved?'disabled':''}><button type="button" class="btn small outline" data-row-search ${photoMode&&data&&!row.saved?'hidden':''} ${busy?'disabled':''}>${row.saved?'Preparar de nuevo':data?(photoMode?'Buscar otras fotos':'Volver a buscar'):'Buscar este artículo'}</button></div>${sources}${fields}${photos}</article>`;
 }
 function renderResults(){
  const list=rows();$('bulkReview').hidden=!list.length;
@@ -70,21 +87,38 @@ function syncChoices(row){
  const chosen=el.querySelector('.bulk-photos-chosen');if(chosen)chosen.innerHTML=chosenHTML(row);
  controls();
 }
-function open(mode){
- if(!states.has(mode))states.set(mode,{mode,selected:new Set(),rows:new Map(),running:false,saving:false,stop:false,total:0,done:0,message:'Seleccioná los artículos que querés completar.'});
- state=states.get(mode);trigger=document.activeElement;
+function open(mode,options={}){
+ const key=options.key||mode;
+ if(!states.has(key))states.set(key,{mode,singleId:options.singleId||'',editorId:options.editorId||'',useReference:false,selected:new Set(),rows:new Map(),running:false,saving:false,stop:false,total:0,done:0,message:'Seleccioná los artículos que querés completar.'});
+ state=states.get(key);trigger=document.activeElement;
  const ids=new Set(A.products().map(p=>p.id));for(const id of state.selected)if(!ids.has(id))state.selected.delete(id);
  $('bulkTitle').textContent=mode==='photos'?'Rellenar fotos de forma masiva':'Rellenar información';
  $('bulkHelp').textContent=mode==='photos'?'Seleccioná varios artículos y buscá sus fotos en un solo lote. Podés pedir más opciones y elegir cuáles copiar.':'Seleccioná los artículos y buscá sus fichas en un solo lote. Elegí por artículo y por campo lo que querés completar.';
  $('bulkScope').options[1].textContent=mode==='photos'?'Sin foto':'Sin descripción';
+ $('bulkScope').options[3].hidden=mode!=='photos';
  $('bulkScope').value='all';$('bulkSearch').value='';
  $('bulkPickerPanel').open=!state.rows.size;
  $('bulkOverlay').hidden=false;document.body.style.overflow='hidden';
  picker();renderResults();$('bulkClose').focus({preventScroll:true});
 }
+function openReference(id,editor=false){
+ const product=A.products().find(p=>p.id===id),draft=editor?A.editorPhotos():null;
+ if(!product||!gallery(product).length){A.toast('Subí y guardá primero una foto de este producto para usarla como referencia.');return;}
+ if(editor&&(draft.pending||draft.name!==product.name||!gallery(product).includes(draft.images[0]))){A.toast('Guardá primero el nombre y la foto actual del producto; después usalos como referencia.');return;}
+ open('photos',{key:(editor?'editor:':'reference:')+id,singleId:id,editorId:editor?id:''});
+ state.selected=new Set([id]);state.useReference=true;
+ if(!state.rows.has(id))state.rows.set(id,newRow(product));
+ const row=state.rows.get(id);row.useReference=true;
+ if(editor)row.referenceIndex=gallery(product).indexOf(draft.images[0]);
+ $('bulkTitle').textContent='Buscar con mi foto';
+ $('bulkHelp').textContent=editor?'Buscá otras fotos del mismo producto. Las que elijás se copian al formulario para que las revisés antes de guardar.':'Compará otras fotos con la que ya tenés. Elegí la cantidad y guardá solo las coincidencias que aprobés.';
+ $('bulkPickerPanel').open=false;picker();renderResults();
+ if(referenceCapable())searchOne(row,{more:!!row.data});
+ else{state.message='Esta opción necesita la nueva implementación de Google. Actualizá Code.gs y FichaGratis.gs y publicá Nueva versión.';controls();}
+}
 function close(){
  if(state?.running){state.stop=true;state.closeWhenDone=true;state.message='Terminando el artículo actual antes de cerrar…';controls();return;}
- $('bulkOverlay').hidden=true;document.body.style.overflow='';trigger?.focus({preventScroll:true});
+ $('bulkOverlay').hidden=true;document.body.style.overflow=$('formOverlay')&&!$('formOverlay').hidden?'hidden':'';trigger?.focus({preventScroll:true});
 }
 async function prepare(row,options={}){
  if(row.saved){row.photos.clear();row.fields.clear();row.useFirstAsMain=false;row.approved=false;}
@@ -93,12 +127,17 @@ async function prepare(row,options={}){
  renderRow(row);
  const query=row.query;
  try{
-  const data=await A.request('researchBulkItem',{id:row.id,mode:state.mode,query,...((options.more||options.source!==undefined)&&row.data?{previousProposalId:row.data.proposalId}:{}),...(options.more?{more:true}:{}),...(options.source!==undefined?{candidateId:options.source}:{})});
+  const data=await A.request('researchBulkItem',{id:row.id,mode:state.mode,query,...(row.useReference?{useReference:true,referenceIndex:row.referenceIndex}:{}),...((state.mode==='photos'||options.source!==undefined)&&row.data?{previousProposalId:row.data.proposalId}:{}),...(options.more?{more:true}:{}),...(options.source!==undefined?{candidateId:options.source}:{})});
   if(!data.proposalId||!Array.isArray(data.images)||!Array.isArray(data.fields))throw Error('Google devolvió una propuesta incompleta. Actualizá los dos archivos del buscador.');
+  if(state.editorId)data.photoCapacity=Math.min(data.photoCapacity,10-A.editorPhotos().images.length);
+  row.limit=Math.min(row.limit||3,data.photoCapacity||0);
   row.data=data;row.fields=new Set(data.fields.map(field=>field.key));row.dirty=row.query!==query;
-  row.status=state.mode==='photos'?(data.images.length?'Fotos para revisar':'Sin fotos nuevas'):(data.fields.length?'Información para revisar':'Sin campos nuevos');
+  row.status=state.mode==='photos'?(data.images.length?(data.reference?'Coincidencias visuales':'Fotos para revisar'):'Sin fotos nuevas'):(data.fields.length?'Información para revisar':'Sin campos nuevos');
   if(state.mode==='info'||!row.photos.size)row.approved=false;
- }catch(error){row.error=error.message;row.status='Reintentar búsqueda';throw error;}
+ }catch(error){
+  if(/propuesta venció|resultados vencieron/i.test(error.message)){row.data=null;row.photos.clear();row.fields.clear();row.approved=false;}
+  row.error=error.message;row.status='Reintentar búsqueda';throw error;
+ }
  finally{renderRow(row);}
 }
 async function searchSelected(){
@@ -123,6 +162,7 @@ async function searchSelected(){
 }
 async function searchOne(row,options){
  if(state.running||!capable())return;
+ if(row.useReference&&!referenceCapable()){state.message='Actualizá los dos archivos del buscador y publicá Nueva versión en Google para usar tu foto.';controls();return;}
  state.running=true;state.stop=false;state.closeWhenDone=false;state.total=1;state.done=0;
  state.message='Buscando opciones para '+row.name+'…';controls();
  try{await prepare(row,options);state.message='Propuesta actualizada. Revisá este artículo antes de guardar.';}catch(error){state.message=error.message;}
@@ -137,32 +177,43 @@ async function saveSelected(){
    if(state.stop)break;
    row.error='';row.status='Guardando…';renderRow(row);
    try{
-    let req={id:row.id};
+    let req={id:row.id},copied=[];
     if(state.mode==='photos'){
      const selected=[...row.photos.values()];
      for(let i=0;i<selected.length;i++){
       state.message=`Artículo ${state.done+1} de ${state.total} · Copiando foto ${i+1} de ${selected.length}: ${row.name}`;controls();
-      await A.request('importBulkResearchImage',{proposalId:selected[i].proposalId,imageIndex:selected[i].imageIndex});
+      const photo=await A.request('importBulkResearchImage',{proposalId:selected[i].proposalId,imageIndex:selected[i].imageIndex});
+      if(!/^https:\/\//i.test(photo.url||''))throw Error('Google no devolvió una foto copiada. Reintentá este artículo.');
+      copied.push(photo.url);
      }
      req.useFirstAsMain=row.useFirstAsMain;req.photos=selected.map(({proposalId,imageIndex})=>({proposalId,imageIndex}));
     }else req={...req,proposalId:row.data.proposalId,fields:[...row.fields]};
     state.message=`Guardando ${state.done+1} de ${state.total}: ${row.name}`;controls();
-    const result=await A.request('applyBulkResearch',req);
+    const result=state.editorId?(A.appendEditorPhotos(state.editorId,copied),{addedPhotos:copied.length}):await A.request('applyBulkResearch',req);
     row.saved=true;row.approved=false;saved++;
-    row.status=state.mode==='photos'?(result.addedPhotos?result.addedPhotos+' fotos guardadas':'Fotos ya guardadas'):(result.appliedFields?.length?result.appliedFields.length+' campos guardados':'Datos existentes conservados');
+    row.status=state.editorId?'Fotos copiadas al formulario':state.mode==='photos'?(result.addedPhotos?result.addedPhotos+' fotos guardadas':'Fotos ya guardadas'):(result.appliedFields?.length?result.appliedFields.length+' campos guardados':'Datos existentes conservados');
    }catch(error){row.error=error.message;row.status='Guardado pendiente';failed++;if(/cuota|agotad|límite|HTTP 429|Google no respondió|tardó demasiado/i.test(error.message))state.stop=true;}
    state.done++;renderRow(row);
   }
-  if(saved){state.message='Actualizando el inventario con los artículos guardados…';controls();await A.reload();A.notify();}
+  if(saved&&!state.editorId){state.message='Actualizando el inventario con los artículos guardados…';controls();await A.reload();A.notify();}
  }finally{
   state.running=false;state.saving=false;
-  state.message=(state.stop?'Proceso detenido. ':'Proceso terminado. ')+saved+' artículo'+(saved===1?' guardado':'s guardados')+(failed?' · '+failed+' por reintentar.':'.')+' Los artículos sin marcar se conservaron.';
+  state.message=state.editorId&&saved?'Fotos copiadas al formulario. Cerrá esta ventana, revisalas y tocá Guardar y actualizar tienda.':(state.stop?'Proceso detenido. ':'Proceso terminado. ')+saved+' artículo'+(saved===1?' guardado':'s guardados')+(failed?' · '+failed+' por reintentar.':'.')+' Los artículos sin marcar se conservaron.';
   picker();renderResults();if(state.closeWhenDone)close();
  }
 }
 $('bulkPhotos').onclick=()=>open('photos');$('bulkInfo').onclick=()=>open('info');
+window.GC_BULK={openReference};
 $('bulkClose').onclick=close;$('bulkOverlay').onclick=event=>{if(event.target===$('bulkOverlay'))close();};
 $('bulkSearch').oninput=picker;$('bulkScope').onchange=picker;
+$('bulkUseReference').onchange=()=>{
+ state.useReference=$('bulkUseReference').checked;
+ for(const row of rows()){
+  const product=A.products().find(p=>p.id===row.id),use=state.useReference&&product&&gallery(product).length>0;
+  if(row.useReference!==use){row.useReference=use;row.photos.clear();row.approved=false;row.dirty=true;row.saved=false;row.status='Pendiente';}
+ }
+ renderResults();
+};
 $('bulkSelectAll').onclick=()=>{for(const p of visibleProducts())state.selected.add(p.id);picker();renderResults();};
 $('bulkSelectNone').onclick=()=>{state.selected.clear();picker();renderResults();};
 $('bulkPicker').onchange=event=>{const id=event.target.dataset.bulkPick;if(!id)return;event.target.checked?state.selected.add(id):state.selected.delete(id);controls();renderResults();};
@@ -181,13 +232,18 @@ $('bulkResults').addEventListener('input',event=>{
 $('bulkResults').addEventListener('change',event=>{
  const item=event.target.closest('[data-bulk-row]');if(!item)return;const row=state.rows.get(item.dataset.bulkRow),input=event.target;
  if(input.hasAttribute('data-bulk-source')){searchOne(row,{source:input.value});return;}
+ if(input.hasAttribute('data-reference-index')){row.referenceIndex=Number(input.value);row.useReference=true;row.photos.clear();row.approved=false;row.dirty=true;searchOne(row,{});return;}
+ if(input.hasAttribute('data-photo-count')){
+  row.limit=Number(input.value);while(row.photos.size>row.limit)row.photos.delete([...row.photos.keys()].at(-1));
+  row.approved=row.photos.size>0;renderRow(row);return;
+ }
  if(input.hasAttribute('data-bulk-approve'))row.approved=input.checked;
  if(input.hasAttribute('data-photo-main'))row.useFirstAsMain=input.checked;
  if(input.hasAttribute('data-bulk-field')){input.checked?row.fields.add(input.dataset.bulkField):row.fields.delete(input.dataset.bulkField);row.approved=row.fields.size>0;}
  if(input.hasAttribute('data-bulk-photo')){
   const index=Number(input.dataset.bulkPhoto),url=row.data.images[index];
   if(input.checked){
-   if(row.photos.size>=row.data.photoCapacity){input.checked=false;A.toast('No hay espacio para más fotos en este artículo.');return;}
+   if(row.photos.size>=Math.min(row.limit,row.data.photoCapacity)){input.checked=false;A.toast('Ya elegiste '+row.limit+' fotos. Cambiá la cantidad o quitá una de las marcadas.');return;}
    row.photos.set(url,{url,proposalId:row.data.proposalId,imageIndex:index});
   }else row.photos.delete(url);
   row.approved=row.photos.size>0;
@@ -196,8 +252,13 @@ $('bulkResults').addEventListener('change',event=>{
 });
 $('bulkResults').addEventListener('click',event=>{
  const item=event.target.closest('[data-bulk-row]');if(!item)return;const row=state.rows.get(item.dataset.bulkRow);
- if(event.target.closest('[data-row-search]'))searchOne(row,{});
+ if(event.target.closest('[data-row-search]'))searchOne(row,{more:state.mode==='photos'&&!!row.data});
  if(event.target.closest('[data-more-photos]'))searchOne(row,{more:true});
+ if(event.target.closest('[data-reference-search]')){if(!row.useReference){row.photos.clear();row.approved=false;}row.useReference=true;searchOne(row,{more:!!row.data?.reference});}
+ if(event.target.closest('[data-choose-photos]')){
+  for(let i=0;i<row.data.images.length&&row.photos.size<row.limit;i++){const url=row.data.images[i];if(!row.photos.has(url))row.photos.set(url,{url,proposalId:row.data.proposalId,imageIndex:i});}
+  row.approved=row.photos.size>0;syncChoices(row);
+ }
  const remove=event.target.closest('[data-remove-chosen]');if(remove){row.photos.delete(remove.dataset.removeChosen);row.approved=row.photos.size>0;syncChoices(row);}
 });
 document.addEventListener('keydown',event=>{

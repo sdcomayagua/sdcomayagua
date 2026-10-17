@@ -9,7 +9,7 @@ const inventory=[make('A',{image:'https://cdn.example/principal.jpg'}),make('B',
  const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname);if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}fs.readFile(file,(error,data)=>{if(error){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',({'.js':'application/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.webp':'image/webp'})[path.extname(file)]||'text/html');res.end(data);});});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const browser=await chromium.launch({headless:true,...(process.env.GC_TEST_BROWSER?{executablePath:process.env.GC_TEST_BROWSER,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--use-gl=angle','--use-angle=swiftshader']}: {})});
- const page=await browser.newPage({viewport:{width:1440,height:1080}}),errors=[],requests=[],proposals=new Map(),copies=new Map();let serial=0,failC=true,failB=true,stageDelay=0,bulkReady=true;
+ const page=await browser.newPage({viewport:{width:1440,height:1080}}),errors=[],requests=[],proposals=new Map(),copies=new Map();let serial=0,failC=true,failB=true,stageDelay=0,bulkReady=true,referenceReady=true,noNewPhotos=false,expireNext=false;
  page.on('pageerror',error=>errors.push(error.message));
  await page.route(/^https?:\/\/(?!127\.0\.0\.1)/,async route=>{
   const url=new URL(route.request().url()),callback=url.searchParams.get('callback');
@@ -19,14 +19,17 @@ const inventory=[make('A',{image:'https://cdn.example/principal.jpg'}),make('B',
  });
  await page.exposeFunction('__bulkTestBackend',async req=>{
   requests.push(req);
-  if(req.action==='verify')return {ok:true,features:{details:true,extendedDetails:true,productResearch:true,productResearchSelection:true,bestSellers:true,publicCatalogMetadata:true,researchImageImport:true,researchPhotos:true,bulkResearch:bulkReady}};
+  if(req.action==='verify')return {ok:true,features:{details:true,extendedDetails:true,productResearch:true,productResearchSelection:true,bestSellers:true,publicCatalogMetadata:true,researchImageImport:true,researchPhotos:true,bulkResearch:bulkReady,referencePhotoSearch:referenceReady}};
   if(req.action==='adminCatalog')return {ok:true,products:inventory,settings:{shipping:110,codMinimum:350}};
   if(req.action==='researchBulkItem'){
+   if(expireNext){expireNext=false;return {ok:false,error:'La propuesta venció. Volvé a buscar este artículo antes de guardarlo.'};}
    if(stageDelay)await new Promise(resolve=>setTimeout(resolve,stageDelay));
    if(req.mode==='info'&&req.id==='C'&&failC){failC=false;return {ok:false,error:'Esta fuente no respondió. Probá otra búsqueda.'};}
    const previous=proposals.get(req.previousProposalId),p=inventory.find(p=>p.id===req.id),pageIndex=req.more?(previous.page+1):0;
    const fields=[{key:'description',label:'Descripción',value:'Descripción encontrada para '+p.id,unit:''},{key:'brand',label:'Marca',value:'Marca encontrada',unit:''},{key:'material',label:'Material',value:'Aluminio',unit:''}].filter(field=>field.key==='description'?!p.description:!p.details[field.key]);
    const data={ok:true,proposalId:'PROPOSAL-'+(++serial),productId:p.id,query:req.query,candidates:[{id:'0',title:'Fuente correcta para '+p.name,url:'https://maker.example/'+p.id},{id:'1',title:'Otra fuente de '+p.name,url:'https://other.example/'+p.id}],candidateId:req.candidateId||'0',source:{title:'Fuente del producto',url:'https://maker.example/'+p.id},fields:req.mode==='info'?fields:[],images:req.mode==='photos'?[0,1,2].map(i=>'https://cdn.example/'+p.id+'-'+pageIndex+'-'+i+'.jpg'):[],page:pageIndex,photoCapacity:10-[p.image,...p.gallery.split(', ')].filter(Boolean).length,mode:req.mode,id:p.id};
+   if(req.useReference){data.candidates=[];data.reference={url:[p.image,...p.gallery.split(', ')][req.referenceIndex||0],index:req.referenceIndex||0,identity:'Control K12 negro',features:'Carcasa y botones coincidentes'};data.images=data.images.map(url=>url.replace('.jpg','-reference.jpg'));data.photoMatches=data.images.map(url=>({url,reason:'Coinciden modelo, color, botones y puertos'}));data.notice='Comparación visual realizada. Revisá la variante antes de copiar.';}
+   if(noNewPhotos){data.images=[];data.photoMatches=[];data.notice='No encontré fotos nuevas que pudiera confirmar con tu referencia.';}
    proposals.set(data.proposalId,data);return data;
   }
   if(req.action==='importBulkResearchImage'){
@@ -47,7 +50,7 @@ const inventory=[make('A',{image:'https://cdn.example/principal.jpg'}),make('B',
  const base='http://127.0.0.1:'+server.address().port;
  await page.goto(base+'/admin.html');await page.locator('#secret').fill('123456');await page.locator('#loginBtn').click();await page.locator('[data-edit="A"]').waitFor();
  const row=id=>page.locator('[data-bulk-row="'+id+'"]');
- await page.locator('#bulkPhotos').click();await page.locator('#bulkSelectAll').click();await page.locator('#bulkSearchSelected').click();await page.locator('#bulkStatus').filter({hasText:'Búsqueda terminada'}).waitFor();
+ await page.locator('#bulkPhotos').click();await page.locator('#bulkScope').selectOption('onephoto');assert.equal(await page.locator('[data-bulk-pick]').count(),1,'Filtro de artículos con una sola foto');await page.locator('#bulkScope').selectOption('all');await page.locator('#bulkSelectAll').click();await page.locator('#bulkSearchSelected').click();await page.locator('#bulkStatus').filter({hasText:'Búsqueda terminada'}).waitFor();
  assert.equal(await page.locator('[data-bulk-row]').count(),3);assert.equal(requests.some(req=>req.action==='applyBulkResearch'),false,'Preparar tres artículos no guarda nada');
  await row('A').locator('[data-bulk-photo="0"]').check();const firstA=requests.find(req=>req.action==='researchBulkItem'&&req.id==='A');
  await row('A').locator('[data-more-photos]').click();await page.locator('#bulkStatus').filter({hasText:'Propuesta actualizada'}).waitFor();
@@ -77,8 +80,36 @@ const inventory=[make('A',{image:'https://cdn.example/principal.jpg'}),make('B',
  await page.locator('#bulkClose').click();await page.reload();await page.locator('[data-edit="A"]').waitFor();
  stageDelay=250;const start=requests.filter(req=>req.action==='researchBulkItem').length;
  await page.locator('#bulkInfo').click();await page.locator('#bulkSelectAll').click();await page.locator('#bulkSearchSelected').click();await page.locator('#bulkStop').click();await page.locator('#bulkStatus').filter({hasText:'Búsqueda detenida'}).waitFor();assert.equal(requests.filter(req=>req.action==='researchBulkItem').length,start+1,'Detener espera al actual y no inicia el siguiente');
+ stageDelay=0;await page.locator('#bulkClose').click();await page.setViewportSize({width:1440,height:1080});
+ assert.equal(await page.locator('[data-reference-product="C"]').count(),0,'Un artículo sin foto no ofrece una referencia inexistente');
+ await page.locator('[data-reference-product="A"]').click();await page.locator('#bulkStatus').filter({hasText:'Propuesta actualizada'}).waitFor();
+ assert.equal(requests.at(-1).useReference,true);assert.equal(requests.at(-1).referenceIndex,0);assert.equal(await row('A').locator('.bulk-reference img').getAttribute('src'),inventory[0].image);
+ await row('A').locator('[data-photo-count]').selectOption('2');await row('A').locator('[data-choose-photos]').click();assert.equal(await row('A').locator('.bulk-chosen-photo').count(),2);
+ await row('A').locator('[data-bulk-photo="2"]').click();assert.equal(await row('A').locator('[data-bulk-photo="2"]').isChecked(),false,'La cantidad elegida limita la selección manual');
+ await row('A').locator('[data-more-photos]').click();await page.locator('#bulkStatus').filter({hasText:'Propuesta actualizada'}).waitFor();assert.equal(requests.at(-1).more,true);assert.equal(requests.at(-1).useReference,true);assert.equal(await row('A').locator('.bulk-chosen-photo').count(),2);
+ await row('A').locator('[data-photo-count]').selectOption('3');await row('A').locator('[data-choose-photos]').click();assert.equal(await row('A').locator('.bulk-chosen-photo').count(),3);
+ await row('A').locator('[data-photo-count]').selectOption('2');assert.equal(await row('A').locator('.bulk-chosen-photo').count(),2);
+ if(artifacts)await page.screenshot({path:path.join(artifacts,'reference-photos-desktop.png')});
+ noNewPhotos=true;await row('A').locator('[data-more-photos]').click();await page.locator('#bulkStatus').filter({hasText:'Propuesta actualizada'}).waitFor();assert.equal(await row('A').locator('[data-bulk-photo]').count(),0);assert.equal(await row('A').locator('.bulk-chosen-photo').count(),2);noNewPhotos=false;
+ expireNext=true;await row('A').locator('[data-more-photos]').click();await page.locator('#bulkStatus').filter({hasText:'La propuesta venció'}).waitFor();assert.equal(await row('A').locator('.bulk-chosen-photo').count(),0);await row('A').locator('[data-row-search]').click();await page.locator('#bulkStatus').filter({hasText:'Propuesta actualizada'}).waitFor();assert.equal(requests.at(-1).previousProposalId,undefined,'Una propuesta vencida se puede renovar sin quedar en un bucle');
+ await row('A').locator('[data-reference-index]').selectOption('1');await page.locator('#bulkStatus').filter({hasText:'Propuesta actualizada'}).waitFor();assert.equal(requests.at(-1).referenceIndex,1);assert.equal(await row('A').locator('.bulk-chosen-photo').count(),0,'Otra referencia exige revisar de nuevo');
+ await row('A').locator('[data-choose-photos]').click();const mainBefore=inventory[0].image;await page.locator('#bulkSave').click();await page.locator('#bulkStatus').filter({hasText:'Proceso terminado. 1 artículo guardado.'}).waitFor();assert.equal(inventory[0].image,mainBefore,'Conserva la foto principal al agregar referencias');
+ await page.locator('#bulkClose').click();await page.locator('[data-edit="A"]').click();await page.locator('[name=description]').fill('Descripción propia todavía sin guardar');
+ const appliesBefore=requests.filter(req=>req.action==='applyBulkResearch').length;
+ await page.locator('#findReferencePhotosBtn').click();await page.locator('#bulkStatus').filter({hasText:'Propuesta actualizada'}).waitFor();assert.equal(await page.locator('[data-bulk-row]').count(),1);assert.equal(await page.locator('#bulkSave').innerText(),'Copiar al formulario');assert.equal(await row('A').locator('[data-photo-main]').count(),0);
+ assert.equal(await page.locator('#bulkPickerPanel').isHidden(),true);assert.equal(await page.locator('[data-bulk-pick]').count(),1,'Desde el editor solo permite copiar a ese mismo artículo');
+ await row('A').locator('[data-photo-count]').selectOption('2');await row('A').locator('[data-choose-photos]').click();await page.setViewportSize({width:390,height:844});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await page.locator('#bulkSave').isVisible(),true);
+ if(artifacts)await page.screenshot({path:path.join(artifacts,'reference-photos-mobile.png')});
+ await page.locator('#bulkSave').click();await page.locator('#bulkStatus').filter({hasText:'Fotos copiadas al formulario'}).waitFor();assert.equal(requests.filter(req=>req.action==='applyBulkResearch').length,appliesBefore,'Copiar en el editor no guarda la ficha antes de aprobarla');
+ await page.keyboard.press('Escape');assert.equal(await page.locator('#bulkOverlay').isHidden(),true);assert.equal(await page.locator('#formOverlay').isVisible(),true);assert.equal(await page.locator('[name=description]').inputValue(),'Descripción propia todavía sin guardar');assert.match(await page.locator('#formMessage').innerText(),/2 fotos copiadas/);assert.equal(await page.locator('#productImage').inputValue(),mainBefore);assert.equal(await page.evaluate(()=>document.body.style.overflow),'hidden');
+ await page.locator('#cancelForm').click();await page.reload();await page.locator('[data-edit="A"]').waitFor();
+ await page.locator('#bulkPhotos').click();await page.locator('#bulkSelectAll').click();await page.locator('[data-bulk-pick="C"]').uncheck();await page.locator('#bulkUseReference').check();const batchStart=requests.length;await page.locator('#bulkSearchSelected').click();await page.locator('#bulkStatus').filter({hasText:'Búsqueda terminada'}).waitFor();const batch=requests.slice(batchStart).filter(req=>req.action==='researchBulkItem');assert.deepEqual(batch.map(req=>req.id).sort(),['A','B']);assert.equal(batch.every(req=>req.useReference===true),true,'La opción de referencia también funciona en lotes seleccionados');
+ await page.locator('#bulkClose').click();referenceReady=false;await page.reload();await page.locator('[data-edit="A"]').waitFor();
+ const searchesBefore=requests.filter(req=>req.action==='researchBulkItem').length;
+ await page.locator('[data-reference-product="A"]').click();assert.equal(await page.locator('#bulkSetup').isVisible(),true);assert.equal(await page.locator('#bulkSearchSelected').isDisabled(),true);assert.equal(requests.filter(req=>req.action==='researchBulkItem').length,searchesBefore,'El servidor V7 pide activar referencia sin llamar una acción incompatible');
  bulkReady=false;await page.locator('#bulkClose').click();await page.reload();await page.locator('[data-edit="A"]').waitFor();await page.locator('#bulkPhotos').click();await page.locator('#bulkSelectAll').click();assert.equal(await page.locator('#bulkSetup').isVisible(),true);assert.equal(await page.locator('#bulkSearchSelected').isDisabled(),true,'El servidor anterior muestra activación y conserva el panel');
  for(const p of inventory){assert.equal(p.price,220);assert.equal(p.promoPrice,200);assert.equal(p.stock,5);assert.equal(p.cost,80);}
  assert.deepEqual(errors,[]);await browser.close();server.close();
- console.log('PASS UI lotes: selección múltiple, buscar más sin perder fotos, campos por artículo, guardado elegido, reintentos parciales, progreso, detener y móvil.');
+ console.log('PASS UI lotes y referencia: selección múltiple, foto propia, cantidad, buscar más sin perder fotos, campos por artículo, copias al editor, guardado elegido, reintentos, detener, compatibilidad y móvil.');
 })().catch(error=>{console.error(error);process.exit(1);});
