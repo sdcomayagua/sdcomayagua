@@ -22,29 +22,33 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  const newest={...product,id:'NEW-001',code:'NEW-001',name:'Producto recién agregado',category:'Novedades',price:350,createdAt:'2026-10-17T02:00:00Z',catalogOrder:1};
  product.createdAt='2026-10-15T02:00:00Z';product.catalogOrder=0;
  const inventory=[product,newest],requests=[];
+ let publicGetFails=false,publicPostFails=false,publicSheetHasMetadata=false;
  const publicProducts=()=>inventory.map(({cost,...p})=>p);
  const settings={shipping:110,codMinimum:350,codRate:.1,tigoRate:.07};
  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/,async route=>{
   const url=new URL(route.request().url()),cb=url.searchParams.get('callback');
-  if(cb&&url.hostname==='script.google.com')return route.fulfill({contentType:'application/javascript',body:`${cb}(${JSON.stringify({ok:true,pinConfigurado:true,catalogSchemaVersion:2,products:publicProducts(),settings,banks:[]})})`});
+  if(cb&&url.hostname==='script.google.com')return route.fulfill({contentType:'application/javascript',body:publicGetFails&&url.searchParams.get('action')==='public'?'/* Google no ejecutó el callback. */':`${cb}(${JSON.stringify({ok:true,pinConfigurado:true,catalogSchemaVersion:2,products:publicProducts(),settings,banks:[]})})`});
   if(url.hostname==='docs.google.com'&&url.searchParams.get('gid')==='87012030'){
    const callback=(url.searchParams.get('tqx')||'').split('responseHandler:')[1];
    const headers=['ID','Codigo','Nombre','Categoria','Precio','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Colores','PrecioPromocion','PromocionTexto','Detalles'];
    const keys=['id','code','name','category','price','stock','image','gallery','description','discounts','codAllowed','active','colors','promoPrice','promoText','details'];
+   if(publicSheetHasMetadata){headers.push('MasPedidos','FechaCreacion');keys.push('bestSeller','createdAt');}
    const rows=publicProducts().map(p=>({c:keys.map(key=>({v:key==='details'?'{}':key==='description'?'Descripción antigua de la hoja':p[key]??''}))}));
    await new Promise(resolve=>setTimeout(resolve,250));
    return route.fulfill({contentType:'application/javascript',body:`${callback}(${JSON.stringify({status:'ok',table:{cols:headers.map(label=>({label})),rows}})})`});
   }
-  if(url.hostname==='drive.google.com'&&url.searchParams.get('id')==='TEST_MANAGED_PHOTO')return route.fulfill({contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/a9sAAAAASUVORK5CYII=','base64')});
+  if(url.hostname==='drive.google.com'&&['TEST_MANAGED_PHOTO','TEST_SECOND_PHOTO'].includes(url.searchParams.get('id'))||url.hostname==='cdn.example')return route.fulfill({contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/a9sAAAAASUVORK5CYII=','base64')});
   return route.abort();
  });
  await page.exposeFunction('__testBackend',req=>{
   requests.push(req);let result={ok:true};
-  if(req.action==='verify')result.features={details:true,extendedDetails:true,productResearch:true,productResearchVersion:5,productResearchSelection:true,bestSellers:true,researchImageImport:true};
+  if(req.action==='verify')result.features={details:true,extendedDetails:true,productResearch:true,productResearchVersion:6,productResearchSelection:true,bestSellers:true,publicCatalogMetadata:true,researchImageImport:true,researchPhotos:true};
   if(req.action==='adminCatalog')result={ok:true,products:inventory,settings};
+  if(req.action==='publicCatalog')result=publicPostFails?{ok:false,error:'Sin acceso público'}:{ok:true,catalogSchemaVersion:2,products:publicProducts(),settings};
   if(req.action==='setBestSeller'){inventory.find(p=>p.id===req.id).bestSeller=req.bestSeller;result.bestSeller=req.bestSeller;}
   if(req.action==='saveProduct'){Object.assign(inventory.find(p=>p.id===req.product.id),req.product);result.id=req.product.id;}
-  if(req.action==='importResearchImage')result.url='https://drive.google.com/thumbnail?id=TEST_MANAGED_PHOTO&sz=w1200';
+  if(req.action==='importResearchImage')result.url='https://drive.google.com/thumbnail?id='+(req.photoSearch?'TEST_SECOND_PHOTO':'TEST_MANAGED_PHOTO')+'&sz=w1200';
+  if(req.action==='researchImages')result={ok:true,research:{images:['https://cdn.example/solo-foto.jpg'],selectedSource:{url:'https://distribuidor.example/otg',title:'Fotos del artículo'}}};
   if(req.action==='researchCandidates')result={ok:true,searchId:'TEST-SEARCH-UUID',candidates:[{id:'0',title:'Adaptador OTG USB-C compacto',url:'https://distribuidor.example/otg',excerpt:'USB-C a USB-A, negro, 12 g.'},{id:'1',title:'Adaptador OTG USB-C aluminio',url:'https://distribuidor.example/otg-aluminio',excerpt:'Cuerpo de aluminio, peso 20 g.'},{id:'2',title:'Video que debe ocultarse',url:'https://www.tiktok.com/video/12'}]};
   if(req.action==='researchProduct'){
    const second=req.selection.candidateId==='1',source={url:'https://distribuidor.example/'+(second?'otg-aluminio':'otg'),title:'Ficha de adaptador OTG'};
@@ -83,7 +87,17 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  assert.equal(await page.evaluate(()=>window.__requests.filter(r=>r.action==='saveProduct').length),0,'Enter en búsqueda no guarda');
  await page.locator('#saveBtn').click();await page.waitForFunction(()=>document.getElementById('formOverlay').hidden);
  await page.locator('[data-edit="OTG-001"]').click();assert.equal(await page.locator('[name=weight]').inputValue(),'12','Guardar y reabrir conserva las características');assert.match(await page.locator('#productImage').inputValue(),/TEST_MANAGED_PHOTO/);
- await page.locator('#cancelForm').click();
+ const researchCalls=requests.filter(r=>r.action==='researchProduct').length;
+ await page.locator('#findPhotosBtn').click();await page.locator('[data-research-source="0"]').filter({hasText:'Ver fotos'}).click();await page.locator('[data-research-photo="0"]').waitFor();
+ assert.equal(requests.filter(r=>r.action==='researchProduct').length,researchCalls,'Buscar solo fotos no consulta ni modifica la ficha técnica');
+ if(artifacts)await page.screenshot({path:path.join(artifacts,'photos-only-mobile.png')});
+ assert.equal(await page.locator('[name=description]').inputValue(),'Descripción escrita por el dueño.');
+ await page.locator('[data-research-photo="0"]').click();await page.waitForFunction(()=>document.getElementById('galleryInput').value.includes('TEST_SECOND_PHOTO'));
+ assert.match(await page.locator('#productImage').inputValue(),/TEST_MANAGED_PHOTO/,'Copiar otra foto conserva la principal');
+ await page.locator('#saveBtn').click();await page.waitForFunction(()=>document.getElementById('formOverlay').hidden);
+ await page.locator('#adminFilter').selectOption('photos');assert.equal(await page.locator('[data-edit]').count(),1);assert.equal(await page.locator('[data-edit]').getAttribute('data-edit'),'NEW-001');
+ await page.locator('#adminFilter').selectOption('requested');assert.equal(await page.locator('[data-edit]').count(),1);assert.equal(await page.locator('[data-edit]').getAttribute('data-edit'),'OTG-001');
+ await page.locator('#adminFilter').selectOption('');
  await page.goto(base+'/pagos.html');await page.locator('#shippingEstimate .estimate-total').waitFor();
  assert.match(await page.locator('#shippingEstimate').innerText(),/L 480/);
  await page.locator('#estimateMethod').selectOption('cod');assert.match(await page.locator('#shippingEstimate').innerText(),/L 528/);assert.match(await page.locator('#shippingEstimate').innerText(),/L 158/);
@@ -92,9 +106,12 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  await page.setViewportSize({width:1440,height:1080});if(artifacts)await page.screenshot({path:path.join(artifacts,'shipping-desktop.png'),fullPage:true});
  await page.setViewportSize({width:390,height:844});if(artifacts)await page.screenshot({path:path.join(artifacts,'shipping-mobile.png'),fullPage:true});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Envíos móvil sin desborde horizontal');
+ publicGetFails=true;
  await page.goto(base+'/productos.html?categoria=Adaptador');
  await page.waitForFunction(()=>document.querySelectorAll('[data-add]').length===1&&document.querySelector('[data-add]').dataset.add==='OTG-001');
  assert.equal(await page.locator('#bestSellersSection').isVisible(),true);
+ assert.ok(requests.some(r=>r.action==='publicCatalog'),'GET bloqueado debe usar POST aunque la hoja pública responda');
+ if(artifacts){await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(artifacts,'most-requested-mobile.png')});}
  assert.equal(await page.locator('#category').inputValue(),'Adaptador','Un enlace de categoría abre el filtro correcto');
  await page.locator('#shareCategory').click();await page.waitForFunction(()=>window.__copied.includes('categoria=Adaptador'));
  const categoryLink=await page.evaluate(()=>window.__copied);assert.ok(!categoryLink.includes('producto='));
@@ -120,6 +137,15 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  await page.goto(productLink);await page.locator('#detailTitle').filter({hasText:'Adaptador OTG USB a TYPE C'}).waitFor();
  assert.equal(await page.locator('#detailOverlay').isVisible(),true,'El enlace compartido abre directamente su producto');
  await page.waitForTimeout(400);assert.match(await page.locator('#detailContent').innerText(),/Plástico/);assert.match(await page.locator('#detailContent').innerText(),/Descripción escrita por el dueño/);assert.match(await page.locator('#detailPhoto').getAttribute('src'),/TEST_MANAGED_PHOTO/);
+ const savedPublic=JSON.stringify(publicProducts());
+ await context.route('**/data/catalogo-respaldo.json?*',route=>route.fulfill({contentType:'application/json',body:savedPublic}));
+ publicPostFails=true;
+ await page.goto(base+'/productos.html?coleccion=mas-pedidos');await page.waitForTimeout(600);
+ assert.equal(await page.locator('[data-add="OTG-001"]').count(),1,'Una hoja antigua conserva las marcas del respaldo cuando ambos canales API fallan');
+ product.bestSeller=false;publicSheetHasMetadata=true;
+ await page.reload();await page.waitForTimeout(600);
+ assert.equal(await page.locator('#bestSellersSection').isVisible(),false,'La hoja con metadatos puede quitar una estrella anterior');
+ assert.equal(await page.locator('[data-add]').count(),0);
  assert.deepEqual(errors,[]);
  await browser.close();server?.close();console.log('PASS UI: selección y cambio de fuente, campos manuales, fotos opcionales, Enter sin guardado, calculadora, redondeo adicional, enlaces para compartir, filtros y móvil.');
 })().catch(error=>{console.error(error);process.exit(1)});

@@ -286,14 +286,21 @@ function catalogFromSheet(){
   window[callback]=data=>{
    try{
     if(data?.status!=='ok'||!Array.isArray(data.table?.rows)||!Array.isArray(data.table?.cols))throw Error('Catálogo público no disponible');
-    if(data.table.cols.length!==headers.length||data.table.cols.some((column,i)=>column.label!==headers[i]))throw Error('Encabezados del catálogo público no válidos');
-    const rows=data.table.rows.map(row=>Object.fromEntries(headers.map((header,i)=>[header,row.c?.[i]?.v??''])));
-    finish(null,{ok:true,products:rows.map(C.cleanProduct)});
+    const labels=data.table.cols.map(column=>column.label),extra=['MasPedidos','FechaCreacion'];
+    if(labels.length<headers.length||labels.some((label,i)=>label!==(headers.concat(extra))[i]))throw Error('Encabezados del catálogo público no válidos');
+    const rows=data.table.rows.map(row=>Object.fromEntries(labels.map((header,i)=>[header,row.c?.[i]?.v??''])));
+    const hasMarks=labels.includes('MasPedidos'),hasDates=labels.includes('FechaCreacion');
+    finish(null,{ok:true,...(hasMarks&&hasDates?{catalogSchemaVersion:2}:{}),products:rows.map((row,i)=>{
+     const product=C.cleanProduct(row,i);
+     if(!hasMarks)delete product.bestSeller;
+     if(!hasDates)delete product.createdAt;
+     return product;
+    })});
    }catch(error){finish(error)}
   };
   script.onerror=()=>finish(Error('Sin acceso al catálogo público'));
   script.onload=()=>{if(!ended)finish(Error('Google no devolvió el catálogo público'))};
-  const query='select A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P where A is not null limit 500';
+  const query='select * where A is not null limit 500';
   script.src='https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?gid='+gid+'&headers=1&tq='+encodeURIComponent(query)+'&tqx='+encodeURIComponent('out:json;responseHandler:'+callback)+'&t='+Date.now();
   document.head.appendChild(script);
  });
@@ -304,11 +311,10 @@ function refreshOnlineCatalog(force=false){
  lastOnlineCheck=Date.now();
  onlineRequest=(async()=>{
   let sheetData=null,apiData=null,ready=false;
-  const sheetTask=catalogFromSheet().then(data=>{sheetData=data;handlePublic(apiData?C.mergeCatalog(sheetData,apiData):data);ready=true});
+  const sheetTask=catalogFromSheet().then(data=>{sheetData=data;handlePublic(C.mergeCatalog(sheetData,apiData||{products}));ready=true});
   const apiTask=(async()=>{
    const url=String(config.apiUrl||'').trim();if(!url)return;
    let data;try{data=await jsonp(url)}catch(error){
-    try{await sheetTask;return}catch(sheetError){}
     data=await catalogByPost(url);
    }
    apiData=data;handlePublic(sheetData?C.mergeCatalog(sheetData,apiData):data);ready=true;
@@ -364,7 +370,7 @@ function loadBanksFromSheet(){
  })();
  return banksRequest;
 }
-function jsonp(url){return new Promise((resolve,reject)=>{const callback='gcPublic_'+Date.now()+'_'+Math.floor(Math.random()*9999);const script=document.createElement('script');let timeout=setTimeout(()=>done(Error('Tiempo de espera agotado')),13000);function done(err,data){clearTimeout(timeout);delete window[callback];script.remove();err?reject(err):resolve(data)}window[callback]=d=>done(null,d);script.onerror=()=>done(Error('Sin conexión con Apps Script'));script.src=url+(url.includes('?')?'&':'?')+'action=public&callback='+callback+'&t='+Date.now();document.head.appendChild(script)})}
+function jsonp(url){return new Promise((resolve,reject)=>{const callback='gcPublic_'+Date.now()+'_'+Math.floor(Math.random()*9999);const script=document.createElement('script');let ended=false,timeout=setTimeout(()=>done(Error('Tiempo de espera agotado')),13000);function done(err,data){if(ended)return;ended=true;clearTimeout(timeout);delete window[callback];script.remove();err?reject(err):resolve(data)}window[callback]=d=>d?.ok===false?done(Error(d.error||'Sin respuesta del catálogo')):done(null,d);script.onerror=()=>done(Error('Sin conexión con Apps Script'));script.onload=()=>{if(!ended)done(Error('Google no devolvió el catálogo'))};script.src=url+(url.includes('?')?'&':'?')+'action=public&callback='+callback+'&t='+Date.now();document.head.appendChild(script)})}
 /**
  * Lectura alternativa: algunas implementaciones de Google permiten POST
  * aunque el navegador bloquee la consulta JSONP GET.

@@ -84,3 +84,26 @@ assert.throws(()=>photo.context.gcFreeImportImage_(photoSelection,5),/no está d
 photo.context.UrlFetchApp.fetch=()=>({getResponseCode:()=>200,getContent:()=>Array.from(Buffer.from('<html>login</html>'))});
 assert.throws(()=>photo.context.gcFreeImportImage_(photoSelection,0),/imagen válida/);
 console.log('PASS fichas parciales: fragmentos conservados, nombre comercial Pro, atributos confirmados, videos filtrados e importación de fotos.');
+
+// Las fotos funcionan aunque no se encuentre ni una característica técnica.
+const onlyPhotos=setup(),imagePool=onlyPhotos.context.gcFreeCandidates_(name,'Adaptador'),imageSelection={searchId:imagePool.searchId,candidateId:'0'};
+const imagesOnly=onlyPhotos.context.gcFreeImages_(imageSelection);
+assert.deepEqual(Array.from(imagesOnly.research.images),['https://cdn.example/otg.jpg']);
+assert.equal(onlyPhotos.calls.some(call=>call.url.includes('generativelanguage')),false,'Buscar fotos no depende del organizador de fichas');
+const photoCalls=onlyPhotos.calls.length;onlyPhotos.context.gcFreeImages_(imageSelection);assert.equal(onlyPhotos.calls.length,photoCalls);
+assert.throws(()=>onlyPhotos.context.gcFreeImages_({...imageSelection,candidateId:'9'}),/no está disponible/);
+assert.deepEqual(Array.from(onlyPhotos.context.gcPhotoUrls_(['https://cdn.example/logo.png','https://cdn.example/foto.jpg','https://cdn.example/foto.jpg','https://cdn.example/a.svg','https://127.0.0.1/foto.png'])),['https://cdn.example/foto.jpg']);
+onlyPhotos.context.UrlFetchApp=photo.context.UrlFetchApp;
+onlyPhotos.context.UrlFetchApp.fetch=()=>({getResponseCode:()=>200,getContent:()=>[255,216,255,1]});
+onlyPhotos.context.Utilities.base64Encode=bytes=>Buffer.from(bytes).toString('base64');
+onlyPhotos.context.uploadImage_=()=>({ok:true,url:'https://drive.google.com/thumbnail?id=SOLO_FOTO'});
+assert.match(onlyPhotos.context.gcFreeImportImage_(imageSelection,0,true).url,/SOLO_FOTO/);
+const blocked=setup(),blockedPool=blocked.context.gcFreeCandidates_(name,'Adaptador');
+blocked.context.gcFreePost_=(url,payload)=>{
+ if(url.endsWith('/extract'))return {results:[]};
+ assert.deepEqual(Array.from(payload.include_domains),['distribuidor.example']);assert.equal(payload.include_images,true);
+ return {images:[{url:'https://cdn.example/encontrada.jpg',description:'Adaptador USB-C'}]};
+};
+const foundPhoto=blocked.context.gcFreeImages_({searchId:blockedPool.searchId,candidateId:'0'});
+assert.equal(foundPhoto.research.broader,true);assert.equal(foundPhoto.research.images[0],'https://cdn.example/encontrada.jpg');
+console.log('PASS fotos independientes: sin ficha técnica ni Gemini, copia opcional, caché y alternativa cuando la página bloquea la extracción.');

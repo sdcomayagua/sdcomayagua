@@ -36,7 +36,7 @@ function doGet(e) {
     if(String(args.action||'') === 'health') {
       const props=PropertiesService.getScriptProperties();
       const pin=String(props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN') || '');
-      result={ok:true,version:'GC-20261017-FICHAS-V5',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+      result={ok:true,version:'GC-20261017-FICHAS-V6',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
     } else result = {ok:true, ...publicPayload_()};
   } catch (err) {
     result = {ok:false, error:safeError_(err)};
@@ -68,13 +68,15 @@ function doPost(e) {
         const provider=String(p.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').trim().toUpperCase();
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
-        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:5,bestSellers:true,researchImageImport:typeof gcFreeImportImage_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
+        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:6,bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
       }
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
       else if (req.action === 'researchCandidates') result = gcFreeCandidates_(req.name,req.category);
       else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category,req.selection);
+      else if (req.action === 'researchImages') result = gcFreeImages_(req.selection);
       else if (req.action === 'setBestSeller') result = setBestSeller_(req.id,req.bestSeller);
-      else if (req.action === 'importResearchImage') result = gcFreeImportImage_(req.selection,req.imageIndex);
+      else if (req.action === 'importResearchImage') result = gcFreeImportImage_(req.selection,req.imageIndex,req.photoSearch===true);
       else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
       else if (req.action === 'disableProduct') result = disableProduct_(req.id);
       else if (req.action === 'uploadImage') result = uploadImage_(req.file || {});
@@ -99,6 +101,27 @@ function doPost(e) {
 }
 
 function book_(){return SpreadsheetApp.openById(GC_SHEET_ID);}
+/** Amplía solo las columnas públicas Q:R; conserva el QUERY y todos los importes. */
+function ensurePublicMetadata_(){
+  const book=book_(),sheet=book.getSheetByName('CATALOGO PUBLICO WEB');
+  if(!sheet)return false;
+  const expected=['ID','Codigo','Nombre','Categoria','Precio','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Colores','PrecioPromocion','PromocionTexto','Detalles'];
+  const existing=sheet.getRange(1,1,1,18).getDisplayValues()[0];
+  if(expected.some((key,i)=>existing[i]!==key)||existing[16]&&existing[16]!=='MasPedidos'||existing[17]&&existing[17]!=='FechaCreacion')return false;
+  const products=book.getSheetByName(GC_TAB_PRODUCTS),headers=products.getDataRange().getValues()[0].map(String);
+  if(headers[0]!=='ID')return false;
+  for(const key of ['MasPedidos','FechaCreacion'])if(!headers.includes(key)){products.getRange(1,headers.length+1).setValue(key);headers.push(key);}
+  const letter=n=>{let out='';for(n++;n;n=Math.floor((n-1)/26))out=String.fromCharCode(65+(n-1)%26)+out;return out;};
+  const separator=sheet.getRange(1,1).getFormula().includes(';')?';':',';
+  ['MasPedidos','FechaCreacion'].forEach((key,i)=>{
+    const col=headers.indexOf(key),s=separator;
+    const formula='=ARRAYFORMULA(IF(A2:A=""'+s+'""'+s+'IFNA(VLOOKUP(A2:A'+s+"'Productos'!A2:"+letter(col)+s+(col+1)+s+'FALSE)'+s+'"")))';
+    if(!existing[16+i])sheet.getRange(1,17+i).setValue(key);
+    const cell=sheet.getRange(2,17+i);
+    if(cell.getFormula()!==formula)cell.setFormula(formula);
+  });
+  return true;
+}
 function safeError_(err){return String((err&&err.message)||err||'Error desconocido').slice(0,380);}
 function assertAdmin_(candidate){
   // ADMIN_PIN es una propiedad privada: nunca incluir su valor en GitHub.

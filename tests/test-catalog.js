@@ -9,6 +9,8 @@ assert.equal(C.mergeCatalog(sheet,api).products[0].details.material,'Plata','La 
 assert.equal(C.mergeCatalog(sheet,api).products[0].bestSeller,true);
 assert.deepEqual(C.mergeCatalog(sheet,{...api,products:[make('uno')]}).products[0].details,{},'El servidor nuevo puede borrar un atributo explícitamente');
 assert.equal(C.mergeCatalog(sheet,{products:api.products}).products[0].details.brand,'MEMO','La compatibilidad antigua conserva atributos disponibles');
+assert.equal(C.mergeCatalog({products:[{id:'uno',price:120}]},{products:api.products}).products[0].bestSeller,true,'Una hoja sin columna de marcas conserva la estrella del respaldo');
+assert.equal(C.mergeCatalog({catalogSchemaVersion:2,products:[make('uno',{bestSeller:false})]},{products:api.products}).products[0].bestSeller,false,'La hoja actualizada puede desmarcar un producto');
 for(const url of ['https://www.tiktok.com/@tienda/video/1','https://m.youtube.com/watch?v=1','https://youtu.be/abc','https://instagram.com/reel/abc','https://facebook.com/posts/1','https://tienda.example/video/1'])assert.equal(C.researchPage(url),false,url);
 assert.equal(C.researchPage('https://tienda.example/productos/memo-fs01'),true);
 console.log('PASS catálogo: recientes, selección de Más pedidos, fuentes públicas y filtros de videos.');

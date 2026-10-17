@@ -9,6 +9,8 @@ function sheet(arr){
   getLastRow:()=>arr.length,
   getDataRange:()=>({getValues:()=>arr.map(r=>r.slice()),getDisplayValues:()=>arr.map(r=>r.map(v=>String(v??'')))}),
   getRange:(r,c,h,w)=>({
+   getFormula:()=>String(arr[r-1]?.[c-1]||'').startsWith('=')?arr[r-1][c-1]:'',
+   setFormula:v=>{while(arr.length<r)arr.push([]);arr[r-1][c-1]=v;},
    getValues:()=>Array.from({length:h},(_,i)=>Array.from({length:w},(_,j)=>arr[r+i-1]?.[c+j-1]??'')),
    getDisplayValues:()=>Array.from({length:h},(_,i)=>Array.from({length:w},(_,j)=>String(arr[r+i-1]?.[c+j-1]??''))),
    setValues:rows=>{for(let i=0;i<rows.length;i++){while(arr.length<r+i)arr.push([]);for(let j=0;j<rows[i].length;j++)arr[r+i-1][c+j-1]=rows[i][j];}},
@@ -197,3 +199,20 @@ assert.equal(meta.products.at(-1)[headers.indexOf('FechaCreacion')],createdAt);
 assert.throws(()=>c.setBestSeller_('inexistente',true),/No se encontró/);
 assert.throws(()=>c.setBestSeller_(String(record[0]),'SI'),/no es válida/);
 console.log('PASS metadatos: estrella persistida, precio/costo/stock intactos y fecha de creación conservada.');
+
+// El catálogo público recibe solo marcas y fechas, sin alterar su fórmula ni importes.
+const metadata=setup(newHeaders),publicHeaders=['ID','Codigo','Nombre','Categoria','Precio','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Colores','PrecioPromocion','PromocionTexto','Detalles'];
+const publicRows=[publicHeaders.slice(),[]],originalQuery='=QUERY(Productos!A1:R501;"select A,B,C,D,E,H,I,J,K,L,M,N,P,F,Q,R";1)';
+const publicSheet=sheet(publicRows),baseRange=publicSheet.getRange;
+publicSheet.getRange=(r,c,h,w)=>r===1&&c===1&&!h?{getFormula:()=>originalQuery}:baseRange(r,c,h,w);
+metadata.context.book_=()=>({getSheetByName:name=>name==='Productos'?sheet(metadata.products):name==='CATALOGO PUBLICO WEB'?publicSheet:null});
+assert.equal(metadata.context.ensurePublicMetadata_(),true);
+assert.deepEqual(publicRows[0].slice(0,16),publicHeaders);
+assert.deepEqual(publicRows[0].slice(16),['MasPedidos','FechaCreacion']);
+assert.match(publicRows[1][16],/VLOOKUP\(A2:A;'Productos'!A2:R;18;FALSE\)/);
+assert.match(publicRows[1][17],/VLOOKUP\(A2:A;'Productos'!A2:S;19;FALSE\)/);
+assert.equal(publicSheet.getRange(1,1).getFormula(),originalQuery);
+assert.ok(!publicRows[1].some(value=>/Costo|Cuenta|Identidad/.test(value)));
+publicRows[0][16]='Columna personalizada';const before=JSON.stringify(publicRows);
+assert.equal(metadata.context.ensurePublicMetadata_(),false);assert.equal(JSON.stringify(publicRows),before,'No sobrescribe columnas ajenas');
+console.log('PASS publicación de marcas: columnas públicas por nombre, fórmula original conservada y sin campos privados.');
