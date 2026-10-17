@@ -1,0 +1,27 @@
+name: Verificar tienda y buscador
+on:
+  push:
+    paths-ignore: ['data/catalogo-respaldo.json', 'data/catalogo-inicial.js']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar JavaScript y Apps Script
+        run: |
+          for file in assets/js/*.js; do node --check "$file"; done
+          for file in apps-script/*.gs; do node --check < "$file"; done
+      - name: Verificar catálogo, carrito y búsquedas sin servicios externos
+        run: |
+          node tests/test-api.js
+          node tests/test-cart.js
+          node tests/test-free-research.js
+          node tests/test-selected-research.js
+          node tests/test-photo-editor.js
+          python3 tests/test-sync.py
