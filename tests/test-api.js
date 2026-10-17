@@ -211,6 +211,8 @@ assert.deepEqual(publicRows[0].slice(0,16),publicHeaders);
 assert.deepEqual(publicRows[0].slice(16),['MasPedidos','FechaCreacion']);
 assert.match(publicRows[1][16],/VLOOKUP\(A2:A;'Productos'!A2:R;18;FALSE\)/);
 assert.match(publicRows[1][17],/VLOOKUP\(A2:A;'Productos'!A2:S;19;FALSE\)/);
+assert.match(publicRows[1][16],/REGEXMATCH\(LOWER\(TO_TEXT\(/,'Las marcas deben ser SI/NO de texto para evitar que QUERY descarte una estrella entre ceros');
+assert.match(publicRows[1][17],/="0";"";TO_TEXT\(/,'Una fecha vacía no se publica como cero');
 assert.equal(publicSheet.getRange(1,1).getFormula(),originalQuery);
 assert.ok(!publicRows[1].some(value=>/Costo|Cuenta|Identidad/.test(value)));
 publicRows[0][16]='Columna personalizada';const before=JSON.stringify(publicRows);

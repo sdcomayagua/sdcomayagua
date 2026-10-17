@@ -115,7 +115,10 @@ function ensurePublicMetadata_(){
   const separator=sheet.getRange(1,1).getFormula().includes(';')?';':',';
   ['MasPedidos','FechaCreacion'].forEach((key,i)=>{
     const col=headers.indexOf(key),s=separator;
-    const formula='=ARRAYFORMULA(IF(A2:A=""'+s+'""'+s+'IFNA(VLOOKUP(A2:A'+s+"'Productos'!A2:"+letter(col)+s+(col+1)+s+'FALSE)'+s+'"")))';
+    const lookup='VLOOKUP(A2:A'+s+"'Productos'!A2:"+letter(col)+s+(col+1)+s+'FALSE)';
+    // QUERY descarta el texto minoritario de una columna mezclada con ceros.
+    const value=key==='MasPedidos'?'IF(REGEXMATCH(LOWER(TO_TEXT('+lookup+'))'+s+'"^(si|sí|true|1|yes)$")'+s+'"SI"'+s+'"NO")':'IF(TO_TEXT('+lookup+')="0"'+s+'""'+s+'TO_TEXT('+lookup+'))';
+    const formula='=ARRAYFORMULA(IF(A2:A=""'+s+'""'+s+'IFNA('+value+s+'"")))';
     if(!existing[16+i])sheet.getRange(1,17+i).setValue(key);
     const cell=sheet.getRange(2,17+i);
     if(cell.getFormula()!==formula)cell.setFormula(formula);
