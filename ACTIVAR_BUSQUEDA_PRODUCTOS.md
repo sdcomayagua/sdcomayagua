@@ -6,7 +6,8 @@
 - Buscá por nombre o modelo. Se muestran resultados con título, fragmento y enlace.
 - Tocá **Usar este resultado** en el producto correcto. El servidor lee esa página y busca coincidencias del mismo producto.
 - También admite artículos genéricos sin modelo de fabricante, como un adaptador OTG. Para estos, los datos técnicos provienen de la fuente que elegiste.
-- Completa los campos vacíos de descripción, categoría, color y características confirmadas. Las fotos se ofrecen aparte con **Agregar foto**. El botón importa la imagen a tu alojamiento para no depender de un enlace externo que pueda bloquearse.
+- Completa los campos vacíos de descripción, categoría, color y características confirmadas. Las fotos se ofrecen aparte con **Copiar al producto**. El botón importa la imagen a tu alojamiento para no depender de un enlace externo que pueda bloquearse.
+- **Buscar fotos en la web**, dentro de Fotos del producto, permite elegir una página y copiar imágenes aunque no exista ficha técnica. No completa ni reemplaza las características. Si ya tenés una foto principal, las copias se agregan a la galería.
 - Una propuesta nueva válida reemplaza la propuesta anterior y conserva los campos escritos a mano. Cambiar el texto de búsqueda o el nombre ya no borra los campos completados. No se guarda nada hasta tocar **Guardar y actualizar tienda**.
 - Precio, costo, existencias, SKU, promociones, descuentos y condiciones de pago son decisiones del negocio y se mantienen.
 - Las medidas, potencias u otros datos ausentes no se inventan ni se copian de artículos simplemente parecidos.
@@ -20,9 +21,9 @@ GitHub Pages y Google Apps Script se publican por separado. Actualizar GitHub no
 3. Reemplazá **FichaGratis.gs** por [apps-script/FichaGratis.gs](apps-script/FichaGratis.gs). Si no existe, crealo con ese nombre. No dupliqués las funciones de Code.gs ni borres EditorMovil.gs o FichaRapida.gs.
 4. Conservá tus propiedades privadas del PIN y las claves `GC_FREE_TAVILY_API_KEY` y `GC_FREE_GEMINI_API_KEY`. Si todavía faltan, seguí [la guía de conexión](BUSCADOR_GRATIS_SIN_PAGOS.md). No pegues claves en GitHub ni en el formulario.
 5. **Implementar → Administrar implementaciones → lápiz → Nueva versión → Implementar**. Editá la implementación existente para conservar la URL `/exec`. Conservá su acceso público y la ejecución como propietario; las operaciones administrativas siguen protegidas por PIN.
-6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-41), recargá con **Ctrl + F5** e ingresá con tu PIN.
+6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-42), recargá con **Ctrl + F5** e ingresá con tu PIN.
 
-El servidor nuevo anuncia versión de búsqueda 5 y catálogo 2. El panel informa si falta activar la selección. Mientras tanto mantiene las fichas verificadas y las consultas exactas del servidor anterior.
+El servidor nuevo anuncia versión de búsqueda 6 y catálogo 2. El panel informa si falta activar la selección o la búsqueda independiente de fotos. Mientras tanto mantiene las fichas verificadas y las consultas exactas del servidor anterior.
 
 El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la propuesta. El modelo predeterminado es `gemini-2.5-flash-lite`, configurable con la propiedad privada `GC_FREE_GEMINI_MODEL`. No activa facturación ni cambia automáticamente a otro proveedor; las cuotas y condiciones dependen de las cuentas configuradas.
 
@@ -47,5 +48,13 @@ Se conserva el anticipo vigente de **envío + comisión**, con el valor de los p
 - Las marcas se almacenan en `Productos!MasPedidos` y se muestran en una franja compacta arriba del catálogo y en el filtro **Más pedidos**. La categoría original del producto se conserva.
 - Code.gs agrega las columnas `MasPedidos` y `FechaCreacion` al final cuando se necesitan. No hay que mover columnas ni editar fórmulas.
 - La tienda y el sincronizador dan prioridad al catálogo completo del servidor nuevo. Una lectura vieja de la pestaña pública no reemplaza sus características, fotos ni marcas.
+- Al ingresar con PIN, el servidor agrega **MasPedidos** y **FechaCreacion** a las columnas Q:R de **CATALOGO PUBLICO WEB**, con búsqueda por ID. Conserva su QUERY y verifica los encabezados antes de escribir. Así las estrellas también llegan por la hoja pública cuando Google bloquea el acceso anónimo de `/exec`.
+- El panel incluye filtros **Sin foto**, **Más pedidos** y **Agotados**, con contadores de fotos pendientes y estrellas.
+
+### Si el panel muestra la estrella y la tienda aparece vacía
+
+La lectura antigua del catálogo público no incluía las marcas, y la tienda descartaba el canal POST cuando la hoja respondía. Esta versión consulta POST aunque la hoja responda y conserva las marcas del respaldo si falta la columna pública. El enfriador MEMO CX16 PRO marcado en la captura está incluido en el respaldo.
+
+Después de desplegar esta versión de Code.gs, ingresá al panel una vez para habilitar las dos columnas públicas. El sincronizador también las conserva en la copia de GitHub Pages; no hace falta compartir la pestaña privada Productos ni mover sus columnas.
 
 Para estas funciones reemplazá **los dos archivos del paso 2 y 3** y publicá una nueva versión. El PIN, las claves y la URL `/exec` se conservan.

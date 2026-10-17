@@ -40,8 +40,9 @@
  function researchPage(raw){try{const url=new URL(raw);return url.protocol==='https:'&&!/(?:^|\.)(?:tiktok\.com|youtube\.com|youtu\.be|facebook\.com|fb\.watch|instagram\.com|vimeo\.com|dailymotion\.com|pinterest\.com)$/.test(url.hostname)&&!/^\/(?:shorts|reels?|watch|videos?)(?:\/|$)/i.test(url.pathname);}catch{return false;}}
  function mergeCatalog(sheet,api){
   if(api?.catalogSchemaVersion>=2)return api;
+  if(sheet?.catalogSchemaVersion>=2)return sheet;
   const extra=new Map((api?.products||[]).map(p=>[String(p.id),p]));
-  return {...api,...sheet,settings:api?.settings||sheet.settings,banks:api?.banks||sheet.banks,products:(sheet.products||[]).map(p=>{const match=extra.get(String(p.id));if(!match)return p;const details=cleanDetails(match.details);return {...p,...(Object.keys(details).length?{details}:{}),...(match.bestSeller!==undefined?{bestSeller:match.bestSeller}:{}),...(match.createdAt?{createdAt:match.createdAt}:{})};})};
+  return {...api,...sheet,settings:api?.settings||sheet.settings,banks:api?.banks||sheet.banks,products:(sheet.products||[]).map(p=>{const match=extra.get(String(p.id));if(!match)return p;const details=cleanDetails(match.details);return {...p,...(Object.keys(details).length?{details}:{}),...(p.bestSeller===undefined&&match.bestSeller!==undefined?{bestSeller:match.bestSeller}:{}),...(!p.createdAt&&match.createdAt?{createdAt:match.createdAt}:{})};})};
  }
  function matchesSearch(text,query){const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const haystack=normalize(text);return normalize(query).trim().split(/\s+/).every(word=>haystack.includes(word));}
  function tiers(str){return String(str||'').split(/[,;|]/).map(x=>x.trim()).map(x=>{const m=x.match(/^(\d+)\s*:\s*([\d.,]+)$/);return m?{min:+m[1],price:num(m[2])}:null}).filter(Boolean).sort((a,b)=>a.min-b.min);}

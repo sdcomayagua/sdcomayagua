@@ -4,6 +4,7 @@
 const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
 let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false,bestSellersSupported=false,imageImportSupported=false;
 let researchBusy=false,researchEpoch=0,researchDraft=null,automaticQuery=true,researchSelectable=false,researchSearch=null,researchApplied=[],researchReferencesBefore=null;
+let researchMode='details',researchPhotoDraft=null,imageSearchSupported=false;
 let verifiedProfiles=null;
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
 async function verifiedProfile(name,productName=''){
@@ -50,7 +51,8 @@ function request(action,extra={}){
   form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';
   const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,token,...extra});
   form.appendChild(field);document.body.appendChild(form);
-  timer=setTimeout(()=>finish(Error(action==='verify'?'Google no respondió al validar el PIN. Podés abrir el diagnóstico para revisar la conexión.':action==='researchProduct'?'La consulta automática tardó demasiado. No se cambió ningún dato. Revisá en Apps Script el Registro de ejecución de la búsqueda, o buscá usando el código exacto del fabricante.':'Google no respondió a la operación. Revisá el diagnóstico de conexión.')),action==='verify'?28000:action==='researchProduct'?180000:action==='uploadImage'?90000:60000);
+  const waitMs=action==='verify'?28000:['researchProduct','researchImages'].includes(action)?180000:['uploadImage','importResearchImage'].includes(action)?90000:60000;
+  timer=setTimeout(()=>finish(Error(action==='verify'?'Google no respondió al validar el PIN. Podés abrir el diagnóstico para revisar la conexión.':action==='researchImages'?'La búsqueda de fotos tardó demasiado. Probá otro resultado.':action==='researchProduct'?'La consulta automática tardó demasiado. No se cambió ningún dato. Revisá en Apps Script el Registro de ejecución de la búsqueda, o buscá usando el código exacto del fabricante.':'Google no respondió a la operación. Revisá el diagnóstico de conexión.')),waitMs);
   form.submit();
  });
 }
@@ -117,14 +119,17 @@ function renderGalleryPreview(){
  $('imagePreview').onerror=function(){this.onerror=null;this.src=fallback};
 }
 function render(){
- const q=$('adminSearch').value.toLowerCase().trim();
- const rows=products.filter(p=>C.matchesSearch([p.name,p.category,p.code,p.id].join(' '),q)).sort(C.recentFirst);
+ const q=$('adminSearch').value.toLowerCase().trim(),filter=$('adminFilter').value;
+ const noPhoto=p=>!p.image&&!parseGallery(p.gallery).length;
+ const rows=products.filter(p=>C.matchesSearch([p.name,p.category,p.code,p.id].join(' '),q)&&(filter==='photos'?noPhoto(p):filter==='requested'?p.bestSeller:filter==='out'?p.stock===0:true)).sort(C.recentFirst);
+ $('adminFilter').options[1].textContent='Sin foto ('+products.filter(noPhoto).length+')';
+ $('adminFilter').options[2].textContent='Más pedidos ('+products.filter(p=>p.bestSeller).length+')';
  $('statProducts').textContent=products.filter(p=>p.active).length;
  $('statAvailable').textContent=products.filter(p=>p.stock>0).length;
  $('statOut').textContent=products.filter(p=>!p.stock).length;
  $('statCod').textContent=products.filter(p=>p.codAllowed).length;
  $('adminRows').innerHTML=rows.map(p=>`<tr>
-   <td data-label="Producto"><strong>${esc(p.name)}</strong><br><span class="muted">${esc(p.category)}</span>${p.bestSeller?'<span class="admin-requested-tag">★ Más pedidos</span>':''}</td>
+   <td data-label="Producto"><strong>${esc(p.name)}</strong><br><span class="muted">${esc(p.category)}</span>${p.bestSeller?'<span class="admin-requested-tag">★ Más pedidos</span>':''}${noPhoto(p)?'<span class="admin-photo-tag">Sin foto</span>':''}</td>
    <td data-label="Precio">${C.money(p.price)}</td>
    <td data-label="Promoción">${p.promoPrice>0?C.money(p.promoPrice):'—'}</td>
    <td data-label="Costo">${catalogSource==='privado'?C.money(p.cost):'—'}</td>
@@ -175,7 +180,7 @@ async function logIn(e){
  if(!/^\d{6}$/.test(candidate)){toast('Ingresá tu PIN de seis dígitos.');return;}
  token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
  try{
-  const verification=await request('verify');detailsSupported=verification.features?.details===true;extendedDetailsSupported=verification.features?.extendedDetails===true;researchSupported=verification.features?.productResearch===true;researchSelectable=verification.features?.productResearchSelection===true;bestSellersSupported=verification.features?.bestSellers===true;imageImportSupported=verification.features?.researchImageImport===true;sessionStorage.setItem('gc_admin_token',token);
+  const verification=await request('verify');detailsSupported=verification.features?.details===true;extendedDetailsSupported=verification.features?.extendedDetails===true;researchSupported=verification.features?.productResearch===true;researchSelectable=verification.features?.productResearchSelection===true;bestSellersSupported=verification.features?.bestSellers===true;imageImportSupported=verification.features?.researchImageImport===true;imageSearchSupported=verification.features?.researchPhotos===true;$('bestSellersPublishNotice').hidden=!bestSellersSupported||verification.features?.publicCatalogMetadata===true;sessionStorage.setItem('gc_admin_token',token);
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');reload();
  }catch(err){token='';$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
@@ -222,7 +227,7 @@ function undoResearch(){
 }
 function resetResearch(discard=false){
  if(discard===true)undoResearch();
- researchEpoch++;researchBusy=false;researchDraft=null;researchSearch=null;
+ researchEpoch++;researchBusy=false;researchDraft=null;researchSearch=null;researchPhotoDraft=null;researchMode='details';
  $('researchPreview').hidden=true;$('researchPreview').innerHTML='';
  $('researchCandidates').hidden=true;$('researchCandidates').innerHTML='';
  $('researchPhotos').hidden=true;$('researchPhotos').innerHTML='';
@@ -234,6 +239,7 @@ function resetResearch(discard=false){
 }
 function researchLoading(value,message=''){
  researchBusy=value;$('researchButton').disabled=value||busy;$('saveBtn').disabled=value||busy;
+ $('findPhotosBtn').disabled=value||busy;
  $('researchButton').textContent=value?'Buscando…':'Buscar ficha';
  $('researchCandidates').querySelectorAll('button').forEach(button=>button.disabled=value);
  if(message)$('researchStatus').textContent=message;
@@ -241,8 +247,29 @@ function researchLoading(value,message=''){
 function showCandidates(candidates,searchId=''){
  const valid=(Array.isArray(candidates)?candidates:[]).filter(x=>x&&C.researchPage(x.url)&&C.cleanDetails({references:[x]}).references?.length).slice(0,8);
  $('researchCandidates').hidden=!valid.length;
- $('researchCandidates').innerHTML=valid.length?`<div class="research-step"><span>1</span><strong>Elegí el producto correcto</strong></div><p class="research-candidate-help">Compará el modelo, los conectores y la variante con tu artículo.</p><div class="research-result-list">${valid.map((source,i)=>`<article class="research-result"><div><strong>${esc(source.title||source.url)}</strong><small>${esc(new URL(source.url).hostname)}</small>${source.excerpt?`<p>${esc(source.excerpt.slice(0,280))}</p>`:''}<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">Ver página ↗</a></div><button type="button" class="btn small outline" data-research-source="${esc(source.id??i)}">Usar este resultado</button></article>`).join('')}</div>`:'';
+ $('researchCandidates').innerHTML=valid.length?`<div class="research-step"><span>1</span><strong>Elegí el producto correcto</strong></div><p class="research-candidate-help">Compará el modelo, los conectores y la variante con tu artículo.</p><div class="research-result-list">${valid.map((source,i)=>`<article class="research-result"><div><strong>${esc(source.title||source.url)}</strong><small>${esc(new URL(source.url).hostname)}</small>${source.excerpt?`<p>${esc(source.excerpt.slice(0,280))}</p>`:''}<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">Ver página ↗</a></div><button type="button" class="btn small outline" data-research-source="${esc(source.id??i)}">${researchMode==='photos'?'Ver fotos':'Usar este resultado'}</button></article>`).join('')}</div>`:'';
  researchSearch=searchId?{id:searchId,name:researchQuery(),category:formField($('productForm'),'category').value.trim()}:null;
+}
+function showResearchPhotos(data,selection,photoSearch=false){
+ const photos=(Array.isArray(data.images)?data.images:[]).filter(url=>typeof url==='string'&&/^https:\/\//i.test(url)&&url.length<=800).slice(0,6);
+ researchPhotoDraft={images:photos,selection,photoSearch};
+ $('researchPhotos').hidden=!selection&&!photos.length;
+ const source=data.selectedSource,sourceLink=source&&C.researchPage(source.url)?`<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">Ver página de origen ↗</a>`:'';
+ $('researchPhotos').innerHTML=`<strong>${photos.length?'Elegí las fotos que querés copiar':'La página no entregó fotos utilizables'}</strong><p>${data.broader?'Estas son coincidencias del sitio elegido. Revisá modelo, color y conectores antes de copiarlas.':'Compará cada imagen con tu artículo. Se copia a tus fotos solo cuando tocás el botón.'}</p>${sourceLink}${photos.length?`<div class="research-photo-list">${photos.map((url,i)=>`<div><a href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar foto ${i+1}"><img src="${esc(url)}" alt="Foto propuesta ${i+1}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='assets/img/sin-foto.svg'"></a><button type="button" class="btn small outline" data-research-photo="${i}">Copiar al producto</button></div>`).join('')}</div>`:''}${selection&&!photoSearch?'<button type="button" class="btn small outline" data-find-source-photos>Buscar más fotos de este resultado</button>':''}${!photos.length&&photoSearch?'<p>Probá otro resultado o elegí una imagen de tu galería.</p>':''}`;
+}
+async function loadResearchPhotos(selection){
+ if(busy||researchBusy)return;
+ if(!imageSearchSupported){toast('Actualizá Code.gs y FichaGratis.gs para activar la búsqueda independiente de fotos.');return;}
+ const epoch=researchEpoch;
+ researchLoading(true,'Buscando fotos del resultado elegido…');
+ try{
+  const result=await request('researchImages',{selection});
+  if(epoch!==researchEpoch||$('formOverlay').hidden)return;
+  showResearchPhotos(result.research||{},selection,true);
+  $('researchPhotos').scrollIntoView({behavior:'smooth',block:'start'});
+  $('researchStatus').textContent=result.research?.images?.length?'Fotos listas para revisar. Elegí cuáles copiar y guardá el producto para publicarlas.':'No se encontraron fotos descargables. Probá otro resultado.';
+ }catch(error){if(epoch===researchEpoch)$('researchStatus').textContent=error.message;}
+ finally{if(epoch===researchEpoch)researchLoading(false);}
 }
 function presentResearch(data,name){
  if(!data||!['exact','partial','ambiguous','not_found'].includes(data.match))throw Error('La búsqueda no devolvió una ficha válida.');
@@ -258,20 +285,20 @@ function presentResearch(data,name){
  if(exact)undoResearch();
  $('researchPreview').innerHTML=`<strong>${exact?'Ficha propuesta para revisar':data.match==='ambiguous'?'Revisá la coincidencia':'No se encontraron datos confirmados'}</strong>${data.matchedModel?`<p class="research-model">${esc(data.matchedModel)}</p>`:''}${exact&&data.description?`<p class="research-description">${esc(data.description)}</p>`:''}${exact&&rows?`<dl>${rows}</dl>`:''}${notes?`<ul>${notes}</ul>`:''}${exact&&missing.length?`<p class="research-missing">Sin confirmar: ${esc(missing.join(', '))}.</p>`:''}${links?`<div class="research-sources"><span>Fuentes de los datos propuestos</span>${links}</div>`:''}`;
  $('researchPreview').hidden=false;$('researchApply').hidden=!exact;
- const photos=(Array.isArray(data.images)?data.images:[]).filter(url=>typeof url==='string'&&/^https:\/\//i.test(url)&&url.length<1500).slice(0,6);
- researchDraft=exact?{...data,details,sources,images:photos,requestedName:name}:null;
- $('researchPhotos').hidden=!exact||!photos.length;
- $('researchPhotos').innerHTML=exact&&photos.length?`<strong>Fotos encontradas</strong><p>Agregá solo las que correspondan a tu producto.</p><div class="research-photo-list">${photos.map((url,i)=>`<div><img src="${esc(url)}" alt="Foto propuesta ${i+1}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=\'assets/img/sin-foto.svg\'"><button type="button" class="btn small outline" data-research-photo="${i}">Agregar foto</button></div>`).join('')}</div>`:'';
+ researchDraft=exact?{...data,details,sources,requestedName:name}:null;
+ showResearchPhotos(data,data.selection);
  if(exact){applyResearch();$('researchPreview').scrollIntoView?.({behavior:'smooth',block:'start'});}else $('researchStatus').textContent='No se encontraron datos nuevos confirmados. La información del formulario se conserva; probá otra fuente.';
 }
-async function researchProduct(){
+async function researchProduct(photosOnly=false){
+ photosOnly=photosOnly===true;
  if(busy||researchBusy)return;
+ if(photosOnly&&!imageSearchSupported){$('researchSetup').hidden=false;toast('Actualizá Code.gs y FichaGratis.gs para activar Buscar fotos.');return;}
  const f=$('productForm'),name=researchQuery(),category=formField(f,'category').value.trim();
  if(name.length<3){$('researchStatus').textContent='Escribí primero el nombre o modelo del producto.';$('researchQuery').focus();return;}
- resetResearch();const epoch=researchEpoch;
+ resetResearch();researchMode=photosOnly?'photos':'details';const epoch=researchEpoch;
  researchLoading(true,'Buscando coincidencias del producto…');
  try{
-  let profile=null;try{profile=await verifiedProfile(name,formField(f,'name').value)}catch(error){if(!researchSupported)throw error}
+  let profile=null;try{if(!photosOnly)profile=await verifiedProfile(name,formField(f,'name').value)}catch(error){if(!researchSupported)throw error}
   if(epoch!==researchEpoch||$('formOverlay').hidden)return;
   if(profile){presentResearch(profile,name);return;}
   if(!researchSupported)throw Error('Conectá la búsqueda web siguiendo los pasos de activación. No necesitás cambiar tu inventario.');
@@ -279,7 +306,7 @@ async function researchProduct(){
    const result=await request('researchCandidates',{name,category});
    if(epoch!==researchEpoch||$('formOverlay').hidden||researchQuery()!==name)return;
    showCandidates(result.candidates,result.searchId);
-   $('researchStatus').textContent=result.candidates?.length?'Elegí Usar este resultado. Después se consultará la ficha y se buscarán coincidencias.':'No se encontraron coincidencias. Probá con otro nombre o el modelo de la caja.';
+   $('researchStatus').textContent=result.candidates?.length?(photosOnly?'Elegí Ver fotos en el resultado que corresponde a tu artículo.':'Elegí Usar este resultado. Después se consultará la ficha y se buscarán coincidencias.'):'No se encontraron coincidencias. Probá con otro nombre o el modelo de la caja.';
   }else{
    const result=await request('researchProduct',{name,category});
    if(epoch!==researchEpoch||$('formOverlay').hidden||researchQuery()!==name)return;
@@ -298,6 +325,7 @@ async function selectResearchSource(candidateId){
  const search=researchSearch,epoch=researchEpoch,name=researchQuery(),category=formField($('productForm'),'category').value.trim();
  const automaticCategory=researchApplied.some(item=>item.key==='category'&&item.value===category);
  if(search.name!==name||search.category!==category&&!automaticCategory){resetResearch();return;}
+ if(researchMode==='photos'){await loadResearchPhotos({searchId:search.id,candidateId});return;}
  researchDraft=null;$('researchApply').hidden=true;$('researchPreview').hidden=true;$('researchPhotos').hidden=true;
  $('researchCandidates').querySelectorAll('[data-research-source]').forEach(button=>button.closest('article').classList.toggle('selected',button.dataset.researchSource===candidateId));
  researchLoading(true,'Leyendo el resultado elegido y buscando el mismo producto en otras fuentes…');
@@ -406,6 +434,7 @@ function setBusy(value){
  busy=value;
  for(const id of ['saveBtn','uploadBtn','pickGalleryBtn','pickCameraBtn','closeForm','cancelForm'])$(id).disabled=value;
  $('researchButton').disabled=value||researchBusy;
+ $('findPhotosBtn').disabled=value||researchBusy;
  $('productForm').setAttribute('aria-busy',String(value));
 }
 async function preparePhoto(file){
@@ -473,7 +502,7 @@ function binds(){
  $('logout').onclick=()=>{token='';sessionStorage.removeItem('gc_admin_token');location.reload()};
  $('refresh').onclick=reload;
  $('createNew').onclick=()=>showProduct('');
- $('adminSearch').oninput=render;
+ $('adminSearch').oninput=render;$('adminFilter').onchange=render;
  $('adminRows').onclick=e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.edit!==undefined){
@@ -486,18 +515,20 @@ function binds(){
  $('closeForm').onclick=closeForm;$('cancelForm').onclick=closeForm;
  $('productForm').onsubmit=save;
  $('researchButton').onclick=researchProduct;$('researchApply').onclick=()=>{$('technicalEditor').open=true;$('technicalEditor').scrollIntoView({behavior:'smooth',block:'start'});};
+ $('findPhotosBtn').onclick=()=>researchProduct(true);
  $('researchQuery').addEventListener('input',()=>{automaticQuery=false;resetResearch()});
  $('researchQuery').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();researchProduct();}});
  formField($('productForm'),'category').addEventListener('input',()=>resetResearch());
  $('researchCandidates').addEventListener('click',event=>{const button=event.target.closest('[data-research-source]');if(button)selectResearchSource(button.dataset.researchSource);});
  $('researchPhotos').addEventListener('click',async event=>{
-  const button=event.target.closest('[data-research-photo]');if(!button||busy||researchBusy||!researchDraft)return;
+  if(event.target.closest('[data-find-source-photos]')){if(researchPhotoDraft?.selection)loadResearchPhotos(researchPhotoDraft.selection);return;}
+  const button=event.target.closest('[data-research-photo]');if(!button||busy||researchBusy||!researchPhotoDraft)return;
   if([$('productImage').value.trim(),...parseGallery($('galleryInput').value)].filter(Boolean).length>=10){toast('Ya hay 10 fotos. Quitá una antes de agregar otra.');return;}
-  if(!imageImportSupported||!researchDraft.selection){$('researchSetup').hidden=false;toast('Publicá Code.gs y FichaGratis.gs actualizados para importar fotos.');return;}
-  const index=Number(button.dataset.researchPhoto),selection=researchDraft.selection;
+  if(!imageImportSupported||!researchPhotoDraft.selection){$('researchSetup').hidden=false;toast('Publicá Code.gs y FichaGratis.gs actualizados para importar fotos.');return;}
+  const index=Number(button.dataset.researchPhoto),selection=researchPhotoDraft.selection,photoSearch=researchPhotoDraft.photoSearch;
   setBusy(true);button.disabled=true;button.textContent='Importando…';
   try{
-   const out=await request('importResearchImage',{selection,imageIndex:index});
+   const out=await request('importResearchImage',{selection,imageIndex:index,photoSearch});
    if(!/^https:\/\//i.test(out.url||''))throw Error('No se recibió una foto guardada.');
    setGalleryFromUrls([out.url]);button.textContent='Foto importada';toast('Foto guardada en tu alojamiento. Tocá Guardar y actualizar tienda.');
   }catch(error){button.disabled=false;button.textContent='Reintentar foto';toast(error.message);}

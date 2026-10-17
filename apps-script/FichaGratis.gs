@@ -264,6 +264,7 @@ function gcFreeSelected_(name,category,selection){
       },{Authorization:'Bearer '+keys.tavily},'Tavily')).filter(r=>researchUrlKey_(r.url)!==researchUrlKey_(primary.url));
     }catch(err){notes.push('No se pudo ampliar la búsqueda. La propuesta usa la fuente elegida.');}
     const images=(Array.isArray(page&&page.images)?page.images:[]).map(x=>gcSourceUrl_(typeof x==='string'?x:x&&x.url)).filter(Boolean).slice(0,12);
+    cache.put('gc_photo_candidates_v6_'+searchId+'_'+candidateId,JSON.stringify({images:gcPhotoUrls_(images),selectedSource:{url:selected.url,title:selected.title}}),600);
     const hits=[primary,...related].slice(0,5);
     const rules=[
       'Extraé una ficha de producto en español. Devolvé SOLO JSON válido.',
@@ -370,10 +371,11 @@ function gcLabeledSpecs_(text,url){
  });return fields;
 }
 /** Importa únicamente una imagen autorizada de la última propuesta, nunca una URL del cliente. */
-function gcFreeImportImage_(selection,imageIndex){
- const searchId=String(selection&&selection.searchId||''),id=String(selection&&selection.candidateId||'');
+function gcFreeImportImage_(selection,imageIndex,photoSearch){
+ const searchId=String(selection&&selection.searchId||''),id=String((selection&&selection.candidateId)??'');
  if(!/^[a-z0-9-]{8,80}$/i.test(searchId)||!/^\d$/.test(id)||!Number.isInteger(imageIndex)||imageIndex<0||imageIndex>5)throw Error('Elegí una foto de la ficha encontrada.');
- const raw=CacheService.getScriptCache().get('gc_selected_v5_'+searchId+'_'+id);
+ const cache=CacheService.getScriptCache();
+ const raw=cache.get((photoSearch===true?'gc_photos_v6_':'gc_selected_v5_')+searchId+'_'+id);
  if(!raw)throw Error('La propuesta venció. Volvé a buscar el producto antes de importar la foto.');
  const data=JSON.parse(raw),url=data.research&&data.research.images&&data.research.images[imageIndex];
  if(!gcSourceUrl_(url))throw Error('La foto elegida no está disponible.');
@@ -396,4 +398,44 @@ function gcFreeImportImage_(selection,imageIndex){
  else if(bytes.length>6&&String.fromCharCode(...bytes.slice(0,3).map(u))==='GIF')mime='image/gif';
  if(!mime||bytes.length>2200000)throw Error('La fuente no entregó una imagen válida de hasta 2 MB. Podés subirla desde tu galería.');
  return uploadImage_({mime,base64:Utilities.base64Encode(bytes)});
+}
+
+function gcPhotoUrls_(raw){
+ const seen={};
+ return (Array.isArray(raw)?raw:[]).map(image=>gcSourceUrl_(typeof image==='string'?image:image&&image.url)).filter(url=>{
+  if(!url||!gcResearchPage_(url)||seen[url]||/\.(?:svg|ico)(?:[?#]|$)|(?:^|[\/_.-])(?:logo|favicon|banner|avatar|sprite)(?:[\/_.-]|$)/i.test(url))return false;
+  seen[url]=true;return true;
+ }).slice(0,6);
+}
+/** Fotos independientes de las características: el dueño revisa cada imagen antes de copiarla. */
+function gcFreeImages_(selection){
+ const searchId=String(selection&&selection.searchId||''),id=String((selection&&selection.candidateId)??'');
+ if(!/^[a-z0-9-]{8,80}$/i.test(searchId)||!/^\d$/.test(id))throw Error('Elegí primero el resultado correcto.');
+ const cache=CacheService.getScriptCache(),stored=cache.get('gc_selection_'+searchId);
+ if(!stored)throw Error('Los resultados vencieron. Tocá Buscar fotos nuevamente.');
+ const pool=JSON.parse(stored),selected=pool.hits[Number(id)];
+ if(!selected||!gcResearchPage_(selected.url))throw Error('El resultado elegido no está disponible.');
+ const cacheKey='gc_photos_v6_'+searchId+'_'+id,cached=cache.get(cacheKey);
+ if(cached)return JSON.parse(cached);
+ const keys=gcResearchKeys_(),candidateCache=cache.get('gc_photo_candidates_v6_'+searchId+'_'+id);
+ let images=candidateCache?gcPhotoUrls_(JSON.parse(candidateCache).images):[];
+ if(!candidateCache){
+  try{
+   const extracted=gcFreePost_('https://api.tavily.com/extract',{urls:[selected.url],extract_depth:'basic',include_images:true,format:'markdown',timeout:15},{Authorization:'Bearer '+keys.tavily},'Tavily');
+   const page=(extracted.results||[]).find(row=>researchUrlKey_(row.url)===researchUrlKey_(selected.url));
+   images=gcPhotoUrls_(page&&page.images);
+  }catch(error){if(/cuota|clave|HTTP 40[123]/i.test(error.message))throw error;}
+ }
+ let broader=false;
+ if(!images.length){
+  const host=selected.url.match(/^https:\/\/([^/:?#]+)/i)[1];
+  const found=gcFreePost_('https://api.tavily.com/search',{
+   query:(selected.title+' '+pool.name+' foto del producto').slice(0,280),search_depth:'basic',topic:'general',max_results:3,include_domains:[host],exclude_domains:gcResearchExcluded_(),include_images:true,include_image_descriptions:true,include_answer:false,include_raw_content:false
+  },{Authorization:'Bearer '+keys.tavily},'Tavily');
+  const relatedImages=(Array.isArray(found.results)?found.results:[]).filter(row=>gcResearchPage_(row.url)&&String(row.url).match(/^https:\/\/([^/:?#]+)/i)?.[1]===host).flatMap(row=>Array.isArray(row.images)?row.images:[]);
+  images=gcPhotoUrls_([...(Array.isArray(found.images)?found.images:[]),...relatedImages]);broader=true;
+ }
+ const out={ok:true,research:{images,selectedSource:{url:selected.url,title:selected.title},broader}};
+ cache.put(cacheKey,JSON.stringify(out),600);
+ return out;
 }
