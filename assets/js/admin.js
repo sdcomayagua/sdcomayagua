@@ -5,7 +5,7 @@ const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
 let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false,bestSellersSupported=false,imageImportSupported=false;
 let researchBusy=false,researchEpoch=0,researchDraft=null,automaticQuery=true,researchSelectable=false,researchSearch=null,researchApplied=[],researchReferencesBefore=null;
 let researchMode='details',researchPhotoDraft=null,imageSearchSupported=false;
-let verifiedProfiles=null;
+let verifiedProfiles=null,serverFeatures={};
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
 async function verifiedProfile(name,productName=''){
  if(!verifiedProfiles){
@@ -51,7 +51,7 @@ function request(action,extra={}){
   form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';
   const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,token,...extra});
   form.appendChild(field);document.body.appendChild(form);
-  const waitMs=action==='verify'?28000:['researchProduct','researchImages'].includes(action)?180000:['uploadImage','importResearchImage'].includes(action)?90000:60000;
+  const waitMs=action==='verify'?28000:['researchProduct','researchImages','researchBulkItem'].includes(action)?180000:['uploadImage','importResearchImage','importBulkResearchImage'].includes(action)?90000:60000;
   timer=setTimeout(()=>finish(Error(action==='verify'?'Google no respondió al validar el PIN. Podés abrir el diagnóstico para revisar la conexión.':action==='researchImages'?'La búsqueda de fotos tardó demasiado. Probá otro resultado.':action==='researchProduct'?'La consulta automática tardó demasiado. No se cambió ningún dato. Revisá en Apps Script el Registro de ejecución de la búsqueda, o buscá usando el código exacto del fabricante.':'Google no respondió a la operación. Revisá el diagnóstico de conexión.')),waitMs);
   form.submit();
  });
@@ -180,7 +180,7 @@ async function logIn(e){
  if(!/^\d{6}$/.test(candidate)){toast('Ingresá tu PIN de seis dígitos.');return;}
  token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
  try{
-  const verification=await request('verify');detailsSupported=verification.features?.details===true;extendedDetailsSupported=verification.features?.extendedDetails===true;researchSupported=verification.features?.productResearch===true;researchSelectable=verification.features?.productResearchSelection===true;bestSellersSupported=verification.features?.bestSellers===true;imageImportSupported=verification.features?.researchImageImport===true;imageSearchSupported=verification.features?.researchPhotos===true;$('bestSellersPublishNotice').hidden=!bestSellersSupported||verification.features?.publicCatalogMetadata===true;sessionStorage.setItem('gc_admin_token',token);
+  const verification=await request('verify');serverFeatures=verification.features||{};detailsSupported=verification.features?.details===true;extendedDetailsSupported=verification.features?.extendedDetails===true;researchSupported=verification.features?.productResearch===true;researchSelectable=verification.features?.productResearchSelection===true;bestSellersSupported=verification.features?.bestSellers===true;imageImportSupported=verification.features?.researchImageImport===true;imageSearchSupported=verification.features?.researchPhotos===true;$('bestSellersPublishNotice').hidden=!bestSellersSupported||verification.features?.publicCatalogMetadata===true;sessionStorage.setItem('gc_admin_token',token);
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');reload();
  }catch(err){token='';$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
@@ -559,5 +559,6 @@ function binds(){
  if(!validApi()){$('loginMessage').textContent='Todavía falta conectar el sitio con Apps Script: editá assets/js/config.js.';$('loginMessage').classList.remove('hidden')}
  else {connectionCheck().then(ok=>{if(token){$('secret').value=token;if(ok)logIn();}});}
 }
+window.GC_ADMIN={request,products:()=>products,features:()=>serverFeatures,reload,toast,parseGallery,notify:()=>{try{localStorage.setItem('gc_catalog_revision',JSON.stringify({at:Date.now()}))}catch{}}};
 binds();
 })();

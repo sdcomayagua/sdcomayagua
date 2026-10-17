@@ -21,9 +21,9 @@ GitHub Pages y Google Apps Script se publican por separado. Actualizar GitHub no
 3. Reemplazá **FichaGratis.gs** por [apps-script/FichaGratis.gs](apps-script/FichaGratis.gs). Si no existe, crealo con ese nombre. No dupliqués las funciones de Code.gs ni borres EditorMovil.gs o FichaRapida.gs.
 4. Conservá tus propiedades privadas del PIN y las claves `GC_FREE_TAVILY_API_KEY` y `GC_FREE_GEMINI_API_KEY`. Si todavía faltan, seguí [la guía de conexión](BUSCADOR_GRATIS_SIN_PAGOS.md). No pegues claves en GitHub ni en el formulario.
 5. **Implementar → Administrar implementaciones → lápiz → Nueva versión → Implementar**. Editá la implementación existente para conservar la URL `/exec`. Conservá su acceso público y la ejecución como propietario; las operaciones administrativas siguen protegidas por PIN.
-6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-42), recargá con **Ctrl + F5** e ingresá con tu PIN.
+6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-43), recargá con **Ctrl + F5** e ingresá con tu PIN.
 
-El servidor nuevo anuncia versión de búsqueda 6 y catálogo 2. El panel informa si falta activar la selección o la búsqueda independiente de fotos. Mientras tanto mantiene las fichas verificadas y las consultas exactas del servidor anterior.
+El servidor nuevo anuncia versión de búsqueda 7 y catálogo 2. El panel informa si falta activar la selección, las fotos o el relleno por lotes. Mientras tanto mantiene las fichas verificadas y las consultas exactas del servidor anterior.
 
 El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la propuesta. El modelo predeterminado es `gemini-2.5-flash-lite`, configurable con la propiedad privada `GC_FREE_GEMINI_MODEL`. No activa facturación ni cambia automáticamente a otro proveedor; las cuotas y condiciones dependen de las cuentas configuradas.
 
@@ -34,6 +34,26 @@ El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la p
 3. Probá elegir otro resultado: solo se reemplazan propuestas cuando la nueva fuente devuelve información confirmada. Cambiar la consulta conserva los campos para poder guardarlos.
 4. Revisá modelo, conectores, color, unidades y fuente. Agregá fotos solo si corresponden a tu artículo.
 5. Guardá y comprobá **Ver ficha en tienda**. Los costos siguen siendo privados.
+
+## Rellenar fotos e información de forma masiva
+
+Los botones **Rellenar fotos** y **Rellenar información** aparecen encima de la lista de productos de ADMIN.
+
+1. Marcá los artículos que querés consultar. **Seleccionar visibles** permite incluir todos los del filtro actual; podés desmarcar cualquiera. La selección no guarda cambios.
+2. Tocá **Buscar propuestas**. Se procesa un artículo por solicitud, con avance y opción de detener después del actual. Las propuestas se conservan en esta ventana mientras seguís revisando.
+3. En **Fotos**, elegí las imágenes por artículo. **Buscar más fotos** consulta otras opciones y conserva las que ya elegiste, incluso si son de páginas distintas. **Elegir primera foto de cada artículo** es opcional; podés revisar y cambiar esas selecciones.
+4. En **Información**, compará la fuente y elegí qué campos completar en cada artículo. Solo se ofrecen campos vacíos con evidencia. Podés desmarcar campos o el artículo completo. **Comparar otra fuente** y **Volver a buscar** actualizan un solo artículo.
+5. Marcá los artículos que aprobás o usá **Marcar propuestas listas**. Tocá **Guardar seleccionados** para aplicar el lote revisado.
+
+El guardado vuelve a leer el inventario y escribe únicamente descripción, color, características o fotos aprobadas. Conserva precios, promociones, costos, stock, descuentos y condiciones comerciales, incluidos los cambios que se hagan mientras revisás. Las fotos nuevas se agregan a la galería; una imagen principal existente se conserva, salvo que marques **Usar la primera foto elegida como principal** en ese artículo. La foto anterior queda en la galería. Máximo diez fotos por artículo.
+
+Después de guardar un artículo, **Preparar de nuevo** permite consultar otra propuesta para ese mismo artículo.
+
+Si falla una fuente o una foto, los demás artículos pueden continuar. Al reintentar se omiten los artículos guardados y se reutilizan las fotos ya copiadas. Si se agota una cuota o Google deja de responder, el lote se detiene y muestra el motivo. No cambia de proveedor ni activa un servicio de pago.
+
+Las propuestas y las copias preparadas se guardan temporalmente hasta seis horas; la caché de Google puede vencer antes. Si una propuesta ya no está disponible, volvé a buscar ese artículo y revisalo nuevamente. La ventana de revisión se conserva al cerrarla y volver a abrirla en esta misma página; recargar la página descarta esa revisión pendiente.
+
+Para activar estas funciones actualizá **Code.gs y FichaGratis.gs** con los pasos anteriores. No hay un tercer archivo que instalar en Apps Script.
 
 ## Envíos
 

@@ -36,7 +36,7 @@ function doGet(e) {
     if(String(args.action||'') === 'health') {
       const props=PropertiesService.getScriptProperties();
       const pin=String(props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN') || '');
-      result={ok:true,version:'GC-20261017-FICHAS-V6',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+      result={ok:true,version:'GC-20261017-FICHAS-V7',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
     } else result = {ok:true, ...publicPayload_()};
   } catch (err) {
     result = {ok:false, error:safeError_(err)};
@@ -69,12 +69,15 @@ function doPost(e) {
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:6,bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:7,bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
       }
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
       else if (req.action === 'researchCandidates') result = gcFreeCandidates_(req.name,req.category);
       else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category,req.selection);
       else if (req.action === 'researchImages') result = gcFreeImages_(req.selection);
+      else if (req.action === 'researchBulkItem') result = gcBulkResearch_(req);
+      else if (req.action === 'importBulkResearchImage') result = gcBulkImportImage_(req.proposalId,req.imageIndex);
+      else if (req.action === 'applyBulkResearch') result = gcBulkApply_(req);
       else if (req.action === 'setBestSeller') result = setBestSeller_(req.id,req.bestSeller);
       else if (req.action === 'importResearchImage') result = gcFreeImportImage_(req.selection,req.imageIndex,req.photoSearch===true);
       else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
