@@ -23,7 +23,7 @@ function picker(){
 }
 function controls(){
  if(!state)return;
- const count=state.selected.size,busy=state.running,ready=toSave().length;
+ const count=state.selected.size,busy=state.running||state.checking,ready=toSave().length;
  $('bulkPickedCount').textContent='('+count+' seleccionados)';
  $('bulkSelectedCount').textContent=count+' artículo'+(count===1?' seleccionado':'s seleccionados');
  $('bulkReadyCount').textContent=ready+' artículo'+(ready===1?' listo':'s listos')+' para guardar';
@@ -34,9 +34,11 @@ function controls(){
  $('bulkPickerPanel').hidden=!!state.singleId;
  $('bulkOverlay').querySelector('.bulk-search-bar').hidden=!!state.singleId;
  $('bulkOverlay').querySelector('.bulk-review-heading').hidden=!!state.singleId;
- $('bulkStop').hidden=!busy;$('bulkStop').disabled=state.stop;
+ $('bulkStop').hidden=!state.running;$('bulkStop').disabled=state.stop;
  $('bulkStop').textContent=state.stop?'Se detendrá al terminar el actual':'Detener después del actual';
  $('bulkSetup').hidden=available;
+ $('bulkSetupReason').textContent=capable()&&needsReference&&!referenceCapable()?'Google todavía no confirma la búsqueda con tu foto. Revisá especialmente FichaGratis.gs y publicá una nueva versión con los dos archivos actualizados.':A.features().bulkResearch===true&&!capable()?'Google no confirma la configuración del buscador. Revisá que existan las claves privadas de Tavily y Gemini en Propiedades de secuencia de comandos y que los dos archivos estén actualizados.':'La implementación de Google que usa esta página todavía no confirma el buscador por lotes. Actualizá los dos archivos y publicá una nueva versión.';
+ $('bulkCheckActivation').disabled=busy;$('bulkCheckActivation').textContent=state.checking?'Comprobando Google…':'Comprobar activación';
  $('bulkReferenceOption').hidden=state.mode!=='photos'||!!state.singleId;$('bulkUseReference').disabled=busy;$('bulkUseReference').checked=!!state.useReference;
  $('bulkSelectAll').disabled=busy;$('bulkSelectNone').disabled=busy;
  $('bulkScope').disabled=busy;$('bulkPicker').querySelectorAll('input').forEach(el=>el.disabled=busy);
@@ -44,10 +46,13 @@ function controls(){
  $('bulkSelectReady').disabled=busy;$('bulkClearReady').disabled=busy;
  $('bulkStatus').textContent=state.message;
  $('bulkProgress').hidden=!state.total||!!state.singleId&&!busy;$('bulkProgress').max=state.total||1;$('bulkProgress').value=state.done;
- $('bulkResults').querySelectorAll('[data-row-search],[data-more-photos],[data-bulk-source],[data-bulk-query],[data-reference-search],[data-reference-index],[data-photo-count],[data-choose-photos]').forEach(el=>{const row=state.rows.get(el.closest('[data-bulk-row]').dataset.bulkRow);el.disabled=busy||!row||(row.saved&&!el.hasAttribute('data-row-search')&&!el.hasAttribute('data-reference-search'))||row?.data?.photoCapacity===0&&(el.hasAttribute('data-photo-count')||el.hasAttribute('data-choose-photos'));});
+ $('bulkResults').querySelectorAll('[data-row-search],[data-more-photos],[data-bulk-source],[data-bulk-query],[data-reference-search],[data-reference-index],[data-photo-count],[data-choose-photos]').forEach(el=>{
+  const row=state.rows.get(el.closest('[data-bulk-row]').dataset.bulkRow),referenceAction=el.matches('[data-reference-search],[data-reference-index]'),searchAction=el.matches('[data-row-search],[data-more-photos],[data-bulk-source]');
+  el.disabled=busy||!row||(referenceAction&&(!capable()||!referenceCapable()))||(searchAction&&(!capable()||row?.useReference&&!referenceCapable()))||(row.saved&&!el.hasAttribute('data-row-search')&&!el.hasAttribute('data-reference-search'))||row?.data?.photoCapacity===0&&(el.hasAttribute('data-photo-count')||el.hasAttribute('data-choose-photos'));
+ });
  $('bulkResults').querySelectorAll('[data-bulk-approve],[data-bulk-field],[data-bulk-photo],[data-remove-chosen],[data-photo-main]').forEach(el=>{
   const row=state.rows.get(el.closest('[data-bulk-row]').dataset.bulkRow);
-  el.disabled=state.saving||!row||row.saved||(el.hasAttribute('data-bulk-approve')&&!eligible(row));
+  el.disabled=state.saving||state.checking||!row||row.saved||(el.hasAttribute('data-bulk-approve')&&!eligible(row));
  });
 }
 function chosenHTML(row){
@@ -56,7 +61,7 @@ function chosenHTML(row){
 function referenceHTML(row){
  const product=A.products().find(p=>p.id===row.id),images=product?gallery(product):[];
  if(!images.length)return '<p class="bulk-item-help">Subí y guardá una foto para buscar usando una referencia visual.</p>';
- return `<div class="bulk-reference"><img src="${esc(images[row.referenceIndex]||images[0])}" alt="Tu foto de referencia" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallback}'"><div><strong>${row.useReference?'Buscando a partir de tu foto':'¿Querés otras fotos de este mismo producto?'}</strong>${images.length>1?`<label>Foto de referencia<select class="field" data-reference-index aria-label="Foto de referencia de ${esc(row.name)}">${images.map((url,i)=>`<option value="${i}" ${i===row.referenceIndex?'selected':''}>${i===0?'Principal':'Foto '+(i+1)}</option>`).join('')}</select></label>`:'<p>Se usará tu foto principal para comparar las coincidencias.</p>'}<button type="button" class="btn small outline" data-reference-search>Buscar con mi foto</button>${row.data?.reference?`<p class="bulk-identity">Identificación visual: ${esc(row.data.reference.identity)}</p>`:''}</div></div>`;
+ return `<div class="bulk-reference"><img src="${esc(images[row.referenceIndex]||images[0])}" alt="Tu foto de referencia" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallback}'"><div><strong>${row.useReference?'Foto que se usará como referencia':'¿Querés otras fotos de este mismo producto?'}</strong>${images.length>1?`<label>Foto de referencia<select class="field" data-reference-index aria-label="Foto de referencia de ${esc(row.name)}">${images.map((url,i)=>`<option value="${i}" ${i===row.referenceIndex?'selected':''}>${i===0?'Principal':'Foto '+(i+1)}</option>`).join('')}</select></label>`:'<p>Se usará tu foto principal para comparar las coincidencias.</p>'}<button type="button" class="btn small outline" data-reference-search>Buscar con mi foto</button>${row.data?.reference?`<p class="bulk-identity">Identificación visual: ${esc(row.data.reference.identity)}</p>`:''}</div></div>`;
 }
 function photoHTML(row){
  const data=row.data;if(!data)return '';
@@ -64,12 +69,12 @@ function photoHTML(row){
  return `<p class="bulk-item-help">${esc(data.notice||'Elegí las fotos que corresponden a tu artículo.')} ${capacity} espacios disponibles en la galería.</p><div class="bulk-photo-tools"><label>Cuántas querés copiar<select class="field" data-photo-count ${capacity?'':'disabled'} aria-label="Cantidad de fotos de ${esc(row.name)}">${countOptions||'<option>Sin espacio</option>'}</select></label><button class="btn small outline" type="button" data-choose-photos ${capacity?'':'disabled'}>Elegir hasta ${row.limit} fotos</button><small>Podés cambiar las fotos marcadas antes de copiar.</small></div><div class="bulk-photo-grid">${data.images.map((url,i)=>{const match=data.photoMatches?.find(item=>item.url===url);return `<label class="bulk-photo-choice"><input type="checkbox" data-bulk-photo="${i}" ${row.photos.has(url)?'checked':''} ${row.saved?'disabled':''}><img src="${esc(url)}" alt="Propuesta de foto ${i+1} para ${esc(row.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fallback}'"><span>${match?'Coincidencia visual':'Foto '+(i+1)}</span><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Ampliar imagen ↗</a>${match?`<small class="bulk-match-reason">${esc(match.reason)}</small>`:''}</label>`;}).join('')||'<p class="bulk-empty">No hay fotos nuevas confirmadas en esta búsqueda. Probá Buscar más fotos u otra referencia.</p>'}</div><div class="bulk-photos-chosen">${chosenHTML(row)}</div>${state.editorId?'':`<label class="bulk-main-choice"><input type="checkbox" data-photo-main ${row.useFirstAsMain?'checked':''} ${row.saved?'disabled':''}>Usar la primera foto elegida como principal</label>`}<div class="bulk-item-photo-actions"><button class="btn small outline" type="button" data-more-photos>Buscar más fotos</button><small>Se omiten las anteriores y se conservan tus elegidas.</small></div>`;
 }
 function rowHTML(row){
- const data=row.data,busy=state.running,photoMode=state.mode==='photos';
+ const data=row.data,busy=state.running||state.checking,photoMode=state.mode==='photos';
  const source=data?.source&&C.researchPage(data.source.url)?`<a href="${esc(data.source.url)}" target="_blank" rel="noopener noreferrer">Consultar fuente: ${esc(data.source.title||data.source.url)} ↗</a>`:'';
  const sources=data?.candidates?.length?`<label class="bulk-source">Comparar otra fuente<select class="field" data-bulk-source ${busy||row.saved?'disabled':''}>${data.candidates.map(candidate=>`<option value="${esc(candidate.id)}" ${String(candidate.id)===String(data.candidateId)?'selected':''}>${esc(candidate.title||candidate.url)}</option>`).join('')}</select>${source}</label>`:'';
  const fields=data&&!photoMode?`<p class="bulk-item-help">Marcá los campos que querés completar. Solo se ofrecen datos vacíos con una fuente; los demás se conservan.</p><div class="bulk-field-list">${data.fields.map(field=>`<label class="bulk-field ${field.key==='description'?'is-description':''}"><input type="checkbox" data-bulk-field="${esc(field.key)}" ${row.fields.has(field.key)?'checked':''} ${row.saved?'disabled':''}><span><strong>${esc(field.label)}</strong><span class="bulk-value">${esc(field.value)}${field.unit?' '+esc(field.unit):''}</span></span></label>`).join('')||'<p class="bulk-empty">Esta fuente no aportó campos vacíos confirmados. Podés comparar otro resultado.</p>'}</div>`:'';
  const photos=photoMode?referenceHTML(row)+photoHTML(row):'';
- return `<article class="bulk-item ${row.approved&&eligible(row)?'is-approved':''} ${row.saved?'is-saved':''}" data-bulk-row="${esc(row.id)}"><div class="bulk-item-head"><label class="bulk-approve"><input type="checkbox" data-bulk-approve ${row.approved?'checked':''} ${!eligible(row)||row.saved?'disabled':''}><span><h4>${esc(row.name)}</h4><small>${esc(row.category)} · Marcar para guardar</small></span></label><span class="bulk-item-state">${esc(row.status)}</span></div>${row.error?`<p class="bulk-item-error">${esc(row.error)}</p>`:''}<div class="bulk-item-query"><input class="field" data-bulk-query value="${esc(row.query)}" aria-label="Nombre o modelo para buscar: ${esc(row.name)}" maxlength="180" ${busy||row.saved?'disabled':''}><button type="button" class="btn small outline" data-row-search ${photoMode&&data&&!row.saved?'hidden':''} ${busy?'disabled':''}>${row.saved?'Preparar de nuevo':data?(photoMode?'Buscar otras fotos':'Volver a buscar'):'Buscar este artículo'}</button></div>${sources}${fields}${photos}</article>`;
+ return `<article class="bulk-item ${row.approved&&eligible(row)?'is-approved':''} ${row.saved?'is-saved':''}" data-bulk-row="${esc(row.id)}"><div class="bulk-item-head"><label class="bulk-approve"><input type="checkbox" data-bulk-approve ${row.approved?'checked':''} ${!eligible(row)||row.saved?'disabled':''}><span><h4>${esc(row.name)}</h4><small>${esc(row.category)} · Marcar para guardar</small></span></label><span class="bulk-item-state">${esc(!data&&(!capable()||row.useReference&&!referenceCapable())?'Falta activar en Google':row.status)}</span></div>${row.error?`<p class="bulk-item-error">${esc(row.error)}</p>`:''}<div class="bulk-item-query"><input class="field" data-bulk-query value="${esc(row.query)}" aria-label="Nombre o modelo para buscar: ${esc(row.name)}" maxlength="180" ${busy||row.saved?'disabled':''}><button type="button" class="btn small outline" data-row-search ${photoMode&&data&&!row.saved?'hidden':''} ${busy?'disabled':''}>${row.saved?'Preparar de nuevo':data?(photoMode?'Buscar otras fotos':'Volver a buscar'):'Buscar este artículo'}</button></div>${sources}${fields}${photos}</article>`;
 }
 function renderResults(){
  const list=rows();$('bulkReview').hidden=!list.length;
@@ -89,7 +94,7 @@ function syncChoices(row){
 }
 function open(mode,options={}){
  const key=options.key||mode;
- if(!states.has(key))states.set(key,{mode,singleId:options.singleId||'',editorId:options.editorId||'',useReference:false,selected:new Set(),rows:new Map(),running:false,saving:false,stop:false,total:0,done:0,message:'Seleccioná los artículos que querés completar.'});
+ if(!states.has(key))states.set(key,{mode,singleId:options.singleId||'',editorId:options.editorId||'',useReference:false,selected:new Set(),rows:new Map(),running:false,saving:false,checking:false,stop:false,total:0,done:0,message:'Seleccioná los artículos que querés completar.'});
  state=states.get(key);trigger=document.activeElement;
  const ids=new Set(A.products().map(p=>p.id));for(const id of state.selected)if(!ids.has(id))state.selected.delete(id);
  $('bulkTitle').textContent=mode==='photos'?'Rellenar fotos de forma masiva':'Rellenar información';
@@ -113,8 +118,30 @@ function openReference(id,editor=false){
  $('bulkTitle').textContent='Buscar con mi foto';
  $('bulkHelp').textContent=editor?'Buscá otras fotos del mismo producto. Las que elijás se copian al formulario para que las revisés antes de guardar.':'Compará otras fotos con la que ya tenés. Elegí la cantidad y guardá solo las coincidencias que aprobés.';
  $('bulkPickerPanel').open=false;picker();renderResults();
- if(referenceCapable())searchOne(row,{more:!!row.data});
- else{state.message='Esta opción necesita la nueva implementación de Google. Actualizá Code.gs y FichaGratis.gs y publicá Nueva versión.';controls();}
+ if(capable()&&referenceCapable())searchOne(row,{more:!!row.data});
+ else checkActivation();
+}
+async function checkActivation(){
+ if(!state||state.running||state.checking)return;
+ const current=state;
+ current.checking=true;current.message='Comprobando la versión activa en Google…';controls();
+ let ready=false;
+ try{
+  await A.refreshFeatures();
+  if(state!==current||$('bulkOverlay').hidden)return;
+  const needsReference=current.useReference||rows().some(row=>row.useReference);
+  ready=capable()&&(!needsReference||referenceCapable());
+  current.message=ready?'Activación confirmada. Ya podés buscar propuestas y revisar cuáles guardar.':'Google todavía no confirma la activación. Seguí los pasos de arriba y después tocá Comprobar activación.';
+ }catch(error){
+  current.message='No se pudo comprobar la activación: '+error.message+' Podés reintentar desde este botón.';
+ }finally{
+  current.checking=false;
+  if(state===current&&!$('bulkOverlay').hidden){
+   renderResults();
+   const row=current.singleId&&current.rows.get(current.singleId);
+   if(ready&&row&&!row.saved)await searchOne(row,{more:!!row.data});
+  }
+ }
 }
 function close(){
  if(state?.running){state.stop=true;state.closeWhenDone=true;state.message='Terminando el artículo actual antes de cerrar…';controls();return;}
@@ -141,7 +168,7 @@ async function prepare(row,options={}){
  finally{renderRow(row);}
 }
 async function searchSelected(){
- if(state.running||!capable())return;
+ if(state.running||state.checking||!capable())return;
  const ids=[...state.selected];
  for(const id of ids)if(!state.rows.has(id)){const p=A.products().find(p=>p.id===id);if(p)state.rows.set(id,newRow(p));}
  const queue=rows().filter(row=>!row.saved&&(!row.data||row.error||row.dirty));
@@ -161,7 +188,7 @@ async function searchSelected(){
  }
 }
 async function searchOne(row,options){
- if(state.running||!capable())return;
+ if(state.running||state.checking||!capable())return;
  if(row.useReference&&!referenceCapable()){state.message='Actualizá los dos archivos del buscador y publicá Nueva versión en Google para usar tu foto.';controls();return;}
  state.running=true;state.stop=false;state.closeWhenDone=false;state.total=1;state.done=0;
  state.message='Buscando opciones para '+row.name+'…';controls();
@@ -204,6 +231,7 @@ async function saveSelected(){
 }
 $('bulkPhotos').onclick=()=>open('photos');$('bulkInfo').onclick=()=>open('info');
 window.GC_BULK={openReference};
+$('bulkCheckActivation').onclick=checkActivation;
 $('bulkClose').onclick=close;$('bulkOverlay').onclick=event=>{if(event.target===$('bulkOverlay'))close();};
 $('bulkSearch').oninput=picker;$('bulkScope').onchange=picker;
 $('bulkUseReference').onchange=()=>{
