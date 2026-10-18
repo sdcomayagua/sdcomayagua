@@ -36,7 +36,7 @@ function doGet(e) {
     if(String(args.action||'') === 'health') {
       const props=PropertiesService.getScriptProperties();
       const pin=String(props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN') || '');
-      result={ok:true,version:'GC-20261017-FICHAS-V8',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+      result={ok:true,version:'GC-20261018-GESTION-V9',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
     } else result = {ok:true, ...publicPayload_()};
   } catch (err) {
     result = {ok:false, error:safeError_(err)};
@@ -69,8 +69,12 @@ function doPost(e) {
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,productResearchVersion:8,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,management:true,managementVersion:1,productResearchVersion:8,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
       }
+      else if (req.action === 'operationsSummary') result = gcOperationsSummary_();
+      else if (req.action === 'operationsList') result = gcOperationsList_(req);
+      else if (req.action === 'operationsSave') result = gcOperationsSave_(req);
+      else if (req.action === 'operationsSettings') result = gcOperationsSettings_(req);
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
       else if (req.action === 'researchCandidates') result = gcFreeCandidates_(req.name,req.category);
       else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category,req.selection);
@@ -490,4 +494,117 @@ function setBestSeller_(id,enabled){
     CacheService.getScriptCache().remove('public_catalog_v8');CacheService.getScriptCache().remove('public_catalog_v7');
     return {ok:true,id:String(id),bestSeller:enabled};
   }finally{lock.releaseLock();}
+}
+
+/** Gestión privada: estas pestañas nunca forman parte de publicPayload_ ni del catálogo. */
+const GC_OPERATION_HEADERS=['ID','Version','Creado','Actualizado','CambioID','Datos'];
+function gcManagementBook_(create){
+ const properties=PropertiesService.getScriptProperties();let id=String(properties.getProperty('GC_MANAGEMENT_SHEET_ID')||'');
+ if(!id){
+  if(!create)return null;
+  const created=SpreadsheetApp.create('GAMER COMAYAGUA · Gestión privada');id=created.getId();
+  properties.setProperty('GC_MANAGEMENT_SHEET_ID',id);
+  DriveApp.getFileById(id).setSharing(DriveApp.Access.PRIVATE,DriveApp.Permission.VIEW);
+  const first=created.getSheets()[0];first.setName('GC_PEDIDOS');first.appendRow(GC_OPERATION_HEADERS);first.setFrozenRows(1);
+ }
+ if(id===GC_SHEET_ID)throw Error('La gestión de clientes necesita su propio archivo privado, separado del inventario público.');
+ if(DriveApp.getFileById(id).getSharingAccess()!==DriveApp.Access.PRIVATE)throw Error('El archivo Gestión privada tiene acceso general habilitado. En Google Drive, cambiá su acceso a Restringido antes de continuar.');
+ return SpreadsheetApp.openById(id);
+}
+function gcOperationTable_(kind,create){
+ const names={orders:'GC_PEDIDOS',waitlist:'GC_INTERESADOS'},name=names[kind];
+ if(!name)throw Error('Sección de gestión inválida.');
+ const book=gcManagementBook_(create);if(!book)return {sheet:null,headers:GC_OPERATION_HEADERS,records:[]};let sheet=book.getSheetByName(name);
+ if(!sheet&&create){sheet=book.insertSheet(name);sheet.appendRow(GC_OPERATION_HEADERS);sheet.setFrozenRows(1);}
+ if(!sheet)return {sheet:null,headers:GC_OPERATION_HEADERS,records:[]};
+ const rows=sheet.getDataRange().getValues(),headers=(rows.shift()||[]).map(String);
+ if(GC_OPERATION_HEADERS.some(key=>!headers.includes(key)))throw Error('Revisá los encabezados de '+name+'. No se modificó la pestaña.');
+ const records=[];
+ rows.forEach((row,index)=>{if(!String(row[headers.indexOf('ID')]||''))return;let data;try{data=JSON.parse(String(row[headers.indexOf('Datos')]||''));}catch(error){throw Error('Hay un registro ilegible en '+name+', fila '+(index+2)+'. Revisá la hoja antes de continuar.');}
+  records.push({...data,id:String(row[headers.indexOf('ID')]),version:Number(row[headers.indexOf('Version')])||0,createdAt:row[headers.indexOf('Creado')] instanceof Date?row[headers.indexOf('Creado')].toISOString():String(row[headers.indexOf('Creado')]),updatedAt:row[headers.indexOf('Actualizado')] instanceof Date?row[headers.indexOf('Actualizado')].toISOString():String(row[headers.indexOf('Actualizado')]),mutationId:String(row[headers.indexOf('CambioID')]),_row:index+2});
+ });
+ return {sheet,headers,records};
+}
+function gcOperationPublic_(record){const {_row,mutationId,...data}=record;return data;}
+function gcOperationsThreshold_(){const value=PropertiesService.getScriptProperties().getProperty('GC_LOW_STOCK_THRESHOLD');if(value==null||value==='')return 3;const raw=Number(value);return Number.isInteger(raw)&&raw>=0&&raw<=1000?raw:3;}
+function gcOperationsSettings_(req){
+ const value=Number(req.lowStockThreshold);if(!Number.isInteger(value)||value<0||value>1000)throw Error('El aviso de stock debe ser un entero entre 0 y 1000.');
+ PropertiesService.getScriptProperties().setProperty('GC_LOW_STOCK_THRESHOLD',String(value));return {ok:true,lowStockThreshold:value};
+}
+function gcOperationsSummary_(){
+ const orders=gcOperationTable_('orders',false).records,waitlist=gcOperationTable_('waitlist',false).records,products=adminPayload_().products;
+ const stock=new Map(products.map(p=>[p.id,p.stock]));
+ const id=String(PropertiesService.getScriptProperties().getProperty('GC_MANAGEMENT_SHEET_ID')||'');
+ return {ok:true,managementUrl:id?'https://docs.google.com/spreadsheets/d/'+id+'/edit':'',lowStockThreshold:gcOperationsThreshold_(),orders:{total:orders.length,open:orders.filter(r=>!['delivered','cancelled'].includes(r.status)).length,sent:orders.filter(r=>r.status==='sent').length},waitlist:{total:waitlist.length,pending:waitlist.filter(r=>r.status==='pending').length,ready:waitlist.filter(r=>r.status==='pending'&&stock.get(r.productId)>0).length}};
+}
+function gcOperationsList_(req){
+ const table=gcOperationTable_(req.kind,false),query=String(req.query||'').trim().slice(0,160).toLowerCase(),status=String(req.status||''),limit=Math.max(1,Math.min(50,Math.floor(Number(req.limit)||20)));
+ const products=adminPayload_().products,productMap=new Map(products.map(p=>[p.id,p]));
+ let records=table.records.map(record=>({...record,...(req.kind==='waitlist'?{currentStock:productMap.get(record.productId)?.stock||0,currentImage:productMap.get(record.productId)?.image||''}:{})}));
+ if(status)records=records.filter(r=>status==='ready'?r.status==='pending'&&r.currentStock>0:r.status===status);
+ if(query){const words=query.normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(/\s+/);records=records.filter(r=>{const text=[r.number,r.customer,r.phone,r.productName,r.city,r.carrier,r.tracking,...(r.items||[]).map(i=>i.name)].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');return words.every(word=>text.includes(word));});}
+ records.sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt))||a.id.localeCompare(b.id));
+ const total=records.length,pages=Math.max(1,Math.ceil(total/limit)),page=Math.max(1,Math.min(pages,Math.floor(Number(req.page)||1)));
+ return {ok:true,records:records.slice((page-1)*limit,page*limit).map(gcOperationPublic_),total,page,pages};
+}
+function gcOperationText_(value,max){return String(value??'').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').trim().slice(0,max);}
+function gcOperationPhone_(raw){let value=String(raw||'').replace(/\D/g,'').replace(/^00/,'');if(value.length===8)value='504'+value;if(!/^\d{10,15}$/.test(value))throw Error('Escribí un celular de 8 dígitos o un número con código de país.');return value;}
+function gcOperationAmount_(raw,label){const value=Number(raw);if(raw===''||raw==null||!Number.isFinite(value)||value<0||value>100000000)throw Error('Revisá '+label+'.');return Math.round(value*100)/100;}
+function gcOrderTotals_(items,mode,shipping,config){
+ const subtotal=Math.round(items.reduce((sum,item)=>sum+item.unitPrice*item.qty,0)*100)/100;
+ if(mode==='cod'&&(subtotal<config.codMinimum||items.some(item=>item.codAllowed===false)))throw Error('El pedido no cumple el mínimo o los permisos para pagar al recibir.');
+ const base=Math.round((subtotal+shipping)*100)/100,rate=mode==='cod'?config.codRate:mode==='tigo'?config.tigoRate:0,amount=Math.round(base*(1+rate)*100)/100;
+ const total=Math.abs(amount-Math.round(amount))<1e-8?Math.round(amount):Math.ceil(amount)+1,fee=Math.round((total-base)*100)/100;
+ return {subtotal,shipping,fee,total,suggestedDeposit:mode==='cod'?Math.round((shipping+fee)*100)/100:total};
+}
+function gcCleanOrder_(input,old,products,config){
+ const states=['pending','confirmed','sent','delivered','cancelled'],status=String(input.status||'pending'),payment=String(input.payment||'transfer');
+ if(!states.includes(status)||!['transfer','tigo','cod'].includes(payment))throw Error('Estado o forma de pago inválidos.');
+ if(!Array.isArray(input.items)||!input.items.length||input.items.length>40)throw Error('Agregá de 1 a 40 artículos al pedido.');
+ const ids=new Set(),items=input.items.map(line=>{
+  if(!line||typeof line!=='object')throw Error('Hay un artículo inválido.');
+  const id=String(line.productId||''),product=products.find(p=>p.id===id),prior=(old?.items||[]).find(i=>i.productId===id);
+  if(!product&&!prior)throw Error('Un producto ya no existe. Volvé a elegirlo.');
+  if(ids.has(id))throw Error('El producto está repetido. Ajustá su cantidad en una sola fila.');ids.add(id);
+  const qty=Number(line.qty);if(!Number.isInteger(qty)||qty<1||qty>100000)throw Error('Las cantidades deben ser enteros mayores que cero.');
+  return {productId:id,name:prior?.name||product?.name||'',code:prior?.code||product?.code||'',qty,unitPrice:gcOperationAmount_(line.unitPrice,'el precio acordado'),codAllowed:prior?prior.codAllowed:product.codAllowed};
+ });
+ const pricing=old?.pricing||{codMinimum:config.codMinimum,codRate:config.codRate,tigoRate:config.tigoRate};
+ const shipping=gcOperationAmount_(input.shipping,'el envío'),totals=gcOrderTotals_(items,payment,shipping,pricing),paid=gcOperationAmount_(input.paid??0,'el importe recibido');
+ if(paid>totals.total)throw Error('El importe recibido supera el total del pedido.');
+ const customer=gcOperationText_(input.customer,120);if(customer.length<2)throw Error('Escribí el nombre del cliente.');
+ const carrier=gcOperationText_(input.carrier,100),tracking=gcOperationText_(input.tracking,160);
+ if(status==='sent'&&!carrier)throw Error('Indicá la empresa de envío o Entrega local.');
+ return {customer,phone:gcOperationPhone_(input.phone),city:gcOperationText_(input.city,160),address:gcOperationText_(input.address,600),status,payment,carrier,tracking,notes:gcOperationText_(input.notes,2000),items,pricing,...totals,paid,balance:Math.round((totals.total-paid)*100)/100,number:old?.number||'GC-P-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+String(input.id).slice(-8).toUpperCase()};
+}
+function gcCleanWait_(input,old,products){
+ const status=String(input.status||'pending');if(!['pending','contacted','resolved','cancelled'].includes(status))throw Error('Estado del interesado inválido.');
+ const productId=gcOperationText_(input.productId,100),product=products.find(p=>p.id===productId),productName=product?.name||(productId&&productId===old?.productId?old.productName:gcOperationText_(input.productName,180));
+ if(productId&&!product&&productId!==old?.productId)throw Error('No se encontró el producto solicitado.');
+ const customer=gcOperationText_(input.customer,120),quantity=Number(input.quantity||1);
+ if(customer.length<2||String(productName||'').length<2)throw Error('Completá el cliente y el artículo que solicita.');
+ if(!Number.isInteger(quantity)||quantity<1||quantity>100000)throw Error('Indicá una cantidad válida.');
+ return {customer,phone:gcOperationPhone_(input.phone),city:gcOperationText_(input.city,160),productId,productName,quantity,status,notes:gcOperationText_(input.notes,2000)};
+}
+function gcOperationsSave_(req){
+ const input=req.record;if(!input||typeof input!=='object'||Array.isArray(input))throw Error('Registro inválido.');
+ const id=String(input.id||''),mutationId=String(req.mutationId||''),expected=Number(req.expectedVersion);
+ if(!/^[a-z0-9-]{8,80}$/i.test(id)||!/^[a-z0-9-]{8,80}$/i.test(mutationId)||!Number.isInteger(expected)||expected<0)throw Error('Falta identificar el registro y su versión. Recargá la sección.');
+ const lock=LockService.getScriptLock();lock.waitLock(25000);
+ try{
+  let table=gcOperationTable_(req.kind,false);const old=table.records.find(record=>record.id===id);
+  if(old?.mutationId===mutationId)return {ok:true,record:gcOperationPublic_(old),replayed:true};
+  if((old?.version||0)!==expected)throw Error('Este registro cambió en otro navegador. Sincronizá la sección y revisá la versión actual antes de guardar.');
+  if(!old&&expected!==0)throw Error('El registro ya no existe.');
+  const products=adminPayload_().products,clean=req.kind==='orders'?gcCleanOrder_(input,old,products,cfg_()):req.kind==='waitlist'?gcCleanWait_(input,old,products):null;
+  if(!clean)throw Error('Sección de gestión inválida.');
+  if(req.kind==='waitlist'&&clean.status==='pending'&&table.records.some(r=>r.id!==id&&r.status==='pending'&&r.phone===clean.phone&&(clean.productId?r.productId===clean.productId:!r.productId&&r.productName.toLowerCase()===clean.productName.toLowerCase())))throw Error('Este cliente ya está esperando ese artículo. Buscalo y editá su registro para evitar duplicados.');
+  const now=new Date().toISOString(),record={...clean,id,version:(old?.version||0)+1,createdAt:old?.createdAt||now,updatedAt:now};
+  const json=JSON.stringify(record);if(json.length>40000)throw Error('El registro es demasiado grande. Reducí las notas o los artículos.');
+  if(!table.sheet)table=gcOperationTable_(req.kind,true);
+  const values={ID:id,Version:record.version,Creado:record.createdAt,Actualizado:record.updatedAt,CambioID:mutationId,Datos:json};
+  if(old){const row=table.sheet.getRange(old._row,1,1,table.headers.length).getValues()[0];table.headers.forEach((key,i)=>{if(values[key]!==undefined)row[i]=values[key];});table.sheet.getRange(old._row,1,1,row.length).setValues([row]);}
+  else table.sheet.appendRow(table.headers.map(key=>values[key]??''));
+  return {ok:true,record};
+ }finally{lock.releaseLock();}
 }

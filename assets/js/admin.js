@@ -113,7 +113,7 @@ function renderGalleryPreview(){
  const files=selectedFiles.slice(0,10);
  $('selectedFilesText').textContent=files.length?files.map(f=>f.name).join(', '):'No hay archivos seleccionados.';
  $('galleryPreview').innerHTML=all.length
-   ? all.map((url,i)=>`<div class="gallery-thumb"><img src="${esc(normalizePreview(url))}" onerror="this.onerror=null;this.src='${fallback}'" alt="Foto ${i+1}"><span>${i===0?'Principal':'Foto '+(i+1)}</span><button type="button" data-main="${i}" aria-label="Usar foto ${i+1} como principal">Principal</button><button type="button" data-remove-photo="${i}" aria-label="Quitar foto ${i+1}">Quitar</button></div>`).join('')
+   ? all.map((url,i)=>`<div class="gallery-thumb" data-photo-position="${i}"><img draggable="false" src="${esc(normalizePreview(url))}" onerror="this.onerror=null;this.src='${fallback}'" alt="Foto ${i+1}"><span>${i===0?'Principal':'Foto '+(i+1)}</span><button type="button" class="photo-grip" draggable="true" data-photo-grip="${i}" aria-label="Mover foto ${i+1}. Usá las flechas izquierda y derecha">↔ Arrastrar</button><div class="photo-step"><button type="button" data-photo-step="${i}" data-step="-1" aria-label="Mover foto ${i+1} antes" ${i===0?'disabled':''}>←</button><button type="button" data-photo-step="${i}" data-step="1" aria-label="Mover foto ${i+1} después" ${i===all.length-1?'disabled':''}>→</button></div><button type="button" data-main="${i}" aria-label="Usar foto ${i+1} como principal">Principal</button><button type="button" data-remove-photo="${i}" aria-label="Quitar foto ${i+1}">Quitar</button></div>`).join('')
    : '<div class="gallery-help">Acá verás la imagen principal y la galería.</div>';
  $('pendingPreview').innerHTML=files.map((file,i)=>{const url=URL.createObjectURL(file);previewUrls.push(url);return `<div class="gallery-thumb pending"><img src="${url}" alt="Foto pendiente ${i+1}"><span>Pendiente</span><button type="button" data-remove-file="${i}" aria-label="Quitar archivo ${i+1}">Quitar</button></div>`}).join('');
  $('imagePreview').onerror=function(){this.onerror=null;this.src=fallback};
@@ -139,6 +139,7 @@ function render(){
    <td data-label="Acciones"><button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> ${!noPhoto(p)?`<button type="button" class="btn small outline" data-reference-product="${esc(p.id)}">Buscar con mi foto</button>`:''}<button type="button" class="btn small red" data-disable="${esc(p.id)}" >Ocultar</button> <button type="button" class="btn small outline best-seller-toggle ${p.bestSeller?'selected':''}" data-best-seller="${esc(p.id)}" aria-pressed="${p.bestSeller}" aria-label="${p.bestSeller?'Quitar de':'Marcar en'} Más pedidos: ${esc(p.name)}">${p.bestSeller?'★ En Más pedidos':'☆ Más pedidos'}</button></td>
  </tr>`).join('')||'<tr><td colspan="8" class="muted">No hay resultados.</td></tr>';
  $('settingsSummary').textContent=`Envío: ${C.money(settings.shipping??110)} | Mínimo pago al recibir: ${C.money(settings.codMinimum||350)} en productos | Comisión al recibir: ${Math.round((settings.codRate||.1)*100)}% | Tigo Money: ${Math.round((settings.tigoRate||.07)*100)}%`;
+ if(typeof CustomEvent==='function')document.dispatchEvent(new CustomEvent('gc:catalog'));
 
 }
 async function reload(){
@@ -225,6 +226,13 @@ function appendEditorPhotos(id,urls){
  if(new Set([...current.images,...urls]).size>10)throw Error('No hay espacio para estas fotos en el formulario. Elegí menos.');
  setGalleryFromUrls(urls);
  $('formMessage').textContent=urls.length+' fotos copiadas al formulario. Revisalas y tocá Guardar y actualizar tienda.';
+}
+function reorderEditorPhotos(from,to){
+ if(busy||researchBusy)return false;
+ const urls=[$('productImage').value.trim(),...parseGallery($('galleryInput').value)].filter(Boolean);
+ if(!Number.isInteger(from)||!Number.isInteger(to)||from<0||to<0||from>=urls.length||to>=urls.length)return false;
+ urls.splice(to,0,urls.splice(from,1)[0]);$('productImage').value=urls[0]||'';$('galleryInput').value=urls.slice(1).join('\n');renderGalleryPreview();
+ $('formMessage').textContent='Orden de fotos actualizado. La primera es la principal. Tocá Guardar y actualizar tienda para publicarlo.';return true;
 }
 function undoResearch(){
  const f=$('productForm'),kept=researchApplied.filter(item=>{const field=formField(f,item.key);return field.value.trim()&&(!field.classList.contains('research-filled')||field.value!==item.value);}).map(item=>item.key);
@@ -554,6 +562,7 @@ function binds(){
  $('galleryPreview').onclick=e=>{
   if(busy)return;
   const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.main===undefined&&b.dataset.removePhoto===undefined)return;
   const urls=[$('productImage').value.trim(),...parseGallery($('galleryInput').value)].filter(Boolean);
   if(b.dataset.main!==undefined){const i=Number(b.dataset.main);urls.unshift(...urls.splice(i,1));}
   if(b.dataset.removePhoto!==undefined)urls.splice(Number(b.dataset.removePhoto),1);
@@ -573,6 +582,6 @@ function binds(){
  if(!validApi()){$('loginMessage').textContent='Todavía falta conectar el sitio con Apps Script: editá assets/js/config.js.';$('loginMessage').classList.remove('hidden')}
  else {connectionCheck().then(ok=>{if(token){$('secret').value=token;if(ok)logIn();}});}
 }
-window.GC_ADMIN={request,products:()=>products,features:()=>serverFeatures,reload,toast,parseGallery,editorPhotos,appendEditorPhotos,notify:()=>{try{localStorage.setItem('gc_catalog_revision',JSON.stringify({at:Date.now()}))}catch{}}};
+window.GC_ADMIN={request,products:()=>products,settings:()=>({...settings}),features:()=>serverFeatures,editProduct:showProduct,reload,toast,parseGallery,editorPhotos,appendEditorPhotos,reorderEditorPhotos,notify:()=>{try{localStorage.setItem('gc_catalog_revision',JSON.stringify({at:Date.now()}))}catch{}}};
 binds();
 })();
