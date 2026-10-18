@@ -23,6 +23,7 @@ jobs:
           node tests/test-cart.js
           node tests/test-catalog.js
           node tests/test-free-research.js
+          node tests/test-model.js
           node tests/test-selected-research.js
           node tests/test-bulk.js
           node tests/test-reference-photos.js

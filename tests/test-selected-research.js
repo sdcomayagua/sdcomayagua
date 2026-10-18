@@ -23,7 +23,7 @@ function setup(){
   calls.push({url,payload});
   if(url.endsWith('/search'))return {results:[{url:primary,title:'Adaptador OTG USB-C',content:'Adaptador genérico negro, USB-C a USB-A. Peso: 12 g. Entrada 15 V.'},{url:other,title:'Otro adaptador',content:'Otro producto, 99 W.'},{url:'https://127.0.0.1/private',title:'No válido'},{url:'javascript:alert(1)',title:'No válido'}]};
   if(url.endsWith('/extract')){assert.deepEqual(Array.from(payload.urls),[primary]);return {results:[{url:primary,raw_content:'Adaptador genérico negro, conexión USB-C a USB-A. Peso: 12 g. Entrada 15 V.',images:['https://cdn.example/otg.jpg']}]};}
-  assert.match(url,/gemini-2.5-flash-lite:generateContent$/);assert.equal(payload.generationConfig.thinkingConfig,undefined);
+  assert.match(url,/gemini-3.5-flash-lite:generateContent$/);assert.equal(payload.generationConfig.thinkingConfig,undefined);
   return {candidates:[{content:{parts:[{text:JSON.stringify(data)}]}}]};
  };
  return {context,props,cache,calls,data};

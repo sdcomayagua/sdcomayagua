@@ -1,0 +1,13 @@
+// No consulta Google ni utiliza claves reales.
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+function setup(status=200,result={ok:true}){
+ const props={GC_FREE_GEMINI_API_KEY:'TEST_ONLY',GC_FREE_TAVILY_API_KEY:'TEST_ONLY',ADMIN_PIN:'TEST_ONLY',GC_FREE_GEMINI_MODEL:'gemini-2.0-flash'},calls=[],logs=[];
+ const context={Date,Logger:{log:text=>logs.push(text)},PropertiesService:{getScriptProperties:()=>({getProperty:key=>props[key],setProperty:(key,value)=>{props[key]=value;}})},UrlFetchApp:{fetch:(url,options)=>{calls.push({url,options});return {getResponseCode:()=>status,getContentText:()=>JSON.stringify({candidates:[{content:{parts:[{text:JSON.stringify(result)}]}}]})};}}};
+ vm.createContext(context);vm.runInContext(fs.readFileSync(__dirname+'/../apps-script/FichaGratis.gs','utf8'),context);return {context,props,calls,logs};
+}
+const normal=setup();delete normal.props.GC_FREE_GEMINI_MODEL;assert.equal(normal.context.gcFreeModel_(),'gemini-3.5-flash-lite');normal.props.GC_FREE_GEMINI_MODEL=' models/gemini-3.1-flash-lite ';assert.equal(normal.context.gcFreeModel_(),'gemini-3.1-flash-lite');normal.props.GC_FREE_GEMINI_MODEL='https://invalid.example/?key=private';assert.throws(()=>normal.context.gcFreeModel_(),/GC_FREE_GEMINI_MODEL/);
+const good=setup();assert.match(good.context.actualizarModeloBuscador(),/respondió correctamente/);assert.equal(good.props.GC_FREE_GEMINI_MODEL,'gemini-3.5-flash-lite');assert.equal(good.props.ADMIN_PIN,'TEST_ONLY');assert.equal(good.props.GC_FREE_TAVILY_API_KEY,'TEST_ONLY');assert.match(good.calls[0].url,/models\/gemini-3.5-flash-lite:generateContent$/);assert.equal(good.logs.some(line=>line.includes('TEST_ONLY')),false);
+const missing=setup(404);assert.throws(()=>missing.context.actualizarModeloBuscador(),/modelo configurado \(gemini-3.5-flash-lite\).*HTTP 404/);assert.equal(missing.props.GC_FREE_GEMINI_MODEL,'gemini-2.0-flash');assert.equal(missing.calls.length,1,'Un 404 no cambia modelos ni proveedores automáticamente');
+for(const status of [403,429,500]){const failed=setup(status);assert.throws(()=>failed.context.actualizarModeloBuscador());assert.equal(failed.props.GC_FREE_GEMINI_MODEL,'gemini-2.0-flash');assert.equal(failed.calls.length,1);}
+const malformed=setup(200,{ok:false});assert.throws(()=>malformed.context.actualizarModeloBuscador(),/conservó el modelo anterior/);assert.equal(malformed.props.GC_FREE_GEMINI_MODEL,'gemini-2.0-flash');
+console.log('PASS modelos: 404 claro, modelo actual, configuración explícita conservada, prueba previa, sin cambios ante fallos ni claves en registros.');
