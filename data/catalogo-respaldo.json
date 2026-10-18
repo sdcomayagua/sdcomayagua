@@ -1046,7 +1046,16 @@
     "colors": "",
     "promoPrice": 0,
     "promoText": "",
-    "details": {}
+    "details": {
+      "compatibility": "máxima en un solo dispositivo. Gracias a su doble",
+      "connection": "USB 3.2 Type-A + USB Type-C   Color primario: Plata Compartir Twittear ## Información adicional [...] Doble conector: USB-A y USB-C   Con una",
+      "references": [
+        {
+          "url": "https://informartepc.com/producto/dsp0000035397",
+          "title": "Memoria usb 3.2 - usb tipo c goodram 32b oda3 plata - Informarte PC"
+        }
+      ]
+    }
   },
   {
     "catalogOrder": 46,
@@ -1215,8 +1224,8 @@
     "category": "Cocina",
     "price": 220,
     "stock": 1,
-    "image": "assets/products/fbeda7783d07822643ba.webp",
-    "gallery": "",
+    "image": "https://drive.google.com/thumbnail?id=1EinMa9yymljzPO63vZ7BzpTVBUOWceuL&sz=w1200",
+    "gallery": "https://drive.google.com/thumbnail?id=1ydO2JMx0oc0guvRRpmz0CFbpToyYaJx_&sz=w1200, https://drive.google.com/thumbnail?id=1geN686GRJ19T2XuYzoWarjnh_O4jZGH5&sz=w1200, https://drive.google.com/thumbnail?id=1m75-G5u-B2tkbI_IuyHdb2orlaFCNNPJ&sz=w1200, https://drive.google.com/thumbnail?id=1pWsOLQpHoqwtBgNOAg5vtgU9inL6zeqc&sz=w1200, https://drive.google.com/thumbnail?id=1IB08oXgjkUTTWRw7mzuuzIs0BSQXykBY&sz=w1200",
     "description": "Producto práctico para el hogar, pensado para facilitar tareas diarias con una presentación útil y funcional. Precio de referencia: Lps. 250. Categoría: Cocina. Disponible para cotización, venta y envío según zona.",
     "discounts": "",
     "codAllowed": true,
