@@ -182,6 +182,10 @@ function gcFreePost_(url,payload,headers,label) {
   Logger.log('GC ficha gratis · '+label+' · HTTP '+code+' · '+(Date.now()-started)+' ms');
   if(code===401||code===403)throw Error(label+': clave privada inválida o sin acceso al nivel gratuito.');
   if([402,429,432,433].includes(code))throw Error(label+': cuota gratuita agotada. Esperá al reinicio de la cuota de tu proveedor.');
+  if(code===404&&label==='Gemini'){
+    const model=(String(url).match(/\/models\/(gemini-[a-z0-9.-]+):generateContent$/i)||[])[1]||gcFreeModel_();
+    throw Error('Gemini: el modelo configurado ('+model+') no está disponible para esta cuenta (HTTP 404). Ejecutá actualizarModeloBuscador en Apps Script para comprobar y activar el modelo actual.');
+  }
   if(code<200||code>=300)throw Error(label+': error HTTP '+code+'. Revisá las claves y cuotas gratuitas.');
   let out;try{out=JSON.parse(response.getContentText())}catch(err){throw Error(label+': respuesta ilegible.');}
   return out;
@@ -189,9 +193,23 @@ function gcFreePost_(url,payload,headers,label) {
 
 /** Nombre configurable sin incluir claves ni forzar configuraciones de otro modelo. */
 function gcFreeModel_(){
-  const model=String(PropertiesService.getScriptProperties().getProperty('GC_FREE_GEMINI_MODEL')||'gemini-2.5-flash-lite').trim();
+  const model=String(PropertiesService.getScriptProperties().getProperty('GC_FREE_GEMINI_MODEL')||'gemini-3.5-flash-lite').trim().replace(/^models\//,'');
   if(!/^gemini-[a-z0-9.-]{3,70}$/i.test(model))throw Error('Revisá GC_FREE_GEMINI_MODEL en las propiedades de Apps Script.');
   return model;
+}
+/** Ejecutar desde el editor propietario. Prueba el modelo antes de cambiar esta propiedad. */
+function actualizarModeloBuscador(){
+  const model='gemini-3.5-flash-lite',key=String(PropertiesService.getScriptProperties().getProperty('GC_FREE_GEMINI_API_KEY')||'').trim();
+  if(!key)throw Error('Falta la clave privada de Gemini en Propiedades de secuencia de comandos.');
+  const response=gcFreePost_('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
+    contents:[{parts:[{text:'Respondé únicamente el objeto JSON {"ok":true}.'}]}],
+    generationConfig:{temperature:0,maxOutputTokens:96,responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{ok:{type:'BOOLEAN'}},required:['ok']}}
+  },{'x-goog-api-key':key},'Gemini');
+  let result;try{result=JSON.parse((response.candidates?.[0]?.content?.parts||[]).filter(part=>!part.thought).map(part=>part.text||'').join(''));}catch(error){}
+  if(result?.ok!==true)throw Error('Gemini no confirmó la prueba. Se conservó el modelo anterior.');
+  PropertiesService.getScriptProperties().setProperty('GC_FREE_GEMINI_MODEL',model);
+  const message='Buscador comprobado: '+model+' respondió correctamente. Modelo actualizado; PIN y claves conservados.';
+  Logger.log(message);return message;
 }
 function gcSourceUrl_(value){
   const url=String(value||'').trim();

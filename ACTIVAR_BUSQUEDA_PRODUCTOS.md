@@ -23,7 +23,7 @@ GitHub Pages y Google Apps Script se publican por separado. Actualizar GitHub no
 3. Reemplazá **FichaGratis.gs** por [apps-script/FichaGratis.gs](apps-script/FichaGratis.gs). Si no existe, crealo con ese nombre. No dupliqués las funciones de Code.gs ni borres EditorMovil.gs o FichaRapida.gs.
 4. Conservá tus propiedades privadas del PIN y las claves `GC_FREE_TAVILY_API_KEY` y `GC_FREE_GEMINI_API_KEY`. Si todavía faltan, seguí [la guía de conexión](BUSCADOR_GRATIS_SIN_PAGOS.md). No pegues claves en GitHub ni en el formulario.
 5. **Implementar → Administrar implementaciones → lápiz → Nueva versión → Implementar**. Editá la implementación existente para conservar la URL `/exec`. Conservá su acceso público y la ejecución como propietario; las operaciones administrativas siguen protegidas por PIN.
-6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-46) e ingresá con tu PIN. Si tenías abierta la ventana de búsqueda, tocá **Comprobar activación**: ya no hace falta salir del producto para reconocer la nueva versión.
+6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-47) e ingresá con tu PIN. Si tenías abierta la ventana de búsqueda, tocá **Comprobar activación**: ya no hace falta salir del producto para reconocer la nueva versión.
 
 El servidor nuevo anuncia versión de búsqueda 8 y catálogo 2. El panel informa si falta activar la selección, las fotos, el relleno por lotes o la búsqueda con referencia. Mientras tanto mantiene las funciones compatibles del servidor anterior.
 
@@ -33,7 +33,13 @@ Ese aviso significa que la versión de Google consultada no confirma la función
 
 Al abrir **Buscar con mi foto**, el panel vuelve a comprobar una activación que antes faltaba. También podés tocar **Comprobar activación** sin cerrar la ventana: si Google ya confirma la función, continúa la búsqueda de ese producto conservando el texto escrito. Si sigue faltando, muestra los pasos y enlaces a ambos archivos; si falla la conexión, permite reintentar. La comprobación no copia ni guarda imágenes; revisá las propuestas antes de aprobarlas.
 
-El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la propuesta. El modelo predeterminado es `gemini-2.5-flash-lite`, configurable con la propiedad privada `GC_FREE_GEMINI_MODEL`. No activa facturación ni cambia automáticamente a otro proveedor; las cuotas y condiciones dependen de las cuentas configuradas.
+El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la propuesta. El modelo predeterminado es `gemini-3.5-flash-lite`, configurable con la propiedad privada `GC_FREE_GEMINI_MODEL`. No activa facturación ni cambia automáticamente a otro proveedor; las cuotas y condiciones dependen de las cuentas configuradas.
+
+### Si Gemini devuelve HTTP 404
+
+El 404 indica que el modelo consultado no está disponible para esa cuenta o versión de la API. No debe confundirse con una clave incorrecta (401/403) ni con una cuota agotada (429). Google limita el acceso a los modelos 2.5 en proyectos nuevos: [documentación oficial](https://ai.google.dev/gemini-api/docs/deprecations/).
+
+En el proyecto propietario podés ejecutar **actualizarModeloBuscador**. Primero prueba una respuesta JSON con `gemini-3.5-flash-lite`; solo cuando responde correctamente actualiza `GC_FREE_GEMINI_MODEL`. Conserva el PIN y las claves privadas y no activa facturación. Si la prueba falla, conserva el modelo anterior. La propiedad se consulta en cada búsqueda: actualizarla surte efecto en la implementación existente sin tener que copiar archivos nuevamente. El nuevo manejo de errores se incluye al publicar una nueva versión del código.
 
 ## Comprobar sin alterar el inventario
 

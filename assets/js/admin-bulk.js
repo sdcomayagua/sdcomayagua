@@ -179,7 +179,7 @@ async function searchSelected(){
   for(const row of queue){
    if(state.stop)break;
    state.message=`Buscando ${state.done+1} de ${state.total}: ${row.name}`;controls();
-   try{await prepare(row);}catch(error){failed++;if(/cuota|agotad|límite|HTTP 429|Google no respondió|tardó demasiado|buscando otra/i.test(error.message))state.stop=true;}
+   try{await prepare(row);}catch(error){failed++;if(/cuota|agotad|límite|HTTP 429|HTTP 404|clave privada|Google no respondió|tardó demasiado|buscando otra/i.test(error.message))state.stop=true;}
    state.done++;controls();
   }
  }finally{
