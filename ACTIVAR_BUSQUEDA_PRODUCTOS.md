@@ -1,5 +1,7 @@
 # Buscador de productos y envíos — actualización de octubre 2026
 
+El nuevo **Centro de gestión** (pendientes, stock, pedidos, interesados y publicaciones) se activa con [estos pasos](ACTIVAR_GESTION.md). Si ya tenés la búsqueda con foto, esta actualización de gestión requiere cambiar solo Code.gs.
+
 ## Lo que cambia
 
 - TikTok, YouTube, Facebook, Instagram y páginas de videos se excluyen. Si una página bloquea la lectura completa, se conserva el fragmento que ya contiene atributos.
@@ -21,7 +23,7 @@ GitHub Pages y Google Apps Script se publican por separado. Actualizar GitHub no
 3. Reemplazá **FichaGratis.gs** por [apps-script/FichaGratis.gs](apps-script/FichaGratis.gs). Si no existe, crealo con ese nombre. No dupliqués las funciones de Code.gs ni borres EditorMovil.gs o FichaRapida.gs.
 4. Conservá tus propiedades privadas del PIN y las claves `GC_FREE_TAVILY_API_KEY` y `GC_FREE_GEMINI_API_KEY`. Si todavía faltan, seguí [la guía de conexión](BUSCADOR_GRATIS_SIN_PAGOS.md). No pegues claves en GitHub ni en el formulario.
 5. **Implementar → Administrar implementaciones → lápiz → Nueva versión → Implementar**. Editá la implementación existente para conservar la URL `/exec`. Conservá su acceso público y la ejecución como propietario; las operaciones administrativas siguen protegidas por PIN.
-6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-44), recargá con **Ctrl + F5** e ingresá con tu PIN.
+6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-45), recargá con **Ctrl + F5** e ingresá con tu PIN.
 
 El servidor nuevo anuncia versión de búsqueda 8 y catálogo 2. El panel informa si falta activar la selección, las fotos, el relleno por lotes o la búsqueda con referencia. Mientras tanto mantiene las funciones compatibles del servidor anterior.
 
