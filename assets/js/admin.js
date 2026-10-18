@@ -5,7 +5,7 @@ const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
 let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false,bestSellersSupported=false,imageImportSupported=false;
 let researchBusy=false,researchEpoch=0,researchDraft=null,automaticQuery=true,researchSelectable=false,researchSearch=null,researchApplied=[],researchReferencesBefore=null;
 let researchMode='details',researchPhotoDraft=null,imageSearchSupported=false;
-let verifiedProfiles=null,serverFeatures={};
+let verifiedProfiles=null,serverFeatures={},checkingFeatures=null;
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
 async function verifiedProfile(name,productName=''){
  if(!verifiedProfiles){
@@ -174,6 +174,18 @@ async function reload(){
   }
  }
 }
+function applyFeatures(verification){
+ serverFeatures=verification.features||{};
+ detailsSupported=serverFeatures.details===true;extendedDetailsSupported=serverFeatures.extendedDetails===true;
+ researchSupported=serverFeatures.productResearch===true;researchSelectable=serverFeatures.productResearchSelection===true;
+ bestSellersSupported=serverFeatures.bestSellers===true;imageImportSupported=serverFeatures.researchImageImport===true;imageSearchSupported=serverFeatures.researchPhotos===true;
+ $('bestSellersPublishNotice').hidden=!bestSellersSupported||serverFeatures.publicCatalogMetadata===true;
+}
+function refreshFeatures(){
+ if(checkingFeatures)return checkingFeatures;
+ checkingFeatures=request('verify').then(verification=>{applyFeatures(verification);return serverFeatures;}).finally(()=>{checkingFeatures=null;});
+ return checkingFeatures;
+}
 async function logIn(e){
  if(e)e.preventDefault();
  // El PIN se comprueba directamente en el servidor; no dependemos del test público JSONP.
@@ -181,7 +193,7 @@ async function logIn(e){
  if(!/^\d{6}$/.test(candidate)){toast('Ingresá tu PIN de seis dígitos.');return;}
  token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
  try{
-  const verification=await request('verify');serverFeatures=verification.features||{};detailsSupported=verification.features?.details===true;extendedDetailsSupported=verification.features?.extendedDetails===true;researchSupported=verification.features?.productResearch===true;researchSelectable=verification.features?.productResearchSelection===true;bestSellersSupported=verification.features?.bestSellers===true;imageImportSupported=verification.features?.researchImageImport===true;imageSearchSupported=verification.features?.researchPhotos===true;$('bestSellersPublishNotice').hidden=!bestSellersSupported||verification.features?.publicCatalogMetadata===true;sessionStorage.setItem('gc_admin_token',token);
+  await refreshFeatures();sessionStorage.setItem('gc_admin_token',token);
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');reload();
  }catch(err){token='';$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
@@ -582,6 +594,6 @@ function binds(){
  if(!validApi()){$('loginMessage').textContent='Todavía falta conectar el sitio con Apps Script: editá assets/js/config.js.';$('loginMessage').classList.remove('hidden')}
  else {connectionCheck().then(ok=>{if(token){$('secret').value=token;if(ok)logIn();}});}
 }
-window.GC_ADMIN={request,products:()=>products,settings:()=>({...settings}),features:()=>serverFeatures,editProduct:showProduct,reload,toast,parseGallery,editorPhotos,appendEditorPhotos,reorderEditorPhotos,notify:()=>{try{localStorage.setItem('gc_catalog_revision',JSON.stringify({at:Date.now()}))}catch{}}};
+window.GC_ADMIN={request,products:()=>products,settings:()=>({...settings}),features:()=>serverFeatures,refreshFeatures,editProduct:showProduct,reload,toast,parseGallery,editorPhotos,appendEditorPhotos,reorderEditorPhotos,notify:()=>{try{localStorage.setItem('gc_catalog_revision',JSON.stringify({at:Date.now()}))}catch{}}};
 binds();
 })();

@@ -23,9 +23,15 @@ GitHub Pages y Google Apps Script se publican por separado. Actualizar GitHub no
 3. Reemplazá **FichaGratis.gs** por [apps-script/FichaGratis.gs](apps-script/FichaGratis.gs). Si no existe, crealo con ese nombre. No dupliqués las funciones de Code.gs ni borres EditorMovil.gs o FichaRapida.gs.
 4. Conservá tus propiedades privadas del PIN y las claves `GC_FREE_TAVILY_API_KEY` y `GC_FREE_GEMINI_API_KEY`. Si todavía faltan, seguí [la guía de conexión](BUSCADOR_GRATIS_SIN_PAGOS.md). No pegues claves en GitHub ni en el formulario.
 5. **Implementar → Administrar implementaciones → lápiz → Nueva versión → Implementar**. Editá la implementación existente para conservar la URL `/exec`. Conservá su acceso público y la ejecución como propietario; las operaciones administrativas siguen protegidas por PIN.
-6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-45), recargá con **Ctrl + F5** e ingresá con tu PIN.
+6. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-46) e ingresá con tu PIN. Si tenías abierta la ventana de búsqueda, tocá **Comprobar activación**: ya no hace falta salir del producto para reconocer la nueva versión.
 
 El servidor nuevo anuncia versión de búsqueda 8 y catálogo 2. El panel informa si falta activar la selección, las fotos, el relleno por lotes o la búsqueda con referencia. Mientras tanto mantiene las funciones compatibles del servidor anterior.
+
+### Si «Buscar con mi foto» no pasa del aviso de activación
+
+Ese aviso significa que la versión de Google consultada no confirma la función; la búsqueda todavía no comenzó. Verificá **FichaGratis.gs además de Code.gs**, dentro del mismo proyecto. Después de guardarlos, publicá **Nueva versión** desde el lápiz de la implementación existente. Guardar archivos sin publicar no cambia la versión que usa la tienda.
+
+Al abrir **Buscar con mi foto**, el panel vuelve a comprobar una activación que antes faltaba. También podés tocar **Comprobar activación** sin cerrar la ventana: si Google ya confirma la función, continúa la búsqueda de ese producto conservando el texto escrito. Si sigue faltando, muestra los pasos y enlaces a ambos archivos; si falla la conexión, permite reintentar. La comprobación no copia ni guarda imágenes; revisá las propuestas antes de aprobarlas.
 
 El motor utiliza Tavily para buscar y leer páginas y Gemini para organizar la propuesta. El modelo predeterminado es `gemini-2.5-flash-lite`, configurable con la propiedad privada `GC_FREE_GEMINI_MODEL`. No activa facturación ni cambia automáticamente a otro proveedor; las cuotas y condiciones dependen de las cuentas configuradas.
 
