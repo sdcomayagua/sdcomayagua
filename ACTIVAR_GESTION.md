@@ -1,15 +1,15 @@
 # Centro de gestión de GAMER COMAYAGUA
 
-El panel 45 reúne inventario, productos por completar, stock bajo, pedidos y envíos, interesados y publicaciones. Conserva los botones de búsqueda y las reglas actuales del carrito.
+El panel 48 reúne inventario, productos por completar, stock bajo, pedidos y envíos, interesados y publicaciones. Conserva los botones de búsqueda y las reglas actuales del carrito.
 
 ## Activación
 
 1. Abrí tu [inventario](https://docs.google.com/spreadsheets/d/1ReprTmtpBpoxIps-c5O-0quUmYgdHSePGIpB2Ey-rQ0/edit) → **Extensiones → Apps Script**.
 2. Reemplazá únicamente **Code.gs** por [la versión actualizada](apps-script/Code.gs) y guardá. Si ya tenés la búsqueda con foto, **FichaGratis.gs no necesita cambiar en esta actualización**. Conservá los otros archivos, el PIN y las claves privadas.
 3. Elegí **Implementar → Administrar implementaciones → lápiz → Nueva versión → Implementar**. Usá la implementación existente para mantener la misma URL `/exec` y la ejecución como propietario.
-4. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-45), recargá con **Ctrl + F5** e ingresá con tu PIN.
+4. Abrí [ADMIN](https://sdcomayagua.github.io/sdcomayagua/admin.html?v=gc-catalog-48), recargá con **Ctrl + F5** e ingresá con tu PIN.
 
-El servidor anuncia **GC-20261018-GESTION-V9**, gestión versión 1 y búsqueda versión 8. Si falta esta implementación, el panel permite revisar pendientes, ordenar fotos y preparar textos; muestra los pasos de activación al entrar a pedidos, interesados o la configuración del aviso de stock.
+El servidor anuncia **GC-20261019-INVENTARIO-V10**, gestión versión 2 y búsqueda versión 8. Si falta esta implementación, el panel permite revisar pendientes, ordenar fotos y preparar textos; muestra los pasos de activación al entrar a pedidos, interesados o la configuración del aviso de stock.
 
 Al guardar el primer pedido o interesado, el servidor crea automáticamente en tu Drive el archivo **GAMER COMAYAGUA · Gestión privada**, con acceso restringido. Los pedidos se guardan en **GC_PEDIDOS** y las solicitudes en **GC_INTERESADOS**, fuera del archivo que alimenta el catálogo público. Después aparece **Abrir gestión privada** en ADMIN. No hace falta crear ni compartir pestañas manualmente.
 
@@ -66,3 +66,7 @@ No consulta un servicio de IA, no consume cuotas de búsqueda, no publica autom�
 ## Verificación técnica
 
 Las pruebas de servidor usan hojas en memoria y un PIN ficticio. Comprueban privacidad, archivo separado restringido, versiones concurrentes, reintentos sin duplicados, cálculos iguales al carrito, conservación del inventario, interesados, reposición, filtros y páginas. Las pruebas de navegador cubren las seis mejoras, el arrastre nativo y táctil, teclado, copia de texto, formularios, reintentos y móvil. Las pruebas no crean archivos ni escriben en tus cuentas de Google.
+
+## Ventas, entradas y duplicados
+
+La versión 48 agrega tres secciones. Consultá [Ventas y entradas](VENTAS_Y_ENTRADAS.md) para registrar salidas con descuento de stock, recibir mercancía con costo opcional y comparar posibles duplicados. Los pedidos anteriores mantienen su seguimiento independiente: una venta se confirma expresamente en Ventas.

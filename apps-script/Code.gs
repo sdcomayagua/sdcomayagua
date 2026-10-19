@@ -36,7 +36,7 @@ function doGet(e) {
     if(String(args.action||'') === 'health') {
       const props=PropertiesService.getScriptProperties();
       const pin=String(props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN') || '');
-      result={ok:true,version:'GC-20261018-GESTION-V9',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+      result={ok:true,version:'GC-20261019-INVENTARIO-V10',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
     } else result = {ok:true, ...publicPayload_()};
   } catch (err) {
     result = {ok:false, error:safeError_(err)};
@@ -69,12 +69,16 @@ function doPost(e) {
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,management:true,managementVersion:1,productResearchVersion:8,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:8,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
       }
       else if (req.action === 'operationsSummary') result = gcOperationsSummary_();
       else if (req.action === 'operationsList') result = gcOperationsList_(req);
       else if (req.action === 'operationsSave') result = gcOperationsSave_(req);
       else if (req.action === 'operationsSettings') result = gcOperationsSettings_(req);
+      else if (req.action === 'inventoryMovementSave') result = gcMovementSave_(req);
+      else if (req.action === 'inventoryMovementStatus') result = gcMovementStatus_(req);
+      else if (req.action === 'inventoryMovementList') result = gcMovementList_(req);
+      else if (req.action === 'inventoryResolveDuplicate') result = gcResolveDuplicate_(req);
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
       else if (req.action === 'researchCandidates') result = gcFreeCandidates_(req.name,req.category);
       else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category,req.selection);
@@ -380,7 +384,7 @@ function adminPayload_(){
   const get=(r,key)=>r[h.indexOf(key)]??'';
   return {products:rows.filter(r=>r.some(x=>String(x??'').trim())).map((r,index)=>({
     bestSeller:yes_(get(r,'MasPedidos')),createdAt:get(r,'FechaCreacion') instanceof Date?get(r,'FechaCreacion').toISOString():String(get(r,'FechaCreacion')),catalogOrder:index,
-    id:String(get(r,'ID')),code:String(get(r,'Codigo')),name:String(get(r,'Nombre')),
+    id:String(get(r,'ID')),revision:String(get(r,'Revision')),code:String(get(r,'Codigo')),name:String(get(r,'Nombre')),
     category:String(get(r,'Categoria')||'Otros'),price:money_(get(r,'Precio')),
     promoPrice:money_(get(r,'PrecioPromocion')),cost:money_(get(r,'Costo')),
     stock:Math.max(0,Math.floor(money_(get(r,'Stock')))),
@@ -407,6 +411,7 @@ function saveProduct_(p){
   const id=String(p.id||Utilities.getUuid()).trim();
   const lock=LockService.getScriptLock();lock.waitLock(25000);
   try{
+    gcMovementRecover_();
     const s=book_().getSheetByName(GC_TAB_PRODUCTS);
     const rows=s.getDataRange().getValues();
     const headers=(rows[0]||[]).map(String);
@@ -420,6 +425,8 @@ function saveProduct_(p){
     while(row.length<headers.length)row.push('');
     const set=(key,value)=>{const i=at(key);if(i>=0)row[i]=value;};
     const old=key=>at(key)<0?'':row[at(key)];
+    if(position>0&&p.revision===undefined&&PropertiesService.getScriptProperties().getProperty('GC_STOCK_MOVEMENTS_STARTED')==='SI')throw Error('Sincronizá el inventario antes de editar este producto para conservar las ventas y entradas recientes.');
+    if(position>0&&p.revision!==undefined&&String(p.revision)!==String(old('Revision')))throw Error('Este producto cambió desde que abriste el editor. Sincronizá y revisá las existencias antes de guardar.');
     const amount=value=>{const n=money_(value);if(!Number.isFinite(n)||n<0)throw Error('Precio o costo inválido.');return n;};
     if(!position||position<0)set('FechaCreacion',new Date().toISOString());
     if(p.bestSeller!==undefined)set('MasPedidos',p.bestSeller===true?'SI':'NO');
@@ -512,7 +519,7 @@ function gcManagementBook_(create){
  return SpreadsheetApp.openById(id);
 }
 function gcOperationTable_(kind,create){
- const names={orders:'GC_PEDIDOS',waitlist:'GC_INTERESADOS'},name=names[kind];
+ const names={orders:'GC_PEDIDOS',waitlist:'GC_INTERESADOS',movements:'GC_MOVIMIENTOS'},name=names[kind];
  if(!name)throw Error('Sección de gestión inválida.');
  const book=gcManagementBook_(create);if(!book)return {sheet:null,headers:GC_OPERATION_HEADERS,records:[]};let sheet=book.getSheetByName(name);
  if(!sheet&&create){sheet=book.insertSheet(name);sheet.appendRow(GC_OPERATION_HEADERS);sheet.setFrozenRows(1);}
@@ -606,5 +613,114 @@ function gcOperationsSave_(req){
   if(old){const row=table.sheet.getRange(old._row,1,1,table.headers.length).getValues()[0];table.headers.forEach((key,i)=>{if(values[key]!==undefined)row[i]=values[key];});table.sheet.getRange(old._row,1,1,row.length).setValues([row]);}
   else table.sheet.appendRow(table.headers.map(key=>values[key]??''));
   return {ok:true,record};
+ }finally{lock.releaseLock();}
+}
+
+/** Ventas y entradas: intención privada persistente antes de modificar el inventario. */
+function gcMovementView_(record){const {plan,mutationId,_row,...result}=record;return result;}
+function gcMovementWrite_(table,record){
+ const json=JSON.stringify(record);if(json.length>45000)throw Error('Demasiados datos en el movimiento. Usá hasta 20 artículos.');
+ const values={ID:record.id,Version:1,Creado:record.createdAt,Actualizado:record.updatedAt,CambioID:record.id,Datos:json};
+ if(record._row)table.sheet.getRange(record._row,1,1,table.headers.length).setValues([table.headers.map(key=>values[key]??'')]);
+ else{const row=table.sheet.getLastRow()+1;table.sheet.appendRow(table.headers.map(key=>values[key]??''));record._row=row;}
+ SpreadsheetApp.flush();
+}
+function gcMovementProductTable_(){
+ const sheet=book_().getSheetByName(GC_TAB_PRODUCTS);if(!sheet)throw Error('No existe Productos.');
+ const rows=sheet.getDataRange().getValues(),headers=(rows[0]||[]).map(String);
+ if(['ID','Nombre','Costo','Stock','Revision','Activo'].some(key=>!headers.includes(key)))throw Error('Faltan columnas de inventario. No se modificó el stock.');
+ const positions=new Map();rows.slice(1).forEach((row,index)=>{const id=String(row[headers.indexOf('ID')]||'');if(id){if(positions.has(id))throw Error('Hay identificadores repetidos en Productos. Revisalos antes de registrar movimientos.');positions.set(id,index+2);}});
+ return {sheet,headers,rows,positions};
+}
+function gcMovementCache_(){const cache=CacheService.getScriptCache();for(const key of ['public_catalog_v8','public_catalog_v7','public_catalog_v6','public_catalog_v5','public_catalog_v4'])cache.remove(key);}
+/** Se ejecuta con ScriptLock. La marca y los nuevos valores se escriben juntos por artículo. */
+function gcMovementApply_(table,record){
+ const source=gcMovementProductTable_(),at=key=>source.headers.indexOf(key),marker='movement-'+record.id;
+ for(const change of record.plan){
+  const position=source.positions.get(change.productId);if(!position)throw Error('No se encontró '+change.name+' durante la confirmación. Revisá el movimiento pendiente.');
+  const range=source.sheet.getRange(position,1,1,source.headers.length),row=range.getValues()[0];
+  const stock=Number(row[at('Stock')]),cost=row[at('Costo')],revision=String(row[at('Revision')]||'');
+  if(revision===marker&&stock===change.afterStock&&String(cost)===String(change.afterCost))continue;
+  if(revision!==change.beforeRevision||stock!==change.beforeStock||String(cost)!==String(change.beforeCost))throw Error('El inventario de '+change.name+' cambió durante un guardado pendiente. No se repitió el movimiento. Revisá GC_MOVIMIENTOS en tu gestión privada.');
+  // Conserva fórmulas y campos ajenos a existencias, costo y revisión.
+  const formulas=range.getFormulas()[0];formulas.forEach((formula,i)=>{if(formula)row[i]=formula;});
+  row[at('Stock')]=change.afterStock;row[at('Costo')]=change.afterCost;row[at('Revision')]=marker;
+  range.setValues([row]);SpreadsheetApp.flush();gcMovementCache_();
+ }
+ record.status='completed';record.updatedAt=new Date().toISOString();gcMovementWrite_(table,record);return record;
+}
+function gcMovementRecover_(){
+ const table=gcOperationTable_('movements',false);
+ for(const record of table.records.filter(record=>record.status==='applying'))gcMovementApply_(table,record);
+}
+function gcMovementClean_(req){
+ const input=req.record,kind=String(input.kind||'');if(!['sale','receipt'].includes(kind))throw Error('Elegí venta o entrada de mercancía.');
+ if(!Array.isArray(input.items)||!input.items.length||input.items.length>20)throw Error('Agregá entre 1 y 20 artículos.');
+ const source=gcMovementProductTable_(),products=adminPayload_().products,seen=new Set(),plan=[];
+ const items=input.items.map(line=>{
+  const id=String(line.productId||''),p=products.find(p=>p.id===id),position=source.positions.get(id);
+  if(!p||!position)throw Error('Un artículo ya no existe. Sincronizá y volvé a elegirlo.');
+  if(seen.has(id))throw Error('Un artículo está repetido: usá una sola fila con la cantidad total.');seen.add(id);
+  if(kind==='sale'&&!p.active)throw Error(p.name+' está oculto. Revisá su ficha antes de venderlo.');
+  const row=source.rows[position-1],get=key=>row[source.headers.indexOf(key)],stock=Number(get('Stock')),revision=String(get('Revision')||''),qty=Number(line.qty);
+  if(!Number.isInteger(stock)||stock<0||stock>100000)throw Error('Revisá las existencias de '+p.name+'.');
+  if(!Number.isInteger(qty)||qty<1||qty>100000)throw Error('Usá cantidades enteras mayores que cero.');
+  if(Number(line.expectedStock)!==stock||String(line.expectedRevision??'')!==revision)throw Error('Cambió el stock o la ficha de '+p.name+'. Tocá Sincronizar productos y revisá el resumen antes de confirmar.');
+  const next=stock+(kind==='sale'?-qty:qty);if(next<0)throw Error('No hay suficientes unidades de '+p.name+'. Disponibles: '+stock+'.');if(next>100000)throw Error('La entrada supera el límite de 100000 unidades de '+p.name+'.');
+  const price=gcOperationAmount_(kind==='sale'?line.unitPrice:line.unitCost,kind==='sale'?'el precio de venta':'el costo de compra');
+  if(kind==='receipt'&&typeof line.updateCost!=='boolean')throw Error('Elegí si querés actualizar el costo del inventario.');
+  const cost=get('Costo'),afterCost=kind==='receipt'&&line.updateCost?price:cost;
+  plan.push({productId:id,name:p.name,beforeStock:stock,afterStock:next,beforeCost:cost,afterCost,beforeRevision:revision});
+  return {productId:id,name:p.name,code:p.code,qty,...(kind==='sale'?{unitPrice:price,codAllowed:p.codAllowed}:{unitCost:price,updateCost:line.updateCost}),beforeStock:stock,afterStock:next,...(kind==='receipt'?{previousCost:money_(cost),inventoryCost:money_(afterCost)}:{})};
+ });
+ const common={kind,items,plan,reference:gcOperationText_(input.reference,160),notes:gcOperationText_(input.notes,1200)};
+ if(kind==='receipt')return {...common,supplier:gcOperationText_(input.supplier,160),total:Math.round(items.reduce((sum,i)=>sum+i.unitCost*i.qty,0)*100)/100};
+ const payment=String(input.payment||'transfer');if(!['transfer','tigo','cod'].includes(payment))throw Error('Elegí una forma de pago válida.');
+ const shipping=gcOperationAmount_(input.shipping,'el envío'),totals=gcOrderTotals_(items,payment,shipping,cfg_()),paid=gcOperationAmount_(input.paid,'el dinero recibido');if(paid>totals.total)throw Error('El dinero recibido supera el total.');
+ return {...common,customer:gcOperationText_(input.customer,120)||'Venta de mostrador',phone:input.phone?gcOperationPhone_(input.phone):'',payment,...totals,paid,balance:Math.round((totals.total-paid)*100)/100};
+}
+function gcMovementSave_(req){
+ const input=req.record;if(!input||typeof input!=='object'||Array.isArray(input))throw Error('Movimiento inválido.');
+ const id=String(input.id||'');if(!/^[a-z0-9-]{8,80}$/i.test(id))throw Error('Falta identificar la venta o entrada.');
+ const lock=LockService.getScriptLock();lock.waitLock(25000);
+ let prepared=false;
+ try{
+  gcMovementRecover_();let table=gcOperationTable_('movements',false),old=table.records.find(record=>record.id===id);
+  if(old){if(old.kind!==input.kind)throw Error('Este identificador pertenece a otro movimiento.');return {ok:true,accepted:true,replayed:true,record:gcMovementView_(old)};}
+  const clean=gcMovementClean_(req),now=new Date().toISOString(),record={...clean,id,version:1,status:'applying',createdAt:now,updatedAt:now};
+  if(!table.sheet)table=gcOperationTable_('movements',true);
+  // Desde aquí una respuesta perdida requiere comprobar el mismo identificador.
+  PropertiesService.getScriptProperties().setProperty('GC_STOCK_MOVEMENTS_STARTED','SI');
+  prepared=true;gcMovementWrite_(table,record);gcMovementApply_(table,record);
+  return {ok:true,accepted:true,record:gcMovementView_(record)};
+ }catch(error){return {ok:true,accepted:false,pending:prepared,error:safeError_(error)};}
+ finally{lock.releaseLock();}
+}
+function gcMovementStatus_(req){
+ const id=String(req.id||'');if(!/^[a-z0-9-]{8,80}$/i.test(id))throw Error('Movimiento inválido.');
+ const lock=LockService.getScriptLock();lock.waitLock(25000);
+ try{gcMovementRecover_();const record=gcOperationTable_('movements',false).records.find(record=>record.id===id);return {ok:true,found:!!record,record:record?gcMovementView_(record):null};}finally{lock.releaseLock();}
+}
+function gcMovementList_(req){
+ const kind=String(req.kind||'');if(!['sale','receipt'].includes(kind))throw Error('Sección inválida.');
+ const query=gcOperationText_(req.query,160).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''),table=gcOperationTable_('movements',false);
+ let records=table.records.filter(record=>record.kind===kind);
+ if(query){const words=query.split(/\s+/);records=records.filter(record=>{const text=[record.reference,record.supplier,record.customer,...record.items.map(item=>item.name+' '+item.code)].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');return words.every(word=>text.includes(word));});}
+ records.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||a.id.localeCompare(b.id));const total=records.length,pages=Math.max(1,Math.ceil(total/20)),page=Math.max(1,Math.min(pages,Math.floor(Number(req.page)||1)));
+ return {ok:true,records:records.slice((page-1)*20,page*20).map(gcMovementView_),total,page,pages};
+}
+function gcResolveDuplicate_(req){
+ if(!req.keepId||!req.hideId||req.keepId===req.hideId)throw Error('Elegí dos productos distintos.');
+ const lock=LockService.getScriptLock();lock.waitLock(25000);
+ try{
+  gcMovementRecover_();const source=gcMovementProductTable_(),at=key=>source.headers.indexOf(key),keepRow=source.positions.get(String(req.keepId)),hideRow=source.positions.get(String(req.hideId));
+  if(!keepRow||!hideRow)throw Error('Un producto ya no existe. Sincronizá y revisá la comparación.');
+  const keep=source.rows[keepRow-1],hide=source.rows[hideRow-1];
+  if(!yes_(keep[at('Activo')]))throw Error('El producto que vas a conservar debe estar visible.');
+  if(!yes_(hide[at('Activo')]))return {ok:true,keptId:String(req.keepId),hiddenId:String(req.hideId),replayed:true};
+  for(const [row,snapshot] of [[keep,req.keep],[hide,req.hide]])if(!snapshot||String(row[at('Revision')]||'')!==String(snapshot.revision??'')||Number(row[at('Stock')])!==Number(snapshot.stock))throw Error('Una ficha cambió. Sincronizá y compará los productos de nuevo.');
+  const range=source.sheet.getRange(hideRow,1,1,source.headers.length),formulas=range.getFormulas()[0];formulas.forEach((formula,i)=>{if(formula)hide[i]=formula;});
+  hide[at('Activo')]='NO';hide[at('Revision')]='duplicate-'+new Date().toISOString();range.setValues([hide]);SpreadsheetApp.flush();gcMovementCache_();
+  return {ok:true,keptId:String(req.keepId),hiddenId:String(req.hideId)};
  }finally{lock.releaseLock();}
 }

@@ -151,7 +151,7 @@ async function reload(){
   const data=await request('adminCatalog');
   if(!Array.isArray(data.products))throw Error('El servidor no devolvió productos.');
   catalogSource='privado';
-  products=data.products.map((p,index)=>({...C.cleanProduct(p,index),cost:C.num(p.cost)}));
+  products=data.products.map((p,index)=>({...C.cleanProduct(p,index),cost:C.num(p.cost),revision:p.revision==null?undefined:String(p.revision)}));
   settings=data.settings||{};
   render();
   label.textContent='✓ Inventario actualizado desde Google Sheets.';
@@ -203,6 +203,7 @@ function showProduct(id){
  $('productForm').querySelectorAll('.research-filled').forEach(field=>field.classList.remove('research-filled'));
  const p=products.find(p=>p.id===id)||{id:'',name:'',code:'',category:'',price:0,promoPrice:0,promoText:'',colors:'',stock:0,cost:'',image:'',gallery:'',description:'',discounts:'',codAllowed:true,active:true};
  const f=$('productForm');
+ f.dataset.revision=p.revision??'';f.dataset.hasRevision=String(p.revision!==undefined);
  for(const [k,v] of Object.entries(p)){if(k!=='cost'&&k!=='promoPrice'&&f.elements.namedItem(k))formField(f,k).value=v??'';}
  formField(f,'promoPrice').value=p.promoPrice>0?p.promoPrice:'';
  formField(f,'cost').value='';
@@ -400,6 +401,7 @@ async function save(e){
  if(busy||researchBusy)return;
  if(selectedFiles.length && !(await upload()))return;
  const f=$('productForm'),p={};
+ if(f.dataset.hasRevision==='true')p.revision=f.dataset.revision;
  for(const k of ['id','code','name','category','price','promoPrice','promoText','colors','cost','stock','image','gallery','discounts','description'])p[k]=formField(f,k).value.trim();
  p.gallery=parseGallery(p.gallery).filter(u=>u!==p.image).slice(0,9).join(', ')||'[]';
  p.codAllowed=formField(f,'codAllowed').value==='SI';
