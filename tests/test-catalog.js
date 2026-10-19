@@ -14,3 +14,6 @@ assert.equal(C.mergeCatalog({catalogSchemaVersion:2,products:[make('uno',{bestSe
 for(const url of ['https://www.tiktok.com/@tienda/video/1','https://m.youtube.com/watch?v=1','https://youtu.be/abc','https://instagram.com/reel/abc','https://facebook.com/posts/1','https://tienda.example/video/1'])assert.equal(C.researchPage(url),false,url);
 assert.equal(C.researchPage('https://tienda.example/productos/memo-fs01'),true);
 console.log('PASS catálogo: recientes, selección de Más pedidos, fuentes públicas y filtros de videos.');
+
+const searchable=C.productSearchText({name:"Control",code:"GC-12",details:{brand:"MEMO",model:"K12",connection:"USB-C"},colors:"Negro",cost:987654,notes:"Dato privado"});
+assert.equal(C.matchesSearch(searchable,"memo k12 negro"),true);assert.equal(C.matchesSearch(searchable,"usb-c"),true);assert.equal(C.matchesSearch(searchable,"987654"),false);assert.equal(C.matchesSearch(searchable,"Dato privado"),false);
