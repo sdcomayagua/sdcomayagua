@@ -28,5 +28,6 @@ jobs:
           node tests/test-bulk.js
           node tests/test-reference-photos.js
           node tests/test-management.js
+          node tests/test-inventory.js
           node tests/test-photo-editor.js
           python3 tests/test-sync.py
