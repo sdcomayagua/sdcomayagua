@@ -5,7 +5,7 @@ const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
 let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false,bestSellersSupported=false,imageImportSupported=false;
 let researchBusy=false,researchEpoch=0,researchDraft=null,automaticQuery=true,researchSelectable=false,researchSearch=null,researchApplied=[],researchReferencesBefore=null;
 let researchMode='details',researchPhotoDraft=null,imageSearchSupported=false;
-let verifiedProfiles=null,serverFeatures={},checkingFeatures=null;
+let verifiedProfiles=null,serverFeatures={},checkingFeatures=null,editorBaseline='',editorTrigger=null;
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
 async function verifiedProfile(name,productName=''){
  if(!verifiedProfiles){
@@ -121,23 +121,27 @@ function renderGalleryPreview(){
 function render(){
  const q=$('adminSearch').value.toLowerCase().trim(),filter=$('adminFilter').value;
  const noPhoto=p=>!p.image&&!parseGallery(p.gallery).length;
- const rows=products.filter(p=>C.matchesSearch([p.name,p.category,p.code,p.id].join(' '),q)&&(filter==='photos'?noPhoto(p):filter==='requested'?p.bestSeller:filter==='out'?p.stock===0:true)).sort(C.recentFirst);
+ const rows=products.filter(p=>C.matchesSearch(p.id+' '+C.productSearchText(p),q)&&(filter==='photos'?noPhoto(p):filter==='requested'?p.bestSeller:filter==='out'?p.stock===0:filter==='available'?p.active&&p.stock>0:filter==='low'?p.active&&p.stock>0&&p.stock<=3:filter==='hidden'?!p.active:true));
+ const sort=$('adminSort')?.value||'newest';
+ rows.sort(sort==='name'?(a,b)=>a.name.localeCompare(b.name,'es'):sort==='stock'?(a,b)=>a.stock-b.stock||C.recentFirst(a,b):sort==='price'?(a,b)=>C.unitPrice(a,1)-C.unitPrice(b,1):C.recentFirst);
+ if($('adminResultCount'))$('adminResultCount').textContent=rows.length+' de '+products.length+' productos';
+ if($('adminClearFilters'))$('adminClearFilters').hidden=!(q||filter||sort!=='newest');
  $('adminFilter').options[1].textContent='Sin foto ('+products.filter(noPhoto).length+')';
  $('adminFilter').options[2].textContent='Más pedidos ('+products.filter(p=>p.bestSeller).length+')';
  $('statProducts').textContent=products.filter(p=>p.active).length;
- $('statAvailable').textContent=products.filter(p=>p.stock>0).length;
- $('statOut').textContent=products.filter(p=>!p.stock).length;
- $('statCod').textContent=products.filter(p=>p.codAllowed).length;
+ $('statAvailable').textContent=products.filter(p=>p.active&&p.stock>0).length;
+ $('statOut').textContent=products.filter(p=>p.active&&!p.stock).length;
+ $('statCod').textContent=products.filter(p=>p.active&&p.codAllowed).length;
  $('adminRows').innerHTML=rows.map(p=>`<tr>
-   <td data-label="Producto"><strong>${esc(p.name)}</strong><br><span class="muted">${esc(p.category)}</span>${p.bestSeller?'<span class="admin-requested-tag">★ Más pedidos</span>':''}${noPhoto(p)?'<span class="admin-photo-tag">Sin foto</span>':''}</td>
+   <td data-label="Producto"><div class="admin-product-identity"><img loading="lazy" decoding="async" src="${esc(normalizePreview(p.image||parseGallery(p.gallery)[0]))}" alt="" onerror="this.onerror=null;this.src='assets/img/sin-foto.svg'"><div><strong>${esc(p.name)}</strong><span class="admin-product-meta">${esc(p.category)} · ${esc(p.code||'Sin código')}</span>${p.bestSeller?'<span class="admin-requested-tag">★ Más pedidos</span>':''}${noPhoto(p)?'<span class="admin-photo-tag">Sin foto</span>':''}</div></div></td>
    <td data-label="Precio">${C.money(p.price)}</td>
    <td data-label="Promoción">${p.promoPrice>0?C.money(p.promoPrice):'—'}</td>
    <td data-label="Costo">${catalogSource==='privado'?C.money(p.cost):'—'}</td>
-   <td data-label="Stock">${p.stock}</td>
+   <td data-label="Stock"><span class="admin-stock-pill ${p.stock===0?'empty':p.stock<=3?'low':''}">${p.stock} ${p.stock===1?'unidad':'unidades'}</span></td>
    <td data-label="Pago al recibir"><span style="color:${p.codAllowed?'#0f9f6a':'#d64545'}">${p.codAllowed?'✓ Permitido':'× Prohibido'}</span></td>
    <td data-label="Estado">${p.active?'Activo':'Oculto'}</td>
-   <td data-label="Acciones"><button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> ${!noPhoto(p)?`<button type="button" class="btn small outline" data-reference-product="${esc(p.id)}">Buscar con mi foto</button>`:''}<button type="button" class="btn small red" data-disable="${esc(p.id)}" >Ocultar</button> <button type="button" class="btn small outline best-seller-toggle ${p.bestSeller?'selected':''}" data-best-seller="${esc(p.id)}" aria-pressed="${p.bestSeller}" aria-label="${p.bestSeller?'Quitar de':'Marcar en'} Más pedidos: ${esc(p.name)}">${p.bestSeller?'★ En Más pedidos':'☆ Más pedidos'}</button></td>
- </tr>`).join('')||'<tr><td colspan="8" class="muted">No hay resultados.</td></tr>';
+   <td data-label="Acciones"><div class="admin-row-actions"><button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> ${!noPhoto(p)?`<button type="button" class="btn small outline" data-reference-product="${esc(p.id)}">Buscar con mi foto</button>`:''}<button type="button" class="btn small red" data-disable="${esc(p.id)}" >Ocultar</button> <button type="button" class="btn small outline best-seller-toggle ${p.bestSeller?'selected':''}" data-best-seller="${esc(p.id)}" aria-pressed="${p.bestSeller}" aria-label="${p.bestSeller?'Quitar de':'Marcar en'} Más pedidos: ${esc(p.name)}">${p.bestSeller?'★ En Más pedidos':'☆ Más pedidos'}</button></div></td>
+ </tr>`).join('')||'<tr><td colspan="8"><div class="admin-empty"><strong>No encontramos productos con esos filtros.</strong><p>Probá con nombre, marca, modelo o código.</p><button class="btn outline small" type="button" data-clear-admin>Ver todos los productos</button></div></td></tr>';
  $('settingsSummary').textContent=`Envío: ${C.money(settings.shipping??110)} | Mínimo pago al recibir: ${C.money(settings.codMinimum||350)} en productos | Comisión al recibir: ${Math.round((settings.codRate||.1)*100)}% | Tigo Money: ${Math.round((settings.tigoRate||.07)*100)}%`;
  if(typeof CustomEvent==='function')document.dispatchEvent(new CustomEvent('gc:catalog'));
 
@@ -199,6 +203,7 @@ async function logIn(e){
  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
 }
 function showProduct(id){
+ editorTrigger=document.activeElement;
  resetResearch(true);
  $('productForm').querySelectorAll('.research-filled').forEach(field=>field.classList.remove('research-filled'));
  const p=products.find(p=>p.id===id)||{id:'',name:'',code:'',category:'',price:0,promoPrice:0,promoText:'',colors:'',stock:0,cost:'',image:'',gallery:'',description:'',discounts:'',codAllowed:true,active:true};
@@ -227,8 +232,12 @@ function showProduct(id){
  renderGalleryPreview();
  $('formOverlay').hidden=false;document.body.style.overflow='hidden';
  $('productEditorBody').scrollTop=0;
+ editorBaseline=editorSnapshot();
+ formField(f,'name').focus({preventScroll:true});
 }
-function closeForm(){if(busy)return;resetResearch(true);$('formOverlay').hidden=true;document.body.style.overflow='';}
+function editorSnapshot(){return JSON.stringify([...new FormData($('productForm'))].filter(([key])=>key!=='researchQuery'))+'|'+selectedFiles.map(file=>file.name+':'+file.size+':'+file.lastModified).join('|');}
+function editorDirty(){return !$('formOverlay').hidden&&editorSnapshot()!==editorBaseline;}
+function closeForm(force=false){if(busy||$('formOverlay').hidden)return;if(force!==true&&editorDirty()&&!confirm('Tenés cambios sin guardar en esta ficha. ¿Querés descartarlos y cerrar?'))return;resetResearch(true);$('formOverlay').hidden=true;document.body.style.overflow='';editorBaseline='';editorTrigger?.focus({preventScroll:true});}
 function editorPhotos(){
  const f=$('productForm');
  return {id:formField(f,'id').value,name:formField(f,'name').value.trim(),images:[$('productImage').value.trim(),...parseGallery($('galleryInput').value)].filter(Boolean),pending:selectedFiles.length>0,busy:busy||researchBusy};
@@ -439,7 +448,7 @@ async function save(e){
    if(index>=0)products[index]=merged;else products.unshift(merged);render();
   }
   try{localStorage.setItem('gc_catalog_revision',JSON.stringify({id,at:Date.now()}))}catch{}
-  setBusy(false);closeForm();toast(confirmed?'Ficha guardada y comprobada.':'Producto guardado. No se pudo comprobar la lectura.');
+  setBusy(false);closeForm(true);toast(confirmed?'Ficha guardada y comprobada.':'Producto guardado. No se pudo comprobar la lectura.');
   $('adminStatus').textContent=confirmed?'✓ Ficha guardada y comprobada en Google Sheets.':'✓ Guardado. La lectura de comprobación no respondió; revisá la ficha en la tienda.';
   const link=document.createElement('a');link.href='productos.html?producto='+encodeURIComponent(id)+'&v=gc-catalog-41';link.target='_blank';link.rel='noopener';link.textContent='Ver ficha en tienda ↗';$('adminStatus').appendChild(link);
  }catch(err){$('formMessage').textContent='⚠ '+err.message;toast(err.message)}finally{setBusy(false)}
@@ -538,8 +547,14 @@ function binds(){
  $('refresh').onclick=reload;
  $('createNew').onclick=()=>showProduct('');
  $('adminSearch').oninput=render;$('adminFilter').onchange=render;
+ if($('adminSort'))$('adminSort').onchange=render;
+ const clearAdmin=()=>{$('adminSearch').value='';$('adminFilter').value='';if($('adminSort'))$('adminSort').value='newest';render();$('adminSearch').focus({preventScroll:true});};
+ if($('adminClearFilters'))$('adminClearFilters').onclick=clearAdmin;
+ window.addEventListener('beforeunload',event=>{if(editorDirty()){event.preventDefault();event.returnValue='';}});
+ document.addEventListener('keydown',event=>{if(event.key!=='Tab'||$('formOverlay').hidden||!$('bulkOverlay').hidden||!$('mgEditorOverlay').hidden||!$('ivOverlay').hidden)return;const controls=[...$('formOverlay').querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href],summary')].filter(el=>el.getClientRects().length),first=controls[0],last=controls.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}},true);
  $('adminRows').onclick=e=>{
   const b=e.target.closest('button');if(!b)return;
+  if(b.hasAttribute('data-clear-admin')){clearAdmin();return;}
   if(b.dataset.edit!==undefined){
    try{showProduct(b.dataset.edit)}catch(error){
     console.error('Error al abrir edición:',error);

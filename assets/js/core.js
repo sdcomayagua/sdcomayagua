@@ -77,5 +77,6 @@
   if(destination.length)lines.push('','*DATOS PARA EL ENVÍO*',...destination);
   lines.push('','Solicito confirmar disponibilidad y datos de pago.');return lines.join('\n');
  }
- return {recentFirst,researchPage,mergeCatalog,matchesSearch,num,yes,cleanProduct,cleanDetails,tiers,unitPrice,integerTotal,quote,money,number,waMessage};
+ function productSearchText(p){const d=cleanDetails(p.details);return [p.name,p.category,p.code,p.colors,p.description,d.brand,d.model,d.compatibility,d.connection,d.size,d.material,d.power].filter(Boolean).join(' ');}
+ return {productSearchText,recentFirst,researchPage,mergeCatalog,matchesSearch,num,yes,cleanProduct,cleanDetails,tiers,unitPrice,integerTotal,quote,money,number,waMessage};
 });

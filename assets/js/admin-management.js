@@ -40,13 +40,13 @@ function productCard(p,badges,extra=''){
 }
 function pendingList(){
  const filter=$('mgPendingFilter').value,query=$('mgPendingSearch').value;
- const list=products().filter(p=>C.matchesSearch([p.name,p.category,p.code].join(' '),query)&&(filter==='onephoto'?M.photos(p).length===1:filter==='all'?M.missing(p).length:M.missing(p).some(field=>field.key===filter)));
+ const list=products().filter(p=>C.matchesSearch(C.productSearchText(p),query)&&(filter==='onephoto'?M.photos(p).length===1:filter==='all'?M.missing(p).length:M.missing(p).some(field=>field.key===filter)));
  $('mgPendingCount').textContent=list.length+' producto'+(list.length===1?'':'s')+' en esta revisión.';
  $('mgPendingList').innerHTML=list.map(p=>productCard(p,M.missing(p).map(field=>`<span class="mg-badge warning">Falta ${esc(field.label.toLowerCase())}</span>`).join('')||(filter==='onephoto'?'<span class="mg-badge">Una foto guardada</span>':''))).join('')||'<div class="mg-empty"><strong>Todo al día con este filtro</strong>Los nuevos productos aparecerán aquí si tienen datos pendientes.</div>';
 }
 function stockList(){
  const filter=$('mgStockFilter').value,query=$('mgStockSearch').value;
- const list=products().filter(p=>C.matchesSearch([p.name,p.code,p.category].join(' '),query)&&(filter==='out'?p.stock===0:filter==='all'?p.stock<=threshold:p.stock>0&&p.stock<=threshold)).sort((a,b)=>a.stock-b.stock);
+ const list=products().filter(p=>C.matchesSearch(C.productSearchText(p),query)&&(filter==='out'?p.stock===0:filter==='all'?p.stock<=threshold:p.stock>0&&p.stock<=threshold)).sort((a,b)=>a.stock-b.stock);
  $('mgStockCount').textContent=list.length+' producto'+(list.length===1?'':'s')+' · Aviso configurado en '+threshold+' unidad'+(threshold===1?'':'es')+'.';
  $('mgStockList').innerHTML=list.map(p=>productCard(p,`<span class="mg-badge ${p.stock?'warning':'danger'}">${p.stock?'Reposición próxima':'Agotado'}</span>`,`<p><span class="mg-stock-value ${p.stock?'':'is-out'}">${p.stock}</span> unidad${p.stock===1?' disponible':'es disponibles'}</p>`)).join('')||'<div class="mg-empty"><strong>Sin productos en este estado</strong>Podés cambiar el filtro o el nivel de aviso.</div>';
 }
@@ -77,7 +77,7 @@ async function loadKind(kind,page=1){
 }
 function input(label,name,value='',type='text',attrs=''){return `<label>${label}<input class="field" name="${name}" type="${type}" value="${esc(value)}" ${attrs}></label>`;}
 function select(label,name,value,options){return `<label>${label}<select class="field" name="${name}">${Object.entries(options).map(([key,text])=>`<option value="${esc(key)}" ${value===key?'selected':''}>${esc(text)}</option>`).join('')}</select></label>`;}
-function productOptions(selected='',extra){const list=products();if(selected&&!list.some(p=>p.id===selected)&&extra)list.push({id:selected,name:extra});return '<option value="">Elegí un producto</option>'+list.map(p=>`<option value="${esc(p.id)}" ${p.id===selected?'selected':''}>${esc(p.name)} · Stock ${p.stock??'—'}</option>`).join('');}
+function productOptions(selected='',extra){const list=products().filter(p=>p.id===selected||C.matchesSearch(C.productSearchText(p),editing?.productQuery||''));if(selected&&!list.some(p=>p.id===selected)&&extra)list.push({id:selected,name:extra});return '<option value="">Elegí un producto</option>'+list.map(p=>`<option value="${esc(p.id)}" ${p.id===selected?'selected':''}>${esc(p.name)} · Stock ${p.stock??'—'}</option>`).join('');}
 function field(name){return $('mgRecordForm').elements.namedItem(name);}
 function readLines(){
  return [...$('mgOrderLines').querySelectorAll('[data-order-line]')].map((el,index)=>{
@@ -102,7 +102,7 @@ function openRecord(kind,record=null,requestedProduct=''){
  $('mgEditorHint').textContent=kind==='orders'?'Guardá los artículos acordados y actualizá el envío cuando salga. No descuenta stock automáticamente.':'Anotá la solicitud. Abrir WhatsApp prepara un mensaje; vos decidís cuándo enviarlo.';
  let html='<div class="mg-form-grid">'+input('Nombre del cliente','customer',saved.customer||'','text','required minlength="2" maxlength="120" autocomplete="name"')+input('Celular · 8 dígitos o código de país','phone',saved.phone||'','tel','required maxlength="25" autocomplete="tel"')+input('Ciudad o municipio','city',saved.city||'','text','maxlength="160" autocomplete="address-level2"');
  if(kind==='orders'){
-  html+=select('Estado','status',saved.status||'pending',M.orderStates)+'<label class="mg-full">Dirección y referencia<textarea class="field" name="address" rows="2" maxlength="600">'+esc(saved.address||'')+'</textarea></label><section class="mg-full"><h3>Artículos del pedido</h3><div id="mgOrderLines"></div><button class="btn outline small" id="mgAddLine" type="button">+ Agregar artículo</button><p class="mg-hint">El precio se sugiere según cantidad y promoción. Podés cambiarlo si acordaste otro precio con el cliente.</p></section>';
+  html+=select('Estado','status',saved.status||'pending',M.orderStates)+'<label class="mg-full">Dirección y referencia<textarea class="field" name="address" rows="2" maxlength="600">'+esc(saved.address||'')+'</textarea></label><section class="mg-full"><h3>Artículos del pedido</h3><label class="admin-picker-label">Encontrar artículo<input class="field" id="mgProductSearch" type="search" maxlength="180" placeholder="Nombre, marca, modelo o código…"></label><div id="mgOrderLines"></div><button class="btn outline small" id="mgAddLine" type="button">+ Agregar artículo</button><p class="mg-hint">El precio se sugiere según cantidad y promoción. Podés cambiarlo si acordaste otro precio con el cliente.</p></section>';
   html+=select('Forma de pago','payment',saved.payment||'transfer',{transfer:'Depósito / transferencia',tigo:'Tigo Money',cod:'Pagar al recibir'})+input('Envío acordado (L)','shipping',saved.shipping??A.settings().shipping??110,'number','required min="0" max="100000000" step="0.01"')+input('Dinero recibido hasta ahora (L)','paid',saved.paid??0,'number','required min="0" max="100000000" step="0.01"')+input('Empresa o modalidad de entrega','carrier',saved.carrier||'','text','maxlength="100" placeholder="Forza, C807, Cargo Expreso, entrega local…"')+input('Número de guía (si corresponde)','tracking',saved.tracking||'','text','maxlength="160"')+'<div class="mg-full mg-order-summary" id="mgOrderSummary" role="status" aria-live="polite"></div>';
  }else{
   html+=select('Estado','status',saved.status||'pending',M.waitStates)+`<label class="mg-full">Producto del catálogo<select class="field" name="productId">${productOptions(saved.productId||p?.id||'',saved.productName)}</select></label>`+input('Artículo solicitado · si no está en el catálogo','productName',saved.productName||p?.name||'','text','maxlength="180"')+input('Cantidad solicitada','quantity',saved.quantity||1,'number','min="1" max="100000" step="1" required');
@@ -170,7 +170,7 @@ $('adminPanel').addEventListener('click',async event=>{
 });
 $('mgRecordForm').onsubmit=saveRecord;$('mgRecordCancel').onclick=closeRecord;$('mgEditorClose').onclick=closeRecord;$('mgEditorOverlay').onclick=event=>{if(event.target===$('mgEditorOverlay'))closeRecord();};
 $('mgRecordForm').addEventListener('input',event=>{
- if(!editing)return;editing.mutationId=uid();const row=event.target.closest('[data-order-line]');
+ if(!editing)return;if(event.target.id==='mgProductSearch'){editing.productQuery=event.target.value;$('mgOrderLines').querySelectorAll('[data-line-product]').forEach(select=>{const selected=select.value,prior=editing.items.find(item=>item.productId===selected);select.innerHTML=productOptions(selected,prior?.name);});return;}editing.mutationId=uid();const row=event.target.closest('[data-order-line]');
  if(row&&event.target.hasAttribute('data-line-price'))row.dataset.manual='true';
  if(row&&event.target.hasAttribute('data-line-qty')&&row.dataset.manual!=='true'){const p=products().find(p=>p.id===row.querySelector('[data-line-product]').value);if(p)row.querySelector('[data-line-price]').value=C.unitPrice(p,Number(event.target.value));}
  if(editing.kind==='orders')orderPreview();
