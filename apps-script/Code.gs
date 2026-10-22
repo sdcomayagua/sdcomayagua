@@ -29,6 +29,7 @@ function configurarSistema() {
 }
 function doGet(e) {
   const args = (e && e.parameter) || {};
+  if(String(args.action||'')==='panel')return gcPanelHtml_();
   const name = String(args.callback || '');
   if (name && !/^[A-Za-z_$][\w$]{0,90}$/.test(name)) return ContentService.createTextOutput('Callback inválido').setMimeType(ContentService.MimeType.TEXT);
   let result;
@@ -49,7 +50,7 @@ function doGet(e) {
 /** Diagnóstico público breve: nunca devuelve el PIN, las claves ni el inventario. */
 function gcHealth_(){
  const props=PropertiesService.getScriptProperties(),pin=String(props.getProperty('ADMIN_PIN')||props.getProperty('ADMIN_TOKEN')||'');
- return {ok:true,version:'GC-20261022-PANEL-V13',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+ return {ok:true,version:'GC-20261022-PANEL-V14',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
 }
 /** POST de formulario enviado dentro de un iframe: evita los problemas CORS de Apps Script. */
 function doPost(e) {
@@ -60,6 +61,29 @@ function doPost(e) {
     if (!raw || raw.length > 4200000) throw Error('La solicitud está vacía o es demasiado grande.');
     const req = JSON.parse(raw);
     requestId = String(req.requestId || '');
+    result=gcHandleRequest_(req);
+  } catch (err) { result = {ok:false,error:safeError_(err)}; }
+  const message = JSON.stringify({__gcResponse:true,requestId,...result})
+    .replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
+  // Apps Script encierra HtmlService en un iframe adicional.
+  // Reintentamos el mensaje a la ventana principal para evitar que se pierda.
+  const html = '<!doctype html><html><head><meta charset="utf-8"></head><body>' +
+    '<script>(function(){' +
+    'var answer=' + message + ';' +
+    'function deliver(){' +
+      'try{window.top.postMessage(answer,"*");}catch(e){}' +
+      'try{window.parent.postMessage(answer,"*");}catch(e){}' +
+    '}' +
+    'deliver();setTimeout(deliver,200);setTimeout(deliver,800);' +
+    '})();</script></body></html>';
+  return HtmlService.createHtmlOutput(html)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+
+/** Un único enrutador mantiene el mismo PIN y reglas en ambos canales. */
+function gcHandleRequest_(req){
+ let result;
     // El diagnóstico y el catálogo público (sin costos) pueden consultarse sin PIN.
     // Todas las demás operaciones siguen autenticadas por el servidor.
     if(req.action === 'health'){
@@ -98,22 +122,27 @@ function doPost(e) {
       else if (req.action === 'uploadImage') result = uploadImage_(req.file || {});
       else throw Error('Operación no reconocida.');
     }
-  } catch (err) { result = {ok:false,error:safeError_(err)}; }
-  const message = JSON.stringify({__gcResponse:true,requestId,...result})
-    .replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
-  // Apps Script encierra HtmlService en un iframe adicional.
-  // Reintentamos el mensaje a la ventana principal para evitar que se pierda.
-  const html = '<!doctype html><html><head><meta charset="utf-8"></head><body>' +
-    '<script>(function(){' +
-    'var answer=' + message + ';' +
-    'function deliver(){' +
-      'try{window.top.postMessage(answer,"*");}catch(e){}' +
-      'try{window.parent.postMessage(answer,"*");}catch(e){}' +
-    '}' +
-    'deliver();setTimeout(deliver,200);setTimeout(deliver,800);' +
-    '})();</script></body></html>';
-  return HtmlService.createHtmlOutput(html)
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+ return result;
+}
+/** Llamada nativa desde el panel de Google; devuelve únicamente el resultado autorizado. */
+function gcPanelRequest(req){
+ try{
+  if(!req||typeof req!=='object'||Array.isArray(req)||JSON.stringify(req).length>4200000)throw Error('Solicitud inválida.');
+  return gcHandleRequest_(req);
+ }catch(error){return {ok:false,error:safeError_(error)};}
+}
+/** Aloja el mismo panel público en Google para usar google.script.run. */
+function gcPanelHtml_(){
+ const cache=CacheService.getScriptCache(),key='gc_panel_html_v14';let html=cache.get(key);
+ if(!html){
+  const response=UrlFetchApp.fetch('https://sdcomayagua.github.io/sdcomayagua/admin.html',{followRedirects:true,muteHttpExceptions:true});
+  if(response.getResponseCode()!==200)throw Error('No se pudo abrir el panel. Probá de nuevo en unos minutos.');
+  html=response.getContentText();
+  if(html.length>250000||!html.includes('id="productForm"')||!html.includes('admin-editor-tools.js'))throw Error('El panel está actualizándose. Probá de nuevo en unos minutos.');
+  cache.put(key,html,60);
+ }
+ const bridge='<base href="https://sdcomayagua.github.io/sdcomayagua/" target="_top"><script>window.GC_GOOGLE_PANEL={request:function(req){return new Promise(function(resolve,reject){google.script.run.withSuccessHandler(resolve).withFailureHandler(function(error){reject(new Error(error.message||"Google no respondió."));}).gcPanelRequest(req);});}};</script>';
+ return HtmlService.createHtmlOutput(html.replace('<head>','<head>'+bridge)).setTitle('Inventario · Gamer Comayagua').addMetaTag('viewport','width=device-width,initial-scale=1');
 }
 
 function book_(){return SpreadsheetApp.openById(GC_SHEET_ID);}

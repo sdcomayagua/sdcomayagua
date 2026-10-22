@@ -79,7 +79,8 @@ function review(){
  $('editorPreviewStock').textContent=(visible?'Visible en tienda':'Oculto / borrador')+' · '+(Number.isFinite(stock)?stock:0)+' unidades';
  $('editorPreviewSpecs').textContent=['brand','model','connection'].map(value).filter(Boolean).join(' · ');
  const source=photos.images[0]||document.querySelector('#pendingPreview img')?.src||'assets/img/sin-foto.svg';
- const image=$('editorPreviewImage');if(image.getAttribute('src')!==source)image.src=source;image.onerror=()=>{image.onerror=null;image.src='assets/img/sin-foto.svg';};
+ const safe=/^(?:https:\/\/|blob:|assets\/products\/[\w.-]+$)/i.test(source)?source:'assets/img/sin-foto.svg';
+ const image=$('editorPreviewImage');if(image.getAttribute('src')!==safe)image.src=safe;image.onerror=()=>{image.onerror=null;image.src='assets/img/sin-foto.svg';};
  const checklist=[
   [value('name').trim().length>=3&&!!value('category').trim(),'Nombre y categoría completos','Completá el nombre y la categoría.'],
   [Number.isFinite(price)&&price>=0&&(!visible||price>0)&&(!value('promoPrice')||promo>0&&promo<=price),'Precio y promoción revisados','Revisá el precio de venta y la promoción.'],

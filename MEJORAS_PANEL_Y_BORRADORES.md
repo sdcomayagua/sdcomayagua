@@ -1,4 +1,4 @@
-# Panel de inventario · V13
+# Panel de inventario · V14
 
 El editor tiene accesos a Datos, Fotos, Detalles y Revisar. La vista previa reúne nombre, imagen, precio, promoción y existencias y señala datos pendientes y artículos con el mismo modelo.
 
@@ -12,10 +12,16 @@ La comprobación de conexión intenta GET y POST en paralelo y acepta la primera
 
 ## Publicación
 
-Actualizar `Code.gs` en el proyecto existente y crear una nueva versión de la implementación actual para conservar su URL y acceso. Versión del diagnóstico: `GC-20261022-PANEL-V13`. `FichaGratis.gs` y `EditorMovil.gs` no necesitan cambios para esta actualización.
+Actualizar `Code.gs` en el proyecto existente y crear una nueva versión de la implementación actual para conservar su URL y acceso. Versión del diagnóstico: `GC-20261022-PANEL-V14`. `FichaGratis.gs` y `EditorMovil.gs` no necesitan cambios para esta actualización.
 
 ## Verificación
 
 `test-editor-tools-ui.js` prueba el diagnóstico con GET bloqueado, ausencia de PIN en diagnóstico y borradores, recuperación sin reemplazar cambios recientes, limpieza al guardar, vista previa, duplicados, pegado, arrastre y límite total de fotos. Comprueba también que el botón Guardar siga visible a 360 y 390 píxeles. Los datos y Google se simulan en este navegador de prueba.
 
 La integración continua ejecuta además las pruebas existentes del inventario, búsqueda, carrito y editor, junto con las verificaciones de JavaScript y Apps Script.
+
+## Acceso desde Google
+
+El botón «Abrir panel desde Google» ofrece el mismo formulario mediante HtmlService. Los datos se consultan con `google.script.run` y el mismo enrutador y PIN de siempre. El panel solicita su HTML público a GitHub Pages; no envía datos privados a GitHub. Se conservan la URL de implementación y el requisito de cuenta Google. No se amplían sus permisos.
+
+Los borradores se conservan por origen: el de GitHub y el del panel de Google son independientes. Al usar el panel de Google, conviene continuar la edición allí hasta guardar.

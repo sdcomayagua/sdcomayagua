@@ -9,7 +9,7 @@ let verifiedProfiles=null,serverFeatures={},checkingFeatures=null,editorBaseline
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
 async function verifiedProfile(name,productName=''){
  if(!verifiedProfiles){
-  const response=await fetch('data/fichas-verificadas.json?v=gc-panel-53',{cache:'no-cache'});
+  const response=await fetch('data/fichas-verificadas.json?v=gc-panel-54',{cache:'no-cache'});
   if(!response.ok)throw Error('No se pudieron cargar las fichas verificadas.');
   const data=await response.json();verifiedProfiles=Array.isArray(data)?data:[];
  }
@@ -40,6 +40,13 @@ function formField(form,name){
 }
 function validApi(){return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(cfg.apiUrl||'')}
 function request(action,extra={}){
+ if(window.GC_GOOGLE_PANEL?.request){
+  return new Promise((resolve,reject)=>{
+   let ended=false;const timer=setTimeout(()=>finish(Error('Google tardó en responder. Comprobá la conexión y reintentá.')),action==='health'?16000:action==='verify'?28000:180000);
+   function finish(error,data){if(ended)return;ended=true;clearTimeout(timer);error?reject(error):resolve(data);}
+   window.GC_GOOGLE_PANEL.request({action,...(action==='health'?{}:{token}),...extra}).then(data=>data?.ok?finish(null,data):finish(Error(data?.error||'Google no pudo completar la solicitud.')),error=>finish(error));
+  });
+ }
  if(!validApi())return Promise.reject(Error('No se encontró la dirección de Apps Script. Podés administrar el inventario desde Google Sheets mientras se revisa la conexión.'));
  return new Promise((resolve,reject)=>{
   const requestId='req'+Date.now()+Math.random().toString(36).slice(2),frame=document.createElement('iframe'),form=document.createElement('form');
@@ -90,7 +97,7 @@ function connectionCheck(){
    $('connectionHelp').classList.add('hidden');return true;
   }catch(error){
    // La prueba pública usa GET/JSONP. No bloqueamos el POST que valida el PIN.
-   $('connectionStatus').textContent=navigator.onLine===false?'No hay conexión a Internet. Tus cambios pendientes pueden recuperarse en este navegador.':'No se pudo confirmar la conexión. Abrí la conexión de Google y después tocá Reintentar; también podés intentar ingresar con tu PIN.';
+   $('connectionStatus').textContent=navigator.onLine===false?'No hay conexión a Internet. Tus cambios pendientes pueden recuperarse en este navegador.':'No se pudo confirmar la conexión. Podés abrir el panel desde Google para usar la conexión directa o intentar ingresar aquí con tu PIN.';
    $('connectionHelp').classList.remove('hidden');return false;
   }finally{$('retryConnection').disabled=false;checkingConnection=null;}
  })();
@@ -576,6 +583,7 @@ function binds(){
  $('loginForm').onsubmit=logIn;
  // El enlace de diagnóstico también funciona con implementaciones anteriores que exigen JSONP.
  $('googleConnection').href=cfg.apiUrl+'?action=health&callback=gcConnection';
+ $('googlePanel').href=cfg.apiUrl+'?action=panel';
  $('retryConnection').onclick=connectionCheck;
  window.addEventListener('online',()=>{if(!$('loginPanel').classList.contains('hidden'))connectionCheck();});
  $('logout').onclick=()=>{token='';sessionStorage.removeItem('gc_admin_token');location.reload()};

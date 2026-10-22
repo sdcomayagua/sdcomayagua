@@ -20,6 +20,7 @@ jobs:
       - name: Verificar catálogo, carrito y búsquedas sin servicios externos
         run: |
           node tests/test-api.js
+          node tests/test-native-panel.js
           node tests/test-cart.js
           node tests/test-catalog.js
           node tests/test-free-research.js
