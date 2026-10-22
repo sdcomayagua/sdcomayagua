@@ -1,7 +1,7 @@
 
 (function(){
 'use strict';
-const cfg=window.GC_CONFIG,C=window.GC,$=id=>document.getElementById(id);
+const cfg=window.GC_CONFIG,C=window.GC,S=window.GC_PRODUCT_SEARCH,$=id=>document.getElementById(id);
 let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false,bestSellersSupported=false,imageImportSupported=false;
 let researchBusy=false,researchEpoch=0,researchDraft=null,automaticQuery=true,researchSelectable=false,researchSearch=null,researchApplied=[],researchReferencesBefore=null;
 let researchMode='details',researchPhotoDraft=null,imageSearchSupported=false;
@@ -9,7 +9,7 @@ let verifiedProfiles=null,serverFeatures={},checkingFeatures=null,editorBaseline
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
 async function verifiedProfile(name,productName=''){
  if(!verifiedProfiles){
-  const response=await fetch('data/fichas-verificadas.json?v=gc-research-37',{cache:'no-cache'});
+  const response=await fetch('data/fichas-verificadas.json?v=gc-search-52',{cache:'no-cache'});
   if(!response.ok)throw Error('No se pudieron cargar las fichas verificadas.');
   const data=await response.json();verifiedProfiles=Array.isArray(data)?data:[];
  }
@@ -296,14 +296,20 @@ function researchLoading(value,message=''){
  $('researchCandidates').querySelectorAll('button').forEach(button=>button.disabled=value);
  if(message)$('researchStatus').textContent=message;
 }
-function showCandidates(candidates,searchId=''){
- const valid=(Array.isArray(candidates)?candidates:[]).filter(x=>x&&C.researchPage(x.url)&&C.cleanDetails({references:[x]}).references?.length).slice(0,8);
+function researchFallback(){
+ const query=encodeURIComponent(S?S.query(researchQuery()):researchQuery());
+ return `<p class="research-candidate-help">Revisá la marca y el modelo de la caja. También podés consultar otras fuentes:</p><div class="row"><a class="btn small outline" href="https://www.google.com/search?q=${query}" target="_blank" rel="noopener noreferrer">Buscar modelo en Google ↗</a><a class="btn small outline" href="https://www.google.com/search?tbm=isch&q=${query}" target="_blank" rel="noopener noreferrer">Ver imágenes en Google ↗</a></div>`;
+}
+function showCandidates(candidates,searchId='',requestName=researchQuery()){
+ const valid=(Array.isArray(candidates)?candidates:[]).filter(x=>x&&C.researchPage(x.url)&&C.cleanDetails({references:[x]}).references?.length&&(!S||S.matches(researchQuery(),x))).slice(0,8);
  $('researchCandidates').hidden=!valid.length;
  $('researchCandidates').innerHTML=valid.length?`<div class="research-step"><span>1</span><strong>Elegí el producto correcto</strong></div><p class="research-candidate-help">Compará el modelo, los conectores y la variante con tu artículo.</p><div class="research-result-list">${valid.map((source,i)=>`<article class="research-result"><div><strong>${esc(source.title||source.url)}</strong><small>${esc(new URL(source.url).hostname)}</small>${source.excerpt?`<p>${esc(source.excerpt.slice(0,280))}</p>`:''}<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">Ver página ↗</a></div><button type="button" class="btn small outline" data-research-source="${esc(source.id??i)}">${researchMode==='photos'?'Ver fotos':'Usar este resultado'}</button></article>`).join('')}</div>`:'';
- researchSearch=searchId?{id:searchId,name:researchQuery(),category:formField($('productForm'),'category').value.trim()}:null;
+ if(!valid.length){$('researchCandidates').hidden=false;$('researchCandidates').innerHTML='<strong>No se encontraron coincidencias del modelo exacto.</strong>'+researchFallback();}
+ researchSearch=searchId?{id:searchId,name:researchQuery(),requestName,category:formField($('productForm'),'category').value.trim()}:null;
+ return valid.length;
 }
 function showResearchPhotos(data,selection,photoSearch=false){
- const photos=(Array.isArray(data.images)?data.images:[]).filter(url=>typeof url==='string'&&/^https:\/\//i.test(url)&&url.length<=800).slice(0,6);
+ const photos=(Array.isArray(data.images)?data.images:[]).filter(url=>typeof url==='string'&&/^https:\/\//i.test(url)&&url.length<=800&&(!data.selectedSource||!S||S.matches(researchQuery(),data.selectedSource))).slice(0,6);
  researchPhotoDraft={images:photos,selection,photoSearch};
  $('researchPhotos').hidden=!selection&&!photos.length;
  const source=data.selectedSource,sourceLink=source&&C.researchPage(source.url)?`<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">Ver página de origen ↗</a>`:'';
@@ -319,7 +325,7 @@ async function loadResearchPhotos(selection){
   if(epoch!==researchEpoch||$('formOverlay').hidden)return;
   showResearchPhotos(result.research||{},selection,true);
   $('researchPhotos').scrollIntoView({behavior:'smooth',block:'start'});
-  $('researchStatus').textContent=result.research?.images?.length?'Fotos listas para revisar. Elegí cuáles copiar y guardá el producto para publicarlas.':'No se encontraron fotos descargables. Probá otro resultado.';
+  $('researchStatus').textContent=researchPhotoDraft.images.length?'Fotos listas para revisar. Elegí cuáles copiar y guardá el producto para publicarlas.':result.research?.notice||'No se encontraron fotos utilizables del modelo exacto. Probá otra fuente.';
  }catch(error){if(epoch===researchEpoch)$('researchStatus').textContent=error.message;}
  finally{if(epoch===researchEpoch)researchLoading(false);}
 }
@@ -345,7 +351,9 @@ async function researchProduct(photosOnly=false){
  photosOnly=photosOnly===true;
  if(busy||researchBusy)return;
  if(photosOnly&&!imageSearchSupported){$('researchSetup').hidden=false;toast('Actualizá Code.gs y FichaGratis.gs para activar Buscar fotos.');return;}
- const f=$('productForm'),name=researchQuery(),category=formField(f,'category').value.trim();
+ const f=$('productForm');
+ if(automaticQuery&&S){let query=researchQuery();for(const key of ['brand','model']){const value=formField(f,key).value.trim();if(value&&!S.contains(query,value))query=key==='brand'?value+' '+query:query+' '+value;}$('researchQuery').value=query.slice(0,180);}
+ const name=researchQuery(),category=formField(f,'category').value.trim(),lookupName=S?S.query(name):name;
  if(name.length<3){$('researchStatus').textContent='Escribí primero el nombre o modelo del producto.';$('researchQuery').focus();return;}
  resetResearch();researchMode=photosOnly?'photos':'details';const epoch=researchEpoch;
  researchLoading(true,'Buscando coincidencias del producto…');
@@ -355,12 +363,12 @@ async function researchProduct(photosOnly=false){
   if(profile){presentResearch(profile,name);return;}
   if(!researchSupported)throw Error('Conectá la búsqueda web siguiendo los pasos de activación. No necesitás cambiar tu inventario.');
   if(researchSelectable){
-   const result=await request('researchCandidates',{name,category});
+   const result=await request('researchCandidates',{name:lookupName,category});
    if(epoch!==researchEpoch||$('formOverlay').hidden||researchQuery()!==name)return;
-   showCandidates(result.candidates,result.searchId);
-   $('researchStatus').textContent=result.candidates?.length?(photosOnly?'Elegí Ver fotos en el resultado que corresponde a tu artículo.':'Elegí Usar este resultado. Después se consultará la ficha y se buscarán coincidencias.'):'No se encontraron coincidencias. Probá con otro nombre o el modelo de la caja.';
+   const count=showCandidates(result.candidates,result.searchId,lookupName);
+   $('researchStatus').textContent=count?(photosOnly?'Elegí Ver fotos en el resultado que corresponde a tu artículo.':'Elegí Usar este resultado. Después se consultará la ficha y se buscarán coincidencias.'):result.notice||'No se encontraron páginas del modelo exacto. Revisá el código de la caja; los resultados de otros productos se omitieron.';
   }else{
-   const result=await request('researchProduct',{name,category});
+   const result=await request('researchProduct',{name:lookupName,category});
    if(epoch!==researchEpoch||$('formOverlay').hidden||researchQuery()!==name)return;
    presentResearch(result.research,name);
    if(result.research?.match!=='exact')showCandidates(result.research?.sources);
@@ -382,7 +390,7 @@ async function selectResearchSource(candidateId){
  $('researchCandidates').querySelectorAll('[data-research-source]').forEach(button=>button.closest('article').classList.toggle('selected',button.dataset.researchSource===candidateId));
  researchLoading(true,'Leyendo el resultado elegido y buscando el mismo producto en otras fuentes…');
  try{
-  const result=await request('researchProduct',{name,category:search.category,selection:{searchId:search.id,candidateId}});
+  const result=await request('researchProduct',{name:search.requestName||name,category:search.category,selection:{searchId:search.id,candidateId}});
   if(epoch!==researchEpoch||$('formOverlay').hidden||researchQuery()!==name||formField($('productForm'),'category').value.trim()!==category)return;
   presentResearch({...result.research,selection:{searchId:search.id,candidateId}},name);
  }catch(error){if(epoch===researchEpoch)$('researchStatus').textContent=error.message;}

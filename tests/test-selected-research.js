@@ -30,7 +30,7 @@ function setup(){
 }
 const {context,props,cache,calls,data}=setup(),name='Adaptador OTG USB a TYPE C';
 const found=context.gcFreeCandidates_(name,'Adaptador');
-assert.equal(found.candidates.length,2);assert.equal(calls.length,1);assert.equal(found.research,undefined);
+assert.equal(found.candidates.length,1,'Un adaptador que no menciona OTG no corresponde a la consulta');assert.equal(calls.length,1);assert.equal(found.research,undefined);
 context.gcFreeCandidates_(name,'Adaptador');assert.equal(calls.length,1,'Repetir candidatos no consume otra consulta');
 const selection={searchId:found.searchId,candidateId:'0'};
 assert.throws(()=>context.researchProduct_(name,'Otra categoría',selection),/cambió/);
@@ -55,7 +55,9 @@ const failure=setup(),pool=failure.context.gcFreeCandidates_(name,'Adaptador');
 failure.context.gcFreePost_=()=>{throw Error('Cuota agotada')};
 assert.throws(()=>failure.context.researchProduct_(name,'Adaptador',{searchId:pool.searchId,candidateId:'0'}),/Cuota/);
 assert.equal(failure.props.GC_FREE_BUSY_ID,undefined,'Un fallo libera la reserva');
-const variant=setup(),variantPool=variant.context.gcFreeCandidates_('MEMO CX16 Pro','Enfriadores');
+const variant=setup(),variantPost=variant.context.gcFreePost_;
+variant.context.gcFreePost_=(url,payload)=>{const out=variantPost(url,payload);if(url.endsWith('/search')){out.results[0].title='MEMO CX16 Pro';out.results[0].content='Enfriador MEMO CX16 Pro para celular.';}return out;};
+const variantPool=variant.context.gcFreeCandidates_('MEMO CX16 Pro','Enfriadores');
 variant.data.matched_model='MEMO CX16';
 const rejected=variant.context.researchProduct_('MEMO CX16 Pro','Enfriadores',{searchId:variantPool.searchId,candidateId:'0'}).research;
 assert.equal(rejected.match,'ambiguous');assert.equal(Object.keys(rejected.details).length,0);
@@ -102,8 +104,9 @@ const blocked=setup(),blockedPool=blocked.context.gcFreeCandidates_(name,'Adapta
 blocked.context.gcFreePost_=(url,payload)=>{
  if(url.endsWith('/extract'))return {results:[]};
  assert.deepEqual(Array.from(payload.include_domains),['distribuidor.example']);assert.equal(payload.include_images,true);
- return {images:[{url:'https://cdn.example/encontrada.jpg',description:'Adaptador USB-C'}]};
+ return {images:[{url:'https://cdn.example/encontrada.jpg',description:'Adaptador OTG USB-C'}]};
 };
 const foundPhoto=blocked.context.gcFreeImages_({searchId:blockedPool.searchId,candidateId:'0'});
 assert.equal(foundPhoto.research.broader,true);assert.equal(foundPhoto.research.images[0],'https://cdn.example/encontrada.jpg');
 console.log('PASS fotos independientes: sin ficha técnica ni Gemini, copia opcional, caché y alternativa cuando la página bloquea la extracción.');
+

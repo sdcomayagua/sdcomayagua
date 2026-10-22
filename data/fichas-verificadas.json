@@ -84,5 +84,42 @@
       "Corriente de entrada",
       "Potencia"
     ]
+  },
+  {
+    "id": "kouvolsen-kos-9044-empaque",
+    "aliases": [
+      "Hub USB KOS-9044",
+      "Hub USB KOUVOLSEN KOS-9044",
+      "KOUVOLSEN KOS-9044",
+      "KOS-9044"
+    ],
+    "checkedAt": "2026-10-22",
+    "match": "partial",
+    "matchedModel": "KOUVOLSEN KOS-9044",
+    "category": "Adaptador",
+    "description": "Hub KOUVOLSEN KOS-9044 con siete puertos USB. En el producto de la foto se distinguen un puerto rotulado USB 3.0 y seis USB 2.0. El empaque indica funcionamiento Plug and Play y presenta conexiones USB-C y USB-A.",
+    "details": {
+      "brand": "KOUVOLSEN",
+      "model": "KOS-9044",
+      "size": "7 puertos USB. El empaque indica 6,5 cm de longitud.",
+      "connection": "USB-C y USB-A, según el empaque y la foto del producto",
+      "technology": "Plug and Play; 1 puerto rotulado USB 3.0 y 6 USB 2.0. El empaque indica hasta 5 Gbps para USB 3.0."
+    },
+    "sources": [
+      {
+        "url": "https://sdcomayagua.github.io/sdcomayagua/assets/products/kouvolsen-kos-9044.webp",
+        "title": "Empaque del hub KOUVOLSEN KOS-9044 enviado por el propietario"
+      }
+    ],
+    "notes": [
+      "Datos transcritos de la foto del empaque recibido. Revisá la conexión y la variante antes de guardar. La cifra de 5 Gbps no se atribuye a los seis puertos USB 2.0. No se asignaron peso, materiales ni valores eléctricos."
+    ],
+    "missing": [
+      "Peso",
+      "Material",
+      "Voltaje de entrada",
+      "Corriente de entrada",
+      "Potencia"
+    ]
   }
 ]
