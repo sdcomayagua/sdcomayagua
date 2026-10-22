@@ -14,6 +14,8 @@ La pestaña **CATEGORIAS** muestra los prefijos, el último número, el siguient
 
 También podés usar **Nuevo producto**, seleccionar una foto de la caja y dejar que complete los campos vacíos, o tocar **Leer datos de la foto**. La lectura no reemplaza campos que ya completaste. Usa Tesseract.js en el navegador, servido desde la propia tienda y sin claves de API; la primera carga del lector requiere Internet y puede tardar. El texto pequeño, borroso, inclinado u oculto puede quedar pendiente de revisión. Los números sueltos no se interpretan como precio, ni las cantidades impresas en un empaque se usan como stock de la tienda.
 
+El lector amplía distintas zonas del empaque y prueba contraste para letras claras sobre fondos de color. La opción de una ficha con varias fotos lee también las imágenes de la parte posterior. Si quedan etiquetas pendientes, tocá **Enfocar texto de la caja**, arrastrá sobre el texto y elegí **Leer zona seleccionada**; podés girar la vista de lectura. Los valores contradictorios quedan pendientes y los reintentos conservan los campos que hayas corregido a mano. Si solo se detectan letras sueltas, el panel informa que no identificó datos fiables.
+
 Los reintentos conservan el ID de cada ficha y las fotos que ya terminaron de subir. Antes de repetir un guardado cuya respuesta se perdió, el panel comprueba si ya existe ese ID.
 
 ## Actualización del proyecto de Apps Script
@@ -41,4 +43,7 @@ Los kits muestran envío gratis en las imágenes. Se mantienen como borradores p
 
 - `node tests/test-category-codes.js`: códigos asignados en servidor, edición, cambios de categoría, ID estable, contador permanente, pegado múltiple y lectura del empaque.
 - `node tests/test-photo-intake-ui.js`: creación desde fotos, extracción al editor, borradores, guardado parcial, reintentos y vista móvil/PC con OCR y servidor simulados.
+- `node tests/test-photo-recognition.js`: fragmentos de lecturas reales, nombres de marca, modelos, medidas, texto ilegible y atributos contradictorios.
+- `node tests/test-photo-reader-ui.js`: enfoque y giro, lectura de varias fotos, correcciones manuales, cancelación y nueva lectura, y presentación móvil con OCR simulado.
+- Lectura real en navegador comprobada con las fotos originales KOUVOLSEN del hub KOS-9044, cable X176 y cable X36. En el formulario se verificaron marca KOUVOLSEN, modelo X176, conexión C-C y 60 W; los datos restantes siguen sujetos a revisión.
 - Se conservan las pruebas existentes del catálogo, carrito, inventario y buscador.

@@ -1,14 +1,44 @@
 (function(){
 'use strict';
-const A=window.GC_ADMIN,M=window.GC_PHOTO_MODEL,K=window.GC_CODES,$=id=>document.getElementById(id);
+const A=window.GC_ADMIN,M=window.GC_PHOTO_MODEL,R=window.GC_PACKAGE_READER,K=window.GC_CODES,$=id=>document.getElementById(id);
 if(!A||!M||!K||!$('photoIntakeOpen'))return;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const readerAssets=new URL('assets/vendor/tesseract/',document.baseURI).href;
 const state={rows:[],epoch:0,reading:false,saving:false,trigger:null};
-let library,worker,workerHandle,ocrChain=Promise.resolve(),progress=()=>{},editorEpoch=0,ocrGeneration=0;
+let library,worker,workerHandle,ocrChain=Promise.resolve(),progress=()=>{},progressLabel='',activeReadCancel,editorEpoch=0,ocrGeneration=0;
 const overlay=document.createElement('div');overlay.id='photoIntakeOverlay';overlay.className='overlay';overlay.hidden=true;
 overlay.innerHTML=`<section class="dialog pi-dialog" role="dialog" aria-modal="true" aria-labelledby="photoIntakeTitle"><div class="dialog-head"><div class="pi-heading"><h2 id="photoIntakeTitle">Crear productos desde fotos</h2><p>Elegí fotos · revisá los datos · guardá en tu inventario</p></div><button type="button" class="icon" id="piClose" aria-label="Cerrar carga de productos">×</button></div><div class="pi-body"><div class="pi-chooser" id="piDrop"><h3>La caja tiene los datos. Empezá por una foto.</h3><p>Podés seleccionar varias imágenes o arrastrarlas aquí desde tu computadora.</p><div class="row"><button class="btn" type="button" id="piPick">Elegir fotos</button><button class="btn outline" type="button" id="piCamera">Tomar foto</button></div><div class="pi-mode"><label for="piMode">Estas imágenes son de</label><select class="field" id="piMode"><option value="separate">Varios productos: una ficha por foto</option><option value="group">Un producto: todas a su galería</option></select></div><small>Lee el texto de la foto en tu dispositivo. No necesita claves ni suscripciones.<br>Se completan solo los datos legibles. Precio y existencias se revisan antes de publicar.</small><input type="file" class="hidden-input" id="piFiles" accept="image/jpeg,image/png,image/webp" multiple><input type="file" class="hidden-input" id="piCameraFile" accept="image/*" capture="environment"></div><div class="pi-summary"><p id="piSummary" role="status" aria-live="polite">Todavía no elegiste imágenes.</p><button class="btn outline small" type="button" id="piStop" hidden>Omitir lectura pendiente</button></div><p id="piGlobal" class="pi-global" role="status" aria-live="polite"></p><datalist id="piCategories"></datalist><div id="piRows"><p class="pi-empty">Cada producto tendrá su foto, categoría y código automático.</p></div></div><div class="pi-footer"><p>Las fichas se guardan como borradores. Activá «Mostrar en tienda» solo después de revisar precio, existencias y condiciones.</p><button class="btn" type="button" id="piSave" disabled>Guardar seleccionados</button></div></section>`;
 document.body.appendChild(overlay);
+const focusOverlay=document.createElement('div');focusOverlay.id='piFocusOverlay';focusOverlay.className='overlay';focusOverlay.hidden=true;
+focusOverlay.innerHTML=`<section class="dialog pi-focus-dialog" role="dialog" aria-modal="true" aria-labelledby="piFocusTitle"><div class="dialog-head"><div><h2 id="piFocusTitle">Enfocar texto de la caja</h2><p>Arrastrá sobre el nombre, modelo o etiqueta que querés leer.</p></div><button class="icon" type="button" id="piFocusClose" aria-label="Cerrar enfoque">×</button></div><div class="pi-focus-tools"><label>Foto <select class="field" id="piFocusFile"></select></label><button type="button" class="btn outline small" id="piFocusRotate">Girar 90°</button><button type="button" class="btn outline small" id="piFocusReset">Toda la foto</button></div><div class="pi-focus-stage"><canvas id="piFocusCanvas" aria-label="Foto: arrastrá para seleccionar el texto"></canvas></div><p id="piFocusStatus" role="status">Marcá una zona para ampliar sus letras.</p><button type="button" class="btn" id="piFocusRead">Leer zona seleccionada</button></section>`;
+document.body.appendChild(focusOverlay);let focus=null;
+function drawFocus(){
+ if(!focus?.image)return;const c=$('piFocusCanvas'),image=focus.image,swap=focus.rotation%180!==0,scale=Math.min(1,1200/Math.max(image.width,image.height));
+ c.width=Math.round((swap?image.height:image.width)*scale);c.height=Math.round((swap?image.width:image.height)*scale);
+ const ctx=c.getContext('2d');ctx.save();ctx.translate(c.width/2,c.height/2);ctx.rotate(focus.rotation*Math.PI/180);ctx.drawImage(image,-image.width*scale/2,-image.height*scale/2,image.width*scale,image.height*scale);ctx.restore();
+ const r=focus.region,x=r.x*c.width,y=r.y*c.height,w=r.width*c.width,h=r.height*c.height;
+ ctx.fillStyle='#08182d88';ctx.beginPath();ctx.rect(0,0,c.width,c.height);ctx.rect(x,y,w,h);ctx.fill('evenodd');ctx.strokeStyle='#1c8dff';ctx.lineWidth=3;ctx.strokeRect(x,y,w,h);
+ $('piFocusRead').disabled=w<12||h<12;
+}
+async function loadFocusFile(){
+ const current=focus;if(!current)return;const file=current.row.files[Number($('piFocusFile').value)||0];current.fileIndex=Number($('piFocusFile').value)||0;
+ if(current.url)URL.revokeObjectURL(current.url);current.url=URL.createObjectURL(file);$('piFocusRead').disabled=true;
+ const image=new Image();image.onload=()=>{if(focus!==current)return;current.image=image;current.rotation=0;current.region={x:.08,y:.08,width:.84,height:.84};drawFocus();};image.onerror=()=>{$('piFocusStatus').textContent='No se pudo abrir esta foto. Elegí otra de la lista.';};image.src=current.url;
+}
+function openFocus(row){
+ if(state.reading){A.toast('Esperá a que termine la lectura o tocá Omitir lectura.');return;}
+ focus={row,fileIndex:0,rotation:0,region:{x:0,y:0,width:1,height:1},trigger:document.activeElement};
+ $('piFocusFile').innerHTML=row.files.map((f,i)=>'<option value="'+i+'">'+esc(f.name)+'</option>').join('');focusOverlay.hidden=false;overlay.setAttribute('inert','');loadFocusFile();$('piFocusClose').focus();
+}
+function closeFocus(){if(focus?.url)URL.revokeObjectURL(focus.url);const trigger=focus?.trigger;focus=null;focusOverlay.hidden=true;overlay.removeAttribute('inert');trigger?.focus();}
+function focusPoint(event){const rect=$('piFocusCanvas').getBoundingClientRect();return {x:Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width)),y:Math.max(0,Math.min(1,(event.clientY-rect.top)/rect.height))};}
+$('piFocusCanvas').onpointerdown=event=>{if(!focus?.image)return;event.preventDefault();focus.start=focusPoint(event);event.target.setPointerCapture(event.pointerId);};
+$('piFocusCanvas').onpointermove=event=>{if(!focus?.start)return;const p=focusPoint(event),s=focus.start;focus.region={x:Math.min(p.x,s.x),y:Math.min(p.y,s.y),width:Math.abs(p.x-s.x),height:Math.abs(p.y-s.y)};drawFocus();};
+$('piFocusCanvas').onpointerup=$('piFocusCanvas').onpointercancel=()=>{if(focus)focus.start=null;};
+$('piFocusFile').onchange=loadFocusFile;$('piFocusClose').onclick=closeFocus;
+$('piFocusRotate').onclick=()=>{if(focus){focus.rotation=(focus.rotation+90)%360;focus.region={x:.08,y:.08,width:.84,height:.84};drawFocus();}};
+$('piFocusReset').onclick=()=>{if(focus){focus.region={x:0,y:0,width:1,height:1};drawFocus();}};
+$('piFocusRead').onclick=async()=>{if(!focus?.image)return;const {row,region,rotation,fileIndex}=focus;closeFocus();const epoch=++state.epoch;state.reading=true;updateSummary();await readRow(row,epoch,{region,rotation,fileIndex});if(epoch===state.epoch)state.reading=false;updateSummary();};
 const categories=()=>[...new Set([...A.products().map(p=>p.category),'Dedales','KIT GAMER','Cables USB-C','Adaptador','Audio','Otros'].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
 function updateSummary(){
  const total=state.rows.length,selected=state.rows.filter(r=>r.selected&&!r.saved).length,saved=state.rows.filter(r=>r.saved).length;
@@ -22,14 +52,15 @@ function updateCodes(){
  const simulated=[...A.products()];
  for(const row of state.rows){if(row.saved)continue;row.code=row.category?K.next(simulated,row.category):'';if(row.code)simulated.push({id:row.id,code:row.code,category:row.category});const tag=$('piRows').querySelector(`[data-pi-row="${row.id}"] .pi-code`);if(tag)tag.textContent=row.code||'Elegí una categoría para asignar código';}
 }
-const specLabels={brand:'Marca',model:'Modelo',power:'Potencia',current:'Corriente',connection:'Conexión',length:'Largo',measureUnit:'Unidad (cm, m, mm)',size:'Tamaño / puertos',material:'Material',technology:'Tecnología',included:'Incluye'};
+const specLabels={brand:'Marca',model:'Modelo',power:'Potencia',current:'Corriente',voltage:'Voltaje',connection:'Conexión',length:'Largo',measureUnit:'Unidad (cm, m, mm)',size:'Tamaño / puertos',material:'Material',technology:'Tecnología',included:'Incluye'};
 function card(row){
  const locked=row.saved||state.saving;
  const notes=row.notes.filter(n=>!(row.stock!==''&&/^Existencias pendientes/i.test(n))&&!(row.price!==''&&/^Precio de venta pendiente/i.test(n)));
  const input=(key,label,type='text',extra='')=>`<label class="${key==='name'?'pi-name':''}">${label}<input class="field" data-pi-field="${key}" value="${esc(row[key]??'')}" type="${type}" ${extra} ${locked?'disabled':''}></label>`;
- return `<article class="pi-card ${row.saved?'is-saved':''}" data-pi-row="${row.id}"><div class="pi-image"><img src="${esc(row.preview)}" alt="Foto de ${esc(row.name||'producto por revisar')}"><p>${esc(row.files[0].name)}${row.files.length>1?' · '+row.files.length+' fotos':''}</p>${row.saved?'':`<button class="btn outline small" data-pi-add type="button">+ Más fotos</button><input class="hidden-input" data-pi-extra type="file" accept="image/jpeg,image/png,image/webp" multiple>`}</div><div><div class="pi-card-top"><div><label><input type="checkbox" data-pi-select ${row.selected?'checked':''} ${locked?'disabled':''}>${row.saved?'Guardado en inventario':'Revisar producto'}</label><p class="pi-state ${row.error?'pi-error':''}" role="status">${esc(row.status)}</p></div>${row.saved?'<span class="pi-draft">'+(row.active?'Visible':'Borrador')+'</span>':'<button class="icon" data-pi-remove type="button" aria-label="Quitar esta ficha">×</button>'}</div><span class="pi-code">${esc(row.code||'Elegí una categoría para asignar código')}</span><div class="pi-fields">${input('name','Nombre del producto','text','maxlength="180"')}${input('category','Categoría','text','list="piCategories" maxlength="120"')}${input('price','Precio de venta (L)','number','min="0" step="0.01" placeholder="Pendiente"')}${input('stock','Existencias','number','min="0" step="1" placeholder="Pendiente"')}<label class="full">Descripción<textarea class="field" data-pi-field="description" rows="3" maxlength="5000" ${locked?'disabled':''}>${esc(row.description)}</textarea></label><div class="pi-checks"><label><input type="checkbox" data-pi-field="codAllowed" ${row.codAllowed?'checked':''} ${locked?'disabled':''}>Permitir pago al recibir</label><label><input type="checkbox" data-pi-field="active" ${row.active?'checked':''} ${locked?'disabled':''}>Mostrar en tienda</label></div></div>${notes.length?'<p class="pi-notes">'+notes.map(esc).join(' · ')+'</p>':''}<details class="pi-specs"><summary>Datos de la caja y texto leído</summary><div class="pi-fields">${Object.entries(specLabels).map(([key,label])=>`<label>${label}<input class="field" data-pi-spec="${key}" value="${esc(row.details[key]??'')}" ${locked?'disabled':''}></label>`).join('')}</div><label class="pi-field-hint">Texto detectado<textarea class="field pi-ocr" data-pi-ocr readonly rows="5">${esc(row.text)}</textarea></label></details><div class="pi-actions">${row.saved?`<button class="btn outline small" type="button" data-pi-edit>Abrir ficha completa</button>`:`<button class="btn outline small" type="button" data-pi-read>Volver a leer foto</button><span class="pi-field-hint">El código definitivo se confirma al guardar.</span>`}</div></div></article>`;
+ return `<article class="pi-card ${row.saved?'is-saved':''}" data-pi-row="${row.id}"><div class="pi-image"><img src="${esc(row.preview)}" alt="Foto de ${esc(row.name||'producto por revisar')}"><p>${esc(row.files[0].name)}${row.files.length>1?' · '+row.files.length+' fotos':''}</p>${row.saved?'':`<button class="btn outline small" data-pi-add type="button">+ Más fotos</button><input class="hidden-input" data-pi-extra type="file" accept="image/jpeg,image/png,image/webp" multiple>`}</div><div><div class="pi-card-top"><div><label><input type="checkbox" data-pi-select ${row.selected?'checked':''} ${locked?'disabled':''}>${row.saved?'Guardado en inventario':'Revisar producto'}</label><p class="pi-state ${row.error?'pi-error':''}" role="status">${esc(row.status)}</p></div>${row.saved?'<span class="pi-draft">'+(row.active?'Visible':'Borrador')+'</span>':'<button class="icon" data-pi-remove type="button" aria-label="Quitar esta ficha">×</button>'}</div><span class="pi-code">${esc(row.code||'Elegí una categoría para asignar código')}</span><div class="pi-fields">${input('name','Nombre del producto','text','maxlength="180"')}${input('category','Categoría','text','list="piCategories" maxlength="120"')}${input('price','Precio de venta (L)','number','min="0" step="0.01" placeholder="Pendiente"')}${input('stock','Existencias','number','min="0" step="1" placeholder="Pendiente"')}<label class="full">Descripción<textarea class="field" data-pi-field="description" rows="3" maxlength="5000" ${locked?'disabled':''}>${esc(row.description)}</textarea></label><div class="pi-checks"><label><input type="checkbox" data-pi-field="codAllowed" ${row.codAllowed?'checked':''} ${locked?'disabled':''}>Permitir pago al recibir</label><label><input type="checkbox" data-pi-field="active" ${row.active?'checked':''} ${locked?'disabled':''}>Mostrar en tienda</label></div></div>${notes.length?'<p class="pi-notes">'+notes.map(esc).join(' · ')+'</p>':''}<details class="pi-specs" ${row.specsOpen?'open':''}><summary>Datos de la caja y texto leído</summary><div class="pi-fields">${Object.entries(specLabels).map(([key,label])=>`<label>${label}<input class="field" data-pi-spec="${key}" value="${esc(row.details[key]??'')}" ${locked?'disabled':''}></label>`).join('')}</div><label class="pi-field-hint">Texto detectado<textarea class="field pi-ocr" data-pi-ocr readonly rows="5">${esc(row.text)}</textarea></label></details><div class="pi-actions">${row.saved?`<button class="btn outline small" type="button" data-pi-edit>Abrir ficha completa</button>`:`<button class="btn outline small" type="button" data-pi-read>Volver a leer foto</button><button class="btn outline small" type="button" data-pi-focus>Enfocar texto de la caja</button><span class="pi-field-hint">El código definitivo se confirma al guardar.</span>`}</div></div></article>`;
 }
 function render(){
+ for(const row of state.rows){const details=$('piRows').querySelector(`[data-pi-row="${row.id}"] .pi-specs`);if(details)row.specsOpen=details.open;}
  $('piCategories').innerHTML=categories().map(c=>'<option value="'+esc(c)+'"></option>').join('');updateCodes();
  $('piRows').innerHTML=state.rows.map(card).join('')||'<p class="pi-empty">Elegí una foto clara de cada producto para empezar.</p>';updateSummary();
 }
@@ -47,37 +78,46 @@ async function loadLibrary(){
 async function getWorker(){
  if(!worker)worker=(async()=>{
   const T=await loadLibrary();let expired=false;
-  const pending=T.createWorker('eng',1,{workerPath:readerAssets+'worker.min.js',corePath:readerAssets+'tesseract-core-lstm.wasm.js',langPath:readerAssets,gzip:true,logger:info=>{if(info.status==='recognizing text')progress('Leyendo texto · '+Math.round((info.progress||0)*100)+'%');else progress('Preparando lector · la primera carga puede tardar…');}});
+  const pending=T.createWorker('eng',1,{workerPath:readerAssets+'worker.min.js',corePath:readerAssets+'tesseract-core-lstm.wasm.js',langPath:readerAssets,gzip:true,logger:info=>{if(info.status==='recognizing text')progress((progressLabel||'Leyendo texto')+' · '+Math.round((info.progress||0)*100)+'%');else progress('Preparando lector · la primera carga puede tardar…');}});
   let timer;
-  try{const w=await Promise.race([pending,new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(Error('La preparación tardó demasiado. Reintentá la lectura o completá la ficha manualmente.'));},60000);})]);workerHandle=w;await w.setParameters({tessedit_pageseg_mode:'11'});return w;}
+  try{const w=await Promise.race([pending,new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(Error('La preparación tardó demasiado. Reintentá la lectura o completá la ficha manualmente.'));},60000);})]);workerHandle=w;await w.setParameters({tessedit_pageseg_mode:'11',user_defined_dpi:'300'});return w;}
   catch(error){if(expired)pending.then(w=>w.terminate()).catch(()=>{});throw error;}finally{clearTimeout(timer);}
  })().catch(error=>{worker=null;throw error;});
  return worker;
 }
-function recognize(file,onProgress){
+function recognize(file,onProgress,options={}){
  const generation=ocrGeneration;
  const task=ocrChain.catch(()=>{}).then(async()=>{
   if(generation!==ocrGeneration)throw Error('Lectura cancelada.');
-  progress=onProgress;onProgress('Preparando lectura de la caja…');const w=await getWorker();if(generation!==ocrGeneration)throw Error('Lectura cancelada.');let timer;
-  try{return await Promise.race([w.recognize(file),new Promise((_,reject)=>{timer=setTimeout(()=>{w.terminate();worker=null;workerHandle=null;reject(Error('No se pudo completar la lectura. Podés escribir los datos manualmente.'));},70000);})]);}finally{clearTimeout(timer);progress=()=>{};}
+  if(!R)throw Error('Actualizá la página para cargar el lector mejorado.');
+  progress=onProgress;onProgress('Preparando lectura de la caja…');const w=await getWorker();if(generation!==ocrGeneration){w.terminate();worker=null;workerHandle=null;throw Error('Lectura cancelada.');}let timer,cancel;
+  const interruption=new Promise((_,reject)=>{cancel=message=>{w.terminate();if(workerHandle===w){worker=null;workerHandle=null;}reject(Error(message||'Lectura cancelada.'));};activeReadCancel=cancel;timer=setTimeout(()=>cancel('La lectura tardó demasiado. Reintentá enfocando una etiqueta de la caja.'),90000);});
+  try{return await Promise.race([R.read(file,{model:M,categories:categories(),...options,stopped:()=>generation!==ocrGeneration,onProgress:message=>{progressLabel=message;onProgress(message);},recognize:async(input,mode)=>{await w.setParameters({tessedit_pageseg_mode:mode,user_defined_dpi:'300'});return w.recognize(input);}}),interruption]);}finally{clearTimeout(timer);if(activeReadCancel===cancel)activeReadCancel=null;progress=()=>{};progressLabel='';}
  });ocrChain=task;return task;
 }
 function stopReading(){
- state.epoch++;ocrGeneration++;state.reading=false;if(workerHandle){workerHandle.terminate();workerHandle=null;worker=null;}
+ state.epoch++;ocrGeneration++;state.reading=false;if(activeReadCancel)activeReadCancel();else if(workerHandle){workerHandle.terminate();workerHandle=null;worker=null;}
  for(const row of state.rows)if(!row.saved&&/Leyendo|Preparando|En cola/.test(row.status))setStatus(row,'Lectura omitida. Podés completar los campos manualmente.');updateSummary();
 }
-async function readRow(row,epoch){
+async function readRow(row,epoch,options={}){
  try{
-  const result=await recognize(row.files[0],message=>{if(epoch===state.epoch)setStatus(row,message);});
+  const readings=options.region?[...(row.readings||[])]:[];let warning='';
+  const files=options.region?[row.files[options.fileIndex||0]]:row.files;
+  for(let i=0;i<files.length;i++){
+   const result=await recognize(files[i],message=>{if(epoch===state.epoch)setStatus(row,(files.length>1?'Foto '+(i+1)+'/'+files.length+' · ':'')+message);},options);
+   if(epoch!==state.epoch||!state.rows.includes(row))return;
+   readings.push(...result.readings);if(result.warning)warning=result.warning;
+  }
   if(epoch!==state.epoch||!state.rows.includes(row))return;
-  const draft=M.parse(result.data?.text||'',row.files[0].name,categories());
-  row.text=draft.text;row.notes=draft.notes;
-  for(const key of ['name','category','description'])if(!row[key]||key==='name'&&row[key]===M.filenameName(row.files[0].name))row[key]=draft[key];
-  if(row.price==='')row.price=draft.price??'';
+  row.readings=readings;const draft=M.combine(readings,row.files[0].name,categories());
+  row.text=draft.text;row.notes=draft.notes;if(warning)row.notes.push(warning);
+  for(const key of ['name','category','description'])if(!row.manuallyChanged.has(key))row[key]=draft[key];
+  if(!row.manuallyChanged.has('price'))row.price=draft.price??'';
   if(!row.manuallyChanged.has('codAllowed'))row.codAllowed=draft.codAllowed;
-  for(const [key,value] of Object.entries(draft.details))if(!row.details[key])row.details[key]=value;
+  for(const key of Object.keys(specLabels))if(!row.manuallyChanged.has('spec:'+key))row.details[key]=draft.details[key]??'';
   if(draft.freeShipping)row.active=false;
-  row.status=draft.confidence==='empty'?'No se pudo leer suficiente texto. Completá la ficha manualmente.':'Lectura lista. Revisá nombre, categoría y datos de la caja.';row.error=false;render();
+  const fields=M.assessment(draft).fields;
+  row.status=draft.confidence==='empty'?'No se identificaron datos fiables. Tocá «Enfocar texto de la caja» y marcá la etiqueta con el nombre o modelo.':draft.confidence==='partial'?'Lectura parcial. Revisá los campos y enfocá la etiqueta para completar los datos.':'Se identificaron '+fields+' datos de la caja. Revisá la ficha antes de guardar.';row.error=draft.confidence==='empty';render();
  }catch(error){if(epoch===state.epoch&&state.rows.includes(row))setStatus(row,error.message,true);}
 }
 function validFiles(list){
@@ -134,12 +174,16 @@ async function saveRows(){
  finally{state.saving=false;render();}
 }
 async function readEditor(auto=false){
- const f=$('productForm'),file=A.selectedPhotos()[0];if(!file){A.toast('Elegí primero una foto de la caja desde tu galería o cámara.');return;}
+ const f=$('productForm'),files=A.selectedPhotos(),file=files[0];if(!file){A.toast('Elegí primero una foto de la caja desde tu galería o cámara.');return;}
  if(A.editorPhotos().busy)return;const epoch=++editorEpoch,id=f.elements.namedItem('id').value,button=$('readPackageBtn'),status=$('packageReadStatus');button.disabled=true;
  try{
-  const output=await recognize(file,message=>{if(epoch===editorEpoch)status.textContent=message;});
-  if(epoch!==editorEpoch||$('formOverlay').hidden||A.editorPhotos().busy||f.elements.namedItem('id').value!==id||!A.selectedPhotos().includes(file))return;
-  const draft=M.parse(output.data?.text||'',file.name,categories());let count=0;
+  const readings=[];
+  for(let i=0;i<files.length;i++){
+   if(epoch!==editorEpoch||$('formOverlay').hidden||f.elements.namedItem('id').value!==id)return;
+   const output=await recognize(files[i],message=>{if(epoch===editorEpoch)status.textContent=(files.length>1?'Foto '+(i+1)+'/'+files.length+' · ':'')+message;});readings.push(...output.readings);
+  }
+  if(epoch!==editorEpoch||$('formOverlay').hidden||A.editorPhotos().busy||f.elements.namedItem('id').value!==id||files.some(photo=>!A.selectedPhotos().includes(photo)))return;
+  const draft=M.combine(readings,file.name,categories());let count=0;
   const values={name:draft.name,category:draft.category,description:draft.description,...draft.details};
   for(const [key,value] of Object.entries(values)){const field=f.elements.namedItem(key);if(value&&field&&!String(field.value||'').trim()){field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));count++;}}
   if(!id&&draft.price!==null&&(!f.elements.namedItem('price').value||Number(f.elements.namedItem('price').value)===0)){f.elements.namedItem('price').value=draft.price;count++;}
@@ -147,7 +191,7 @@ async function readEditor(auto=false){
   if(!id&&!draft.codAllowed)f.elements.namedItem('codAllowed').value='NO';
   if(!id)f.elements.namedItem('active').value='NO';
   if(Object.keys(draft.details).length)$('technicalEditor').open=true;
-  A.updateEditorCode();status.textContent=count?count+' campos vacíos completados. Revisalos antes de guardar.'+(!id?' Se guardará como borrador hasta que activés Mostrar en tienda.':''):'No hay campos vacíos con datos legibles. Podés completar la ficha manualmente.';
+  A.updateEditorCode();status.textContent=count?count+' campos vacíos completados. Revisalos antes de guardar.'+(!id?' Se guardará como borrador hasta que activés Mostrar en tienda.':''):draft.confidence==='empty'?'No se identificaron datos fiables. Usá «Crear desde fotos» y «Enfocar texto de la caja» para ampliar una etiqueta.':'Los datos identificados ya tienen contenido en la ficha. Revisá la marca, modelo y especificaciones.';
  }catch(error){if(epoch===editorEpoch)status.textContent=error.message;}
  finally{if(epoch===editorEpoch)button.disabled=false;}
 }
@@ -158,22 +202,29 @@ const drop=$('piDrop');drop.addEventListener('dragover',e=>{e.preventDefault();d
 $('piRows').addEventListener('input',event=>{
  const el=event.target,row=state.rows.find(r=>r.id===el.closest('[data-pi-row]')?.dataset.piRow);if(!row||row.saved||state.saving)return;
  if(el.dataset.piField){const key=el.dataset.piField;row[key]=el.type==='checkbox'?el.checked:el.value;row.manuallyChanged.add(key);if(key==='category')updateCodes();}
- if(el.dataset.piSpec)row.details[el.dataset.piSpec]=el.value;
+ if(el.dataset.piSpec){row.details[el.dataset.piSpec]=el.value;row.manuallyChanged.add('spec:'+el.dataset.piSpec);}
  if(el.hasAttribute('data-pi-select'))row.selected=el.checked;updateSummary();
 });
-$('piRows').addEventListener('change',event=>{
+$('piRows').addEventListener('change',async event=>{
  const el=event.target;if(!el.hasAttribute('data-pi-extra'))return;const row=state.rows.find(r=>r.id===el.closest('[data-pi-row]')?.dataset.piRow);if(!row||row.saved||state.saving)return;
- row.files.push(...validFiles(el.files).slice(0,10-row.files.length));el.value='';render();
+ if(state.reading){el.value='';A.toast('Esperá a que termine la lectura actual.');return;}
+ const added=validFiles(el.files).slice(0,10-row.files.length);if(!added.length)return;row.files.push(...added);el.value='';const epoch=++state.epoch;state.reading=true;render();await readRow(row,epoch);if(epoch===state.epoch)state.reading=false;updateSummary();
 });
 $('piRows').addEventListener('click',async event=>{
  const button=event.target.closest('button'),row=state.rows.find(r=>r.id===button?.closest('[data-pi-row]')?.dataset.piRow);if(!row||state.saving)return;
  if(button.hasAttribute('data-pi-remove')){URL.revokeObjectURL(row.preview);state.rows=state.rows.filter(r=>r!==row);render();}
  if(button.hasAttribute('data-pi-add'))button.closest('[data-pi-row]').querySelector('[data-pi-extra]').click();
  if(button.hasAttribute('data-pi-edit')){close(true);A.editProduct(row.id);}
- if(button.hasAttribute('data-pi-read')){if(state.reading){A.toast('Esperá a que termine la lectura actual.');return;}const epoch=++state.epoch;state.reading=true;updateSummary();await readRow(row,epoch);if(epoch===state.epoch)state.reading=false;updateSummary();}
+ if(button.hasAttribute('data-pi-focus'))openFocus(row);
+ if(button.hasAttribute('data-pi-read')){if(state.reading){A.toast('Esperá a que termine la lectura actual.');return;}const epoch=++state.epoch;state.reading=true;updateSummary();await readRow(row,epoch,{detailed:true});if(epoch===state.epoch)state.reading=false;updateSummary();}
 });
 overlay.addEventListener('click',event=>{if(event.target===overlay)close();});
 document.addEventListener('keydown',event=>{
+ if(!focusOverlay.hidden){
+  if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();closeFocus();return;}
+  if(event.key==='Tab'){const elements=[...focusOverlay.querySelectorAll('button:not(:disabled),select')],first=elements[0],last=elements.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
+  return;
+ }
  if(overlay.hidden)return;if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();close();return;}
  if(event.key!=='Tab')return;const focusable=[...overlay.querySelectorAll('button:not(:disabled),input:not(:disabled),select,textarea,summary')].filter(el=>el.getClientRects().length),first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
 },true);
