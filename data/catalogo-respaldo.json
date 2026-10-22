@@ -1680,7 +1680,7 @@
     "description": "",
     "discounts": "",
     "codAllowed": true,
-    "active": true,
+    "active": false,
     "colors": "",
     "promoPrice": 0,
     "promoText": "",
