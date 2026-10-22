@@ -30,4 +30,6 @@ jobs:
           node tests/test-management.js
           node tests/test-inventory.js
           node tests/test-photo-editor.js
+          node tests/test-category-codes.js
           python3 tests/test-sync.py
+

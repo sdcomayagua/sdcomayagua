@@ -36,7 +36,7 @@ function doGet(e) {
     if(String(args.action||'') === 'health') {
       const props=PropertiesService.getScriptProperties();
       const pin=String(props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN') || '');
-      result={ok:true,version:'GC-20261019-INVENTARIO-V10',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+      result={ok:true,version:'GC-20261022-CATEGORIAS-V11',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
     } else result = {ok:true, ...publicPayload_()};
   } catch (err) {
     result = {ok:false, error:safeError_(err)};
@@ -69,7 +69,7 @@ function doPost(e) {
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:8,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:8,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
       }
       else if (req.action === 'operationsSummary') result = gcOperationsSummary_();
       else if (req.action === 'operationsList') result = gcOperationsList_(req);
@@ -431,7 +431,11 @@ function saveProduct_(p){
     if(!position||position<0)set('FechaCreacion',new Date().toISOString());
     if(p.bestSeller!==undefined)set('MasPedidos',p.bestSeller===true?'SI':'NO');
     set('ID',id);
-    set('Codigo',String(p.code??old('Codigo')??'').trim());
+    // El servidor asigna el consecutivo dentro del mismo bloqueo que guarda.
+    // Nunca depende del SKU propuesto por el navegador ni cambia el ID interno.
+    const previousCode=String(old('Codigo')||'');
+    const code=gcCategoryCode_(rows,headers,category,previousCode,id);
+    set('Codigo',code);
     set('Nombre',name);
     set('Categoria',category);
     set('Precio',price);
@@ -449,13 +453,99 @@ function saveProduct_(p){
     if(p.promoText!==undefined)set('PromocionTexto',String(p.promoText||'').slice(0,250));
     if(p.details!==undefined)set('Detalles',JSON.stringify(detailsClean_(p.details)));
     if(position>0)s.getRange(position,1,1,headers.length).setValues([row]);else s.appendRow(row);
+    if(previousCode!==code)gcCodeAudit_(book_(),id,name,category,previousCode,code);
     CacheService.getScriptCache().remove('public_catalog_v8');
     CacheService.getScriptCache().remove('public_catalog_v7');
     CacheService.getScriptCache().remove('public_catalog_v6');
     CacheService.getScriptCache().remove('public_catalog_v5');
     CacheService.getScriptCache().remove('public_catalog_v4');
-    return {ok:true,id,message:position>0?'Producto actualizado':'Producto agregado'};
+    return {ok:true,id,code,message:position>0?'Producto actualizado':'Producto agregado'};
   } finally {lock.releaseLock();}
+}
+/** Consecutivos permanentes por categoría. Llamar solamente con ScriptLock tomado. */
+function gcCategoryPrefix_(category){
+  return String(category||'Otros').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,70).replace(/-+$/,'')||'Otros';
+}
+function gcCategoryCode_(rows,headers,category,previousCode,id){
+  const prefix=gcCategoryPrefix_(category),start=(prefix+'-').toLowerCase();
+  const col=headers.indexOf('Codigo'),idCol=headers.indexOf('ID');
+  if(col<0||idCol<0)throw Error('Faltan ID o Codigo en Productos.');
+  const props=PropertiesService.getScriptProperties(),prop='GC_CODE_SEQ_'+prefix.toLowerCase();
+  let maximum=Math.max(0,Number(props.getProperty(prop))||0);
+  const registry=book_().getSheetByName('CATEGORIAS');
+  if(registry){
+    const saved=registry.getDataRange().getValues().find((r,i)=>i>0&&String(r[1]).toLowerCase()===prefix.toLowerCase());
+    if(saved)maximum=Math.max(maximum,Number(saved[2])||0);
+  }
+  const used=new Set();
+  for(let i=1;i<rows.length;i++){
+    const code=String(rows[i][col]||'').trim();
+    if(String(rows[i][idCol])!==String(id))used.add(code.toLowerCase());
+    if(code.toLowerCase().startsWith(start)&&/^\d+$/.test(code.slice(start.length)))maximum=Math.max(maximum,Number(code.slice(start.length)));
+  }
+  const old=String(previousCode||'').trim();
+  const valid=old.toLowerCase().startsWith(start)&&/^\d{3,}$/.test(old.slice(start.length))&&Number(old.slice(start.length))>0&&!used.has(old.toLowerCase());
+  const next=valid?old:prefix+'-'+String(maximum+1).padStart(3,'0');
+  const allocated=Math.max(maximum,Number(next.slice(start.length))||0);
+  props.setProperty(prop,String(allocated));
+  return next;
+}
+function gcCategoryRegister_(ss,category,code){
+  try{
+    const sheet=ss.getSheetByName('CATEGORIAS');if(!sheet)return;
+    const values=sheet.getDataRange().getValues(),prefix=gcCategoryPrefix_(category);
+    let index=values.findIndex((r,i)=>i>0&&gcCategoryPrefix_(r[0]).toLowerCase()===prefix.toLowerCase());
+    if(index<0)index=Math.max(1,values.length);
+    const r=index+1,max=Math.max(Number(values[index]?.[2])||0,Number(String(code).slice(prefix.length+1))||0);
+    sheet.getRange(r,1,1,5).setValues([[category,prefix,max,'=B'+r+'&"-"&TEXT(C'+r+'+1,"000")','=COUNTIF(Productos!D2:D,A'+r+')']]);
+  }catch(error){console.warn('No se pudo actualizar el resumen de categorías.');}
+}
+function gcCodeAudit_(ss,id,name,category,before,after){
+  try{
+    const sheet=ss.getSheetByName('HISTORIAL CODIGOS');
+    if(sheet)sheet.appendRow([id,name,category,before,after,new Date().toISOString()]);
+    gcCategoryRegister_(ss,category,after);
+  }catch(error){console.warn('El producto fue guardado; el historial de códigos no pudo actualizarse.');}
+}
+/** Respalda códigos vigentes y completa los faltantes sin renumerar los ya válidos. */
+function actualizarCodigosPorCategoria(){
+  const lock=LockService.getScriptLock();lock.waitLock(25000);
+  try{
+    const ss=book_(),sheet=ss.getSheetByName(GC_TAB_PRODUCTS),rows=sheet.getDataRange().getValues(),h=rows[0].map(String);
+    const at=k=>h.indexOf(k);let count=0;
+    for(let i=1;i<rows.length;i++){
+      if(!rows[i][at('ID')]||!rows[i][at('Nombre')])continue;
+      const category=String(rows[i][at('Categoria')]||'Otros'),old=String(rows[i][at('Codigo')]||'');
+      const code=gcCategoryCode_(rows,h,category,old,rows[i][at('ID')]);
+      if(old!==code){sheet.getRange(i+1,at('Codigo')+1).setValue(code);rows[i][at('Codigo')]=code;gcCodeAudit_(ss,rows[i][at('ID')],rows[i][at('Nombre')],category,old,code);count++;}
+      gcCategoryRegister_(ss,category,code);
+    }
+    CacheService.getScriptCache().remove('public_catalog_v8');
+    return count+' códigos actualizados. Los ID internos se conservaron.';
+  }finally{lock.releaseLock();}
+}
+/** Cambios manuales en Productos: soporta pegado de varias filas y categorías nuevas. */
+function gcCategoryOnEdit_(e){
+  if(!e||!e.range)return;
+  const sheet=e.range.getSheet();if(sheet.getName()!==GC_TAB_PRODUCTS)return;
+  const rows=sheet.getDataRange().getValues(),h=(rows[0]||[]).map(String),at=k=>h.indexOf(k);
+  if(['ID','Codigo','Nombre','Categoria'].some(k=>at(k)<0))return;
+  const firstCol=e.range.getColumn(),lastCol=firstCol+e.range.getNumColumns()-1;
+  if(!['Codigo','Nombre','Categoria'].some(k=>at(k)+1>=firstCol&&at(k)+1<=lastCol))return;
+  const lock=LockService.getScriptLock();if(!lock.tryLock(20000))return;
+  try{
+    // Volver a leer dentro del bloqueo: una carga web puede haber terminado entretanto.
+    const fresh=sheet.getDataRange().getValues(),end=Math.min(fresh.length,e.range.getRow()+e.range.getNumRows()-1);
+    for(let r=Math.max(2,e.range.getRow());r<=end;r++){
+      const v=fresh[r-1];if(!String(v[at('Nombre')]||'').trim()||!String(v[at('Categoria')]||'').trim())continue;
+      if(!v[at('ID')]){v[at('ID')]=Utilities.getUuid();sheet.getRange(r,at('ID')+1).setValue(v[at('ID')]);}
+      const old=String(v[at('Codigo')]||''),category=String(v[at('Categoria')]);
+      const code=gcCategoryCode_(fresh,h,category,old,v[at('ID')]);
+      if(code!==old){sheet.getRange(r,at('Codigo')+1).setValue(code);v[at('Codigo')]=code;gcCodeAudit_(e.source||sheet.getParent(),v[at('ID')],v[at('Nombre')],category,old,code);}
+      if(at('Revision')>=0)sheet.getRange(r,at('Revision')+1).setValue('categoria-'+new Date().toISOString());
+    }
+    CacheService.getScriptCache().remove('public_catalog_v8');
+  }finally{lock.releaseLock();}
 }
 function disableProduct_(id){
   const s=book_().getSheetByName(GC_TAB_PRODUCTS),values=s.getDataRange().getValues();
@@ -724,3 +814,4 @@ function gcResolveDuplicate_(req){
   return {ok:true,keptId:String(req.keepId),hiddenId:String(req.hideId)};
  }finally{lock.releaseLock();}
 }
+

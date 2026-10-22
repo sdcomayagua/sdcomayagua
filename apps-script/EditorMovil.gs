@@ -33,10 +33,14 @@ function instalarEditorMovil(){
 function gcMobileOnEdit(e){
   if(!e||!e.range)return;
   const sh=e.range.getSheet();
+  if(sh.getName()===GC_MOBILE_PRODUCTS){
+    if(typeof gcCategoryOnEdit_==='function')gcCategoryOnEdit_(e);
+    return;
+  }
   if(sh.getName()!==GC_MOBILE_EDITOR || e.range.getColumn()!==2)return;
   const row=e.range.getRow();
   if(row!==3 && row!==4)return;
-  const lock=LockService.getDocumentLock()||LockService.getScriptLock();
+  const lock=LockService.getScriptLock();
   if(!lock.tryLock(7000))return;
   try{
     const ss=e.source||sh.getParent();
@@ -159,12 +163,16 @@ function gcMobileSave_(sh,ss){
     row=Math.max(2,source.getLastRow()+1);
     record=Array(col.header.length).fill('');
     record[col.pos.ID]=Utilities.getUuid();
-    record[col.pos.Codigo]='GC-'+Utilities.getUuid().slice(0,8).toUpperCase();
+    record[col.pos.Codigo]='';
   }else{
     throw Error('Antes de guardar, seleccioná un producto o elegí NUEVO PRODUCTO.');
   }
   while(record.length<col.header.length)record.push('');
   const set=(name,v)=>{if(col.pos[name]!==undefined)record[col.pos[name]]=v;};
+  if(typeof gcCategoryCode_!=='function')throw Error('Falta actualizar Code.gs para asignar códigos por categoría.');
+  const oldCode=String(record[col.pos.Codigo]||'');
+  const code=gcCategoryCode_(source.getDataRange().getValues(),col.header,cat,oldCode,record[col.pos.ID]);
+  set('Codigo',code);
   set('Nombre',title);set('Categoria',cat);set('Precio',p);
   if(String(cost==null?'':cost).trim()!==''){
     const cp=gcMobileNumber_(cost);
@@ -182,6 +190,13 @@ function gcMobileSave_(sh,ss){
   set('PrecioPromocion',promo);
   set('PromocionTexto',String(promoText||'').trim().slice(0,250));
   source.getRange(row,1,1,col.header.length).setValues([record]);
+  if(typeof gcCodeAudit_==='function'&&oldCode!==code)gcCodeAudit_(ss,record[col.pos.ID],title,cat,oldCode,code);
+  if(status==='NUEVO'){
+    if(col.pos.FechaCreacion!==undefined)source.getRange(row,col.pos.FechaCreacion+1).setValue(new Date().toISOString());
+  }
+  try{CacheService.getScriptCache().remove('public_catalog_v8')}catch(_){}
+  try{CacheService.getScriptCache().remove('public_catalog_v7')}catch(_){}
+  try{CacheService.getScriptCache().remove('public_catalog_v6')}catch(_){}
   try{CacheService.getScriptCache().remove('public_catalog_v5')}catch(_){}
   try{CacheService.getScriptCache().remove('public_catalog_v4')}catch(_){}
   sh.getRange('D3').setValue(String(gcMobileValue_(record,col,'ID')));
@@ -196,3 +211,4 @@ function probarEditorMovil(){
   const sh=ss.getSheetByName(GC_MOBILE_EDITOR);
   gcMobileLoad_(sh,ss);
 }
+
