@@ -34,9 +34,7 @@ function doGet(e) {
   let result;
   try {
     if(String(args.action||'') === 'health') {
-      const props=PropertiesService.getScriptProperties();
-      const pin=String(props.getProperty('ADMIN_PIN') || props.getProperty('ADMIN_TOKEN') || '');
-      result={ok:true,version:'GC-20261022-BUSQUEDA-V12',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+      result=gcHealth_();
     } else result = {ok:true, ...publicPayload_()};
   } catch (err) {
     result = {ok:false, error:safeError_(err)};
@@ -48,6 +46,11 @@ function doGet(e) {
     .setMimeType(name ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.TEXT);
 }
 
+/** Diagnóstico público breve: nunca devuelve el PIN, las claves ni el inventario. */
+function gcHealth_(){
+ const props=PropertiesService.getScriptProperties(),pin=String(props.getProperty('ADMIN_PIN')||props.getProperty('ADMIN_TOKEN')||'');
+ return {ok:true,version:'GC-20261022-PANEL-V13',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+}
 /** POST de formulario enviado dentro de un iframe: evita los problemas CORS de Apps Script. */
 function doPost(e) {
   let requestId = '';
@@ -57,9 +60,11 @@ function doPost(e) {
     if (!raw || raw.length > 4200000) throw Error('La solicitud está vacía o es demasiado grande.');
     const req = JSON.parse(raw);
     requestId = String(req.requestId || '');
-    // Solo el catálogo público (sin costos) puede consultarse sin PIN.
+    // El diagnóstico y el catálogo público (sin costos) pueden consultarse sin PIN.
     // Todas las demás operaciones siguen autenticadas por el servidor.
-    if (req.action === 'publicCatalog') {
+    if(req.action === 'health'){
+      result=gcHealth_();
+    } else if (req.action === 'publicCatalog') {
       result = {ok:true,...publicPayload_()};
     } else {
       assertAdmin_(req.token);

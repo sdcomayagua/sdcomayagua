@@ -9,7 +9,7 @@ let verifiedProfiles=null,serverFeatures={},checkingFeatures=null,editorBaseline
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
 async function verifiedProfile(name,productName=''){
  if(!verifiedProfiles){
-  const response=await fetch('data/fichas-verificadas.json?v=gc-search-52',{cache:'no-cache'});
+  const response=await fetch('data/fichas-verificadas.json?v=gc-panel-53',{cache:'no-cache'});
   if(!response.ok)throw Error('No se pudieron cargar las fichas verificadas.');
   const data=await response.json();verifiedProfiles=Array.isArray(data)?data:[];
  }
@@ -49,9 +49,9 @@ function request(action,extra={}){
   function listener(ev){const allowed=ev.origin==='null'||/^https:\/\/(?:script\.google\.com|(?:[a-z0-9-]+\.)*googleusercontent\.com)$/i.test(ev.origin);if(!allowed)return;const d=ev.data;if(!d||d.__gcResponse!==true||d.requestId!==requestId)return;if(d.ok)finish(null,d);else finish(Error(d.error||'No se pudo completar la operación'))}
   window.addEventListener('message',listener);
   form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';
-  const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,token,...extra});
+  const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,...(action==='health'?{}:{token}),...extra});
   form.appendChild(field);document.body.appendChild(form);
-  const waitMs=action==='verify'?28000:['researchProduct','researchImages','researchBulkItem'].includes(action)?180000:['uploadImage','importResearchImage','importBulkResearchImage'].includes(action)?90000:60000;
+  const waitMs=action==='health'?16000:action==='verify'?28000:['researchProduct','researchImages','researchBulkItem'].includes(action)?180000:['uploadImage','importResearchImage','importBulkResearchImage'].includes(action)?90000:60000;
   timer=setTimeout(()=>finish(Error(action==='verify'?'Google no respondió al validar el PIN. Podés abrir el diagnóstico para revisar la conexión.':action==='researchImages'?'La búsqueda de fotos tardó demasiado. Probá otro resultado.':action==='researchProduct'?'La consulta automática tardó demasiado. No se cambió ningún dato. Revisá en Apps Script el Registro de ejecución de la búsqueda, o buscá usando el código exacto del fabricante.':'Google no respondió a la operación. Revisá el diagnóstico de conexión.')),waitMs);
   form.submit();
  });
@@ -70,13 +70,17 @@ function jsonp(action='public'){
   document.head.appendChild(s)
  })
 }
-function checkHealth(){return jsonp('health')}
+function checkHealth(){
+ const valid=promise=>promise.then(data=>{if(typeof data.pinConfigurado!=='boolean')throw Error('Respuesta de conexión incompleta.');return data;});
+ return Promise.any([valid(request('health')),valid(jsonp('health'))]);
+}
 function connectionCheck(){
  if(checkingConnection)return checkingConnection;
  checkingConnection=(async()=>{
   $('retryConnection').disabled=true;
   $('connectionStatus').textContent='Comprobando conexión… Podés ingresar tu PIN.';
   try{
+   if(navigator.onLine===false)throw Error('offline');
    const health=await checkHealth();
    if(health.pinConfigurado===false){
     $('connectionStatus').textContent='Google responde, pero falta configurar el PIN en Apps Script.';
@@ -86,7 +90,7 @@ function connectionCheck(){
    $('connectionHelp').classList.add('hidden');return true;
   }catch(error){
    // La prueba pública usa GET/JSONP. No bloqueamos el POST que valida el PIN.
-   $('connectionStatus').textContent='No se pudo comprobar la conexión automáticamente. Podés intentar ingresar.';
+   $('connectionStatus').textContent=navigator.onLine===false?'No hay conexión a Internet. Tus cambios pendientes pueden recuperarse en este navegador.':'No se pudo confirmar la conexión. Abrí la conexión de Google y después tocá Reintentar; también podés intentar ingresar con tu PIN.';
    $('connectionHelp').classList.remove('hidden');return false;
   }finally{$('retryConnection').disabled=false;checkingConnection=null;}
  })();
@@ -117,6 +121,7 @@ function renderGalleryPreview(){
    : '<div class="gallery-help">Acá verás la imagen principal y la galería.</div>';
  $('pendingPreview').innerHTML=files.map((file,i)=>{const url=URL.createObjectURL(file);previewUrls.push(url);return `<div class="gallery-thumb pending"><img src="${url}" alt="Foto pendiente ${i+1}"><span>Pendiente</span><button type="button" data-remove-file="${i}" aria-label="Quitar archivo ${i+1}">Quitar</button></div>`}).join('');
  $('imagePreview').onerror=function(){this.onerror=null;this.src=fallback};
+ editorEvent('change');
 }
 function render(){
  const q=$('adminSearch').value.toLowerCase().trim(),filter=$('adminFilter').value;
@@ -202,6 +207,7 @@ async function logIn(e){
  }catch(err){token='';$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
 }
+function editorEvent(name,detail={}){document.dispatchEvent(new CustomEvent('gc:editor-'+name,{detail}));}
 function showProduct(id){
  editorTrigger=document.activeElement;
  resetResearch(true);
@@ -236,6 +242,7 @@ function showProduct(id){
  $('productEditorBody').scrollTop=0;
  editorBaseline=editorSnapshot();
  formField(f,'name').focus({preventScroll:true});
+ editorEvent('open',{id:p.id});
 }
 function updateEditorCode(){
  const f=$('productForm'),field=formField(f,'code'),category=formField(f,'category').value.trim(),codes=window.GC_CODES;
@@ -247,7 +254,7 @@ function updateEditorCode(){
 }
 function editorSnapshot(){return JSON.stringify([...new FormData($('productForm'))].filter(([key])=>key!=='researchQuery'))+'|'+selectedFiles.map(file=>file.name+':'+file.size+':'+file.lastModified).join('|');}
 function editorDirty(){return !$('formOverlay').hidden&&editorSnapshot()!==editorBaseline;}
-function closeForm(force=false){if(busy||$('formOverlay').hidden)return;if(force!==true&&editorDirty()&&!confirm('Tenés cambios sin guardar en esta ficha. ¿Querés descartarlos y cerrar?'))return;resetResearch(true);$('formOverlay').hidden=true;document.body.style.overflow='';editorBaseline='';editorTrigger?.focus({preventScroll:true});}
+function closeForm(force=false){if(busy||$('formOverlay').hidden)return;if(force!==true&&editorDirty()&&!confirm('Tenés cambios sin guardar en esta ficha. ¿Querés cerrar? El borrador de texto y enlaces se conserva en este navegador; las fotos pendientes deberán elegirse nuevamente.'))return;editorEvent('close');resetResearch(true);$('formOverlay').hidden=true;document.body.style.overflow='';editorBaseline='';editorTrigger?.focus({preventScroll:true});}
 function editorPhotos(){
  const f=$('productForm');
  return {id:formField(f,'id').value,name:formField(f,'name').value.trim(),images:[$('productImage').value.trim(),...parseGallery($('galleryInput').value)].filter(Boolean),pending:selectedFiles.length>0,busy:busy||researchBusy};
@@ -422,6 +429,7 @@ function applyResearch(){
  $('researchFieldSummary').hidden=false;
  $('researchApply').textContent=filled?'Ver los '+filled+' campos completados':'Revisar características';
  $('researchStatus').textContent=filled?`${filled} campos vacíos completados. Revisalos y tocá Guardar y actualizar tienda.`:'Los campos que tienen información se conservaron. Comparalos con la ficha propuesta.';
+ editorEvent('change');
 }
 async function save(e){
  e.preventDefault();
@@ -470,17 +478,20 @@ async function save(e){
    if(index>=0)products[index]=merged;else products.unshift(merged);render();
   }
   try{localStorage.setItem('gc_catalog_revision',JSON.stringify({id,at:Date.now()}))}catch{}
-  setBusy(false);closeForm(true);toast(confirmed?'Ficha guardada y comprobada.':'Producto guardado. No se pudo comprobar la lectura.');
+  editorEvent('saved',{id});setBusy(false);closeForm(true);toast(confirmed?'Ficha guardada y comprobada.':'Producto guardado. No se pudo comprobar la lectura.');
   $('adminStatus').textContent=confirmed?'✓ Ficha guardada y comprobada en Google Sheets.':'✓ Guardado. La lectura de comprobación no respondió; revisá la ficha en la tienda.';
   const link=document.createElement('a');link.href='productos.html?producto='+encodeURIComponent(id)+'&v=gc-catalog-41';link.target='_blank';link.rel='noopener';link.textContent='Ver ficha en tienda ↗';$('adminStatus').appendChild(link);
  }catch(err){$('formMessage').textContent='⚠ '+err.message;toast(err.message)}finally{setBusy(false)}
 }
 function mergeSelectedFiles(list){
- const incoming=Array.from(list||[]).filter(Boolean);
+ const offered=Array.from(list||[]).filter(Boolean),incoming=offered.filter(file=>/^image\/(jpeg|png|webp|gif)$/i.test(file.type)&&file.size<=(file.type==='image/gif'?2:30)*1024*1024);
+ if(incoming.length!==offered.length){toast('Usá JPG, PNG o WEBP de hasta 30 MB; GIF de hasta 2 MB.');$('formMessage').textContent='Algunas fotos no se agregaron. Revisá el formato y el tamaño.';}
+ if(!incoming.length)return;
  const merged=[...selectedFiles];
  incoming.forEach(file=>{if(!merged.some(x=>x.name===file.name&&x.size===file.size&&x.lastModified===file.lastModified))merged.push(file)});
- if(merged.length>10)toast('Podés seleccionar hasta 10 fotos.');
- selectedFiles=merged.slice(0,10);
+ const capacity=Math.max(0,10-editorPhotos().images.length);
+ if(merged.length>capacity)toast('Máximo 10 fotos entre la principal, la galería y las pendientes.');
+ selectedFiles=merged.slice(0,capacity);
  renderGalleryPreview();
  document.dispatchEvent(new CustomEvent('gc:photos-selected',{detail:{files:[...selectedFiles]}}));
 }
@@ -566,6 +577,7 @@ function binds(){
  // El enlace de diagnóstico también funciona con implementaciones anteriores que exigen JSONP.
  $('googleConnection').href=cfg.apiUrl+'?action=health&callback=gcConnection';
  $('retryConnection').onclick=connectionCheck;
+ window.addEventListener('online',()=>{if(!$('loginPanel').classList.contains('hidden'))connectionCheck();});
  $('logout').onclick=()=>{token='';sessionStorage.removeItem('gc_admin_token');location.reload()};
  $('refresh').onclick=reload;
  $('createNew').onclick=()=>showProduct('');
@@ -634,7 +646,7 @@ function binds(){
  if(!validApi()){$('loginMessage').textContent='Todavía falta conectar el sitio con Apps Script: editá assets/js/config.js.';$('loginMessage').classList.remove('hidden')}
  else {connectionCheck().then(ok=>{if(token){$('secret').value=token;if(ok)logIn();}});}
 }
-window.GC_ADMIN={request,products:()=>products,settings:()=>({...settings}),features:()=>serverFeatures,refreshFeatures,editProduct:showProduct,reload,toast,parseGallery,editorPhotos,appendEditorPhotos,reorderEditorPhotos,preparePhoto,selectedPhotos:()=>[...selectedFiles],updateEditorCode,notify:()=>{try{localStorage.setItem('gc_catalog_revision',JSON.stringify({at:Date.now()}))}catch{}}};
+window.GC_ADMIN={request,products:()=>products,settings:()=>({...settings}),features:()=>serverFeatures,refreshFeatures,editProduct:showProduct,reload,toast,parseGallery,editorPhotos,appendEditorPhotos,reorderEditorPhotos,preparePhoto,selectedPhotos:()=>[...selectedFiles],addPhotos:mergeSelectedFiles,updateEditorCode,notify:()=>{try{localStorage.setItem('gc_catalog_revision',JSON.stringify({at:Date.now()}))}catch{}}};
 binds();
 })();
 

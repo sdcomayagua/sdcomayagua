@@ -35,3 +35,12 @@ jobs:
           node tests/test-product-search.js
           python3 tests/test-sync.py
 
+      - name: Preparar navegador para verificar el panel
+        run: |
+          npm install --no-save --package-lock=false playwright@1.62.1
+          npx playwright install --with-deps chromium
+      - name: Verificar edición, búsqueda y fotos en computadora y celular
+        run: |
+          node tests/test-editor-tools-ui.js
+          node tests/test-product-search-ui.js
+          node tests/test-ui.js
