@@ -117,5 +117,5 @@ document.addEventListener('paste',event=>{
  if(overlay.hidden||!overlay.contains(event.target)||A.editorPhotos().busy||!$('bulkOverlay').hidden||($('photoIntakeOverlay')&&!$('photoIntakeOverlay').hidden))return;
  const files=Array.from(event.clipboardData?.files||[]).filter(file=>file.type.startsWith('image/'));if(!files.length)return;event.preventDefault();A.addPhotos(files);
 });
-document.addEventListener('keydown',event=>{if(!overlay.hidden&&(event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='s'){event.preventDefault();if(!A.editorPhotos().busy)form.requestSubmit();}});
+document.addEventListener('keydown',event=>{if(!overlay.hidden&&overlay.contains(event.target)&&(event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='s'){event.preventDefault();if(!A.editorPhotos().busy)form.requestSubmit();}});
 })();
