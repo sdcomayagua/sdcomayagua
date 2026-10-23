@@ -1822,5 +1822,40 @@
     "details": {
       "model": "X210"
     }
+  },
+  {
+    "catalogOrder": 77,
+    "bestSeller": false,
+    "createdAt": "2026-10-23T22:39:28.597Z",
+    "id": "f91babf9-1649-4ba4-ad21-b85bb2262ce3",
+    "code": "Cables-USB-C-003",
+    "name": "Cable Type C CASIM A-C56",
+    "category": "Cables USB-C",
+    "price": 120,
+    "stock": 1,
+    "image": "https://drive.google.com/thumbnail?id=17AjXktK97lM-euqPlBIjnCoOhVNbrZjY&sz=w1200",
+    "gallery": "https://drive.google.com/thumbnail?id=1W71NvtbAVw6UCAZlIXNzL9GlDwwo08-X&sz=w1200",
+    "description": "Brand: Casim Model Number: A C-56 Material: T P E Length: 1.2 meters Output: 3.1 A (max.)/ D C 5 V Interface: U S B Type-C It comes with stand to carry your phone",
+    "discounts": "",
+    "codAllowed": true,
+    "active": true,
+    "colors": "black",
+    "promoPrice": 0,
+    "promoText": "",
+    "details": {
+      "material": "TPE",
+      "compatibility": "Mobile Phones",
+      "model": "CASIM A-C56",
+      "brand": "CASIM",
+      "voltage": "5",
+      "current": "3.1",
+      "connection": "USB Type-C",
+      "references": [
+        {
+          "url": "https://www.amazon.eg/-/en/Casim-Type-C-Charging-Mobile-Holder/dp/B08WJQ14TJ",
+          "title": "Casim A-C56 USB Type-C Charging Cable with Mobile Phone ..."
+        }
+      ]
+    }
   }
 ]
