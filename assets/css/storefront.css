@@ -521,6 +521,25 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
 .delivery-fields .field{min-width:0;width:100%;font-size:14px;padding:10px}
 .delivery-fields .delivery-address{grid-column:1/-1}
 .delivery-fields textarea{min-height:75px;resize:vertical}
+.delivery-options{min-width:0;margin:0 0 20px;padding:0 0 20px;border:0;border-bottom:1px solid #dce5ef}
+.delivery-options legend{padding:0;font-size:15px;font-weight:700;color:#18304c}
+.delivery-intro{margin:6px 0 12px;font-size:12px;color:#61758b;line-height:1.5}
+.delivery-methods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.delivery-method{display:flex;align-items:center;gap:8px;min-width:0;min-height:69px;padding:11px 9px;border:1px solid #dce4ef;border-radius:10px;background:#fff;cursor:pointer;color:#28445f}
+.delivery-method input{flex:none;width:16px;height:16px;margin:0;accent-color:#2466bd}
+.delivery-method span{min-width:0}
+.delivery-method strong{display:block;font-size:12px;line-height:1.45}
+.delivery-method small{display:block;margin-top:3px;font-size:10px;line-height:1.45;color:#61758b}
+.delivery-method:has(input:checked){border-color:#2466bd;background:#edf4ff;box-shadow:inset 0 0 0 1px #2466bd}
+.delivery-method:has(input:focus-visible){outline:2px solid #2466bd;outline-offset:3px}
+.delivery-extra{display:grid;gap:7px;margin-top:12px}
+.delivery-extra[hidden],.delivery-error[hidden]{display:none}
+.delivery-extra label{font-size:12px;font-weight:650;color:#284761;line-height:1.5}
+.delivery-extra label span{font-size:11px;font-weight:400}
+.delivery-extra .field{width:100%;min-width:0;min-height:44px;font-size:16px;padding:10px 12px;background:#fff}
+.delivery-extra .field[aria-invalid=true]{border-color:#b43e33}
+.delivery-extra small{font-size:11px;color:#61758b;line-height:1.5}
+.delivery-error{font-size:11px;line-height:1.6;color:#943c25;margin:10px 0 0}
 @media(max-width:700px){
  .gc-research .research-result{grid-template-columns:1fr;gap:10px;padding:12px}
  .gc-research .research-result .btn{width:100%}
@@ -558,3 +577,4 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-seri
 .products-table .best-seller-toggle.selected{background:#ecf5ef;color:#216644;border-color:#bad7c5}
 .gc-spec-summary{padding:12px 14px;border:1px solid #bfd8cb;background:#f1f9f4;color:#305e49;border-radius:9px;font-size:12px;line-height:1.7}
 #researchPreview{scroll-margin-top:15px}
+

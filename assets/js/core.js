@@ -48,8 +48,16 @@
  function tiers(str){return String(str||'').split(/[,;|]/).map(x=>x.trim()).map(x=>{const m=x.match(/^(\d+)\s*:\s*([\d.,]+)$/);return m?{min:+m[1],price:num(m[2])}:null}).filter(Boolean).sort((a,b)=>a.min-b.min);}
  function unitPrice(p,qty){let x=num(p.price),promo=num(p.promoPrice);if(promo>0&&promo<=x)x=promo;for(const t of tiers(p.discounts))if(qty>=t.min)x=Math.min(x,t.price);return x;}
  function integerTotal(v){const rounded=Math.round(v*100)/100;return Math.abs(rounded-Math.round(rounded))<1e-8?Math.round(rounded):Math.ceil(rounded)+1;}
- function quote(items,mode,config={}){
-  const shipping=num(config.shipping??110),min=num(config.codMinimum??350),codRate=num(config.codRate??.1),tigoRate=num(config.tigoRate??.07);
+ function deliveryOption(config={},choice={}){
+  const labels={national:'Envío nacional',local:'Envío en Comayagua',pickup:'Retiro en tienda',free:'Envío gratis'};
+  const mode=choice.mode??'national',amount=Number(choice.amount);
+  const known=Object.prototype.hasOwnProperty.call(labels,mode);
+  const valid=known&&(mode!=='local'||(['number','string'].includes(typeof choice.amount)&&String(choice.amount).trim()!==''&&Number.isSafeInteger(amount)&&amount>=0&&amount<=1000000));
+  const shipping=mode==='pickup'||mode==='free'?0:mode==='local'&&valid?amount:Math.max(0,num(config.shipping??110));
+  return {mode,label:known?labels[mode]:labels.national,amount:shipping,valid,error:valid?'':known?'Ingresá un costo de envío entre L 0 y L 1,000,000, sin centavos.':'Elegí una opción de entrega válida.',note:mode==='free'?String(choice.note||'').trim().slice(0,120):''};
+ }
+ function quote(items,mode,config={},delivery={}){
+  const option=deliveryOption(config,delivery),shipping=option.amount,min=num(config.codMinimum??350),codRate=num(config.codRate??.1),tigoRate=num(config.tigoRate??.07);
   const valid=items.filter(i=>i.product&&i.qty>0&&i.product.active&&i.product.stock>0);
   const subtotal=valid.reduce((v,i)=>v+unitPrice(i.product,i.qty)*i.qty,0);
   const qty=valid.reduce((v,i)=>v+i.qty,0),violations=[];
@@ -61,22 +69,25 @@
   const codAllowed=violations.length===0;const base=subtotal+(qty?shipping:0);
   const rate=mode==='cod'?codRate:mode==='tigo'?tigoRate:0;
   const total=integerTotal(base*(1+rate));const fee=total-base;
-  return {valid,subtotal,units:qty,shipping:qty?shipping:0,base,fee,total,deposit:mode==='cod'?shipping+fee:total,balance:mode==='cod'?subtotal:0,mode,codAllowed,reasons:violations};
+  return {valid,subtotal,units:qty,shipping:qty?shipping:0,delivery:option,base,fee,total,deposit:mode==='cod'?shipping+fee:total,balance:mode==='cod'?subtotal:0,mode,codAllowed,reasons:violations};
  }
  function number(){const d=new Date();const z=x=>String(x).padStart(2,'0');let s='';if(typeof crypto!=='undefined'&&crypto.getRandomValues){const a=new Uint32Array(1);crypto.getRandomValues(a);s=(a[0]%1000000).toString().padStart(6,'0')}else s=Math.floor(Math.random()*1000000).toString().padStart(6,'0');return `GC-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}-${s}`;}
  function waMessage(items,q,id,delivery={}){
   const names={transfer:'Depósito / transferencia',tigo:'Tigo Money',cod:'Pagar al recibir'};
   const lines=[`*GAMER COMAYAGUA - COTIZACIÓN*`,`Número: *${id}*`,'','*PRODUCTOS*'];
   items.forEach(i=>lines.push(`• ${i.product.name}\n  ${i.qty} × ${money(unitPrice(i.product,i.qty))} = *${money(i.qty*unitPrice(i.product,i.qty))}*`));
-  lines.push('',`Productos: ${money(q.subtotal)}`,`Envío: ${money(q.shipping)}`,`Forma de pago: ${names[q.mode]||q.mode}`);
+  lines.push('',`Productos: ${money(q.subtotal)}`,`Entrega: ${q.delivery?.label||'Envío nacional'}`,`Envío: ${money(q.shipping)}`);
+  if(q.delivery?.note)lines.push(`Motivo del envío gratis: ${q.delivery.note}`);
+  lines.push(`Forma de pago: ${names[q.mode]||q.mode}`);
   if(q.mode==='cod'||q.mode==='tigo')lines.push(`${q.mode==='tigo'?'Comisión de Tigo Money':'Comisión por pagar al recibir'}: ${money(q.fee)}`);
   lines.push(`*TOTAL: ${money(q.total)}*`);
-  if(q.mode==='cod')lines.push(`*ANTICIPO A DEPOSITAR (envío + comisión): ${money(q.deposit)}*`,`*SALDO EN EFECTIVO AL RECIBIR: ${money(q.balance)}*`);
+  if(q.mode==='cod')lines.push(`*ANTICIPO A DEPOSITAR (${q.shipping?'envío + comisión':'comisión'}): ${money(q.deposit)}*`,`*SALDO EN EFECTIVO ${q.delivery?.mode==='pickup'?'AL RETIRAR':'AL RECIBIR'}: ${money(q.balance)}*`);
   const shippingFields=[['name','Nombre'],['phone','Celular'],['department','Departamento'],['city','Municipio / ciudad'],['address','Dirección y referencia']];
   const destination=shippingFields.filter(([key])=>String(delivery[key]||'').trim()).map(([key,label])=>`${label}: ${String(delivery[key]).trim()}`);
-  if(destination.length)lines.push('','*DATOS PARA EL ENVÍO*',...destination);
+  if(destination.length)lines.push('',q.delivery?.mode==='pickup'?'*DATOS PARA EL RETIRO*':'*DATOS PARA EL ENVÍO*',...destination);
   lines.push('','Solicito confirmar disponibilidad y datos de pago.');return lines.join('\n');
  }
  function productSearchText(p){const d=cleanDetails(p.details);return [p.name,p.category,p.code,p.colors,p.description,d.brand,d.model,d.compatibility,d.connection,d.size,d.material,d.power].filter(Boolean).join(' ');}
- return {productSearchText,recentFirst,researchPage,mergeCatalog,matchesSearch,num,yes,cleanProduct,cleanDetails,tiers,unitPrice,integerTotal,quote,money,number,waMessage};
+ return {productSearchText,recentFirst,researchPage,mergeCatalog,matchesSearch,num,yes,cleanProduct,cleanDetails,tiers,unitPrice,integerTotal,deliveryOption,quote,money,number,waMessage};
 });
+

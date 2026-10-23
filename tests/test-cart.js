@@ -71,3 +71,39 @@ assert.equal(tigo.total,547);assert.equal(tigo.fee,37);assert.match(tigoMessage,
 assert.ok(!/redondeo|adicional|porcentaje|7%/i.test(tigoMessage),'El ajuste forma parte del total, sin una línea adicional');
 assert.equal(decimal.deposit+decimal.balance,decimal.total);
 console.log('PASS redondeo solicitado: siguiente entero más L 1 solo si hay fracción, mismo cálculo en cada modalidad y sin duplicar ajuste.');
+
+// Cada cotización elige su entrega; las tarifas generales y reglas de pago siguen vigentes.
+const order=cart([P('Cargador',250,3),1],[P('Cable',120,3),1]),config={shipping:110,codMinimum:350,codRate:.1,tigoRate:.07};
+for(const [delivery,shipping,label] of [[{},110,'Envío nacional'],[{mode:'local',amount:50},50,'Envío en Comayagua'],[{mode:'local',amount:'0'},0,'Envío en Comayagua'],[{mode:'pickup'},0,'Retiro en tienda'],[{mode:'free',note:'Entrega en mi ruta'},0,'Envío gratis']]){
+ for(const mode of ['transfer','tigo','cod']){
+  const q=C.quote(order,mode,config,delivery);
+  assert.equal(q.delivery.valid,true);assert.equal(q.shipping,shipping);assert.equal(q.delivery.label,label);
+  assert.equal(q.total,C.integerTotal((370+shipping)*(mode==='cod'?1.1:mode==='tigo'?1.07:1)));
+  assert.equal(q.deposit+q.balance,q.total);
+  const message=C.waMessage(order,q,'GC-ENTREGA');assert.ok(message.includes('Entrega: '+label));assert.ok(message.includes('Envío: '+C.money(shipping)));assert.ok(message.includes('TOTAL: '+C.money(q.total)));
+ }
+}
+assert.equal(config.shipping,110,'Una cotización no cambia la tarifa nacional');
+assert.equal(C.quote(order,'transfer',config).total,480);
+assert.equal(C.quote(order,'transfer',config,{mode:'free'}).total,370);
+assert.equal(C.quote(order,'transfer',config,{mode:'local',amount:50}).total,420);
+assert.equal(C.quote(order,'cod',config,{mode:'free'}).deposit,37);
+assert.equal(C.quote(order,'cod',config,{mode:'free'}).balance,370);
+assert.equal(C.quote(order,'tigo',config,{mode:'free'}).total,397);
+assert.equal(C.quote(order,'transfer',{shipping:180},{mode:'national'}).shipping,180);
+assert.equal(C.quote(order,'transfer',{shipping:180},{mode:'local',amount:50}).shipping,50);
+for(const amount of ['', ' ',null,undefined,-1,'-50',1.5,'0.50',NaN,Infinity,'texto',1000001,true,{}]){
+ const q=C.quote(order,'transfer',config,{mode:'local',amount});assert.equal(q.delivery.valid,false,'Rechazar costo inválido: '+String(amount));assert.ok(q.delivery.error);
+}
+assert.equal(C.deliveryOption(config,{mode:'local',amount:1000000}).valid,true);
+assert.equal(C.deliveryOption(config,{mode:'constructor'}).valid,false);
+assert.equal(C.deliveryOption(config,{mode:'desconocido'}).valid,false);
+assert.equal(C.quote(cart([P('Restringido',400,1,false),1]),'cod',config,{mode:'free'}).codAllowed,false);
+assert.equal(C.quote(cart([P('Bajo mínimo',349,1),1]),'cod',config,{mode:'pickup'}).codAllowed,false);
+for(const mode of ['free','pickup','local'])assert.equal(C.quote([],'transfer',config,{mode,amount:50}).total,0);
+const freeQuote=C.quote(order,'transfer',config,{mode:'free',note:'  Compra grande  '});assert.equal(freeQuote.delivery.note,'Compra grande');
+assert.match(C.waMessage(order,freeQuote,'GC-GRATIS'),/Motivo del envío gratis: Compra grande/);
+assert.equal(C.quote(order,'transfer',config,{mode:'national',note:'Texto anterior'}).delivery.note,'');
+assert.match(C.waMessage(order,C.quote(order,'cod',config,{mode:'pickup'}),'GC-RETIRO'),/SALDO EN EFECTIVO AL RETIRAR/);
+console.log('PASS entrega por cotización: nacional, Comayagua, retiro, gratis, costos inválidos, comisiones, anticipo, restricciones y WhatsApp.');
+

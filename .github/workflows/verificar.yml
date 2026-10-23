@@ -44,4 +44,5 @@ jobs:
         run: |
           node tests/test-editor-tools-ui.js
           node tests/test-product-search-ui.js
+          node tests/test-shipping-ui.js
           node tests/test-ui.js
