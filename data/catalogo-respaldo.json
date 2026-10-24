@@ -760,7 +760,7 @@
     "createdAt": "",
     "id": "SDC-002",
     "code": "Dedales-002",
-    "name": "Dedales V2 - Fibra de Carbón",
+    "name": "Dedales V3 - Fibra de Carbón",
     "category": "Dedales",
     "price": 50,
     "stock": 1,
@@ -781,7 +781,7 @@
     "createdAt": "",
     "id": "SDC-003",
     "code": "Dedales-003",
-    "name": "Dedales V3 | MEMO | Hilo de Plata",
+    "name": "Dedales V4 | MEMO | Hilo de Plata",
     "category": "Dedales",
     "price": 190,
     "stock": 12,
@@ -1856,6 +1856,29 @@
           "title": "Casim A-C56 USB Type-C Charging Cable with Mobile Phone ..."
         }
       ]
+    }
+  },
+  {
+    "catalogOrder": 78,
+    "bestSeller": false,
+    "createdAt": "2026-10-24T19:35:29.213Z",
+    "id": "93702193-9b23-44dd-a94f-598685a3b349",
+    "code": "Dedales-006",
+    "name": "Dedales V2 - Fibra de Carbono",
+    "category": "Dedales",
+    "price": 40,
+    "stock": 20,
+    "image": "https://drive.google.com/thumbnail?id=1Q3s2EqsDuiVSIP9txntVWM2MJVSq1KjI&sz=w1200",
+    "gallery": "",
+    "description": "Corriente indicada: 3 A.",
+    "discounts": "",
+    "codAllowed": true,
+    "active": true,
+    "colors": "",
+    "promoPrice": 0,
+    "promoText": "",
+    "details": {
+      "material": "Fibra de Carbono"
     }
   }
 ]
