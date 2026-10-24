@@ -44,7 +44,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   const start=Number(pdf.toString('latin1').match(/startxref\n(\d+)/)[1]);assert.equal(pdf.subarray(start,start+4).toString(),'xref');
   await catalog.locator('#catalogExportShare').click();assert.equal((await catalog.evaluate(()=>window.__shared.at(-1))).files[0].type,'application/pdf');
   await catalog.locator('#catalogExportOut').uncheck();await ready();assert.match(await catalog.locator('#catalogExportCount').innerText(),/^7 productos/);
-  await catalog.locator('#catalogExportPrices').uncheck();await ready();await catalog.locator('#catalogExportPrices').check();await ready();
+  await catalog.locator('#catalogExportPrices').uncheck();await ready();assert.equal(await catalog.locator('#catalogExportPricesHelp').isVisible(),true);await catalog.locator('#catalogExportPrices').check();await ready();assert.equal(await catalog.locator('#catalogExportPricesHelp').isVisible(),false);
   await catalog.setViewportSize({width:1440,height:1050});await catalog.screenshot({path:path.join(artifacts,'catalog-export-desktop.png')});
   for(const width of [390,360]){await catalog.setViewportSize({width,height:844});assert.equal(await catalog.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await catalog.locator('#catalogExportOverlay .dialog').evaluate(el=>el.scrollWidth>el.clientWidth),false);assert.ok((await catalog.locator('#catalogExportDownload').boundingBox()).height>=44);}
   await catalog.screenshot({path:path.join(artifacts,'catalog-export-mobile.png')});
