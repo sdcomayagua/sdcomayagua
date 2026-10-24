@@ -22,6 +22,7 @@ jobs:
           node tests/test-api.js
           node tests/test-native-panel.js
           node tests/test-cart.js
+          node tests/test-product-trash.js
           node tests/test-catalog.js
           node tests/test-free-research.js
           node tests/test-model.js
@@ -35,6 +36,7 @@ jobs:
           node tests/test-photo-recognition.js
           node tests/test-product-search.js
           python3 tests/test-sync.py
+          python3 tests/test-catalog-photos.py
 
       - name: Preparar navegador para verificar el panel
         run: |
@@ -45,4 +47,5 @@ jobs:
           node tests/test-editor-tools-ui.js
           node tests/test-product-search-ui.js
           node tests/test-shipping-ui.js
+          node tests/test-category-export-ui.js
           node tests/test-ui.js

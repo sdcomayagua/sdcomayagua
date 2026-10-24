@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const cfg=window.GC_CONFIG,C=window.GC,S=window.GC_PRODUCT_SEARCH,$=id=>document.getElementById(id);
-let token='',products=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false,bestSellersSupported=false,imageImportSupported=false;
+let token='',products=[],deletedProducts=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false,bestSellersSupported=false,imageImportSupported=false;
 let researchBusy=false,researchEpoch=0,researchDraft=null,automaticQuery=true,researchSelectable=false,researchSearch=null,researchApplied=[],researchReferencesBefore=null;
 let researchMode='details',researchPhotoDraft=null,imageSearchSupported=false;
 let verifiedProfiles=null,serverFeatures={},checkingFeatures=null,editorBaseline='',editorTrigger=null;
@@ -133,10 +133,13 @@ function renderGalleryPreview(){
 function render(){
  const q=$('adminSearch').value.toLowerCase().trim(),filter=$('adminFilter').value;
  const noPhoto=p=>!p.image&&!parseGallery(p.gallery).length;
- const rows=products.filter(p=>C.matchesSearch(p.id+' '+C.productSearchText(p),q)&&(filter==='photos'?noPhoto(p):filter==='requested'?p.bestSeller:filter==='out'?p.stock===0:filter==='available'?p.active&&p.stock>0:filter==='low'?p.active&&p.stock>0&&p.stock<=3:filter==='hidden'?!p.active:true));
+ const source=filter==='trash'?deletedProducts:products;
+ const rows=source.filter(p=>C.matchesSearch(p.id+' '+C.productSearchText(p),q)&&(filter==='photos'?noPhoto(p):filter==='requested'?p.bestSeller:filter==='out'?p.stock===0:filter==='available'?p.active&&p.stock>0:filter==='low'?p.active&&p.stock>0&&p.stock<=3:filter==='hidden'?!p.active:true));
  const sort=$('adminSort')?.value||'newest';
  rows.sort(sort==='name'?(a,b)=>a.name.localeCompare(b.name,'es'):sort==='stock'?(a,b)=>a.stock-b.stock||C.recentFirst(a,b):sort==='price'?(a,b)=>C.unitPrice(a,1)-C.unitPrice(b,1):C.recentFirst);
- if($('adminResultCount'))$('adminResultCount').textContent=rows.length+' de '+products.length+' productos';
+ if($('adminResultCount'))$('adminResultCount').textContent=rows.length+' de '+source.length+(filter==='trash'?' en papelera':' productos');
+ if($('adminTrashNotice'))$('adminTrashNotice').hidden=filter!=='trash';
+ const trashOption=$('adminFilter').querySelector('[value=trash]');if(trashOption)trashOption.textContent='Papelera ('+deletedProducts.length+')';
  if($('adminClearFilters'))$('adminClearFilters').hidden=!(q||filter||sort!=='newest');
  $('adminFilter').options[1].textContent='Sin foto ('+products.filter(noPhoto).length+')';
  $('adminFilter').options[2].textContent='Más pedidos ('+products.filter(p=>p.bestSeller).length+')';
@@ -151,8 +154,8 @@ function render(){
    <td data-label="Costo">${catalogSource==='privado'?C.money(p.cost):'—'}</td>
    <td data-label="Stock"><span class="admin-stock-pill ${p.stock===0?'empty':p.stock<=3?'low':''}">${p.stock} ${p.stock===1?'unidad':'unidades'}</span></td>
    <td data-label="Pago al recibir"><span style="color:${p.codAllowed?'#0f9f6a':'#d64545'}">${p.codAllowed?'✓ Permitido':'× Prohibido'}</span></td>
-   <td data-label="Estado">${p.active?'Activo':'Oculto'}</td>
-   <td data-label="Acciones"><div class="admin-row-actions"><button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> ${!noPhoto(p)?`<button type="button" class="btn small outline" data-reference-product="${esc(p.id)}">Buscar con mi foto</button>`:''}<button type="button" class="btn small red" data-disable="${esc(p.id)}" >Ocultar</button> <button type="button" class="btn small outline best-seller-toggle ${p.bestSeller?'selected':''}" data-best-seller="${esc(p.id)}" aria-pressed="${p.bestSeller}" aria-label="${p.bestSeller?'Quitar de':'Marcar en'} Más pedidos: ${esc(p.name)}">${p.bestSeller?'★ En Más pedidos':'☆ Más pedidos'}</button></div></td>
+   <td data-label="Estado">${p.deletedAt?'Eliminado':p.active?'Activo':'Oculto'}</td>
+   <td data-label="Acciones"><div class="admin-row-actions">${p.deletedAt?`<button type="button" class="btn small outline admin-restore-product" data-restore-product="${esc(p.id)}">Restaurar producto</button>`:`<button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> ${!noPhoto(p)?`<button type="button" class="btn small outline" data-reference-product="${esc(p.id)}">Buscar con mi foto</button>`:''}<button type="button" class="btn small outline" data-disable="${esc(p.id)}" >${!p.active&&serverFeatures.productTrash?'Mostrar':'Ocultar'}</button> <button type="button" class="btn small outline best-seller-toggle ${p.bestSeller?'selected':''}" data-best-seller="${esc(p.id)}" aria-pressed="${p.bestSeller}" aria-label="${p.bestSeller?'Quitar de':'Marcar en'} Más pedidos: ${esc(p.name)}">${p.bestSeller?'★ En Más pedidos':'☆ Más pedidos'}</button><button type="button" class="btn small outline admin-delete-product" data-delete-product="${esc(p.id)}" aria-label="Eliminar ${esc(p.name)}" ${catalogSource!=='privado'||!serverFeatures.productTrash?'disabled title="Sincronizá el panel para habilitar la papelera"':''}>Eliminar</button>`}</div></td>
  </tr>`).join('')||'<tr><td colspan="8"><div class="admin-empty"><strong>No encontramos productos con esos filtros.</strong><p>Probá con nombre, marca, modelo o código.</p><button class="btn outline small" type="button" data-clear-admin>Ver todos los productos</button></div></td></tr>';
  $('settingsSummary').textContent=`Envío: ${C.money(settings.shipping??110)} | Mínimo pago al recibir: ${C.money(settings.codMinimum||350)} en productos | Comisión al recibir: ${Math.round((settings.codRate||.1)*100)}% | Tigo Money: ${Math.round((settings.tigoRate||.07)*100)}%`;
  if(typeof CustomEvent==='function')document.dispatchEvent(new CustomEvent('gc:catalog'));
@@ -168,6 +171,7 @@ async function reload(){
   if(!Array.isArray(data.products))throw Error('El servidor no devolvió productos.');
   catalogSource='privado';
   products=data.products.map((p,index)=>({...C.cleanProduct(p,index),cost:C.num(p.cost),revision:p.revision==null?undefined:String(p.revision)}));
+  deletedProducts=(data.trash||[]).map((p,index)=>({...C.cleanProduct(p,index),cost:C.num(p.cost),revision:String(p.revision??''),deletedAt:String(p.deletedAt||'')}));
   settings=data.settings||{};
   render();
   label.textContent='✓ Inventario actualizado desde Google Sheets.';
@@ -179,7 +183,7 @@ async function reload(){
    const data=await response.json();
    if(!Array.isArray(data)||!data.length)throw Error('Respaldo vacío.');
    catalogSource='respaldo';
-   products=data.map(C.cleanProduct);
+   const removed=new Set(deletedProducts.map(p=>p.id));products=data.map(C.cleanProduct).filter(p=>!removed.has(p.id));
    render();
    label.textContent='Catálogo de respaldo cargado. Para sincronizar cambios al instante, publicá la última versión de Code.gs en Apps Script.';
    return false;
@@ -564,8 +568,17 @@ async function upload(){
  finally{setBusy(false)}
 }
 async function disable(id){
- const p=products.find(x=>x.id===id);if(!p||!confirm('¿Ocultar "'+p.name+'" de la tienda? El registro se conservará en Sheets.'))return;
- try{await request('disableProduct',{id});toast('Producto ocultado');if(catalogSource==='respaldo'){p.active=false;render();$('adminStatus').textContent='✓ Producto ocultado en Google Sheets. Vista temporal con datos de respaldo.';}else await reload()}catch(e){toast(e.message)}
+ const p=products.find(x=>x.id===id),active=p?!p.active:false;
+ if(!p||!confirm(active?'¿Mostrar "'+p.name+'" en la tienda?':'¿Ocultar "'+p.name+'" de la tienda? El registro se conservará en el inventario.'))return;
+ try{
+  const result=serverFeatures.productTrash?await request('setProductVisibility',{id,active,expectedRevision:p.revision}):await request('disableProduct',{id});
+  p.active=serverFeatures.productTrash?active:false;if(result.revision)p.revision=result.revision;render();window.GC_ADMIN.notify();toast(p.active?'Producto visible en la tienda.':'Producto ocultado.');await reload();
+ }catch(e){toast(e.message)}
+}
+function applyProductState(product,result){
+ products=products.filter(p=>p.id!==product.id);deletedProducts=deletedProducts.filter(p=>p.id!==product.id);
+ const changed={...product,revision:result.revision,active:result.active===true,deletedAt:result.deleted?result.deletedAt||new Date().toISOString():''};
+ (result.deleted?deletedProducts:products).push(changed);render();
 }
 async function toggleBestSeller(button){
  const product=products.find(p=>p.id===button.dataset.bestSeller);if(!product||button.disabled)return;
@@ -654,7 +667,7 @@ function binds(){
  if(!validApi()){$('loginMessage').textContent='Todavía falta conectar el sitio con Apps Script: editá assets/js/config.js.';$('loginMessage').classList.remove('hidden')}
  else {connectionCheck().then(ok=>{if(token){$('secret').value=token;if(ok)logIn();}});}
 }
-window.GC_ADMIN={request,products:()=>products,settings:()=>({...settings}),features:()=>serverFeatures,refreshFeatures,editProduct:showProduct,reload,toast,parseGallery,editorPhotos,appendEditorPhotos,reorderEditorPhotos,preparePhoto,selectedPhotos:()=>[...selectedFiles],addPhotos:mergeSelectedFiles,updateEditorCode,notify:()=>{try{localStorage.setItem('gc_catalog_revision',JSON.stringify({at:Date.now()}))}catch{}}};
+window.GC_ADMIN={request,products:()=>products,trash:()=>deletedProducts,applyProductState,settings:()=>({...settings}),features:()=>serverFeatures,refreshFeatures,editProduct:showProduct,reload,toast,parseGallery,editorPhotos,appendEditorPhotos,reorderEditorPhotos,preparePhoto,selectedPhotos:()=>[...selectedFiles],addPhotos:mergeSelectedFiles,updateEditorCode,notify:()=>{try{localStorage.setItem('gc_catalog_revision',JSON.stringify({at:Date.now()}))}catch{}}};
 binds();
 })();
 

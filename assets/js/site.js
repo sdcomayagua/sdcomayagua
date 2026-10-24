@@ -47,7 +47,8 @@ function updateCategoryShortcuts(){
  $('categoryShortcuts')?.querySelectorAll('[data-category]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.category===category)));
  if($('catalogHeading'))$('catalogHeading').textContent=$('search')?.value.trim()?'Resultados de búsqueda':category===bestSellersCategory?'Más pedidos':category||'Todos los productos';
  if($('clearFilters'))$('clearFilters').hidden=!($('search')?.value.trim()||category||$('sort')?.value!=='newest'||$('onlyAvailable')?.checked);
- if($('shareCategory'))$('shareCategory').textContent=category?'Compartir categoría':'Compartir catálogo';
+ if($('shareCategory'))$('shareCategory').textContent='Compartir enlace';
+ if($('exportCategory'))$('exportCategory').textContent=category?'Compartir categoría · Imagen / PDF':'Compartir catálogo · Imagen / PDF';
 }
 function catalogUrl(productId='',category=''){
  const url=new URL('productos.html',document.baseURI);
@@ -96,6 +97,19 @@ function renderBestSellers(){
  section.hidden=!selected.length;
  list.innerHTML=selected.map(p=>`<button type="button" class="requested-product ${p.stock?'':'out'}" data-requested-product="${escapeAttr(p.id)}"><img src="${escapeAttr(pic(p))}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${imgFallback}'"><span><strong>${safe(p.name)}</strong><small>${C.money(C.unitPrice(p,1))}${p.stock?'':' · Agotado'}</small></span></button>`).join('');
 }
+function filteredProducts(includeUnavailable=false){
+ let list=products.filter(p=>p.active);
+ const t=$('search')?.value.trim().toLowerCase()||'',cat=$('category')?.value||'',sort=$('sort')?.value||'newest';
+ if(t)list=list.filter(p=>C.matchesSearch(C.productSearchText(p),t));
+ if(!includeUnavailable&&$('onlyAvailable')?.checked)list=list.filter(p=>p.stock>0);
+ if(cat)list=list.filter(p=>cat===bestSellersCategory?p.bestSeller:p.category===cat);
+ if(sort==='priceAsc')list.sort((a,b)=>C.unitPrice(a,1)-C.unitPrice(b,1));
+ else if(sort==='priceDesc')list.sort((a,b)=>C.unitPrice(b,1)-C.unitPrice(a,1));
+ else if(sort==='name')list.sort((a,b)=>a.name.localeCompare(b.name,'es'));
+ else if(sort==='available')list.sort((a,b)=>(b.stock>0)-(a.stock>0)||C.recentFirst(a,b));
+ else list.sort(C.recentFirst);
+ return list;
+}
 function render(){
  if(!$('productGrid'))return;
  renderBestSellers();
@@ -106,15 +120,7 @@ function render(){
    $('productGrid').innerHTML=list.map(card).join('')||'<div class="empty">Pronto tendremos novedades.</div>';
    return;
  }
- const t=$('search')?.value.trim().toLowerCase()||'',cat=$('category')?.value||'',sort=$('sort')?.value||'newest';
- if(t)list=list.filter(p=>C.matchesSearch(C.productSearchText(p),t));
- if($('onlyAvailable')?.checked)list=list.filter(p=>p.stock>0);
- if(cat)list=list.filter(p=>cat===bestSellersCategory?p.bestSeller:p.category===cat);
- if(sort==='priceAsc')list.sort((a,b)=>C.unitPrice(a,1)-C.unitPrice(b,1));
- else if(sort==='priceDesc')list.sort((a,b)=>C.unitPrice(b,1)-C.unitPrice(a,1));
- else if(sort==='name')list.sort((a,b)=>a.name.localeCompare(b.name,'es'));
- else if(sort==='available')list.sort((a,b)=>(b.stock>0)-(a.stock>0)||C.recentFirst(a,b));
- else list.sort(C.recentFirst);
+ list=filteredProducts();
  if($('resultsCount'))$('resultsCount').textContent=`${list.length} ${list.length===1?'producto':'productos'}`;
  updateCategoryShortcuts();
  $('productGrid').innerHTML=list.slice(0,visible).map(card).join('')||'<div class="empty catalog-empty"><strong>No encontramos productos con esos filtros.</strong><p>Probá con nombre, marca, modelo o código.</p><button type="button" class="btn outline" data-reset-filters>Ver todo el catálogo</button></div>';
@@ -408,13 +414,13 @@ function loadBanksFromSheet(){
  })();
  return banksRequest;
 }
-function jsonp(url){return new Promise((resolve,reject)=>{const callback='gcPublic_'+Date.now()+'_'+Math.floor(Math.random()*9999);const script=document.createElement('script');let ended=false,timeout=setTimeout(()=>done(Error('Tiempo de espera agotado')),13000);function done(err,data){if(ended)return;ended=true;clearTimeout(timeout);delete window[callback];script.remove();err?reject(err):resolve(data)}window[callback]=d=>d?.ok===false?done(Error(d.error||'Sin respuesta del catálogo')):done(null,d);script.onerror=()=>done(Error('Sin conexión con Apps Script'));script.onload=()=>{if(!ended)done(Error('Google no devolvió el catálogo'))};script.src=url+(url.includes('?')?'&':'?')+'action=public&callback='+callback+'&t='+Date.now();document.head.appendChild(script)})}
+function jsonp(url,action='public',extra={}){return new Promise((resolve,reject)=>{const callback='gcPublic_'+Date.now()+'_'+Math.floor(Math.random()*9999);const script=document.createElement('script');let ended=false,timeout=setTimeout(()=>done(Error('Tiempo de espera agotado')),13000);function done(err,data){if(ended)return;ended=true;clearTimeout(timeout);delete window[callback];script.remove();err?reject(err):resolve(data)}window[callback]=d=>d?.ok===false?done(Error(d.error||'Sin respuesta del catálogo')):done(null,d);script.onerror=()=>done(Error('Sin conexión con Apps Script'));script.onload=()=>{if(!ended)done(Error('Google no devolvió el catálogo'))};script.src=url+(url.includes('?')?'&':'?')+new URLSearchParams({action,...extra,callback,t:Date.now()});document.head.appendChild(script)})}
 /**
  * Lectura alternativa: algunas implementaciones de Google permiten POST
  * aunque el navegador bloquee la consulta JSONP GET.
  * Solo pide el catálogo PÚBLICO, nunca datos administrativos.
  */
-function catalogByPost(url){
+function catalogByPost(url,action='publicCatalog',extra={}){
  return new Promise((resolve,reject)=>{
   const requestId='pub_'+Date.now()+'_'+Math.random().toString(36).slice(2);
   const frame=document.createElement('iframe'),form=document.createElement('form');
@@ -430,7 +436,7 @@ function catalogByPost(url){
    const data=ev.data;
    if(!data||data.__gcResponse!==true||data.requestId!==requestId)return;
    if(!data.ok)return finish(Error(data.error||'Sin respuesta del catálogo'));
-   if(!Array.isArray(data.products))return finish(Error('Respuesta de catálogo incompleta'));
+   if(action==='publicCatalog'&&!Array.isArray(data.products)||action==='catalogPhotos'&&!Array.isArray(data.images))return finish(Error('Respuesta de catálogo incompleta'));
    finish(null,data);
   }
   frame.name='gc_catalog_'+requestId;
@@ -439,7 +445,7 @@ function catalogByPost(url){
   window.addEventListener('message',receive);
   form.action=url;form.method='POST';form.target=frame.name;form.style.display='none';
   const input=document.createElement('input');input.type='hidden';input.name='payload';
-  input.value=JSON.stringify({requestId,action:'publicCatalog'});
+  input.value=JSON.stringify({requestId,action,...extra});
   form.appendChild(input);document.body.appendChild(form);
   timer=setTimeout(()=>finish(Error('Google no respondió a la consulta pública')),16000);
   try{form.submit()}catch(err){finish(err)}
@@ -506,6 +512,11 @@ function binds(){
  $('search')?.addEventListener('input',filtersChanged);
  $('clearFilters')?.addEventListener('click',resetFilters);
  $('shareCategory')?.addEventListener('click',()=>shareCatalogLink(($('category')?.value===bestSellersCategory?'Más pedidos':$('category')?.value||'Catálogo')+' | Gamer Comayagua',filteredCatalogUrl()));
+ $('exportCategory')?.addEventListener('click',()=>{
+  if(!window.GC_CATALOG_EXPORT)return toast('No se pudo abrir el catálogo. Recargá la página.');
+  const category=$('category')?.value||'';
+  window.GC_CATALOG_EXPORT.open({products:filteredProducts(true),title:category===bestSellersCategory?'Más pedidos':category||'Catálogo de productos',url:filteredCatalogUrl(),includeOut:!$('onlyAvailable')?.checked,settings:{...settings},logo:config.logo,photoLoader:async ids=>{let data;try{data=await jsonp(config.apiUrl,'catalogPhotos',{ids:ids.join(',')});if(!Array.isArray(data.images))throw Error('Fotos no disponibles');}catch(error){data=await catalogByPost(config.apiUrl,'catalogPhotos',{ids});}return data.images||[];}});
+ });
  $('onlyAvailable')?.addEventListener('change',filtersChanged);
  $('category')?.addEventListener('change',filtersChanged);
  $('bestSellersList')?.addEventListener('click',event=>{const b=event.target.closest('[data-requested-product]');if(b)open(b.dataset.requestedProduct);});

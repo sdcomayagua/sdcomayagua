@@ -36,6 +36,8 @@ function doGet(e) {
   try {
     if(String(args.action||'') === 'health') {
       result=gcHealth_();
+    } else if(String(args.action||'')==='catalogPhotos'){
+      result=gcCatalogPhotos_({ids:String(args.ids||'').split(',')});
     } else result = {ok:true, ...publicPayload_()};
   } catch (err) {
     result = {ok:false, error:safeError_(err)};
@@ -50,7 +52,7 @@ function doGet(e) {
 /** Diagnóstico público breve: nunca devuelve el PIN, las claves ni el inventario. */
 function gcHealth_(){
  const props=PropertiesService.getScriptProperties(),pin=String(props.getProperty('ADMIN_PIN')||props.getProperty('ADMIN_TOKEN')||'');
- return {ok:true,version:'GC-20261022-PANEL-V14',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+ return {ok:true,version:'GC-20261024-CATALOG-V15',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
 }
 /** POST de formulario enviado dentro de un iframe: evita los problemas CORS de Apps Script. */
 function doPost(e) {
@@ -90,6 +92,8 @@ function gcHandleRequest_(req){
       result=gcHealth_();
     } else if (req.action === 'publicCatalog') {
       result = {ok:true,...publicPayload_()};
+    } else if (req.action === 'catalogPhotos') {
+      result=gcCatalogPhotos_(req);
     } else {
       assertAdmin_(req.token);
       if (req.action === 'verify') {
@@ -98,7 +102,7 @@ function gcHandleRequest_(req){
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
       }
       else if (req.action === 'operationsSummary') result = gcOperationsSummary_();
       else if (req.action === 'operationsList') result = gcOperationsList_(req);
@@ -119,6 +123,9 @@ function gcHandleRequest_(req){
       else if (req.action === 'importResearchImage') result = gcFreeImportImage_(req.selection,req.imageIndex,req.photoSearch===true);
       else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
       else if (req.action === 'disableProduct') result = disableProduct_(req.id);
+      else if (req.action === 'deleteProduct') result = gcProductState_(req,'delete');
+      else if (req.action === 'restoreProduct') result = gcProductState_(req,'restore');
+      else if (req.action === 'setProductVisibility') result = gcProductState_(req,'visibility');
       else if (req.action === 'uploadImage') result = uploadImage_(req.file || {});
       else throw Error('Operación no reconocida.');
     }
@@ -133,7 +140,7 @@ function gcPanelRequest(req){
 }
 /** Aloja el mismo panel público en Google para usar google.script.run. */
 function gcPanelHtml_(){
- const cache=CacheService.getScriptCache(),key='gc_panel_html_v14';let html=cache.get(key);
+ const cache=CacheService.getScriptCache(),key='gc_panel_html_v15';let html=cache.get(key);
  if(!html){
   const response=UrlFetchApp.fetch('https://sdcomayagua.github.io/sdcomayagua/admin.html',{followRedirects:true,muteHttpExceptions:true});
   if(response.getResponseCode()!==200)throw Error('No se pudo abrir el panel. Probá de nuevo en unos minutos.');
@@ -387,7 +394,7 @@ function publicPayload_(){
   const ss=book_(),sheet=ss.getSheetByName(GC_TAB_PRODUCTS);if(!sheet)throw Error('No existe la pestaña Productos.');
   const vals=sheet.getDataRange().getDisplayValues();const headers=vals.shift()||[];const idx=k=>headers.indexOf(k);
   const value=(row,k)=>idx(k)>=0?row[idx(k)]:'';
-  const products=vals.filter(r=>r.some(c=>String(c).trim())).map((r,index)=>({
+  const products=vals.filter(r=>r.some(c=>String(c).trim())&&!String(value(r,'EliminadoEn')).trim()).map((r,index)=>({
     bestSeller:yes_(value(r,'MasPedidos')),createdAt:String(value(r,'FechaCreacion')),catalogOrder:index,
     id:String(value(r,'ID')),code:String(value(r,'Codigo')),name:String(value(r,'Nombre')),
     category:String(value(r,'Categoria')||'Otros'),price:money_(value(r,'Precio')),
@@ -416,9 +423,9 @@ function adminPayload_(){
   const rows=s.getDataRange().getValues();
   const h=(rows.shift()||[]).map(String);
   const get=(r,key)=>r[h.indexOf(key)]??'';
-  return {products:rows.filter(r=>r.some(x=>String(x??'').trim())).map((r,index)=>({
+  const products=rows.filter(r=>r.some(x=>String(x??'').trim())).map((r,index)=>({
     bestSeller:yes_(get(r,'MasPedidos')),createdAt:get(r,'FechaCreacion') instanceof Date?get(r,'FechaCreacion').toISOString():String(get(r,'FechaCreacion')),catalogOrder:index,
-    id:String(get(r,'ID')),revision:String(get(r,'Revision')),code:String(get(r,'Codigo')),name:String(get(r,'Nombre')),
+    id:String(get(r,'ID')),revision:String(get(r,'Revision')),deletedAt:String(get(r,'EliminadoEn')),code:String(get(r,'Codigo')),name:String(get(r,'Nombre')),
     category:String(get(r,'Categoria')||'Otros'),price:money_(get(r,'Precio')),
     promoPrice:money_(get(r,'PrecioPromocion')),cost:money_(get(r,'Costo')),
     stock:Math.max(0,Math.floor(money_(get(r,'Stock')))),
@@ -427,7 +434,8 @@ function adminPayload_(){
     codAllowed:yes_(get(r,'PagoAlRecibir')),active:yes_(get(r,'Activo')),
     colors:String(get(r,'Colores')),promoText:String(get(r,'PromocionTexto')),
     details:detailsClean_(get(r,'Detalles'))
-  })).filter(p=>p.id&&p.name),settings:cfg_(),source:'privado'};
+  })).filter(p=>p.id&&p.name);
+  return {products:products.filter(p=>!p.deletedAt),trash:products.filter(p=>p.deletedAt),settings:cfg_(),source:'privado'};
 }
 
 /** Escritura por NOMBRE de columna, compatible con orden histórico y nuevo. */
@@ -459,6 +467,7 @@ function saveProduct_(p){
     while(row.length<headers.length)row.push('');
     const set=(key,value)=>{const i=at(key);if(i>=0)row[i]=value;};
     const old=key=>at(key)<0?'':row[at(key)];
+    if(String(old('EliminadoEn')||'').trim())throw Error('Este producto está en la papelera. Restauralo antes de editarlo.');
     if(position>0&&p.revision===undefined&&PropertiesService.getScriptProperties().getProperty('GC_STOCK_MOVEMENTS_STARTED')==='SI')throw Error('Sincronizá el inventario antes de editar este producto para conservar las ventas y entradas recientes.');
     if(position>0&&p.revision!==undefined&&String(p.revision)!==String(old('Revision')))throw Error('Este producto cambió desde que abriste el editor. Sincronizá y revisá las existencias antes de guardar.');
     const amount=value=>{const n=money_(value);if(!Number.isFinite(n)||n<0)throw Error('Precio o costo inválido.');return n;};
@@ -595,6 +604,67 @@ function disableProduct_(id){
     return {ok:true,message:'Producto ocultado, sin borrarlo de la hoja.'};
   }
   throw Error('Producto no encontrado.');
+}
+
+/** Papelera reversible: conserva ID, consecutivo, fotos, existencias e historial. */
+function gcProductState_(req,operation){
+  const id=String(req.id||'').trim();if(!id||id.length>180)throw Error('Producto inválido.');
+  if(operation==='delete'&&req.confirmed!==true)throw Error('Confirmá el producto que vas a eliminar.');
+  if(operation==='visibility'&&typeof req.active!=='boolean')throw Error('Estado inválido.');
+  const lock=LockService.getScriptLock();lock.waitLock(25000);
+  try{
+    gcMovementRecover_();
+    const sheet=book_().getSheetByName(GC_TAB_PRODUCTS),rows=sheet.getDataRange().getValues(),headers=(rows[0]||[]).map(String),at=key=>headers.indexOf(key);
+    if(['ID','Activo','Revision'].some(key=>at(key)<0))throw Error('Faltan columnas del inventario.');
+    const matches=rows.map((row,index)=>index>0&&String(row[at('ID')])===id?index:-1).filter(index=>index>0);
+    if(matches.length!==1)throw Error(matches.length?'Hay identificadores repetidos. Revisá la hoja.':'No se encontró el producto.');
+    const index=matches[0],row=rows[index].slice(),get=key=>at(key)<0?'':row[at(key)],deleted=String(get('EliminadoEn')||'').trim();
+    if(operation==='delete'&&deleted)return {ok:true,id,deleted:true,deletedAt:deleted,active:false,revision:String(get('Revision')),alreadyApplied:true};
+    if(operation==='restore'&&!deleted)return {ok:true,id,deleted:false,deletedAt:'',active:yes_(get('Activo')),revision:String(get('Revision')),alreadyApplied:true};
+    if(operation==='visibility'&&deleted)throw Error('Restaurá el producto desde Papelera antes de mostrarlo.');
+    if(req.expectedRevision===undefined||String(req.expectedRevision)!==String(get('Revision')))throw Error('Este producto cambió. Sincronizá y revisalo antes de continuar.');
+    for(const key of ['EliminadoEn','ActivoAntesEliminar'])if(at(key)<0){sheet.getRange(1,headers.length+1).setValue(key);headers.push(key);}
+    while(row.length<headers.length)row.push('');
+    const formulas=sheet.getRange(index+1,1,1,headers.length).getFormulas()[0];formulas.forEach((formula,i)=>{if(formula)row[i]=formula;});
+    const set=(key,value)=>row[at(key)]=value,now=new Date().toISOString();
+    if(operation==='delete'){set('ActivoAntesEliminar',yes_(get('Activo'))?'SI':'NO');set('Activo','NO');set('EliminadoEn',now);}
+    if(operation==='restore'){set('Activo',yes_(get('ActivoAntesEliminar'))?'SI':'NO');set('EliminadoEn','');set('ActivoAntesEliminar','');}
+    if(operation==='visibility')set('Activo',req.active?'SI':'NO');
+    set('Revision',operation+'-'+now);
+    sheet.getRange(index+1,1,1,headers.length).setValues([row]);
+    gcMovementCache_();
+    return {ok:true,id,deleted:operation==='delete',deletedAt:String(get('EliminadoEn')||''),active:yes_(get('Activo')),revision:String(get('Revision')),message:operation==='delete'?'Producto eliminado. Podés recuperarlo en Papelera.':operation==='restore'?'Producto restaurado.':req.active?'Producto visible en la tienda.':'Producto ocultado.'};
+  }finally{lock.releaseLock();}
+}
+
+/** Solo fotos ya publicadas de productos activos; nunca acepta una URL del solicitante. */
+function gcCatalogPhotos_(req){
+  if(!Array.isArray(req.ids)||!req.ids.length||req.ids.length>6||req.ids.some(id=>typeof id!=='string'||id.length>180))throw Error('Elegí entre 1 y 6 productos del catálogo.');
+  const ids=[...new Set(req.ids)],catalog=publicPayload_().products,cache=CacheService.getScriptCache(),images=[],pending=[];
+  for(const id of ids){
+    const product=catalog.find(p=>p.id===id);if(!product)continue;
+    const raw=String(product.image||''),match=raw.match(/^https:\/\/drive\.google\.com\/(?:thumbnail\?id=|file\/d\/)([A-Za-z0-9_-]+)/i);
+    if(!match)continue;
+    const key='gc_catalog_photo_v1_'+match[1],cached=cache.get(key);
+    if(cached){images.push({id,data:cached});continue;}
+    pending.push({id,key,url:'https://drive.google.com/thumbnail?id='+encodeURIComponent(match[1])+'&sz=w600'});
+  }
+  if(pending.length){
+    try{
+      const responses=UrlFetchApp.fetchAll(pending.map(item=>({url:item.url,followRedirects:true,muteHttpExceptions:true})));
+      responses.forEach((response,index)=>{
+        try{
+          if(response.getResponseCode()!==200)return;
+          const blob=response.getBlob(),mime=String(blob.getContentType()).split(';')[0].toLowerCase(),bytes=blob.getBytes();
+          if(!/^image\/(jpeg|png|webp|gif)$/.test(mime)||!bytes.length||bytes.length>650000)return;
+          const data='data:'+mime+';base64,'+Utilities.base64Encode(bytes),item=pending[index];
+          if(data.length<90000)cache.put(item.key,data,21600);
+          images.push({id:item.id,data});
+        }catch(error){}
+      });
+    }catch(error){}
+  }
+  return {ok:true,images};
 }
 
 function uploadImage_(f){
