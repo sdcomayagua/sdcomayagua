@@ -15,7 +15,7 @@ function fonts(){
 const slug=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,65)||'Productos';
 function setup(){
  if($('catalogExportOverlay'))return;
- document.body.insertAdjacentHTML('beforeend',`<div class="overlay catalog-export-overlay" id="catalogExportOverlay" hidden><section class="dialog catalog-export-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogExportTitle"><div class="dialog-head"><div><p class="catalog-export-eyebrow">PARA TUS CLIENTES</p><h2 id="catalogExportTitle">Compartir categoría</h2></div><button type="button" class="icon" id="catalogExportClose" aria-label="Cerrar catálogo">×</button></div><div class="catalog-export-layout"><section class="catalog-export-controls"><h3 id="catalogExportCategory"></h3><p id="catalogExportCount"></p><div class="catalog-export-options"><label><input type="checkbox" id="catalogExportPrices" checked>Mostrar precios</label><label><input type="checkbox" id="catalogExportOut" checked>Incluir agotados</label><label id="catalogExportGroupLabel" hidden><input type="checkbox" id="catalogExportGroup" checked>Ordenar por categoría</label></div><p class="catalog-export-help" id="catalogExportPricesHelp" hidden>Los precios escritos dentro de las fotos seguirán visibles; forman parte de la imagen original.</p><label class="catalog-export-label" for="catalogExportDensity">Distribución</label><select class="field" id="catalogExportDensity"><option value="4">4 productos · fotos grandes</option><option value="6">6 productos · compacto</option></select><p class="catalog-export-quality">Alta resolución · 3060 × 3960 px</p><label class="catalog-export-label" for="catalogExportFormat">Formato</label><select class="field" id="catalogExportFormat"><option value="image">Imagen PNG · página actual</option><option value="pdf">PDF · catálogo completo</option></select><p class="catalog-export-status" id="catalogExportStatus" role="status" aria-live="polite"></p><button type="button" class="btn outline" id="catalogExportRetry" hidden>Reintentar fotos</button><a class="btn" id="catalogExportDownload" aria-disabled="true">Descargar imagen</a><button type="button" class="btn outline" id="catalogExportShare" disabled>Compartir imagen</button><p class="catalog-export-help" id="catalogExportShareHelp"></p><p class="catalog-export-help">La imagen incluye la página que estás viendo. El PDF reúne todas las páginas. Las fotos se muestran completas. El PDF conserva el texto nítido y permite tocar cada producto para abrir su ficha.</p></section><section class="catalog-export-preview" aria-label="Vista previa del catálogo"><div class="catalog-export-preview-empty" id="catalogExportEmpty">Preparando tu catálogo…</div><img id="catalogExportPreview" alt="Vista previa del catálogo" hidden><nav class="catalog-export-pages" aria-label="Páginas del catálogo" hidden><button type="button" class="btn outline" id="catalogExportPrevious" aria-label="Página anterior">←</button><span id="catalogExportPage" role="status"></span><button type="button" class="btn outline" id="catalogExportNext" aria-label="Página siguiente">→</button></nav></section></div></section></div>`);
+ document.body.insertAdjacentHTML('beforeend',`<div class="overlay catalog-export-overlay" id="catalogExportOverlay" hidden><section class="dialog catalog-export-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogExportTitle"><div class="dialog-head"><div><p class="catalog-export-eyebrow">PARA TUS CLIENTES</p><h2 id="catalogExportTitle">Compartir categoría</h2></div><button type="button" class="icon" id="catalogExportClose" aria-label="Cerrar catálogo">×</button></div><div class="catalog-export-layout"><section class="catalog-export-controls"><h3 id="catalogExportCategory"></h3><p id="catalogExportCount"></p><div class="catalog-export-options"><label><input type="checkbox" id="catalogExportPrices" checked>Mostrar precios</label><label><input type="checkbox" id="catalogExportOut" checked>Incluir agotados</label><label id="catalogExportGroupLabel" hidden><input type="checkbox" id="catalogExportGroup" checked>Ordenar por categoría</label></div><p class="catalog-export-help" id="catalogExportPricesHelp" hidden>Los precios escritos dentro de las fotos seguirán visibles; forman parte de la imagen original.</p><label class="catalog-export-label" for="catalogExportDensity">Distribución</label><select class="field" id="catalogExportDensity"><option value="2">2 productos · fotos extra grandes</option><option value="4">4 productos · fotos grandes</option><option value="6">6 productos · compacto</option></select><p class="catalog-export-quality">Alta resolución · 3060 × 3960 px</p><label class="catalog-export-label" for="catalogExportFormat">Formato</label><select class="field" id="catalogExportFormat"><option value="image">Imagen PNG · página actual</option><option value="pdf">PDF · catálogo completo</option></select><p class="catalog-export-status" id="catalogExportStatus" role="status" aria-live="polite"></p><button type="button" class="btn outline" id="catalogExportRetry" hidden>Reintentar fotos</button><a class="btn" id="catalogExportDownload" aria-disabled="true">Descargar imagen</a><button type="button" class="btn outline" id="catalogExportShare" disabled>Compartir imagen</button><p class="catalog-export-help" id="catalogExportShareHelp"></p><p class="catalog-export-help">La imagen incluye la página que estás viendo. El PDF reúne todas las páginas. Las fotos se muestran completas. El PDF conserva el texto nítido y permite tocar cada producto para abrir su ficha.</p></section><section class="catalog-export-preview" aria-label="Vista previa del catálogo"><div class="catalog-export-preview-empty" id="catalogExportEmpty">Preparando tu catálogo…</div><img id="catalogExportPreview" alt="Vista previa del catálogo" hidden><nav class="catalog-export-pages" aria-label="Páginas del catálogo" hidden><button type="button" class="btn outline" id="catalogExportPrevious" aria-label="Página anterior">←</button><span id="catalogExportPage" role="status"></span><button type="button" class="btn outline" id="catalogExportNext" aria-label="Página siguiente">→</button></nav></section></div></section></div>`);
  $('catalogExportClose').onclick=close;
  $('catalogExportOverlay').onclick=event=>{if(event.target===$('catalogExportOverlay'))close();};
  for(const id of ['catalogExportPrices','catalogExportOut','catalogExportGroup','catalogExportDensity'])$(id).onchange=build;
@@ -94,28 +94,43 @@ function draw(context,products,loaded,index,count,logo){
  box(margin,252,52,5,red);
  const categories=[...new Set(products.map(p=>p.category).filter(Boolean))],subtitle=context.multipleCategories?categories.join('  /  '):`${context.count} producto${context.count===1?'':'s'} · ${context.prices?'Precios en lempiras':'Consultá precios y disponibilidad'}`;
  label(subtitle,margin+75,265,{size:21,color:'#bdc8d8',width:inner-80,fit:true});
- const columns=products.length===1?1:2,rows=Math.ceil(products.length/columns),compact=rows===3,bodyTop=326,bodyHeight=1390,w=(inner-(columns-1)*gap)/columns,h=rows===1?1120:(bodyHeight-(rows-1)*gap)/rows,top=rows===1?bodyTop+(bodyHeight-h)/2:bodyTop;
+ const columns=products.length<=2?1:2,rows=Math.ceil(products.length/columns),compact=rows===3,solo=rows===1,bodyTop=326,bodyHeight=1390,w=(inner-(columns-1)*gap)/columns,h=rows===1?1120:(bodyHeight-(rows-1)*gap)/rows,top=rows===1?bodyTop+(bodyHeight-h)/2:bodyTop;
  products.forEach((product,i)=>{
-  const solo=products.length===1,centered=products.length%2===1&&i===products.length-1,x=centered?(W-w)/2:margin+(i%columns)*(w+gap),y=top+Math.floor(i/columns)*(h+gap),pad=30;
-  box(x,y+5,w,h,'#e5e8ed','',18);box(x,y,w,h,'#ffffff','#dfe3e8',18);
-  const infoX=solo?x+w*.56:x+pad,infoW=solo?w*.44-pad*2:w-pad*2,infoY=solo?y+190:y+h-(compact?181:216),photoX=x+pad,photoY=y+30,photoW=solo?w*.53-pad:w-pad*2,photoH=solo?h-60:h-(compact?236:280);
-  box(photoX,photoY,photoW,photoH,'#f8f9fb','',10);
+  const centered=columns===2&&products.length%2===1&&i===products.length-1;
+  const x=centered?(W-w)/2:margin+(i%columns)*(w+gap),y=top+Math.floor(i/columns)*(h+gap);
+  const pad=columns===1?34:22,imageW=Math.round(w*(columns===1?.52:.54)),imageH=h-2*pad;
+  const photoX=x+pad,photoY=y+pad,infoX=photoX+imageW+(columns===1?30:19),infoW=x+w-pad-infoX;
+  box(x,y+4,w,h,'#e7eaf0','',16);box(x,y,w,h,'#ffffff','#dee4ec',16);
+  box(photoX,photoY,imageW,imageH,'#f8fafc','',10);
   const img=loaded.get(product.id);
-  if(img)photo(img,photoX+8,photoY+8,photoW-16,photoH-16);
-  else{label('FOTO NO DISPONIBLE',photoX+photoW/2,photoY+photoH/2,{size:22,color:muted,width:photoW-35,align:'center'});label('Pedinos más información',photoX+photoW/2,photoY+photoH/2+33,{size:20,color:muted,width:photoW-35,align:'center'});}
-  label(String(product.category||'PRODUCTO').toLocaleUpperCase('es'),infoX,infoY,{size:16,bold:true,color:red,width:infoW});
-  label(product.name,infoX,infoY+(compact?31:39),{size:solo?40:compact?24:27,bold:true,color:ink,width:infoW,lines:solo?4:2,lineHeight:solo?51:compact?28:34});
-  const price=C.unitPrice(product,1),promo=price>0&&price<product.price,priceY=solo?infoY+275:y+h-(compact?57:64);
+  if(img)photo(img,photoX+5,photoY+5,imageW-10,imageH-10);
+  else{
+   label('FOTO NO DISPONIBLE',photoX+imageW/2,photoY+imageH/2,{size:columns===1?23:18,color:muted,width:imageW-25,align:'center'});
+   label('Consultá por WhatsApp',photoX+imageW/2,photoY+imageH/2+30,{size:columns===1?19:15,color:muted,width:imageW-25,align:'center'});
+  }
+  const categoryY=y+(compact?48:solo?106:68),titleY=y+(compact?85:solo?182:124);
+  label(String(product.category||'PRODUCTO').toLocaleUpperCase('es'),infoX,categoryY,{size:columns===1?18:14,bold:true,color:red,width:infoW,fit:true});
+  label(product.name,infoX,titleY,{size:solo?44:columns===1?35:compact?22:27,bold:true,color:ink,width:infoW,lines:solo?4:3,lineHeight:solo?56:columns===1?45:compact?29:35});
+  const detail=product.details||{};
+  let description=String(product.description||detail.included||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+  if(description.toLocaleLowerCase('es').startsWith(product.name.toLocaleLowerCase('es')))description=description.slice(product.name.length).replace(/^[\s.,:;-]+/,'');
+  if(!description&&detail.technology)description=String(detail.technology);
+  const detailsY=y+(compact?188:solo?465:268),descriptionLines=solo?11:columns===1?6:compact?3:6;
+  if(description)label(description,infoX,detailsY,{size:solo?24:columns===1?21:compact?16:18,color:'#536177',width:infoW,lines:descriptionLines,lineHeight:solo?35:columns===1?30:compact?23:27});
+  if((!description||columns===1)&&detail.technology){
+   const techY=description?detailsY+(solo?335:190):detailsY;
+   if(techY<y+h-220)label(String(detail.technology),infoX,techY,{size:columns===1?19:16,bold:true,color:'#314a67',width:infoW,lines:2,lineHeight:25});
+  }
+  const price=C.unitPrice(product,1),promo=price>0&&price<product.price,priceY=y+h-(solo?170:columns===1?132:compact?118:139);
   if(context.prices&&price>0){
-   label(C.money(price),infoX,priceY,{size:solo?62:46,bold:true,color:ink,width:infoW-150,fit:true});
-   if(promo)label('Antes '+C.money(product.price),infoX,priceY-(compact?39:48),{size:compact?14:16,color:muted,width:infoW});
-  }else label('Consultá el precio',infoX,priceY,{size:solo?32:25,bold:true,color:ink,width:infoW-100});
-  const available=product.stock>0,status=available?'DISPONIBLE':'AGOTADO',pillW=available?138:119,pillY=solo?priceY+88:priceY-34;
-  box(x+w-pad-pillW,pillY,pillW,33,available?'#e8f3ed':'#eef0f3','',7);
-  label(status,x+w-pad-pillW/2,pillY+22,{size:14,bold:true,color:available?'#297451':'#718093',width:pillW-10,align:'center'});
-  const codeY=solo?priceY+160:y+h-23;
-  label('CÓD. '+(product.code||product.id),infoX,codeY,{size:18,color:muted,width:solo?infoW:infoW-160});
-  if(solo&&product.description)label(product.description,infoX,codeY+66,{size:25,color:muted,width:infoW,lines:5,lineHeight:36});
+   if(promo)label('Antes '+C.money(product.price),infoX,priceY-39,{size:columns===1?19:15,color:muted,width:infoW});
+   label(C.money(price),infoX,priceY,{size:solo?61:columns===1?48:compact?35:42,bold:true,color:ink,width:infoW,fit:true});
+  }else label('Consultá el precio',infoX,priceY,{size:columns===1?32:compact?20:26,bold:true,color:ink,width:infoW,fit:true});
+  const available=product.stock>0,status=available?String(product.stock)+' disponible'+(product.stock===1?'':'s'):'AGOTADO';
+  const pillW=Math.min(infoW,Math.max(120,available?184:127)),pillY=priceY+(columns===1?24:20);
+  box(infoX,pillY,pillW,34,available?'#e8f3ed':'#eef0f3','',7);
+  label(status,infoX+pillW/2,pillY+23,{size:columns===1?16:14,bold:true,color:available?'#297451':'#718093',width:pillW-10,align:'center',fit:true});
+  label('CÓD. '+(product.code||product.id),infoX,y+h-24,{size:columns===1?18:compact?14:16,color:muted,width:infoW,fit:true});
   link(x,y,w,h,productUrl(context,product));
  });
  // Pie de contacto con área propia, márgenes amplios y enlace en el PDF.
@@ -154,7 +169,7 @@ async function share(){
 }
 async function build(){
  const context=state;if(!context)return;const ticket=++epoch;context.busy=true;release(context);context.pages=[];context.index=0;context.prices=$('catalogExportPrices').checked;$('catalogExportPricesHelp').hidden=context.prices;
- const size=Number($('catalogExportDensity').value)===6?6:4,selected=context.products.filter(p=>$('catalogExportOut').checked||p.stock>0);if($('catalogExportGroup').checked&&context.multipleCategories)selected.sort((a,b)=>a.category.localeCompare(b.category,'es'));context.count=selected.length;
+ const size=[2,4,6].includes(Number($('catalogExportDensity').value))?Number($('catalogExportDensity').value):4,selected=context.products.filter(p=>$('catalogExportOut').checked||p.stock>0);if($('catalogExportGroup').checked&&context.multipleCategories)selected.sort((a,b)=>a.category.localeCompare(b.category,'es'));context.count=selected.length;
  $('catalogExportCount').textContent=selected.length+' producto'+(selected.length===1?'':'s')+' · '+Math.ceil(selected.length/size)+' página'+(selected.length>size?'s':'');
  $('catalogExportPreview').hidden=true;$('catalogExportEmpty').hidden=false;$('catalogExportEmpty').textContent=selected.length?'Preparando fotos y páginas…':'No hay productos con esta selección.';
  $('catalogExportRetry').hidden=true;$('catalogExportStatus').textContent='Preparando catálogo…';document.querySelector('.catalog-export-pages').hidden=true;
