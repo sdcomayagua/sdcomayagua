@@ -31,6 +31,8 @@ function rectangle(op,height){
 async function create(pages,options){
  if(!window.GC_CATALOG_FONTS)throw Error('No se pudo cargar la tipografía del catálogo. Recargá la página.');
  const objects=[null],reserve=()=>{objects.push(null);return objects.length-1;},catalog=reserve(),tree=reserve(),regular=reserve(),bold=reserve(),info=reserve(),images=new Map();
+ const baseFonts={F3:'Helvetica-Bold',F4:'Times-Bold',F5:'Times-Roman',F6:'Courier-Bold'},fontIds={};
+ for(const [name,base] of Object.entries(baseFonts)){fontIds[name]=reserve();objects[fontIds[name]]=`<< /Type /Font /Subtype /Type1 /BaseFont /${base} /Encoding /WinAnsiEncoding >>`;}
  const pageIds=pages.map(()=>({page:reserve(),content:reserve(),links:[]}));
  for(const page of pages)for(const op of page.ops)if(op.kind==='image'&&!images.has(op.image))images.set(op.image,{id:reserve(),data:op.image});
  objects[catalog]=`<< /Type /Catalog /Pages ${tree} 0 R /PageLayout /OneColumn >>`;
@@ -54,9 +56,11 @@ async function create(pages,options){
    }else if(op.kind==='image'){
     const record=images.get(op.image);used.add(record.id);commands.push(`q ${num(op.w)} 0 0 ${num(op.h)} ${num(op.x)} ${num(height-op.y-op.h)} cm /Im${record.id} Do Q`);
    }else if(op.kind==='watermark'){
-    // La transparencia y el modo Diferencia permiten blanco sobre oscuro y negro sobre claro.
-    const angle=-op.angle*Math.PI/180,co=Math.cos(angle),si=Math.sin(angle);
-    commands.push('q','/GWM gs','BT',`/F2 ${num(op.size)} Tf`,'1 1 1 rg',`${num(co)} ${num(si)} ${num(-si)} ${num(co)} ${num(op.x)} ${num(height-op.y-op.size*.32)} Tm`,literal(op.value)+' Tj','ET','Q');
+    // Conservar la tipografía y limitar las marcas al cuadrado de la fotografía.
+    const angle=-op.angle*Math.PI/180,co=Math.cos(angle),si=Math.sin(angle),key=window.GC_WATERMARK?.fonts?.[op.font]?.pdf||'F2';
+    const width=op.textWidth||op.size*String(op.value).length*.55,xx=op.x-width*co/2,yy=height-op.y-width*si/2-op.size*.32;
+    const clip=op.clip,cy=height-clip.y-clip.h;
+    commands.push('q',`${num(clip.x)} ${num(cy)} ${num(clip.w)} ${num(clip.h)} re W n`,'/GWM gs','BT',`/${key} ${num(op.size)} Tf`,'1 1 1 rg',`${num(co)} ${num(si)} ${num(-si)} ${num(co)} ${num(xx)} ${num(yy)} Tm`,literal(op.value)+' Tj','ET','Q');
    }else if(op.kind==='link'){
     const url=uri(op.url);if(!url)continue;const id=reserve();ids.links.push(id);
     objects[id]=`<< /Type /Annot /Subtype /Link /Rect [${num(op.x*scale)} ${num((height-op.y-op.h)*scale)} ${num((op.x+op.w)*scale)} ${num((height-op.y)*scale)}] /Border [0 0 0] /A << /S /URI /URI (${url}) >> >>`;
@@ -64,7 +68,7 @@ async function create(pages,options){
   }
   commands.push('Q');objects[ids.content]={bytes:encoder.encode(commands.join('\n')+'\n')};
   const mark=page.ops.find(op=>op.kind==='watermark'),extras=mark?` /ExtGState << /GWM << /Type /ExtGState /ca ${num(mark.alpha)} /BM /Difference >> >>`:'';
-  objects[ids.page]=`<< /Type /Page /Parent ${tree} 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R >> /XObject << ${[...used].map(id=>`/Im${id} ${id} 0 R`).join(' ')} >>${extras} >> /Contents ${ids.content} 0 R /Annots [${ids.links.map(id=>id+' 0 R').join(' ')}] >>`;
+  objects[ids.page]=`<< /Type /Page /Parent ${tree} 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R ${Object.entries(fontIds).map(([name,id])=>'/'+name+' '+id+' 0 R').join(' ')} >> /XObject << ${[...used].map(id=>`/Im${id} ${id} 0 R`).join(' ')} >>${extras} >> /Contents ${ids.content} 0 R /Annots [${ids.links.map(id=>id+' 0 R').join(' ')}] >>`;
  });
  const parts=[],offsets=[0];let length=0;const append=value=>{const bytes=typeof value==='string'?encoder.encode(value):value;parts.push(bytes);length+=bytes.byteLength;};
  append('%PDF-1.4\n');append(new Uint8Array([37,226,227,207,211,10]));
