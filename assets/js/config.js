@@ -13,5 +13,6 @@ window.GC_CONFIG = {
   watermarkEnabled: true,
   watermarkText: 'GAMER COMAYAGUA',
   watermarkOpacity: 0.16,
+  watermarkFont: 'arial',
   logo: 'assets/img/logo-rojo.webp?v=gc-brand-38'
 };
