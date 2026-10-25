@@ -97,86 +97,117 @@ function artist(){
 }
 function productUrl(context,product){try{const url=new URL('productos.html',context.url||document.baseURI);url.searchParams.set('producto',product.id);return url.href;}catch{return '';}}
 function draw(context,products,loaded,index,count,logo){
- const page=artist(),{box,label,photo,link,watermark}=page,margin=72,inner=W-margin*2,gap=28,ink='#172333',muted='#657386',red='#c72835';
- box(0,0,W,H,'#f3f4f6');box(0,0,W,292,'#111b29');box(0,0,W,10,red);
- if(logo){box(margin-2,35,116,116,'#ffffff','',10);photo(logo,margin+3,40,106,106);}
- const brandX=logo?margin+137:margin;
- label('GAMER COMAYAGUA',brandX,85,{size:35,bold:true,color:'#ffffff',width:930});
- label('GAMING · TECNOLOGÍA · ACCESORIOS',brandX,122,{size:18,color:'#abb8ca',width:930});
- label('CATÁLOGO / '+context.year,W-margin,68,{size:19,bold:true,color:'#ffffff',align:'right',width:300});
- label(context.date,W-margin,104,{size:19,color:'#abb8ca',align:'right',width:300});
- label(context.title,margin,226,{size:59,bold:true,color:'#ffffff',width:inner-100,fit:true});
- box(margin,252,52,5,red);
- const categories=[...new Set(products.map(p=>p.category).filter(Boolean))],subtitle=context.multipleCategories?categories.join('  /  '):`${context.count} producto${context.count===1?'':'s'} · ${context.prices?'Precios en lempiras':'Consultá precios y disponibilidad'}`;
- label(subtitle,margin+75,265,{size:21,color:'#bdc8d8',width:inner-80,fit:true});
- // Tarjetas compactas: imagen cuadrada y ficha con la misma alineación vertical.
- // Los formatos de 2, 4 y 6 productos conservan su paginación.
- const columns=products.length<=2?1:2,rows=Math.ceil(products.length/columns);
- const compact=rows===3,solo=rows===1,bodyTop=326,bodyHeight=1390;
- const w=(inner-(columns-1)*gap)/columns;
- const h=solo?900:columns===2&&rows===2?460:(bodyHeight-(rows-1)*gap)/rows;
- const top=bodyTop+(bodyHeight-(rows*h+(rows-1)*gap))/2;
+ const page=artist(),{box,label,photo,link,watermark}=page;
+ const margin=72,inner=W-margin*2,gap=18;
+ const ink='#17283d',muted='#64778b',red='#cf263b',navy='#111d2e',paper='#f2f5f9';
+ const settings=context.settings||{};
+ // Cabecera editorial de menor altura: identidad, categoría y número del catálogo.
+ box(0,0,W,H,paper);
+ box(0,0,W,258,navy);
+ box(0,0,W,9,red);
+ box(margin,34,98,98,'#ffffff','',12);
+ if(logo)photo(logo,margin+5,39,88,88);
+ const bx=margin+124;
+ label('GAMER COMAYAGUA',bx,80,{size:36,bold:true,color:'#ffffff',width:890,fit:true});
+ label('GAMING · TECNOLOGÍA · ACCESORIOS',bx,117,{size:19,color:'#b2c3d6',width:890});
+ label('CATÁLOGO '+context.year,W-margin,78,{size:19,bold:true,color:'#ffffff',width:270,align:'right',fit:true});
+ label(context.date,W-margin,113,{size:18,color:'#b2c3d6',width:270,align:'right'});
+ box(margin,154,5,77,red);
+ label(context.title,margin+23,200,{size:62,bold:true,color:'#ffffff',width:inner-80,fit:true});
+ const categories=[...new Set(products.map(p=>p.category).filter(Boolean))];
+ const subtitle=context.multipleCategories?categories.join('  ·  '):context.count+' producto'+(context.count===1?'':'s')+'  ·  '+(context.prices?'Precios en lempiras':'Consultá precios y disponibilidad');
+ label(subtitle,margin+25,237,{size:19,color:'#b6c6d7',width:inner-80,fit:true});
+ // El área de productos ocupa todo el espacio entre la cabecera y el pie.
+ // Hasta cuatro artículos: una ficha horizontal por fila. De cinco a seis: dos columnas.
+ const n=products.length,columns=n>=5?2:1,rows=Math.ceil(n/columns);
+ const bodyTop=286,bodyBottom=1736;
+ const rowGap=18,colGap=22,slotH=(bodyBottom-bodyTop-(rows-1)*rowGap)/rows;
+ const regularW=(inner-(columns-1)*colGap)/columns;
  products.forEach((product,i)=>{
-  const centered=columns===2&&products.length%2===1&&i===products.length-1;
-  const x=centered?(W-w)/2:margin+(i%columns)*(w+gap);
-  const y=top+Math.floor(i/columns)*(h+gap);
-  const pad=columns===1?34:22;
-  const imageW=Math.round(Math.min(w*(solo?.53:columns===1?.46:.49),h-2*pad));
-  const imageH=imageW;
-  const photoX=x+pad,photoY=y+pad;
-  const infoX=photoX+imageW+(columns===1?32:18),infoW=x+w-pad-infoX;
-  const bottom=photoY+imageH,small=columns===2;
-  box(x,y+4,w,h,'#e7eaf0','',16);
-  box(x,y,w,h,'#ffffff','#dee4ec',16);
-  box(photoX,photoY,imageW,imageH,'#f8fafc','',10);
+  const lastFull=columns===2&&n%2===1&&i===n-1;
+  const wide=columns===1||lastFull;
+  const col=columns===1?0:i%columns,row=columns===1?i:Math.floor(i/columns);
+  const x=margin+(!wide?col*(regularW+colGap):0),y=bodyTop+row*(slotH+rowGap);
+  const w=wide?inner:regularW,h=slotH;
+  const pad=wide?22:20;
+  box(x,y+4,w,h,'#dfe7f0','',16);
+  box(x,y,w,h,'#ffffff','#dbe3eb',16);
+  // La foto queda siempre cuadrada, con margen constante y sin recortarla.
+  const imageSize=wide?Math.min(h-2*pad,n===1?740:n===2?590:455):Math.min(w*.47,h-137);
+  const photoX=x+pad,photoY=y+pad,photoSize=Math.round(imageSize);
+  box(photoX,photoY,photoSize,photoSize,'#f5f7fa','',10);
   const img=loaded.get(product.id);
   if(img){
-   photo(img,photoX+5,photoY+5,imageW-10,imageH-10);
-   watermark(photoX+5,photoY+5,imageW-10,imageH-10,context.settings);
+   photo(img,photoX+6,photoY+6,photoSize-12,photoSize-12);
+   watermark(photoX+6,photoY+6,photoSize-12,photoSize-12,settings);
   }else{
-   label('FOTO NO DISPONIBLE',photoX+imageW/2,photoY+imageH/2,{size:small?16:23,color:muted,width:imageW-25,align:'center'});
+   label('FOTO NO DISPONIBLE',photoX+photoSize/2,photoY+photoSize/2,{size:19,color:muted,width:photoSize-18,align:'center',fit:true});
   }
-  // El contenido comparte inicio y final visual con el cuadro de la foto.
-  const catY=photoY+(solo?52:small?23:40);
-  const titleY=photoY+(solo?125:small?70:100);
-  const titleSize=solo?43:small?compact?25:27:35;
-  const titleLine=solo?54:small?32:45;
-  label(String(product.category||'PRODUCTO').toLocaleUpperCase('es'),infoX,catY,{size:small?14:18,bold:true,color:red,width:infoW,fit:true});
-  label(product.name,infoX,titleY,{size:titleSize,bold:true,color:ink,width:infoW,lines:solo?4:3,lineHeight:titleLine});
-  const detail=product.details||{};
-  let description=String(product.description||detail.included||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
-  if(description.toLocaleLowerCase('es').startsWith(product.name.toLocaleLowerCase('es')))description=description.slice(product.name.length).replace(/^[\s.,:;-]+/,'');
-  if(!description&&detail.technology)description=String(detail.technology);
   const price=C.unitPrice(product,1),promo=price>0&&price<product.price;
-  const priceY=bottom-(solo?105:small?80:118);
-  const descY=photoY+(solo?380:small?165:278);
-  const descLine=solo?34:small?25:30;
-  const descSize=solo?23:small?17:21;
-  const maxBySpace=Math.max(0,Math.floor((priceY-(promo?43:18)-descY)/descLine)+1);
-  const descLines=Math.min(solo?8:small?4:6,maxBySpace);
-  if(description&&descLines>0)label(description,infoX,descY,{size:descSize,color:'#536177',width:infoW,lines:descLines,lineHeight:descLine});
-  if(context.prices&&price>0){
-   if(promo)label('Antes '+C.money(product.price),infoX,priceY-39,{size:small?14:19,color:muted,width:infoW,fit:true});
-   label(C.money(price),infoX,priceY,{size:solo?57:small?40:49,bold:true,color:ink,width:infoW,fit:true});
-  }else label('Consultá el precio',infoX,priceY,{size:solo?30:small?22:30,bold:true,color:ink,width:infoW,fit:true});
-  const available=product.stock>0,status=available?String(product.stock)+' disponible'+(product.stock===1?'':'s'):'AGOTADO';
-  const pillW=Math.min(infoW,Math.max(115,available?small?168:184:127));
-  const pillY=bottom-(small?54:solo?64:68);
-  box(infoX,pillY,pillW,33,available?'#e8f3ed':'#eef0f3','',7);
-  label(status,infoX+pillW/2,pillY+23,{size:small?13:16,bold:true,color:available?'#297451':'#718093',width:pillW-10,align:'center',fit:true});
-  label('CÓD. '+(product.code||product.id),infoX,y+h-24,{size:small?15:18,color:muted,width:infoW,fit:true});
+  const available=product.stock>0;
+  const status=available?product.stock+' disponible'+(product.stock===1?'':'s'):'AGOTADO';
+  const details=product.details||{};
+  let description=String(product.description||details.included||details.technology||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+  if(description.toLocaleLowerCase('es').startsWith(product.name.toLocaleLowerCase('es')))description=description.slice(product.name.length).replace(/^[\s.,:;-]+/,'');
+  if(wide){
+   // Tres áreas: imagen | información | precio, sin huecos entre secciones.
+   const priceW=252,priceX=x+w-pad-priceW,detailsX=photoX+photoSize+28;
+   const detailsW=Math.max(190,priceX-detailsX-26);
+   box(priceX,y+15,priceW,h-30,'#f5f8fc','',12);
+   box(priceX,y+15,5,h-30,red,'',3);
+   const titleBase=y+(n===4?100:125);
+   const titleSize=n===4?32:38,titleLine=n===4?42:48;
+   label(String(product.category||'PRODUCTO').toLocaleUpperCase('es'),detailsX,y+48,{size:15,bold:true,color:red,width:detailsW,fit:true});
+   label(product.name,detailsX,titleBase,{size:titleSize,bold:true,color:ink,width:detailsW,lines:3,lineHeight:titleLine});
+   const descTop=n===4?y+215:n===3?y+258:y+290;
+   const descLine=29,descMax=Math.max(0,Math.floor((y+h-37-descTop)/descLine)+1);
+   if(description&&descMax>0)label(description,detailsX,descTop,{size:n===4?19:21,color:'#52677c',width:detailsW,lines:Math.min(descMax,7),lineHeight:descLine});
+   label('PRECIO',priceX+24,y+55,{size:15,bold:true,color:muted,width:priceW-45});
+   const priceY=y+(n===4?125:165);
+   if(context.prices&&price>0){
+    if(promo)label('Antes '+C.money(product.price),priceX+24,priceY-33,{size:17,color:muted,width:priceW-44,fit:true});
+    label(C.money(price),priceX+24,priceY,{size:44,bold:true,color:ink,width:priceW-44,fit:true});
+   }else label('Consultar',priceX+24,priceY,{size:30,bold:true,color:ink,width:priceW-44,fit:true});
+   const pillW=Math.min(priceW-43,190),pillY=priceY+22;
+   box(priceX+24,pillY,pillW,36,available?'#e0f2e9':'#e8edf3','',8);
+   label(status,priceX+24+pillW/2,pillY+25,{size:15,bold:true,color:available?'#236847':'#64758a',align:'center',width:pillW-12,fit:true});
+   box(priceX+24,y+h-75,priceW-48,1,'#dce5ed');
+   label('CÓD. '+(product.code||product.id),priceX+24,y+h-37,{size:16,color:muted,width:priceW-40,fit:true});
+  }else{
+   // Formato compacto: precio, existencias y código en una banda inferior completa.
+   const detailsX=photoX+photoSize+18,detailsW=x+w-pad-detailsX;
+   label(String(product.category||'PRODUCTO').toLocaleUpperCase('es'),detailsX,y+51,{size:14,bold:true,color:red,width:detailsW,fit:true});
+   label(product.name,detailsX,y+100,{size:26,bold:true,color:ink,width:detailsW,lines:3,lineHeight:33});
+   const descTop=y+208,descBottom=y+h-124;
+   const descLines=Math.max(0,Math.min(5,Math.floor((descBottom-descTop)/26)+1));
+   if(description&&descLines>0)label(description,detailsX,descTop,{size:17,color:'#52677c',width:detailsW,lines:descLines,lineHeight:26});
+   const bandX=x+pad,bandY=y+h-98,bandW=w-2*pad;
+   box(bandX,bandY,bandW,76,'#f5f8fc','',10);
+   box(bandX,bandY,5,76,red,'',3);
+   if(context.prices&&price>0){
+    if(promo)label('Antes '+C.money(product.price),bandX+20,bandY+18,{size:13,color:muted,width:170,fit:true});
+    label(C.money(price),bandX+20,bandY+60,{size:37,bold:true,color:ink,width:215,fit:true});
+   }else label('Consultar',bandX+20,bandY+57,{size:27,bold:true,color:ink,width:195,fit:true});
+   const pillW=Math.min(160,Math.max(110,bandW*.25));
+   box(bandX+245,bandY+14,pillW,30,available?'#e0f2e9':'#e8edf3','',6);
+   label(status,bandX+245+pillW/2,bandY+35,{size:13,bold:true,color:available?'#236847':'#64758a',width:pillW-10,align:'center',fit:true});
+   label('CÓD. '+(product.code||product.id),bandX+bandW-16,bandY+63,{size:14,color:muted,width:230,align:'right',fit:true});
+  }
   link(x,y,w,h,productUrl(context,product));
  });
- // Pie de contacto con área propia, márgenes amplios y enlace en el PDF.
- const footerY=1758,phone=String(context.settings.whatsapp||'50431517755').replace(/\D/g,''),formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
- box(margin,footerY,inner,126,'#111b29','',15);box(margin,footerY+27,5,72,red);
- label('HABLEMOS POR WHATSAPP',margin+32,footerY+37,{size:16,bold:true,color:'#aebdd0',width:600});
- label(formatted,margin+32,footerY+83,{size:38,bold:true,color:'#ffffff',width:600});
- label('Comayagua, Honduras',W-margin-32,footerY+43,{size:23,bold:true,color:'#ffffff',width:560,align:'right'});
- label('Consultá envío y formas de pago',W-margin-32,footerY+80,{size:20,color:'#b3c0d0',width:560,align:'right'});
- link(margin,footerY,inner,126,'https://wa.me/'+phone);
- label('Precios y existencias sujetos a confirmación.',margin,1926,{size:19,color:muted,width:1080});
- label(String(index+1).padStart(2,'0')+' / '+String(count).padStart(2,'0'),W-margin,1926,{size:20,bold:true,color:ink,width:240,align:'right'});
+ // Pie integrado, sin franjas vacías ni elementos repetidos.
+ const footerY=1773,footerH=124;
+ const phone=String(settings.whatsapp||'50431517755').replace(/\D/g,'');
+ const formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
+ box(margin,footerY,inner,footerH,navy,'',14);
+ box(margin,footerY+18,6,footerH-36,red,'',3);
+ label('PEDIDOS Y CONSULTAS POR WHATSAPP',margin+36,footerY+39,{size:17,bold:true,color:'#a9bfd2',width:650});
+ label(formatted,margin+36,footerY+93,{size:43,bold:true,color:'#ffffff',width:680,fit:true});
+ label('GAMER COMAYAGUA',W-margin-30,footerY+50,{size:25,bold:true,color:'#ffffff',width:530,align:'right'});
+ label('Comayagua · Envíos a toda Honduras',W-margin-30,footerY+88,{size:19,color:'#b6c6d7',width:560,align:'right'});
+ link(margin,footerY,inner,footerH,'https://wa.me/'+phone);
+ label('Precios y existencias sujetos a confirmación.',margin,1945,{size:17,color:muted,width:1080});
+ label(String(index+1).padStart(2,'0')+' / '+String(count).padStart(2,'0'),W-margin,1945,{size:20,bold:true,color:ink,width:220,align:'right'});
  return page;
 }
 const blob=canvas=>new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(Error('El navegador no pudo crear el archivo.')),'image/png'));
