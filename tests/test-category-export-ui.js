@@ -37,6 +37,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   const ready=()=>catalog.waitForFunction(()=>document.getElementById('catalogExportDownload')?.getAttribute('aria-disabled')==='false'&&!document.getElementById('catalogExportPrices').disabled);
   const download=async filename=>{const promise=catalog.waitForEvent('download');await catalog.locator('#catalogExportDownload').click();const file=await promise;await file.saveAs(path.join(artifacts,filename));return fs.readFileSync(path.join(artifacts,filename));};
   await catalog.goto(base+'/productos.html?categoria=Dedales');
+  await catalog.evaluate(()=>{const create=window.GC_CATALOG_PDF.create;window.GC_CATALOG_PDF.create=async function(pages,options){window.__catalogScenes=pages.map(p=>p.ops.map(({image,...op})=>op));return create(pages,options);};});
   await catalog.locator('[data-detail="DEDAL-0"]').first().click();await catalog.locator('#detailOpenPhoto').waitFor();
   assert.equal(await catalog.locator('#detailOpenPhoto').getAttribute('target'),'_blank');
   await catalog.locator('[data-photo-index="1"]').click();assert.match(await catalog.locator('#detailOpenPhoto').getAttribute('href'),/voltrax-vc07-65w/);assert.match(await catalog.locator('#detailPhotoCount').innerText(),/2 de 2/);
@@ -46,6 +47,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await catalog.locator('#exportCategory').click();await ready();assert.equal(await catalog.locator('#catalogExportCategory').innerText(),'Dedales');assert.match(await catalog.locator('#catalogExportCount').innerText(),/^8 productos/);assert.equal(await catalog.locator('#catalogExportRetry').isVisible(),false);
   assert.match(await catalog.locator('#catalogExportPage').innerText(),/Página 1 de 2/);
   const png=await download('catalogo.png');assert.equal(png.readUInt32BE(16),3060);assert.equal(png.readUInt32BE(20),3960);
+  const scenes=await catalog.evaluate(()=>window.__catalogScenes),cards=scenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto='));
+  assert.equal(cards.length,4);assert.equal(cards[0].y,cards[1].y);assert.equal(cards[2].y,cards[3].y);assert.ok(cards[1].x>cards[0].x);assert.ok(cards[2].y>cards[0].y);
+  for(const card of cards){const images=scenes[0].filter(op=>op.kind==='image'&&op.x>=card.x&&op.y>=card.y&&op.x+op.w<=card.x+card.w&&op.y+op.h<=card.y+card.h);assert.ok(images.some(op=>op.w*op.h>card.w*card.h*.3),'La foto debe ocupar una parte importante de la tarjeta.');}
   await catalog.locator('#catalogExportNext').click();assert.match(await catalog.locator('#catalogExportPreview').getAttribute('alt'),/Página 2 de 2/);assert.match(await catalog.locator('#catalogExportDownload').getAttribute('download'),/_02\.png$/);await download('catalogo-pagina-2.png');
   await catalog.locator('#catalogExportShare').click();assert.equal((await catalog.evaluate(()=>window.__shared.at(-1))).files[0].type,'image/png');
   await catalog.locator('#catalogExportFormat').selectOption('pdf');const pdf=await download('catalogo.pdf');assert.equal(pdf.subarray(0,8).toString(),'%PDF-1.4');assert.equal((pdf.toString('latin1').match(/\/Type \/Page \/Parent/g)||[]).length,2);
@@ -54,6 +58,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.equal((pdf.toString('latin1').match(/\/Subtype \/Link/g)||[]).length,10);
   await catalog.locator('#catalogExportDensity').selectOption('6');await ready();await download('catalogo-compacto.pdf');
   await catalog.locator('#catalogExportFormat').selectOption('image');await download('catalogo-compacto.png');await catalog.locator('#catalogExportFormat').selectOption('pdf');
+  await catalog.locator('#catalogExportDensity').selectOption('4');await ready();
+  await catalog.locator('#catalogExportDensity').selectOption('2');await ready();await download('catalogo-fotos-extra-grandes.pdf');
   await catalog.locator('#catalogExportDensity').selectOption('4');await ready();
   await catalog.locator('#catalogExportShare').click();assert.equal((await catalog.evaluate(()=>window.__shared.at(-1))).files[0].type,'application/pdf');
   await catalog.locator('#catalogExportOut').uncheck();await ready();assert.match(await catalog.locator('#catalogExportCount').innerText(),/^7 productos/);

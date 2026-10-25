@@ -15,7 +15,7 @@ function fonts(){
 const slug=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,65)||'Productos';
 function setup(){
  if($('catalogExportOverlay'))return;
- document.body.insertAdjacentHTML('beforeend',`<div class="overlay catalog-export-overlay" id="catalogExportOverlay" hidden><section class="dialog catalog-export-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogExportTitle"><div class="dialog-head"><div><p class="catalog-export-eyebrow">PARA TUS CLIENTES</p><h2 id="catalogExportTitle">Compartir categoría</h2></div><button type="button" class="icon" id="catalogExportClose" aria-label="Cerrar catálogo">×</button></div><div class="catalog-export-layout"><section class="catalog-export-controls"><h3 id="catalogExportCategory"></h3><p id="catalogExportCount"></p><div class="catalog-export-options"><label><input type="checkbox" id="catalogExportPrices" checked>Mostrar precios</label><label><input type="checkbox" id="catalogExportOut" checked>Incluir agotados</label><label id="catalogExportGroupLabel" hidden><input type="checkbox" id="catalogExportGroup" checked>Ordenar por categoría</label></div><p class="catalog-export-help" id="catalogExportPricesHelp" hidden>Los precios escritos dentro de las fotos seguirán visibles; forman parte de la imagen original.</p><label class="catalog-export-label" for="catalogExportDensity">Distribución</label><select class="field" id="catalogExportDensity"><option value="2">2 productos · fotos extra grandes</option><option value="4">4 productos · fotos grandes</option><option value="6">6 productos · compacto</option></select><p class="catalog-export-quality">Alta resolución · 3060 × 3960 px</p><label class="catalog-export-label" for="catalogExportFormat">Formato</label><select class="field" id="catalogExportFormat"><option value="image">Imagen PNG · página actual</option><option value="pdf">PDF · catálogo completo</option></select><p class="catalog-export-status" id="catalogExportStatus" role="status" aria-live="polite"></p><button type="button" class="btn outline" id="catalogExportRetry" hidden>Reintentar fotos</button><a class="btn" id="catalogExportDownload" aria-disabled="true">Descargar imagen</a><button type="button" class="btn outline" id="catalogExportShare" disabled>Compartir imagen</button><p class="catalog-export-help" id="catalogExportShareHelp"></p><p class="catalog-export-help">La imagen incluye la página que estás viendo. El PDF reúne todas las páginas. Las fotos se muestran completas. El PDF conserva el texto nítido y permite tocar cada producto para abrir su ficha.</p></section><section class="catalog-export-preview" aria-label="Vista previa del catálogo"><div class="catalog-export-preview-empty" id="catalogExportEmpty">Preparando tu catálogo…</div><img id="catalogExportPreview" alt="Vista previa del catálogo" hidden><nav class="catalog-export-pages" aria-label="Páginas del catálogo" hidden><button type="button" class="btn outline" id="catalogExportPrevious" aria-label="Página anterior">←</button><span id="catalogExportPage" role="status"></span><button type="button" class="btn outline" id="catalogExportNext" aria-label="Página siguiente">→</button></nav></section></div></section></div>`);
+ document.body.insertAdjacentHTML('beforeend',`<div class="overlay catalog-export-overlay" id="catalogExportOverlay" hidden><section class="dialog catalog-export-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogExportTitle"><div class="dialog-head"><div><p class="catalog-export-eyebrow">PARA TUS CLIENTES</p><h2 id="catalogExportTitle">Compartir categoría</h2></div><button type="button" class="icon" id="catalogExportClose" aria-label="Cerrar catálogo">×</button></div><div class="catalog-export-layout"><section class="catalog-export-controls"><h3 id="catalogExportCategory"></h3><p id="catalogExportCount"></p><div class="catalog-export-options"><label><input type="checkbox" id="catalogExportPrices" checked>Mostrar precios</label><label><input type="checkbox" id="catalogExportOut" checked>Incluir agotados</label><label id="catalogExportGroupLabel" hidden><input type="checkbox" id="catalogExportGroup" checked>Ordenar por categoría</label></div><p class="catalog-export-help" id="catalogExportPricesHelp" hidden>Los precios escritos dentro de las fotos seguirán visibles; forman parte de la imagen original.</p><label class="catalog-export-label" for="catalogExportDensity">Distribución</label><select class="field" id="catalogExportDensity"><option value="2">2 productos · fotos extra grandes</option><option value="4">4 productos · fotos grandes (2 × 2)</option><option value="6">6 productos · compacto</option></select><p class="catalog-export-quality">Tamaño carta · Alta resolución · 3060 × 3960 px</p><label class="catalog-export-label" for="catalogExportFormat">Formato</label><select class="field" id="catalogExportFormat"><option value="image">Imagen PNG · página actual</option><option value="pdf">PDF · catálogo completo</option></select><p class="catalog-export-status" id="catalogExportStatus" role="status" aria-live="polite"></p><button type="button" class="btn outline" id="catalogExportRetry" hidden>Reintentar fotos</button><a class="btn" id="catalogExportDownload" aria-disabled="true">Descargar imagen</a><button type="button" class="btn outline" id="catalogExportShare" disabled>Compartir imagen</button><p class="catalog-export-help" id="catalogExportShareHelp"></p><p class="catalog-export-help">La imagen incluye la página que estás viendo. El PDF reúne todas las páginas. Las fotos se muestran completas. El PDF conserva el texto nítido y permite tocar cada producto para abrir su ficha.</p></section><section class="catalog-export-preview" aria-label="Vista previa del catálogo"><div class="catalog-export-preview-empty" id="catalogExportEmpty">Preparando tu catálogo…</div><img id="catalogExportPreview" alt="Vista previa del catálogo" hidden><nav class="catalog-export-pages" aria-label="Páginas del catálogo" hidden><button type="button" class="btn outline" id="catalogExportPrevious" aria-label="Página anterior">←</button><span id="catalogExportPage" role="status"></span><button type="button" class="btn outline" id="catalogExportNext" aria-label="Página siguiente">→</button></nav></section></div></section></div>`);
  $('catalogExportClose').onclick=close;
  $('catalogExportOverlay').onclick=event=>{if(event.target===$('catalogExportOverlay'))close();};
  for(const id of ['catalogExportPrices','catalogExportOut','catalogExportGroup','catalogExportDensity'])$(id).onchange=build;
@@ -69,14 +69,21 @@ function artist(){
   if(fit){while(size>16&&ctx.measureText(value).width>width){size--;font();}}
   const words=value.split(/\s+/),rows=[];let row='';
   for(const word of words){const next=row?row+' '+word:word;if(ctx.measureText(next).width>width&&row){rows.push(row);row=word;}else row=next;}if(row)rows.push(row);
-  rows.slice(0,lines).forEach((line,index)=>{
+  const visible=rows.slice(0,lines);
+  visible.forEach((line,index)=>{
    if(index===lines-1&&rows.length>lines)line+='…';
    while(ctx.measureText(line).width>width&&line.length>1)line=line.slice(0,-2)+'…';
    const left=align==='right'?x-ctx.measureText(line).width:align==='center'?x-ctx.measureText(line).width/2:x;
    ctx.fillStyle=color;ctx.fillText(line,left,y+index*lineHeight);ops.push({kind:'text',value:line,x:left,y:y+index*lineHeight,size,bold,color});
   });
+  return {width:Math.min(width,ctx.measureText(visible[0]||'').width),bottom:y+(visible.length-1)*lineHeight,lines:visible.length};
  };
- const photo=(img,x,y,w,h)=>{if(!img)return;const s=Math.min(w/img.naturalWidth,h/img.naturalHeight),dw=img.naturalWidth*s,dh=img.naturalHeight*s,left=x+(w-dw)/2,top=y+(h-dh)/2;ctx.drawImage(img,left,top,dw,dh);ops.push({kind:'image',img,x:left,y:top,w:dw,h:dh});};
+ const path=(commands,fill='',stroke='',lineWidth=2)=>{
+  ctx.beginPath();for(const [kind,...p] of commands){if(kind==='M')ctx.moveTo(...p);else if(kind==='L')ctx.lineTo(...p);else if(kind==='C')ctx.bezierCurveTo(...p);else if(kind==='Z')ctx.closePath();}
+  if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lineWidth;ctx.stroke();}
+  ops.push({kind:'path',commands,fill,stroke,lineWidth});
+ };
+ const photo=(img,x,y,w,h)=>{if(!img)return;const s=Math.min(w/img.naturalWidth,h/img.naturalHeight),dw=img.naturalWidth*s,dh=img.naturalHeight*s,left=x+(w-dw)/2,top=y+(h-dh)/2;ctx.drawImage(img,left,top,dw,dh);ops.push({kind:'image',img,x:left,y:top,w:dw,h:dh});return {x:left,y:top,w:dw,h:dh};};
  const link=(x,y,w,h,url)=>ops.push({kind:'link',x,y,w,h,url});
  const watermark=(x,y,w,h,settings)=>{
   const helper=window.GC_WATERMARK,o=helper?.options(settings);
@@ -93,121 +100,100 @@ function artist(){
   }
   ctx.restore();
  };
- return {canvas,ops,box,label,photo,link,watermark};
+ return {canvas,ops,box,label,path,photo,link,watermark};
 }
 function productUrl(context,product){try{const url=new URL('productos.html',context.url||document.baseURI);url.searchParams.set('producto',product.id);return url.href;}catch{return '';}}
 function draw(context,products,loaded,index,count,logo){
- const page=artist(),{box,label,photo,link,watermark}=page;
- const margin=72,inner=W-margin*2,gap=18;
- const ink='#17283d',muted='#64778b',red='#cf263b',navy='#111d2e',paper='#f2f5f9';
- const settings=context.settings||{};
- // Cabecera editorial de menor altura: identidad, categoría y número del catálogo.
- box(0,0,W,H,paper);
- box(0,0,W,258,navy);
- box(0,0,W,9,red);
- box(margin,34,98,98,'#ffffff','',12);
- if(logo)photo(logo,margin+5,39,88,88);
- const bx=margin+124;
- label('GAMER COMAYAGUA',bx,80,{size:36,bold:true,color:'#ffffff',width:890,fit:true});
- label('GAMING · TECNOLOGÍA · ACCESORIOS',bx,117,{size:19,color:'#b2c3d6',width:890});
- label('CATÁLOGO '+context.year,W-margin,78,{size:19,bold:true,color:'#ffffff',width:270,align:'right',fit:true});
- label(context.date,W-margin,113,{size:18,color:'#b2c3d6',width:270,align:'right'});
- box(margin,154,5,77,red);
- label(context.title,margin+23,200,{size:62,bold:true,color:'#ffffff',width:inner-80,fit:true});
+ const page=artist(),{box,label,path,photo,link,watermark}=page;
+ const margin=34,inner=W-2*margin,ink='#101b2b',muted='#526780',red='#ec0631',navy='#071727';
+ const settings=context.settings||{},density=context.density||4;
+ const polygon=(points,fill,stroke='')=>path(points.map(([x,y],i)=>[i?'L':'M',x,y]).concat([['Z']]),fill,stroke);
+ const circle=(x,y,r,fill,stroke='')=>box(x-r,y-r,2*r,2*r,fill,stroke,r);
+ box(0,0,W,H,'#ffffff');
+ // Cabecera de marca con diagonales y un mando dibujado; también se conserva en el PDF.
+ box(0,0,W,252,navy);
+ polygon([[780,9],[1230,9],[1000,252],[537,252]],'#0b2033');
+ polygon([[970,9],[1113,9],[875,252],[733,252]],'#0d263c');
+ polygon([[1320,9],[1370,9],[1124,252],[1074,252]],'#182333');
+ polygon([[W,104],[W,252],[1372,252]],'#80162b');
+ polygon([[W,164],[W,199],[1477,252],[1442,252]],red);
+ path([['M',1060,214],['L',1237,37],['L',1421,37]],'','#6e2238',3);
+ path([['M',1110,223],['L',1270,63],['L',1438,63]],'','#233747',2);
+ const gx=1104,gy=103;
+ const game=commands=>commands.map(([kind,...coords])=>[kind,...coords.map((v,i)=>v+(i%2?gy:gx))]);
+ path(game([['M',43,8],['C',86,-3,96,18,136,18],['C',176,18,187,-3,228,8],['C',248,15,266,91,259,111],['C',249,141,222,107,205,84],['L',69,84],['C',47,115,20,140,11,111],['C',2,89,18,18,43,8],['Z']]),'#0b1c2b','#1d374b',3);
+ circle(gx+63,gy+42,26,'#0c2336','#1e3c50');
+ box(gx+57,gy+24,12,36,'#1c3345','',3);box(gx+45,gy+36,36,12,'#1c3345','',3);
+ for(const [xx,yy] of [[217,25],[235,43],[217,61],[199,43]])circle(gx+xx,gy+yy,8,'#1e3446');
+ circle(gx+109,gy+70,20,'#142d40','#233f52');circle(gx+169,gy+70,20,'#142d40','#233f52');
+ box(0,0,W,10,red);
+ box(72,30,112,108,'#ffffff','',13);if(logo)photo(logo,79,35,98,98);
+ label('GAMER COMAYAGUA',215,83,{size:44,bold:true,color:'#ffffff',width:925,fit:true});
+ label('GAMING · TECNOLOGÍA · ACCESORIOS',217,119,{size:19,bold:true,color:'#d4e0eb',width:900});
+ label('CATÁLOGO / '+context.year,W-60,60,{size:23,bold:true,color:'#ffffff',width:315,align:'right',fit:true});
+ label(context.date,W-60,98,{size:21,color:'#d4e0eb',width:315,align:'right'});box(W-132,120,72,6,red);
+ box(72,164,11,66,red,'',5);
+ const title=label(context.title,111,225,{size:82,bold:true,color:'#ffffff',width:inner*.64,fit:true});
  const categories=[...new Set(products.map(p=>p.category).filter(Boolean))];
- const subtitle=context.multipleCategories?categories.join('  ·  '):context.count+' producto'+(context.count===1?'':'s')+'  ·  '+(context.prices?'Precios en lempiras':'Consultá precios y disponibilidad');
- label(subtitle,margin+25,237,{size:19,color:'#b6c6d7',width:inner-80,fit:true});
- // El área de productos ocupa todo el espacio entre la cabecera y el pie.
- // Hasta cuatro artículos: una ficha horizontal por fila. De cinco a seis: dos columnas.
- const n=products.length,columns=n>=5?2:1,rows=Math.ceil(n/columns);
- const bodyTop=286,bodyBottom=1736;
- const rowGap=18,colGap=22,slotH=(bodyBottom-bodyTop-(rows-1)*rowGap)/rows;
- const regularW=(inner-(columns-1)*colGap)/columns;
+ const subtitle=context.multipleCategories?categories.join(' · '):context.count+' producto'+(context.count===1?'':'s')+' · '+(context.prices?'Precios en lempiras':'Consultá disponibilidad');
+ const subtitleX=111+title.width+62,subtitleW=W-60-subtitleX;
+ if(subtitleW>350){box(subtitleX-30,170,2,59,'#a6b8ca');label(subtitle,subtitleX,209,{size:21,color:'#d4e0eb',width:subtitleW,fit:true});}
+ else label(subtitle,112,246,{size:17,color:'#d4e0eb',width:inner-120,fit:true});
+ // La distribución elegida se mantiene también en páginas incompletas.
+ const columns=density===2?1:2,rows=density===6?3:2,compact=density===6;
+ const bodyTop=274,bodyBottom=1816,gap=24,w=(inner-(columns-1)*gap)/columns,h=(bodyBottom-bodyTop-(rows-1)*gap)/rows;
  products.forEach((product,i)=>{
-  const lastFull=columns===2&&n%2===1&&i===n-1;
-  const wide=columns===1||lastFull;
-  const col=columns===1?0:i%columns,row=columns===1?i:Math.floor(i/columns);
-  const x=margin+(!wide?col*(regularW+colGap):0),y=bodyTop+row*(slotH+rowGap);
-  const w=wide?inner:regularW,h=slotH;
-  const pad=wide?22:20;
-  box(x,y+4,w,h,'#dfe7f0','',16);
-  box(x,y,w,h,'#ffffff','#dbe3eb',16);
-  // La foto queda siempre cuadrada, con margen constante y sin recortarla.
-  const imageSize=wide?Math.min(h-2*pad,n===1?740:n===2?590:455):Math.min(w*.47,h-137);
-  const photoX=x+pad,photoY=y+pad,photoSize=Math.round(imageSize);
-  box(photoX,photoY,photoSize,photoSize,'#f5f7fa','',10);
+  const x=margin+(i%columns)*(w+gap),y=bodyTop+Math.floor(i/columns)*(h+gap),pad=compact?22:28;
+  box(x,y+3,w,h,'#e7ecf2','',16);box(x,y,w,h,'#ffffff','#dce4ed',16);
+  const wide=density===2,photoH=wide?h-32:h-(compact?199:254),photoW=wide?photoH:w-4;
+  const photoX=x+(wide?16:2),photoY=y+(wide?16:2);
+  box(photoX,photoY,photoW,photoH,'#f3f6f9','',12);
   const img=loaded.get(product.id);
-  if(img){
-   photo(img,photoX+6,photoY+6,photoSize-12,photoSize-12);
-   watermark(photoX+6,photoY+6,photoSize-12,photoSize-12,settings);
-  }else{
-   label('FOTO NO DISPONIBLE',photoX+photoSize/2,photoY+photoSize/2,{size:19,color:muted,width:photoSize-18,align:'center',fit:true});
-  }
-  const price=C.unitPrice(product,1),promo=price>0&&price<product.price;
-  const available=product.stock>0;
+  if(img){const rect=photo(img,photoX+2,photoY+2,photoW-4,photoH-4);watermark(rect.x,rect.y,rect.w,rect.h,settings);}
+  else label('FOTO NO DISPONIBLE',photoX+photoW/2,photoY+photoH/2,{size:22,bold:true,color:muted,width:photoW-30,align:'center',fit:true});
+  const price=C.unitPrice(product,1),promo=price>0&&price<product.price,available=product.stock>0;
   const status=available?product.stock+' disponible'+(product.stock===1?'':'s'):'AGOTADO';
   const details=product.details||{};
   let description=String(product.description||details.included||details.technology||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
   if(description.toLocaleLowerCase('es').startsWith(product.name.toLocaleLowerCase('es')))description=description.slice(product.name.length).replace(/^[\s.,:;-]+/,'');
-  if(wide){
-   // Tres áreas: imagen | información | precio, sin huecos entre secciones.
-   const priceW=252,priceX=x+w-pad-priceW,detailsX=photoX+photoSize+28;
-   const detailsW=Math.max(190,priceX-detailsX-26);
-   box(priceX,y+15,priceW,h-30,'#f5f8fc','',12);
-   box(priceX,y+15,5,h-30,red,'',3);
-   const titleBase=y+(n===4?100:125);
-   const titleSize=n===4?32:38,titleLine=n===4?42:48;
-   label(String(product.category||'PRODUCTO').toLocaleUpperCase('es'),detailsX,y+48,{size:15,bold:true,color:red,width:detailsW,fit:true});
-   label(product.name,detailsX,titleBase,{size:titleSize,bold:true,color:ink,width:detailsW,lines:3,lineHeight:titleLine});
-   const descTop=n===4?y+215:n===3?y+258:y+290;
-   const descLine=29,descMax=Math.max(0,Math.floor((y+h-37-descTop)/descLine)+1);
-   if(description&&descMax>0)label(description,detailsX,descTop,{size:n===4?19:21,color:'#52677c',width:detailsW,lines:Math.min(descMax,7),lineHeight:descLine});
-   label('PRECIO',priceX+24,y+55,{size:15,bold:true,color:muted,width:priceW-45});
-   const priceY=y+(n===4?125:165);
-   if(context.prices&&price>0){
-    if(promo)label('Antes '+C.money(product.price),priceX+24,priceY-33,{size:17,color:muted,width:priceW-44,fit:true});
-    label(C.money(price),priceX+24,priceY,{size:44,bold:true,color:ink,width:priceW-44,fit:true});
-   }else label('Consultar',priceX+24,priceY,{size:30,bold:true,color:ink,width:priceW-44,fit:true});
-   const pillW=Math.min(priceW-43,190),pillY=priceY+22;
-   box(priceX+24,pillY,pillW,36,available?'#e0f2e9':'#e8edf3','',8);
-   label(status,priceX+24+pillW/2,pillY+25,{size:15,bold:true,color:available?'#236847':'#64758a',align:'center',width:pillW-12,fit:true});
-   box(priceX+24,y+h-75,priceW-48,1,'#dce5ed');
-   label('CÓD. '+(product.code||product.id),priceX+24,y+h-37,{size:16,color:muted,width:priceW-40,fit:true});
-  }else{
-   // Formato compacto: precio, existencias y código en una banda inferior completa.
-   const detailsX=photoX+photoSize+18,detailsW=x+w-pad-detailsX;
-   label(String(product.category||'PRODUCTO').toLocaleUpperCase('es'),detailsX,y+51,{size:14,bold:true,color:red,width:detailsW,fit:true});
-   label(product.name,detailsX,y+100,{size:26,bold:true,color:ink,width:detailsW,lines:3,lineHeight:33});
-   const descTop=y+208,descBottom=y+h-124;
-   const descLines=Math.max(0,Math.min(5,Math.floor((descBottom-descTop)/26)+1));
-   if(description&&descLines>0)label(description,detailsX,descTop,{size:17,color:'#52677c',width:detailsW,lines:descLines,lineHeight:26});
-   const bandX=x+pad,bandY=y+h-98,bandW=w-2*pad;
-   box(bandX,bandY,bandW,76,'#f5f8fc','',10);
-   box(bandX,bandY,5,76,red,'',3);
-   if(context.prices&&price>0){
-    if(promo)label('Antes '+C.money(product.price),bandX+20,bandY+18,{size:13,color:muted,width:170,fit:true});
-    label(C.money(price),bandX+20,bandY+60,{size:37,bold:true,color:ink,width:215,fit:true});
-   }else label('Consultar',bandX+20,bandY+57,{size:27,bold:true,color:ink,width:195,fit:true});
-   const pillW=Math.min(160,Math.max(110,bandW*.25));
-   box(bandX+245,bandY+14,pillW,30,available?'#e0f2e9':'#e8edf3','',6);
-   label(status,bandX+245+pillW/2,bandY+35,{size:13,bold:true,color:available?'#236847':'#64758a',width:pillW-10,align:'center',fit:true});
-   label('CÓD. '+(product.code||product.id),bandX+bandW-16,bandY+63,{size:14,color:muted,width:230,align:'right',fit:true});
-  }
+  const tx=wide?photoX+photoW+34:x+pad,tw=x+w-pad-tx,infoTop=wide?y+25:photoY+photoH;
+  label(String(product.category||'PRODUCTO').toLocaleUpperCase('es'),tx,infoTop+(compact?25:31),{size:compact?17:21,bold:true,color:red,width:tw,fit:true});
+  const name=label(product.name,tx,infoTop+(compact?61:72),{size:compact?30:40,bold:true,color:ink,width:tw,lines:wide?4:2,lineHeight:compact?35:44});
+  const bandY=y+h-(compact?70:87),bandH=compact?47:63;
+  const descY=name.bottom+(compact?26:30),descLine=compact?25:30,descBottom=bandY-(promo&&context.prices?34:17);
+  const descLines=Math.max(0,Math.min(wide?8:2,Math.floor((descBottom-descY)/descLine)+1));
+  if(description&&descLines)label(description,tx,descY,{size:compact?20:25,color:muted,width:tw,lines:descLines,lineHeight:descLine});
+  const priceW=Math.round(tw*.31),stockW=Math.round(tw*.36),bandGap=compact?15:23,stockX=tx+priceW+bandGap,codeX=stockX+stockW+bandGap,codeW=x+w-pad-codeX;
+  box(tx,bandY,priceW,bandH,available?red:'#7b8794','',9);
+  if(promo&&context.prices)label('Antes '+C.money(product.price),tx,bandY-10,{size:compact?15:18,color:muted,width:priceW,fit:true});
+  label(context.prices&&price>0?C.money(price):'Consultar',tx+priceW/2,bandY+bandH*.74,{size:compact?34:49,bold:true,color:'#ffffff',width:priceW-16,align:'center',fit:true});
+  const pillY=bandY+(compact?3:8),pillH=bandH-(compact?6:16),stockColor=available?'#06704b':'#64748b';
+  box(stockX,pillY,stockW,pillH,available?'#e5f3ec':'#e8edf2','',7);
+  const iconX=stockX+15,iconY=pillY+pillH/2-10;
+  // Icono de existencias, sin depender de fuentes de símbolos.
+  path([['M',iconX,iconY+5],['L',iconX+11,iconY],['L',iconX+22,iconY+5],['L',iconX+22,iconY+17],['L',iconX+11,iconY+23],['L',iconX,iconY+17],['Z'],['M',iconX,iconY+5],['L',iconX+11,iconY+11],['L',iconX+22,iconY+5],['M',iconX+11,iconY+11],['L',iconX+11,iconY+23]],'',stockColor,2);
+  label(status,stockX+43,pillY+pillH*.69,{size:compact?16:21,bold:true,color:stockColor,width:stockW-53,fit:true});
+  box(codeX-12,bandY+5,1,bandH-10,'#ced9e5');
+  label('CÓD.',codeX,bandY+(compact?15:24),{size:compact?13:18,color:muted,width:codeW});
+  label(product.code||product.id,codeX,bandY+(compact?36:51),{size:compact?14:18,color:muted,width:codeW,fit:true});
   link(x,y,w,h,productUrl(context,product));
  });
- // Pie integrado, sin franjas vacías ni elementos repetidos.
- const footerY=1773,footerH=124;
- const phone=String(settings.whatsapp||'50431517755').replace(/\D/g,'');
- const formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
- box(margin,footerY,inner,footerH,navy,'',14);
- box(margin,footerY+18,6,footerH-36,red,'',3);
- label('PEDIDOS Y CONSULTAS POR WHATSAPP',margin+36,footerY+39,{size:17,bold:true,color:'#a9bfd2',width:650});
- label(formatted,margin+36,footerY+93,{size:43,bold:true,color:'#ffffff',width:680,fit:true});
- label('GAMER COMAYAGUA',W-margin-30,footerY+50,{size:25,bold:true,color:'#ffffff',width:530,align:'right'});
- label('Comayagua · Envíos a toda Honduras',W-margin-30,footerY+88,{size:19,color:'#b6c6d7',width:560,align:'right'});
- link(margin,footerY,inner,footerH,'https://wa.me/'+phone);
- label('Precios y existencias sujetos a confirmación.',margin,1945,{size:17,color:muted,width:1080});
- label(String(index+1).padStart(2,'0')+' / '+String(count).padStart(2,'0'),W-margin,1945,{size:20,bold:true,color:ink,width:220,align:'right'});
+ const footerY=1850,phone=String(settings.whatsapp||'50431517755').replace(/\D/g,''),formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
+ label('Precios y existencias sujetos a confirmación.',margin,1839,{size:15,color:muted,width:inner-210});
+ label(String(index+1).padStart(2,'0')+' / '+String(count).padStart(2,'0'),W-margin,1839,{size:17,bold:true,color:muted,width:180,align:'right'});
+ box(0,footerY,W,H-footerY,navy);polygon([[0,footerY],[65,footerY],[0,footerY+65]],'#44182b');
+ box(72,footerY+23,84,84,red,'',14);
+ const wx=114,wy=footerY+65;
+ circle(wx,wy-2,24,'','#ffffff');polygon([[wx-20,wy+11],[wx-26,wy+29],[wx-7,wy+23]],'#ffffff');
+ path([['M',wx-11,wy-14],['C',wx-20,wy-8,wx-1,wy+18,wx+11,wy+11],['L',wx+15,wy+4],['L',wx+5,wy],['L',wx+1,wy+5],['C',wx-5,wy+2,wx-9,wy-3,wx-9,wy-7],['L',wx-5,wy-10],['Z']],'#ffffff');
+ box(188,footerY+28,1,H-footerY-56,'#c6d3df');
+ label('HABLEMOS POR WHATSAPP',220,footerY+46,{size:18,bold:true,color:'#d6e0eb',width:680});
+ label(formatted,220,footerY+96,{size:43,bold:true,color:'#ffffff',width:680,fit:true});
+ box(968,footerY+28,1,H-footerY-56,'#c6d3df');circle(1038,footerY+66,34,red);
+ path([['M',1038,footerY+87],['C',1026,footerY+70,1024,footerY+66,1024,footerY+59],['C',1024,footerY+41,1052,footerY+41,1052,footerY+59],['C',1052,footerY+66,1050,footerY+70,1038,footerY+87],['Z']],'#ffffff');circle(1038,footerY+59,5,red);
+ label('Comayagua, Honduras',1092,footerY+55,{size:23,bold:true,color:'#ffffff',width:W-1126,fit:true});
+ label('Envíos a toda Honduras',1092,footerY+89,{size:20,color:'#d6e0eb',width:W-1126,fit:true});
+ link(72,footerY+15,W-144,H-footerY-30,'https://wa.me/'+phone);
  return page;
 }
 const blob=canvas=>new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(Error('El navegador no pudo crear el archivo.')),'image/png'));
@@ -234,7 +220,7 @@ async function share(){
 }
 async function build(){
  const context=state;if(!context)return;const ticket=++epoch;context.busy=true;release(context);context.pages=[];context.index=0;context.prices=$('catalogExportPrices').checked;$('catalogExportPricesHelp').hidden=context.prices;
- const size=[2,4,6].includes(Number($('catalogExportDensity').value))?Number($('catalogExportDensity').value):4,selected=context.products.filter(p=>$('catalogExportOut').checked||p.stock>0);if($('catalogExportGroup').checked&&context.multipleCategories)selected.sort((a,b)=>a.category.localeCompare(b.category,'es'));context.count=selected.length;
+ const size=[2,4,6].includes(Number($('catalogExportDensity').value))?Number($('catalogExportDensity').value):4,selected=context.products.filter(p=>$('catalogExportOut').checked||p.stock>0);if($('catalogExportGroup').checked&&context.multipleCategories)selected.sort((a,b)=>a.category.localeCompare(b.category,'es'));context.count=selected.length;context.density=size;
  $('catalogExportCount').textContent=selected.length+' producto'+(selected.length===1?'':'s')+' · '+Math.ceil(selected.length/size)+' página'+(selected.length>size?'s':'');
  $('catalogExportPreview').hidden=true;$('catalogExportEmpty').hidden=false;$('catalogExportEmpty').textContent=selected.length?'Preparando fotos y páginas…':'No hay productos con esta selección.';
  $('catalogExportRetry').hidden=true;$('catalogExportStatus').textContent='Preparando catálogo…';document.querySelector('.catalog-export-pages').hidden=true;

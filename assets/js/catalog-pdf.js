@@ -51,6 +51,13 @@ async function create(pages,options){
    if(op.kind==='box'){
     commands.push('q');if(op.fill)commands.push(color(op.fill)+' rg');if(op.stroke)commands.push(color(op.stroke)+' RG',num(op.lineWidth||1.5)+' w');
     commands.push(rectangle(op,height),op.fill&&op.stroke?'B':op.fill?'f':'S','Q');
+   }else if(op.kind==='path'){
+    commands.push('q');if(op.fill)commands.push(color(op.fill)+' rg');if(op.stroke)commands.push(color(op.stroke)+' RG',num(op.lineWidth||2)+' w');
+    for(const [kind,...p] of op.commands){
+     if(kind==='Z')commands.push('h');
+     else commands.push(p.map((v,i)=>num(i%2?height-v:v)).join(' ')+' '+({M:'m',L:'l',C:'c'})[kind]);
+    }
+    commands.push(op.fill&&op.stroke?'B':op.fill?'f':'S','Q');
    }else if(op.kind==='text'){
     commands.push('BT',`/${op.bold?'F2':'F1'} ${num(op.size)} Tf`,color(op.color)+' rg',`1 0 0 1 ${num(op.x)} ${num(height-op.y)} Tm`,literal(op.value)+' Tj','ET');
    }else if(op.kind==='image'){
