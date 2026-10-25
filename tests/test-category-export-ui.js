@@ -45,11 +45,16 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await catalog.screenshot({path:path.join(artifacts,'detail-mobile.png')});await catalog.locator('#detailOverlay [data-close]').click();await catalog.setViewportSize({width:1440,height:1050});
   await catalog.locator('#exportCategory').click();await ready();assert.equal(await catalog.locator('#catalogExportCategory').innerText(),'Dedales');assert.match(await catalog.locator('#catalogExportCount').innerText(),/^8 productos/);assert.equal(await catalog.locator('#catalogExportRetry').isVisible(),false);
   assert.match(await catalog.locator('#catalogExportPage').innerText(),/Página 1 de 2/);
-  const png=await download('catalogo.png');assert.equal(png.readUInt32BE(16),1440);assert.equal(png.readUInt32BE(20),2048);
+  const png=await download('catalogo.png');assert.equal(png.readUInt32BE(16),3060);assert.equal(png.readUInt32BE(20),3960);
   await catalog.locator('#catalogExportNext').click();assert.match(await catalog.locator('#catalogExportPreview').getAttribute('alt'),/Página 2 de 2/);assert.match(await catalog.locator('#catalogExportDownload').getAttribute('download'),/_02\.png$/);await download('catalogo-pagina-2.png');
   await catalog.locator('#catalogExportShare').click();assert.equal((await catalog.evaluate(()=>window.__shared.at(-1))).files[0].type,'image/png');
   await catalog.locator('#catalogExportFormat').selectOption('pdf');const pdf=await download('catalogo.pdf');assert.equal(pdf.subarray(0,8).toString(),'%PDF-1.4');assert.equal((pdf.toString('latin1').match(/\/Type \/Page \/Parent/g)||[]).length,2);
   const start=Number(pdf.toString('latin1').match(/startxref\n(\d+)/)[1]);assert.equal(pdf.subarray(start,start+4).toString(),'xref');
+  assert.match(pdf.toString('latin1'),/\/BaseFont \/GCCatalog-Bold/);assert.match(pdf.toString('latin1'),/\/Encoding \/WinAnsiEncoding/);assert.match(pdf.toString('latin1'),/\/FontFile2 /);
+  assert.equal((pdf.toString('latin1').match(/\/Subtype \/Link/g)||[]).length,10);
+  await catalog.locator('#catalogExportDensity').selectOption('6');await ready();await download('catalogo-compacto.pdf');
+  await catalog.locator('#catalogExportFormat').selectOption('image');await download('catalogo-compacto.png');await catalog.locator('#catalogExportFormat').selectOption('pdf');
+  await catalog.locator('#catalogExportDensity').selectOption('4');await ready();
   await catalog.locator('#catalogExportShare').click();assert.equal((await catalog.evaluate(()=>window.__shared.at(-1))).files[0].type,'application/pdf');
   await catalog.locator('#catalogExportOut').uncheck();await ready();assert.match(await catalog.locator('#catalogExportCount').innerText(),/^7 productos/);
   await catalog.locator('#catalogExportPrices').uncheck();await ready();assert.equal(await catalog.locator('#catalogExportPricesHelp').isVisible(),true);await catalog.locator('#catalogExportPrices').check();await ready();assert.equal(await catalog.locator('#catalogExportPricesHelp').isVisible(),false);
@@ -58,6 +63,10 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await catalog.screenshot({path:path.join(artifacts,'catalog-export-mobile.png')});
   await catalog.locator('#catalogExportClose').click();await catalog.locator('#search').fill('no existe este producto');await catalog.locator('#exportCategory').click();await catalog.locator('#catalogExportEmpty').filter({hasText:'No hay productos'}).waitFor();assert.equal(await catalog.locator('#catalogExportDownload').getAttribute('href'),null);await catalog.locator('#catalogExportClose').click();
   await catalog.locator('#search').fill('');await catalog.locator('#exportCategory').click();await ready();await catalog.locator('#catalogExportOverlay').press('Escape');assert.equal(await catalog.locator('#catalogExportOverlay').isVisible(),false);
+  await catalog.locator('#search').fill('edición azul');await catalog.locator('#exportCategory').click();await ready();assert.match(await catalog.locator('#catalogExportCount').innerText(),/^1 producto/);await download('catalogo-un-producto.png');await catalog.locator('#catalogExportClose').click();
+  await catalog.locator('#search').fill('');await catalog.locator('#category').selectOption('');await catalog.locator('#exportCategory').click();await ready();assert.equal(await catalog.locator('#catalogExportGroupLabel').isVisible(),true);await catalog.locator('#catalogExportFormat').selectOption('pdf');
+  const grouped=(await download('catalogo-ordenado.pdf')).toString('latin1');assert.ok(grouped.indexOf('producto=OTHER')>grouped.indexOf('producto=DEDAL-'));assert.equal((grouped.match(/\/Type \/Page \/Parent/g)||[]).length,3);
+  await catalog.locator('#catalogExportGroup').uncheck();await ready();const recent=(await download('catalogo-recientes.pdf')).toString('latin1');assert.ok(recent.indexOf('producto=OTHER')<recent.indexOf('producto=DEDAL-'));await catalog.locator('#catalogExportClose').click();
   assert.deepEqual(errors,[]);console.log('PASS catálogo y papelera UI: eliminar/cancelar/restaurar, stock intacto, filtros completos, fotos, PNG, PDF paginado, compartir nativo y móvil.');
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exit(1);});

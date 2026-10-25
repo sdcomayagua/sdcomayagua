@@ -221,3 +221,11 @@ body[data-page="productos"] .wrap,.header .wrap,.topbar .wrap {max-width:1200px}
  .catalog-export-options{grid-template-columns:1fr 1fr;gap:10px;padding:12px;margin-bottom:16px}.catalog-export-options label{font-size:12px;min-height:32px}
  .catalog-export-controls>.field{font-size:16px}.catalog-export-status{min-height:0}.catalog-export-preview{padding:10px}.catalog-export-preview-empty{min-height:240px}
 }
+
+/* Opciones de catálogo en alta resolución. */
+.catalog-export-quality{font-size:11px;line-height:1.6;color:#667a8c;margin:8px 0 19px}
+#catalogExportGroupLabel[hidden]{display:none}
+.catalog-export-dialog .dialog-head{border-bottom:1px solid #e1e7ed;padding-bottom:18px}
+.catalog-export-preview{background:#e8ecf1;padding:20px}
+.catalog-export-preview>img{border:0;box-shadow:0 8px 25px #10223724}
+@media(max-width:760px){.catalog-export-preview{padding:10px}.catalog-export-options #catalogExportGroupLabel{grid-column:1/-1}}

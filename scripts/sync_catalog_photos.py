@@ -10,6 +10,8 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parent.parent
 DRIVE = re.compile(r"^https://drive\.google\.com/(?:thumbnail\?id=|file/d/)([A-Za-z0-9_-]{10,100})")
+PHOTO_SIZE = 1600
+MAX_BYTES = 4500000
 
 def extension(data):
     if data.startswith(b"\xff\xd8\xff"):
@@ -41,22 +43,22 @@ def sync(entries, root=ROOT, opener=urlopen):
         safe = re.fullmatch(r"assets/catalog/[a-f0-9]{24}\.(jpg|png|gif|webp)", str(old.get("path", "")))
         if old.get("source") == source and safe and (root / old["path"]).is_file():
             images[str(product["id"])] = old
-            if old.get("checked") == today:
+            if old.get("checked") == today and old.get("size", 0) >= PHOTO_SIZE:
                 continue
         jobs.append((str(product["id"]), source, match[1]))
 
     def download(job):
         identity, source, drive_id = job
         try:
-            request = Request("https://drive.google.com/thumbnail?id=" + drive_id + "&sz=w600", headers={"User-Agent": "GamerComayaguaCatalog/1.0"})
+            request = Request("https://drive.google.com/thumbnail?id=" + drive_id + "&sz=w" + str(PHOTO_SIZE), headers={"User-Agent": "GamerComayaguaCatalog/2.0"})
             with opener(request, timeout=18) as response:
-                data = response.read(1200001)
-            if not data or len(data) > 1200000:
+                data = response.read(MAX_BYTES + 1)
+            if not data or len(data) > MAX_BYTES:
                 raise ValueError("Foto fuera de tamaño")
             ext = extension(data)
             digest = hashlib.sha256(data).hexdigest()[:24]
             path = "assets/catalog/" + digest + "." + ext
-            return identity, {"source": source, "path": path, "checked": today}, data
+            return identity, {"source": source, "path": path, "checked": today, "size": PHOTO_SIZE}, data
         except Exception:
             return None
 
