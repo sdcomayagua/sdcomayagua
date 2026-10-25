@@ -36,7 +36,7 @@ function init(){
  @media(max-width:750px){.gc-wm-panel{padding:14px}.gc-wm-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.gc-wm-head{flex-direction:column;gap:6px}.gc-wm-preview{gap:8px;padding:8px}.gc-wm-live-title{flex-direction:column;gap:4px}.gc-wm-panel .btn{width:100%}}@media(max-width:420px){.gc-wm-fields{grid-template-columns:1fr}.gc-wm-sample{min-width:0}}
  `;
  document.head.appendChild(css);
- const form=$('gcWmForm');const changed=()=>{dirty=true;preview();if(api()?.features()?.watermarkSettings===true)$('gcWmStatus').textContent='Vista previa actualizada. Los cambios todavía no están guardados; presioná Guardar marca de agua.';};
+ const form=$('gcWmForm');const changed=()=>{dirty=true;preview();if(api()?.features()?.watermarkExtendedSettings===true)$('gcWmStatus').textContent='Vista previa actualizada. Los cambios todavía no están guardados; presioná Guardar marca de agua.';};
  form.addEventListener('input',changed);
  form.addEventListener('change',changed);
  form.addEventListener('submit',save);
@@ -53,16 +53,16 @@ function preview(){
 }
 function refresh(){
  if(!$('gcWmForm')||!api())return;
- const s=api().settings(),feature=api().features()?.watermarkSettings===true;
+ const s=api().settings(),feature=api().features()?.watermarkExtendedSettings===true;
  if(!dirty||!loaded){$('gcWmEnabled').checked=s.watermarkEnabled!==false;$('gcWmText').value=s.watermarkText||'GAMER COMAYAGUA';$('gcWmFont').value=W()?.fonts?.[s.watermarkFont]?s.watermarkFont:'arial';$('gcWmOpacity').value=Math.round(Number(s.watermarkOpacity??.16)*100);$('gcWmFontSize').value=Number(s.watermarkFontSize??48);$('gcWmCount').value=Number(s.watermarkCount??6);loaded=true;dirty=false;preview();}
- $('gcWmStatus').innerHTML=feature?'Los cambios se guardan para todos los visitantes.':'La tienda muestra GAMER COMAYAGUA. Para guardar otro texto para todos, instalá la versión nueva de Code.gs en Apps Script y publicá Nueva versión en tu implementación /exec. <a href="https://github.com/sdcomayagua/sdcomayagua/blob/main/apps-script/Code.gs" target="_blank" rel="noopener noreferrer">Abrir Code.gs actualizado ↗</a>';
+ $('gcWmStatus').innerHTML=feature?'Los cambios se guardan para todos los visitantes.':'Podés probar las opciones en vivo. Para guardarlas para todos los visitantes, publicá el Code.gs actualizado como Nueva versión de tu implementación actual /exec. <a href="https://github.com/sdcomayagua/sdcomayagua/blob/main/apps-script/Code.gs" target="_blank" rel="noopener noreferrer">Abrir Code.gs actualizado ↗</a>';
  $('gcWmSave').disabled=saving||!feature;
 }
 async function save(event){
  event.preventDefault();
  const value=values();if(!value.watermarkText||value.watermarkText.length>60){$('gcWmStatus').textContent='Ingresá un texto de 1 a 60 caracteres.';return;}
  if(!Number.isInteger(value.watermarkFontSize)||value.watermarkFontSize<0||value.watermarkFontSize>1200||!Number.isInteger(value.watermarkCount)||value.watermarkCount<0||value.watermarkCount>100){$('gcWmStatus').textContent='Elegí un tamaño de 0 a 1200 px y entre 0 y 100 marcas.';return;}
- if(api().features()?.watermarkSettings!==true){refresh();return;}
+ if(api().features()?.watermarkExtendedSettings!==true){refresh();return;}
  saving=true;$('gcWmSave').disabled=true;$('gcWmStatus').textContent='Guardando marca de agua en Google Sheets…';
  try{
   const answer=await api().request('saveWatermarkSettings',{watermark:value});
