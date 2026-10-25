@@ -79,15 +79,17 @@ function artist(){
  const photo=(img,x,y,w,h)=>{if(!img)return;const s=Math.min(w/img.naturalWidth,h/img.naturalHeight),dw=img.naturalWidth*s,dh=img.naturalHeight*s,left=x+(w-dw)/2,top=y+(h-dh)/2;ctx.drawImage(img,left,top,dw,dh);ops.push({kind:'image',img,x:left,y:top,w:dw,h:dh});};
  const link=(x,y,w,h,url)=>ops.push({kind:'link',x,y,w,h,url});
  const watermark=(x,y,w,h,settings)=>{
-  const o=window.GC_WATERMARK?.options(settings);if(!o?.watermarkEnabled)return;
-  const text=o.watermarkText,face=window.GC_WATERMARK.fonts[o.watermarkFont],size=Math.max(10,Math.min(w*.078,h*.076,w*.44/(Math.max(5,text.length)*.62))),alpha=o.watermarkOpacity;
-  const marks=window.GC_WATERMARK.marks;
+  const helper=window.GC_WATERMARK,o=helper?.options(settings);
+  if(!o?.watermarkEnabled||o.watermarkFontSize<=0||o.watermarkCount<=0||o.watermarkOpacity<=0)return;
+  const text=o.watermarkText,face=helper.fonts[o.watermarkFont],size=o.watermarkFontSize*w/1000,alpha=o.watermarkOpacity;
+  const marks=helper.positions(o.watermarkCount);
   ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.globalAlpha=alpha;ctx.globalCompositeOperation='difference';
   ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=face.weight+' '+size+'px '+(o.watermarkFont==='arial'?'"GC Catalog", Arial':face.css);
+  const measured=ctx.measureText(text).width;
   for(const [u,v] of marks){
    const xx=x+w*u/1000,yy=y+h*v/1000;
-   ctx.save();ctx.translate(xx,yy);ctx.rotate(-27*Math.PI/180);ctx.fillText(text,0,0,w*.49);ctx.restore();
-   ops.push({kind:'watermark',x:xx,y:yy,value:text,size,angle:-27,alpha,font:o.watermarkFont,textWidth:Math.min(ctx.measureText(text).width,w*.49),clip:{x,y,w,h}});
+   ctx.save();ctx.translate(xx,yy);ctx.rotate(-27*Math.PI/180);ctx.fillText(text,0,0);ctx.restore();
+   ops.push({kind:'watermark',x:xx,y:yy,value:text,size,angle:-27,alpha,font:o.watermarkFont,textWidth:measured,clip:{x,y,w,h}});
   }
   ctx.restore();
  };
