@@ -36,8 +36,9 @@ function init(){
  @media(max-width:750px){.gc-wm-panel{padding:14px}.gc-wm-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.gc-wm-head{flex-direction:column;gap:6px}.gc-wm-preview{gap:8px;padding:8px}.gc-wm-live-title{flex-direction:column;gap:4px}.gc-wm-panel .btn{width:100%}}@media(max-width:420px){.gc-wm-fields{grid-template-columns:1fr}.gc-wm-sample{min-width:0}}
  `;
  document.head.appendChild(css);
- const form=$('gcWmForm');form.addEventListener('input',()=>{dirty=true;preview();});
- form.addEventListener('change',()=>{dirty=true;preview();});
+ const form=$('gcWmForm');const changed=()=>{dirty=true;preview();if(api()?.features()?.watermarkSettings===true)$('gcWmStatus').textContent='Vista previa actualizada. Los cambios todavía no están guardados; presioná Guardar marca de agua.';};
+ form.addEventListener('input',changed);
+ form.addEventListener('change',changed);
  form.addEventListener('submit',save);
  document.addEventListener('gc:catalog',refresh);
  refresh();
