@@ -825,7 +825,7 @@
     "description": "Dedales SARAFOX con hilo de plata para gaming móvil, diseñados para brindar mejor sensibilidad, deslizamiento y precisión en pantalla. Ideales para Free Fire, PUBG Mobile, COD Mobile y juegos táctiles.",
     "discounts": "",
     "codAllowed": true,
-    "active": true,
+    "active": false,
     "colors": "",
     "promoPrice": 0,
     "promoText": "",
