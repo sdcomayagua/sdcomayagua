@@ -222,7 +222,7 @@ function rate_(v,def){if(v===''||v==null)return def;const n=money_(v);return /%/
 function cfg_(){
   const sheet=book_().getSheetByName(GC_TAB_SETTINGS),raw={};
   if(sheet&&sheet.getLastRow()>1)sheet.getRange(2,1,sheet.getLastRow()-1,2).getDisplayValues().forEach(row=>{raw[row[0]]=row[1]});
-  return {brand:String(raw.brand||'Gamer Comayagua'),shipping:money_(raw.shipping||110),codMinimum:money_(raw.codMin||350),codRate:rate_(raw.codRate,.1),tigoRate:rate_(raw.tigoRate,.07),whatsapp:String(raw.whatsapp||'50431517755').replace(/\D/g,''),watermarkEnabled:raw.watermarkEnabled==null?true:yes_(raw.watermarkEnabled),watermarkText:String(raw.watermarkText||'GAMER COMAYAGUA').slice(0,60),watermarkOpacity:Math.max(.08,Math.min(.3,Number(raw.watermarkOpacity)||.16))};
+  return {brand:String(raw.brand||'Gamer Comayagua'),shipping:money_(raw.shipping||110),codMinimum:money_(raw.codMin||350),codRate:rate_(raw.codRate,.1),tigoRate:rate_(raw.tigoRate,.07),whatsapp:String(raw.whatsapp||'50431517755').replace(/\D/g,''),watermarkEnabled:raw.watermarkEnabled==null?true:yes_(raw.watermarkEnabled),watermarkText:String(raw.watermarkText||'GAMER COMAYAGUA').slice(0,60),watermarkOpacity:Math.max(.08,Math.min(.3,Number(raw.watermarkOpacity)||.16)),watermarkFont:/^(arial|verdana|georgia|times|courier|trebuchet|impact)$/.test(String(raw.watermarkFont||''))?String(raw.watermarkFont):'arial'};
 }
 
 // Configuración global de marca de agua; requiere PIN, no admite claves privadas ni HTML.
@@ -233,6 +233,8 @@ function gcSaveWatermarkSettings_(input){
   const opacity=Number(input.watermarkOpacity);
   if(!isFinite(opacity)||opacity<.08||opacity>.3)throw Error('Elegí una transparencia entre 8% y 30%.');
   if(typeof input.watermarkEnabled!=='boolean')throw Error('Indicá si la marca de agua está activa.');
+  const font=String(input.watermarkFont||'arial');
+  if(!/^(arial|verdana|georgia|times|courier|trebuchet|impact)$/.test(font))throw Error('Seleccioná una tipografía válida.');
   const lock=LockService.getScriptLock();lock.waitLock(10000);
   try{
     const ss=book_();let sheet=ss.getSheetByName(GC_TAB_SETTINGS);
@@ -241,7 +243,8 @@ function gcSaveWatermarkSettings_(input){
     for(const [key,value,note] of [
       ['watermarkEnabled',input.watermarkEnabled?'SI':'NO','Marca automática en fotos y catálogos'],
       ['watermarkText',text,'Texto sobre las fotos, global'],
-      ['watermarkOpacity',String(opacity),'Transparencia de la marca de agua (0.08 a 0.30)']
+      ['watermarkOpacity',String(opacity),'Transparencia de la marca de agua (0.08 a 0.30)'],
+      ['watermarkFont',font,'Tipografía elegida para marca de agua']
     ]){
       const i=rows.findIndex(r=>r===key);
       if(i>=0)sheet.getRange(i+2,2).setValue(value);
