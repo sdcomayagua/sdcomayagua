@@ -219,10 +219,15 @@ function money_(v){
   return Number(s)||0;
 }
 function rate_(v,def){if(v===''||v==null)return def;const n=money_(v);return /%/.test(String(v))||n>1?n/100:n;}
+function gcWatermarkNumber_(value,fallback,min,max){
+  if(value==null||String(value).trim()==='')return fallback;
+  const n=Number(String(value).replace(',','.'));
+  return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback;
+}
 function cfg_(){
   const sheet=book_().getSheetByName(GC_TAB_SETTINGS),raw={};
   if(sheet&&sheet.getLastRow()>1)sheet.getRange(2,1,sheet.getLastRow()-1,2).getDisplayValues().forEach(row=>{raw[row[0]]=row[1]});
-  return {brand:String(raw.brand||'Gamer Comayagua'),shipping:money_(raw.shipping||110),codMinimum:money_(raw.codMin||350),codRate:rate_(raw.codRate,.1),tigoRate:rate_(raw.tigoRate,.07),whatsapp:String(raw.whatsapp||'50431517755').replace(/\D/g,''),watermarkEnabled:raw.watermarkEnabled==null?true:yes_(raw.watermarkEnabled),watermarkText:String(raw.watermarkText||'GAMER COMAYAGUA').slice(0,60),watermarkOpacity:Math.max(.08,Math.min(.3,Number(raw.watermarkOpacity)||.16)),watermarkFont:/^(arial|verdana|georgia|times|courier|trebuchet|impact)$/.test(String(raw.watermarkFont||''))?String(raw.watermarkFont):'arial'};
+  return {brand:String(raw.brand||'Gamer Comayagua'),shipping:money_(raw.shipping||110),codMinimum:money_(raw.codMin||350),codRate:rate_(raw.codRate,.1),tigoRate:rate_(raw.tigoRate,.07),whatsapp:String(raw.whatsapp||'50431517755').replace(/\D/g,''),watermarkEnabled:raw.watermarkEnabled==null?true:yes_(raw.watermarkEnabled),watermarkText:String(raw.watermarkText||'GAMER COMAYAGUA').slice(0,60),watermarkOpacity:gcWatermarkNumber_(raw.watermarkOpacity,.16,0,1),watermarkFont:/^(arial|verdana|georgia|times|courier|trebuchet|impact)$/.test(String(raw.watermarkFont||''))?String(raw.watermarkFont):'arial',watermarkFontSize:Math.round(gcWatermarkNumber_(raw.watermarkFontSize,48,0,1200)),watermarkCount:Math.round(gcWatermarkNumber_(raw.watermarkCount,6,0,100))};
 }
 
 // Configuración global de marca de agua; requiere PIN, no admite claves privadas ni HTML.
@@ -231,10 +236,13 @@ function gcSaveWatermarkSettings_(input){
   const text=String(input.watermarkText==null?'':input.watermarkText).trim().replace(/\s+/g,' ');
   if(!text||text.length>60||/[<>\x00-\x1f]/.test(text))throw Error('Escribí un texto de 1 a 60 caracteres sin etiquetas HTML.');
   const opacity=Number(input.watermarkOpacity);
-  if(!isFinite(opacity)||opacity<.08||opacity>.3)throw Error('Elegí una transparencia entre 8% y 30%.');
+  if(!isFinite(opacity)||opacity<0||opacity>1)throw Error('Elegí una transparencia entre 0% y 100%.');
   if(typeof input.watermarkEnabled!=='boolean')throw Error('Indicá si la marca de agua está activa.');
   const font=String(input.watermarkFont||'arial');
   if(!/^(arial|verdana|georgia|times|courier|trebuchet|impact)$/.test(font))throw Error('Seleccioná una tipografía válida.');
+  const fontSize=Number(input.watermarkFontSize),count=Number(input.watermarkCount);
+  if(!Number.isInteger(fontSize)||fontSize<0||fontSize>1200)throw Error('El tamaño debe estar entre 0 y 1200 px.');
+  if(!Number.isInteger(count)||count<0||count>100)throw Error('La cantidad debe estar entre 0 y 100 marcas.');
   const lock=LockService.getScriptLock();lock.waitLock(10000);
   try{
     const ss=book_();let sheet=ss.getSheetByName(GC_TAB_SETTINGS);
@@ -243,8 +251,10 @@ function gcSaveWatermarkSettings_(input){
     for(const [key,value,note] of [
       ['watermarkEnabled',input.watermarkEnabled?'SI':'NO','Marca automática en fotos y catálogos'],
       ['watermarkText',text,'Texto sobre las fotos, global'],
-      ['watermarkOpacity',String(opacity),'Transparencia de la marca de agua (0.08 a 0.30)'],
-      ['watermarkFont',font,'Tipografía elegida para marca de agua']
+      ['watermarkOpacity',String(opacity),'Opacidad de la marca de agua (0 a 1)'],
+      ['watermarkFont',font,'Tipografía elegida para marca de agua'],
+      ['watermarkFontSize',String(fontSize),'Tamaño en píxeles (0 a 1200)'],
+      ['watermarkCount',String(count),'Cantidad de marcas por foto (0 a 100)']
     ]){
       const i=rows.findIndex(r=>r===key);
       if(i>=0)sheet.getRange(i+2,2).setValue(value);
