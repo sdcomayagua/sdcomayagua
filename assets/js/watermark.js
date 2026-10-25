@@ -1,18 +1,27 @@
 /* Marca de agua pública: solo presentación. El archivo original no se modifica. */
 (function(root){'use strict';
-const defaults={watermarkEnabled:true,watermarkText:'GAMER COMAYAGUA',watermarkOpacity:.16};
+const fonts=Object.freeze({
+ arial:{label:'Actual · Arial',css:'Arial,Helvetica,sans-serif',pdf:'F2',weight:700},
+ verdana:{label:'Moderna · Verdana',css:'Verdana,Geneva,sans-serif',pdf:'F3',weight:700},
+ georgia:{label:'Elegante · Georgia',css:'Georgia,Times New Roman,serif',pdf:'F4',weight:700},
+ times:{label:'Clásica · Times New Roman',css:'Times New Roman,Times,serif',pdf:'F5',weight:400},
+ courier:{label:'Tecnológica · Courier New',css:'Courier New,Courier,monospace',pdf:'F6',weight:700},
+ trebuchet:{label:'Contemporánea · Trebuchet MS',css:'Trebuchet MS,Arial,sans-serif',pdf:'F3',weight:700},
+ impact:{label:'Fuerte · Impact',css:'Impact,Arial Narrow,Arial,sans-serif',pdf:'F3',weight:700}
+});
+const defaults={watermarkEnabled:true,watermarkText:'GAMER COMAYAGUA',watermarkOpacity:.16,watermarkFont:'arial'};
 let current={...defaults};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 function options(raw={}){
  const text=String(raw.watermarkText??defaults.watermarkText).trim().replace(/\s+/g,' ').slice(0,60);
- return {watermarkEnabled:raw.watermarkEnabled===undefined?defaults.watermarkEnabled:raw.watermarkEnabled===true||/^(si|sí|true|1)$/i.test(String(raw.watermarkEnabled)),watermarkText:text||defaults.watermarkText,watermarkOpacity:clamp(Number(raw.watermarkOpacity)||defaults.watermarkOpacity,.08,.30)};
+ return {watermarkEnabled:raw.watermarkEnabled===undefined?defaults.watermarkEnabled:raw.watermarkEnabled===true||/^(si|sí|true|1)$/i.test(String(raw.watermarkEnabled)),watermarkText:text||defaults.watermarkText,watermarkOpacity:clamp(Number(raw.watermarkOpacity)||defaults.watermarkOpacity,.08,.30),watermarkFont:Object.hasOwn(fonts,String(raw.watermarkFont||''))?String(raw.watermarkFont):defaults.watermarkFont};
 }
 const xml=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const marks=[[240,165],[758,165],[240,472],[758,472],[240,779],[758,779]];
 function fontSize(text){return clamp(Math.floor(870/(Math.max(8,text.length)*.98)),15,48);}
 function svg(raw){
- const o=options(raw),size=fontSize(o.watermarkText),parts=marks.map(([x,y])=>'<text x="'+x+'" y="'+y+'" text-anchor="middle" dominant-baseline="central" transform="rotate(-27 '+x+' '+y+')">'+xml(o.watermarkText)+'</text>').join('');
- return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000"><g font-family="Arial,Helvetica,sans-serif" font-size="'+size+'" font-weight="700" fill="#ffffff">'+parts+'</g></svg>';
+ const o=options(raw),size=fontSize(o.watermarkText),face=fonts[o.watermarkFont],parts=marks.map(([x,y])=>'<text x="'+x+'" y="'+y+'" text-anchor="middle" dominant-baseline="central" transform="rotate(-27 '+x+' '+y+')">'+xml(o.watermarkText)+'</text>').join('');
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000"><g font-family="'+face.css+'" font-size="'+size+'" font-weight="'+face.weight+'" fill="#ffffff">'+parts+'</g></svg>';
 }
 function style(){
  if(document.getElementById('gcWatermarkStyles'))return;
@@ -51,5 +60,5 @@ function openLightbox(source,alt){
  const key=e=>{if(e.key==='Escape'){e.preventDefault();dismiss();}};document.addEventListener('keydown',key);close.onclick=dismiss;dialog.addEventListener('click',e=>{if(e.target===dialog)dismiss();});
  document.body.appendChild(dialog);close.focus();
 }
-root.GC_WATERMARK={options,set,get,applyTo,preview,openLightbox,marks};
+root.GC_WATERMARK={options,set,get,applyTo,preview,openLightbox,marks,fonts};
 })(window);
