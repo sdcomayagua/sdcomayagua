@@ -42,7 +42,7 @@ function refresh(){
  if(!$('gcWmForm')||!api())return;
  const s=api().settings(),feature=api().features()?.watermarkSettings===true;
  if(!dirty||!loaded){$('gcWmEnabled').checked=s.watermarkEnabled!==false;$('gcWmText').value=s.watermarkText||'GAMER COMAYAGUA';$('gcWmOpacity').value=Math.round((Number(s.watermarkOpacity)||.16)*100);loaded=true;dirty=false;preview();}
- $('gcWmStatus').textContent=feature?'Los cambios se guardan para todos los visitantes.':'La tienda muestra la marca GAMER COMAYAGUA. Para guardar otro texto para todos, primero actualizá la implementación de Apps Script con el Code.gs del repositorio.';
+ $('gcWmStatus').innerHTML=feature?'Los cambios se guardan para todos los visitantes.':'La tienda muestra GAMER COMAYAGUA. Para guardar otro texto para todos, instalá la versión nueva de Code.gs en Apps Script y publicá Nueva versión en tu implementación /exec. <a href="https://github.com/sdcomayagua/sdcomayagua/blob/main/apps-script/Code.gs" target="_blank" rel="noopener noreferrer">Abrir Code.gs actualizado ↗</a>';
  $('gcWmSave').disabled=saving||!feature;
 }
 async function save(event){
