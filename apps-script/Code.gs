@@ -102,7 +102,7 @@ function gcHandleRequest_(req){
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
       }
       else if (req.action === 'operationsSummary') result = gcOperationsSummary_();
       else if (req.action === 'operationsList') result = gcOperationsList_(req);
@@ -120,6 +120,7 @@ function gcHandleRequest_(req){
       else if (req.action === 'importBulkResearchImage') result = gcBulkImportImage_(req.proposalId,req.imageIndex);
       else if (req.action === 'applyBulkResearch') result = gcBulkApply_(req);
       else if (req.action === 'setBestSeller') result = setBestSeller_(req.id,req.bestSeller);
+       else if (req.action === 'saveWatermarkSettings') result = gcSaveWatermarkSettings_(req.watermark || {});
       else if (req.action === 'importResearchImage') result = gcFreeImportImage_(req.selection,req.imageIndex,req.photoSearch===true);
       else if (req.action === 'saveProduct') result = saveProduct_(req.product || {});
       else if (req.action === 'disableProduct') result = disableProduct_(req.id);
@@ -221,8 +222,36 @@ function rate_(v,def){if(v===''||v==null)return def;const n=money_(v);return /%/
 function cfg_(){
   const sheet=book_().getSheetByName(GC_TAB_SETTINGS),raw={};
   if(sheet&&sheet.getLastRow()>1)sheet.getRange(2,1,sheet.getLastRow()-1,2).getDisplayValues().forEach(row=>{raw[row[0]]=row[1]});
-  return {brand:String(raw.brand||'Gamer Comayagua'),shipping:money_(raw.shipping||110),codMinimum:money_(raw.codMin||350),codRate:rate_(raw.codRate,.1),tigoRate:rate_(raw.tigoRate,.07),whatsapp:String(raw.whatsapp||'50431517755').replace(/\D/g,'')};
+  return {brand:String(raw.brand||'Gamer Comayagua'),shipping:money_(raw.shipping||110),codMinimum:money_(raw.codMin||350),codRate:rate_(raw.codRate,.1),tigoRate:rate_(raw.tigoRate,.07),whatsapp:String(raw.whatsapp||'50431517755').replace(/\D/g,''),watermarkEnabled:raw.watermarkEnabled==null?true:yes_(raw.watermarkEnabled),watermarkText:String(raw.watermarkText||'GAMER COMAYAGUA').slice(0,60),watermarkOpacity:Math.max(.08,Math.min(.3,Number(raw.watermarkOpacity)||.16))};
 }
+
+// Configuración global de marca de agua; requiere PIN, no admite claves privadas ni HTML.
+function gcSaveWatermarkSettings_(input){
+  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('Marca de agua inválida.');
+  const text=String(input.watermarkText==null?'':input.watermarkText).trim().replace(/\s+/g,' ');
+  if(!text||text.length>60||/[<>\x00-\x1f]/.test(text))throw Error('Escribí un texto de 1 a 60 caracteres sin etiquetas HTML.');
+  const opacity=Number(input.watermarkOpacity);
+  if(!isFinite(opacity)||opacity<.08||opacity>.3)throw Error('Elegí una transparencia entre 8% y 30%.');
+  if(typeof input.watermarkEnabled!=='boolean')throw Error('Indicá si la marca de agua está activa.');
+  const lock=LockService.getScriptLock();lock.waitLock(10000);
+  try{
+    const ss=book_();let sheet=ss.getSheetByName(GC_TAB_SETTINGS);
+    if(!sheet){sheet=ss.insertSheet(GC_TAB_SETTINGS);sheet.appendRow(['Clave','Valor','Descripcion']);}
+    const rows=sheet.getLastRow()>1?sheet.getRange(2,1,sheet.getLastRow()-1,1).getDisplayValues().flat():[];
+    for(const [key,value,note] of [
+      ['watermarkEnabled',input.watermarkEnabled?'SI':'NO','Marca automática en fotos y catálogos'],
+      ['watermarkText',text,'Texto sobre las fotos, global'],
+      ['watermarkOpacity',String(opacity),'Transparencia de la marca de agua (0.08 a 0.30)']
+    ]){
+      const i=rows.findIndex(r=>r===key);
+      if(i>=0)sheet.getRange(i+2,2).setValue(value);
+      else {sheet.appendRow([key,value,note]);rows.push(key);}
+    }
+    CacheService.getScriptCache().remove('public_catalog_v8');
+    return {ok:true,settings:cfg_()};
+  }finally{lock.releaseLock();}
+}
+
 function detailsClean_(raw){
   let obj=raw;
   if(typeof obj==='string'){try{obj=JSON.parse(obj||'{}')}catch(e){return {}}}
