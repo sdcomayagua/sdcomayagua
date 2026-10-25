@@ -37,8 +37,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 102,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {}
   },
   {
@@ -58,8 +58,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 127.5,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {}
   },
   {
@@ -79,8 +79,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 382.5,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {}
   },
   {
@@ -100,8 +100,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 187,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {}
   },
   {
@@ -121,8 +121,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 136,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {}
   },
   {
@@ -241,8 +241,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 170,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {
       "brand": "qkz Número del elemento: 20220515",
       "references": [
@@ -291,8 +291,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 722.5,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {
       "size": "2.ª generación",
       "connection": "USB-C"
@@ -378,8 +378,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 51,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {}
   },
   {
@@ -399,8 +399,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 73.95,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {
       "length": 100.0,
       "model": "X176",
@@ -427,8 +427,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 73.95,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {
       "length": 100.0,
       "model": "X36",
@@ -455,18 +455,18 @@
     "codAllowed": true,
     "active": true,
     "colors": "Negro",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 212.5,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {
       "length": 3.0,
       "size": "10 Pies (3 Metros)",
       "material": "Nylon Trenzado",
-      "measureUnit": "m",
-      "brand": "ArgomTech",
       "model": "Dura Speed",
-      "power": "65 W",
+      "brand": "ArgomTech",
       "current": "3 A",
-      "connection": "USB-C a USB-C"
+      "power": "65 W",
+      "connection": "USB-C a USB-C",
+      "measureUnit": "m"
     }
   },
   {
@@ -486,8 +486,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 246.5,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {
       "connection": "USB‑C a Lightning ·",
       "technology": "PD30 garantiza una",
@@ -516,8 +516,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 161.5,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {}
   },
   {
@@ -584,8 +584,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 85,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {}
   },
   {
@@ -995,8 +995,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 42.5,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {}
   },
   {
@@ -1724,8 +1724,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 51,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {}
   },
   {
@@ -1840,8 +1840,8 @@
     "codAllowed": true,
     "active": true,
     "colors": "black",
-    "promoPrice": 0,
-    "promoText": "",
+    "promoPrice": 102,
+    "promoText": "Oferta · 15% en todos los productos",
     "details": {
       "material": "TPE",
       "compatibility": "Mobile Phones",
