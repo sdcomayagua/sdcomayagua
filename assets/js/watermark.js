@@ -40,5 +40,16 @@ function preview(target,raw){
  target.classList.add('gc-wm-host');
  if(o.watermarkEnabled){const el=document.createElement('span');el.className='gc-watermark-overlay';el.setAttribute('aria-hidden','true');el.style.backgroundImage=pattern;el.style.setProperty('--gc-wm-opacity',o.watermarkOpacity);target.appendChild(el);}
 }
-root.GC_WATERMARK={options,set,get,applyTo,preview,marks};
+function openLightbox(source,alt){
+ const previous=document.activeElement,dialog=document.createElement('div');dialog.className='gc-wm-lightbox';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label','Vista ampliada del producto');
+ dialog.style.cssText='position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:56px 18px 24px;background:rgba(6,15,25,.94)';
+ const frame=document.createElement('div');frame.style.cssText='position:relative;max-width:min(1050px,95vw);max-height:80vh;display:grid;place-items:center;background:#fff;border-radius:12px;overflow:hidden';
+ const img=document.createElement('img');img.src=source;img.alt=alt||'Foto ampliada';img.style.cssText='display:block;max-height:80vh;max-width:95vw;width:auto;height:auto;object-fit:contain';
+ frame.appendChild(img);dialog.appendChild(frame);preview(frame,current);
+ const close=document.createElement('button');close.type='button';close.textContent='Cerrar ×';close.style.cssText='position:absolute;right:18px;top:13px;padding:10px 16px;border:1px solid #617086;border-radius:8px;background:#fff;color:#182d44;font:600 14px Arial;cursor:pointer';
+ dialog.appendChild(close);const dismiss=()=>{dialog.remove();document.removeEventListener('keydown',key);previous?.focus?.();};
+ const key=e=>{if(e.key==='Escape'){e.preventDefault();dismiss();}};document.addEventListener('keydown',key);close.onclick=dismiss;dialog.addEventListener('click',e=>{if(e.target===dialog)dismiss();});
+ document.body.appendChild(dialog);close.focus();
+}
+root.GC_WATERMARK={options,set,get,applyTo,preview,openLightbox,marks};
 })(window);
