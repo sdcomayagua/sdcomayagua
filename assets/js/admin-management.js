@@ -29,7 +29,7 @@ async function refreshSummary(force=false){
  return summaryPromise;
 }
 function activate(key){
- if(!['inventory','pending','stock','orders','waitlist','publish','sales','receipts','duplicates'].includes(key))return;
+ if(!['inventory','offers','pending','stock','orders','waitlist','publish','sales','receipts','duplicates'].includes(key))return;
  view=key;document.querySelectorAll('[data-mg-view]').forEach(el=>el.hidden=el.dataset.mgView!==key);
  $('mgTabs').querySelectorAll('[data-mg-tab]').forEach(button=>{const selected=button.dataset.mgTab===key;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;});
  setupNotice();if(key==='pending')pendingList();if(key==='stock')stockList();if(key==='publish')pubOptions();if(key==='orders'||key==='waitlist')loadKind(key,states[key].page);

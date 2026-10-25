@@ -1,7 +1,7 @@
 /** Lógica pura reutilizada por la tienda, administración y tests. Sin dependencias. */
 (function(root, factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.GC=factory();})(typeof self!=='undefined'?self:globalThis,function(){
  'use strict';
- const money=n=>'L '+Math.round(Number(n)||0).toLocaleString('es-HN');
+ const money=n=>{const value=Math.round(((Number(n)||0)+Number.EPSILON)*100)/100;return 'L '+value.toLocaleString('es-HN',{minimumFractionDigits:Number.isInteger(value)?0:2,maximumFractionDigits:2});};
  function num(v){
   if(typeof v==='number')return Number.isFinite(v)?v:0;
   let s=String(v??'').replace(/[^\d,.\-]/g,'');if(!s)return 0;

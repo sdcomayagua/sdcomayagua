@@ -52,7 +52,7 @@ function doGet(e) {
 /** Diagnóstico público breve: nunca devuelve el PIN, las claves ni el inventario. */
 function gcHealth_(){
  const props=PropertiesService.getScriptProperties(),pin=String(props.getProperty('ADMIN_PIN')||props.getProperty('ADMIN_TOKEN')||'');
- return {ok:true,version:'GC-20261024-CATALOG-V15',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+ return {ok:true,version:'GC-20261025-OFFERS-V16',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
 }
 /** POST de formulario enviado dentro de un iframe: evita los problemas CORS de Apps Script. */
 function doPost(e) {
@@ -102,7 +102,7 @@ function gcHandleRequest_(req){
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
       }
       else if (req.action === 'operationsSummary') result = gcOperationsSummary_();
       else if (req.action === 'operationsList') result = gcOperationsList_(req);
@@ -113,6 +113,7 @@ function gcHandleRequest_(req){
       else if (req.action === 'inventoryMovementList') result = gcMovementList_(req);
       else if (req.action === 'inventoryResolveDuplicate') result = gcResolveDuplicate_(req);
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
+      else if (req.action === 'saveOffers') result = gcSaveOffers_(req);
       else if (req.action === 'researchCandidates') result = gcFreeCandidates_(req.name,req.category);
       else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category,req.selection);
       else if (req.action === 'researchImages') result = gcFreeImages_(req.selection);
@@ -546,6 +547,39 @@ function saveProduct_(p){
     CacheService.getScriptCache().remove('public_catalog_v4');
     return {ok:true,id,code,message:position>0?'Producto actualizado':'Producto agregado'};
   } finally {lock.releaseLock();}
+}
+/** Actualización conjunta de promociones. No modifica precios normales ni stock. */
+function gcSaveOffers_(req){
+ const changes=req.changes;
+ if(!Array.isArray(changes)||!changes.length||changes.length>1000)throw Error('Elegí entre 1 y 1000 productos para actualizar las ofertas.');
+ const lock=LockService.getScriptLock();lock.waitLock(25000);
+ try{
+  gcMovementRecover_();
+  const sheet=book_().getSheetByName(GC_TAB_PRODUCTS),range=sheet.getDataRange(),rows=range.getValues(),headers=(rows[0]||[]).map(String),at=key=>headers.indexOf(key);
+  if(['ID','Precio','PrecioPromocion','PromocionTexto','Revision'].some(key=>at(key)<0))throw Error('No se encontraron las columnas de promociones.');
+  const used=new Set(),changedRows=new Set(),updated=[],revision='offer-'+new Date().toISOString()+'-'+Utilities.getUuid();
+  const clean=value=>Math.round((Number(value)+Number.EPSILON)*100)/100;
+  for(const item of changes){
+   if(!item||typeof item!=='object')throw Error('Oferta inválida.');
+   const id=String(item.id||''),index=rows.findIndex((row,i)=>i>0&&String(row[at('ID')])===id);
+   if(!id||used.has(id)||index<1)throw Error('Producto inexistente o repetido. Sincronizá las ofertas.');
+   used.add(id);const row=rows[index],get=key=>at(key)<0?'':row[at(key)],base=money_(get('Precio')),price=Number(item.promoPrice),text=String(item.promoText||'');
+   if(String(get('EliminadoEn')||'').trim())throw Error('Un producto está en la papelera. Sincronizá las ofertas.');
+   if(!Number.isFinite(price)||price<0||price>0&&price>=base||clean(price)!==price||text.length>250||price===0&&text!=='')throw Error('Verificá los precios de oferta: deben ser menores que el precio normal y tener hasta dos decimales.');
+   if(Number(item.basePrice)!==base)throw Error('Cambió un precio normal. Sincronizá y revisá la oferta antes de guardar.');
+   // Permite comprobar/repetir una operación cuya respuesta se perdió.
+   const already=money_(get('PrecioPromocion'))===price&&String(get('PromocionTexto')||'')===text;
+   if(!already&&(item.expectedRevision!==undefined&&String(item.expectedRevision)!==String(get('Revision'))||Number(item.previousPrice)!==money_(get('PrecioPromocion'))||String(item.previousText||'')!==String(get('PromocionTexto')||'')))throw Error('Un producto cambió desde la vista previa. Sincronizá las ofertas.');
+   if(!already){row[at('PrecioPromocion')]=price||'';row[at('PromocionTexto')]=text;row[at('Revision')]=revision;changedRows.add(index);}
+   updated.push({id,promoPrice:price,promoText:text,revision:String(row[at('Revision')]||'')});
+  }
+  // Conserva las fórmulas de columnas ajenas a la promoción en una sola escritura.
+  const formulas=range.getFormulas();
+  for(let r=1;r<rows.length;r++)for(let c=0;c<headers.length;c++)if(formulas[r]?.[c]&&(!changedRows.has(r)||!['PrecioPromocion','PromocionTexto','Revision'].includes(headers[c])))rows[r][c]=formulas[r][c];
+  sheet.getRange(2,1,rows.length-1,headers.length).setValues(rows.slice(1).map(row=>Array.from({length:headers.length},(_,i)=>row[i]??'')));
+  const cache=CacheService.getScriptCache();for(const key of ['public_catalog_v8','public_catalog_v7','public_catalog_v6','public_catalog_v5','public_catalog_v4'])cache.remove(key);
+  return {ok:true,updated};
+ }finally{lock.releaseLock();}
 }
 /** Consecutivos permanentes por categoría. Llamar solamente con ScriptLock tomado. */
 function gcCategoryPrefix_(category){

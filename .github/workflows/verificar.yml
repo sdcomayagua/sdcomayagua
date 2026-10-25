@@ -22,6 +22,7 @@ jobs:
           node tests/test-api.js
           node tests/test-native-panel.js
           node tests/test-cart.js
+          node tests/test-offers.js
           node tests/test-product-trash.js
           node tests/test-catalog.js
           node tests/test-free-research.js
@@ -48,4 +49,5 @@ jobs:
           node tests/test-product-search-ui.js
           node tests/test-shipping-ui.js
           node tests/test-category-export-ui.js
+          node tests/test-offers-ui.js
           node tests/test-ui.js

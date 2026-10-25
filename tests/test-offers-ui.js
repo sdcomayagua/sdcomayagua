@@ -1,0 +1,66 @@
+// UI real + Code.gs con hojas en memoria. Nunca modifica la tienda publicada.
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),{chromium}=require('playwright'),fixture=require('./helpers/inventory-fixture.js');
+const root=path.resolve(__dirname,'..'),artifacts=process.env.GC_TEST_ARTIFACTS;
+if(artifacts)fs.mkdirSync(artifacts,{recursive:true});
+(async()=>{
+ const f=fixture(),at=key=>f.headers.indexOf(key);f.context.Utilities={getUuid:()=> 'TEST-OFFERS'};
+ f.tables.Productos[1][at('Nombre')]='Dedales versión 4';f.tables.Productos[1][at('Codigo')]='Gamer-001';f.tables.Productos[2][at('Nombre')]='Cargador rápido';f.tables.Productos[2][at('Codigo')]='Gamer-002';f.tables.Productos[2][at('Precio')]=199.99;
+ const extra=(id,name,price,active,stock)=>{const row=f.tables.Productos[1].slice();for(const [key,value] of Object.entries({ID:id,Codigo:'Gamer-00'+(id==='C'?3:4),Nombre:name,Precio:price,Activo:active?'SI':'NO',Stock:stock,Revision:'start-'+id}))row[at(key)]=value;return row;};
+ f.tables.Productos.push(extra('C','Artículo oculto',100,false,3),extra('D','Artículo agotado',80,true,0));
+ const requests=[],errors=[];let native=false,loseResponse=true,interrupt=false,denyPrivate=false;
+ const publicData=()=>({ok:true,...f.context.publicPayload_()}),snapshot=()=>f.tables.Productos.slice(1).map(row=>({id:row[at('ID')],price:row[at('Precio')],stock:row[at('Stock')],cost:row[at('Costo')],image:row[at('Imagen')],gallery:row[at('Galeria')],code:row[at('Codigo')]}));
+ const original=snapshot();
+ const server=http.createServer((req,res)=>{
+  const url=new URL(req.url,'http://localhost');if(url.pathname==='/data/catalogo-respaldo.json'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(publicData().products));return;}
+  if(url.pathname==='/data/catalogo-inicial.js'){res.setHeader('Content-Type','application/javascript');res.end('window.GC_CATALOGO_INICIAL='+JSON.stringify(publicData().products));return;}
+  const file=path.resolve(root,'.'+url.pathname);if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
+  fs.readFile(file,(error,data)=>{if(error){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',({'.js':'application/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.webp':'image/webp'})[path.extname(file)]||'text/html');res.end(data);});
+ });
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const browser=await chromium.launch({headless:true,...(process.env.GC_TEST_BROWSER?{executablePath:process.env.GC_TEST_BROWSER,args:['--no-sandbox','--disable-dev-shm-usage']}: {})}),context=await browser.newContext({viewport:{width:1440,height:1050}}),page=await context.newPage();
+ context.on('page',p=>p.on('pageerror',error=>errors.push(error.message)));page.on('pageerror',error=>errors.push(error.message));
+ await context.route(/^https?:\/\/(?!127\.0\.0\.1)/,async route=>{
+  const url=new URL(route.request().url()),callback=url.searchParams.get('callback');
+  if(callback){const result=url.searchParams.get('action')==='health'?{ok:true,pinConfigurado:true}:publicData();return route.fulfill({contentType:'application/javascript',body:callback+'('+JSON.stringify(result)+')'});}
+  if(url.hostname==='cdn.example')return route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="#f5f8fb"/><rect x="45" y="50" width="110" height="100" rx="15" fill="#254d71"/></svg>'});
+  return route.abort();
+ });
+ await context.exposeFunction('__offersBackend',async req=>{
+  requests.push(req);
+  if(req.action==='health')return {ok:true,pinConfigurado:true};
+  if(req.action==='verify')return {ok:true,features:{offers:native,details:true,bestSellers:true,publicCatalogMetadata:true}};
+  if(req.action==='adminCatalog'&&denyPrivate)return {ok:false,error:'No se pudo consultar el inventario privado.'};
+  if(req.action==='publicCatalog')return publicData();
+  if(req.action==='saveProduct'&&interrupt&&req.product.id==='B'){interrupt=false;f.tables.Productos[2][at('Revision')]='changed-elsewhere';return f.post(req.action,{...req},req.token);}
+  const result=f.post(req.action,{...req},req.token);
+  if(req.action==='saveProduct'&&loseResponse){loseResponse=false;return {ok:false,error:'Se perdió la respuesta después de guardar.'};}
+  return result;
+ });
+ await context.addInitScript(()=>{
+  HTMLFormElement.prototype.submit=async function(){const req=JSON.parse(this.querySelector('[name=payload]').value),result=await window.__offersBackend(req);setTimeout(()=>window.dispatchEvent(new MessageEvent('message',{origin:'https://script.google.com',data:{__gcResponse:true,requestId:req.requestId,...result}})),5);};
+ });
+ const base='http://127.0.0.1:'+server.address().port;
+ await page.goto(base+'/admin.html?seccion=ofertas');assert.equal(await page.locator('#mgViewOffers').isVisible(),false);await page.locator('#secret').fill('123456');await page.locator('#loginBtn').click();await page.locator('#ofRows [data-of-edit="A"]').waitFor();await page.locator('[data-admin-go="offers"]').click();assert.equal(await page.locator('#adminSection').inputValue(),'offers');
+ await page.locator('#ofReview').click();assert.equal(f.get('A','PrecioPromocion'),'');assert.match(await page.locator('#ofRows').innerText(),/159.99/);await page.locator('#ofConfirm').click();await page.locator('#ofStatus').filter({hasText:'3 productos actualizados'}).waitFor();assert.equal(f.get('A','PrecioPromocion'),176);assert.equal(f.get('B','PrecioPromocion'),159.99);assert.equal(f.get('C','PrecioPromocion'),'');assert.equal(f.get('D','PrecioPromocion'),64);assert.equal(requests.filter(r=>r.action==='saveProduct'&&r.product.id==='A').length,1,'Respuesta perdida verificada sin duplicar guardado');assert.deepEqual(snapshot(),original);
+ // Cliente: precio real, nota visible y exportación con el mismo importe exacto.
+ const shop=await context.newPage();await shop.goto(base+'/productos.html');await shop.locator('#syncStatus').filter({hasText:'Catálogo actualizado'}).waitFor();await shop.locator('#search').fill('Cargador rápido');assert.match(await shop.locator('#productGrid').innerText(),/159.99/);assert.match(await shop.locator('#productGrid .promo-note').innerText(),/20%/);await shop.locator('[data-detail="B"]').first().click();assert.match(await shop.locator('#detailContent .price-current').innerText(),/159.99/);await shop.locator('#detailAdd').click();await shop.locator('#openCart').click();assert.match(await shop.locator('#checkoutTotals').innerText(),/159.99/);await shop.locator('#cartOverlay [data-close]').click();
+ await shop.evaluate(()=>{const create=GC_CATALOG_PDF.create;GC_CATALOG_PDF.create=async(pages,options)=>{window.__offerPDF=pages.flatMap(p=>p.ops||[]).filter(o=>o.kind==='text').map(o=>o.value);return create(pages,options);};});
+ await shop.locator('#exportCategory').click();await shop.locator('#catalogExportDownload[aria-disabled="false"]').waitFor({timeout:60000});assert.ok((await shop.evaluate(()=>window.__offerPDF)).some(text=>text.includes('159.99')),'El PDF conserva los centavos');await shop.locator('#catalogExportClose').click();
+ // Individual en lempiras, recarga y prioridad sobre descuentos generales.
+ await page.locator('[data-of-edit="A"]').click();await page.locator('#ofIndividualValue').fill('170');await page.locator('#ofIndividualLabel').selectOption('Solo hoy');assert.match(await page.locator('#ofIndividualPreview').innerText(),/L 170/);await page.locator('#ofIndividualSave').click();await page.locator('#ofStatus').filter({hasText:'1 producto actualizado'}).waitFor();await page.reload();await page.locator('#ofRows [data-of-edit="A"]').waitFor();await page.locator('#adminSection').selectOption('offers');assert.equal(await page.locator('#ofIndividualCount').innerText(),'1');assert.equal(f.get('A','PrecioPromocion'),170);assert.equal(f.get('A','PromocionTexto'),'Solo hoy');
+ await page.locator('#ofPercent').fill('50');await page.locator('#ofReview').click();assert.match(await page.locator('#ofPreviewHelp').innerText(),/1 precio individual se conserva/);await page.locator('#ofConfirm').click();await page.locator('#ofStatus').filter({hasText:'2 productos actualizados'}).waitFor();assert.equal(f.get('A','PrecioPromocion'),170);assert.equal(f.get('B','PrecioPromocion'),100);
+ await page.locator('#ofClearGeneral').click();await page.locator('#ofConfirm').click();await page.locator('#ofStatus').filter({hasText:'2 productos actualizados'}).waitFor();assert.equal(f.get('A','PrecioPromocion'),170);assert.equal(f.get('B','PrecioPromocion'),'');assert.equal(f.get('B','PromocionTexto'),'');await page.locator('[data-of-remove="A"]').click();await page.locator('#ofStatus').filter({hasText:'1 producto actualizado'}).waitFor();assert.equal(f.get('A','PrecioPromocion'),'');assert.equal(f.get('A','PromocionTexto'),'');
+ await shop.reload();await shop.locator('#syncStatus').filter({hasText:'Catálogo actualizado'}).waitFor();assert.equal(await shop.locator('#productGrid .promo-note').count(),0);assert.match(await shop.locator('#productGrid').innerText(),/199.99/);
+ // Un fallo intermedio informa lo que sí se guardó y permite completar el resto.
+ await page.locator('#ofPercent').fill('30');await page.locator('#ofReview').click();interrupt=true;await page.locator('#ofConfirm').click();await page.locator('#ofStatus.is-error').waitFor();assert.match(await page.locator('#ofStatus').innerText(),/1 de 3/);assert.equal(f.get('D','PrecioPromocion'),56);assert.equal(f.get('A','PrecioPromocion'),'');assert.equal(f.get('B','PrecioPromocion'),'');await page.locator('#ofReview').click();await page.locator('#ofConfirm').click();await page.locator('#ofStatus:not(.is-error)').filter({hasText:'2 productos actualizados'}).waitFor();assert.equal(f.get('B','PrecioPromocion'),139.99);
+ // Servidor actualizado: un único lote; celular, porcentaje individual y cero.
+ native=true;await page.reload();await page.locator('#ofRows [data-of-edit="A"]').waitFor();await page.locator('#adminSection').selectOption('offers');await page.locator('#ofPercent').fill('70');await page.locator('#ofGlobalLabel').selectOption('Solo hoy');await page.locator('#ofReview').click();await page.locator('#ofConfirm').click();await page.locator('#ofStatus').filter({hasText:'3 productos actualizados'}).waitFor();assert.equal(requests.filter(r=>r.action==='saveOffers').length,1);assert.equal(f.get('B','PrecioPromocion'),60);assert.deepEqual(snapshot(),original);
+ assert.ok((await page.locator('#ofSearch').boundingBox()).width>300);await page.locator('#ofFilter').selectOption('general');assert.equal(await page.locator('#ofRows tr').count(),3);await page.locator('#ofFilter').selectOption('all');await page.locator('#ofSearch').fill('Cargador');assert.equal(await page.locator('#ofRows tr').count(),1);await page.locator('#ofSearch').fill('');await page.evaluate(()=>scrollTo(0,0));if(artifacts)await page.screenshot({path:path.join(artifacts,'ofertas-escritorio.png'),fullPage:true});
+ for(const width of [390,320]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Sin desborde en '+width);}
+ await page.locator('[data-of-edit="A"]').click();await page.locator('#ofPriceMode').selectOption('percent');await page.locator('#ofIndividualValue').fill('25');assert.match(await page.locator('#ofIndividualPreview').innerText(),/L 165/);await page.locator('#ofIndividualSave').click();await page.locator('#ofStatus').filter({hasText:'1 producto actualizado'}).waitFor();assert.equal(f.get('A','PrecioPromocion'),165);assert.equal(f.get('A','PromocionTexto'),'Solo hoy');
+ await page.evaluate(()=>scrollTo(0,0));if(artifacts)await page.screenshot({path:path.join(artifacts,'ofertas-celular.png'),fullPage:true});
+ await page.locator('#ofIndividualValue').fill('0');await page.locator('#ofIndividualSave').click();await page.locator('#ofStatus').filter({hasText:'1 producto actualizado'}).waitFor();assert.equal(f.get('A','PrecioPromocion'),'');
+ // Fallar la lectura privada jamás usa el catálogo público para sobrescribir stock.
+ await page.locator('#ofIndividualValue').fill('20');const before=JSON.stringify(f.tables.Productos);denyPrivate=true;await page.locator('#ofIndividualSave').click();await page.locator('#ofStatus.is-error').waitFor();assert.equal(JSON.stringify(f.tables.Productos),before);denyPrivate=false;assert.equal(await page.locator('#ofIndividualValue').inputValue(),'20');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ assert.deepEqual(errors,[]);await browser.close();await new Promise(resolve=>server.close(resolve));console.log('PASS UI ofertas: admin, 20/50/70%, centavos, tienda/carrito/PDF, L170 persistente, prioridad, quitar, respuestas perdidas, reintento parcial, conexión actual y lote, privacidad y celular.');
+})().catch(error=>{console.error(error);process.exit(1);});

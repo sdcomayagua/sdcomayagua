@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),fixture=require('./helpers/inventory-fixture');
 const fx=fixture(),before=JSON.stringify(fx.tables),health=fx.context.gcPanelRequest({action:'health'});
-assert.equal(health.ok,true);assert.equal(health.version,'GC-20261024-CATALOG-V15');assert.equal(JSON.stringify(fx.tables),before,'El diagnóstico no modifica el inventario');assert.equal(Object.keys(health).includes('products'),false);assert.equal(JSON.stringify(health).includes('123456'),false);
+assert.equal(health.ok,true);assert.equal(health.version,'GC-20261025-OFFERS-V16');assert.equal(JSON.stringify(fx.tables),before,'El diagnóstico no modifica el inventario');assert.equal(Object.keys(health).includes('products'),false);assert.equal(JSON.stringify(health).includes('123456'),false);
 for(const action of ['adminCatalog','saveProduct','researchCandidates','operationsSummary','uploadImage'])assert.equal(fx.context.gcPanelRequest({action}).ok,false,'El canal nativo exige PIN para '+action);
 assert.equal(fx.context.gcPanelRequest({action:'adminCatalog',token:'123456'}).products.length,2);assert.equal(fx.context.gcPanelRequest({action:'saveProduct',token:'111111',product:{name:'Mal'}}).ok,false);assert.equal(fx.context.gcPanelRequest(null).ok,false);assert.equal(fx.context.gcPanelRequest([]).ok,false);
 let requests=0,html;
