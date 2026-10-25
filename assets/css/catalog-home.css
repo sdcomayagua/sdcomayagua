@@ -229,3 +229,13 @@ body[data-page="productos"] .wrap,.header .wrap,.topbar .wrap {max-width:1200px}
 .catalog-export-preview{background:#e8ecf1;padding:20px}
 .catalog-export-preview>img{border:0;box-shadow:0 8px 25px #10223724}
 @media(max-width:760px){.catalog-export-preview{padding:10px}.catalog-export-options #catalogExportGroupLabel{grid-column:1/-1}}
+
+/* Texto opcional, separado de la descripción de la tienda. */
+.catalog-export-custom{margin:12px 0;padding:14px;background:#f6f9fc;border:1px solid #dce5ed;border-radius:10px;min-width:0}
+.catalog-export-custom[hidden]{display:none}
+.catalog-export-custom .field{width:100%;min-height:44px;background:#fff;font-size:13px}
+.catalog-export-custom select{margin-bottom:14px;text-overflow:ellipsis}
+.catalog-export-custom textarea{display:block;resize:vertical;min-height:84px;line-height:1.5}
+.catalog-export-custom .catalog-export-help{margin:8px 0 0}
+#catalogExportTextHelp{margin:8px 0 18px}
+@media(max-width:700px){.catalog-export-custom .field{font-size:16px}}

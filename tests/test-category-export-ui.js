@@ -50,6 +50,15 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   const scenes=await catalog.evaluate(()=>window.__catalogScenes),cards=scenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto='));
   assert.equal(cards.length,4);assert.equal(cards[0].y,cards[1].y);assert.equal(cards[2].y,cards[3].y);assert.ok(cards[1].x>cards[0].x);assert.ok(cards[2].y>cards[0].y);
   for(const card of cards){const images=scenes[0].filter(op=>op.kind==='image'&&op.x>=card.x&&op.y>=card.y&&op.x+op.w<=card.x+card.w&&op.y+op.h<=card.y+card.h);assert.ok(images.some(op=>op.w*op.h>card.w*card.h*.3),'La foto debe ocupar una parte importante de la tarjeta.');}
+  const exportedText=()=>catalog.evaluate(()=>window.__catalogScenes.flat().filter(op=>op.kind==='text').map(op=>op.value).join(' '));
+  assert.equal(await catalog.locator('#catalogExportText').inputValue(),'none');assert.ok(!(await exportedText()).includes(products[0].description));
+  await catalog.locator('#catalogExportText').selectOption('details');await ready();assert.match(await exportedText(),/Material: Fibra de carbono/);
+  await catalog.locator('#catalogExportText').selectOption('custom');await ready();await catalog.locator('#catalogExportTextProduct').selectOption('DEDAL-0');
+  const note='Compatible con pantallas táctiles. Ideal para Free Fire y COD Mobile.';
+  await catalog.locator('#catalogExportCustomText').fill(note);await ready();assert.ok((await exportedText()).includes(note));
+  await catalog.locator('#catalogExportClose').click();await catalog.locator('#exportCategory').click();await ready();await catalog.locator('#catalogExportTextProduct').selectOption('DEDAL-0');assert.equal(await catalog.locator('#catalogExportCustomText').inputValue(),note);
+  await catalog.setViewportSize({width:360,height:844});assert.equal(await catalog.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await catalog.screenshot({path:path.join(artifacts,'catalogo-texto-mobile.png')});await catalog.setViewportSize({width:1440,height:1050});
+  await catalog.locator('#catalogExportText').selectOption('none');await ready();assert.ok(!(await exportedText()).includes(note));assert.equal(await catalog.locator('#catalogExportCustom').isVisible(),false);
   await catalog.locator('#catalogExportNext').click();assert.match(await catalog.locator('#catalogExportPreview').getAttribute('alt'),/Página 2 de 2/);assert.match(await catalog.locator('#catalogExportDownload').getAttribute('download'),/_02\.png$/);await download('catalogo-pagina-2.png');
   await catalog.locator('#catalogExportShare').click();assert.equal((await catalog.evaluate(()=>window.__shared.at(-1))).files[0].type,'image/png');
   await catalog.locator('#catalogExportFormat').selectOption('pdf');const pdf=await download('catalogo.pdf');assert.equal(pdf.subarray(0,8).toString(),'%PDF-1.4');assert.equal((pdf.toString('latin1').match(/\/Type \/Page \/Parent/g)||[]).length,2);
@@ -73,6 +82,19 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await catalog.locator('#search').fill('');await catalog.locator('#category').selectOption('');await catalog.locator('#exportCategory').click();await ready();assert.equal(await catalog.locator('#catalogExportGroupLabel').isVisible(),true);await catalog.locator('#catalogExportFormat').selectOption('pdf');
   const grouped=(await download('catalogo-ordenado.pdf')).toString('latin1');assert.ok(grouped.indexOf('producto=OTHER')>grouped.indexOf('producto=DEDAL-'));assert.equal((grouped.match(/\/Type \/Page \/Parent/g)||[]).length,3);
   await catalog.locator('#catalogExportGroup').uncheck();await ready();const recent=(await download('catalogo-recientes.pdf')).toString('latin1');assert.ok(recent.indexOf('producto=OTHER')<recent.indexOf('producto=DEDAL-'));await catalog.locator('#catalogExportClose').click();
+  const gridProducts=Array.from({length:17},(_,index)=>({...products[index%8],id:'GRID-'+index,code:'Catálogo-'+String(index+1).padStart(3,'0'),name:index===0?'Accesorio gamer de alta precisión para pantallas táctiles de teléfonos Android y iPhone':products[index%8].name,image:'assets/products/kouvolsen-x36-usb-c.webp'}));
+  await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products,title:'Cuadrícula',url:location.href,settings:{watermarkEnabled:false}}),gridProducts);await ready();await catalog.locator('#catalogExportDensity').selectOption('16');await ready();
+  const denseScenes=await catalog.evaluate(()=>window.__catalogScenes),denseCards=denseScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')),lastCard=denseScenes[1].find(op=>op.kind==='link'&&op.url.includes('producto='));
+  assert.equal(denseCards.length,16);assert.equal(new Set(denseCards.map(op=>op.x)).size,4);assert.equal(new Set(denseCards.map(op=>op.y)).size,4);assert.equal(lastCard.w,denseCards[0].w);assert.equal(lastCard.h,denseCards[0].h);
+  for(const scene of denseScenes)assert.ok(scene.filter(op=>op.kind==='text'&&op.y>274&&op.y<1816).every(op=>!op.value.includes('…')),'Las tarjetas no deben mostrar texto cortado.');
+  for(const product of gridProducts)assert.ok((await exportedText()).includes(product.name),'El nombre completo debe conservarse.');
+  const firstTitle=denseScenes[0].filter(op=>op.kind==='text'&&op.bold&&op.color==='#101b2b'&&op.x>=denseCards[0].x&&op.x<denseCards[0].x+denseCards[0].w&&op.y>denseCards[0].y&&op.y<denseCards[0].y+denseCards[0].h),firstPrice=denseScenes[0].find(op=>op.kind==='text'&&op.value==='PRECIO'&&op.y>denseCards[0].y);
+  assert.ok(firstTitle.every(op=>op.y+op.size*.25<firstPrice.y-16),'Un nombre largo debe quedar separado del precio.');
+  await catalog.locator('#catalogExportText').selectOption('custom');await ready();await catalog.locator('#catalogExportTextProduct').selectOption('GRID-0');await catalog.locator('#catalogExportCustomText').fill('Para juegos móviles.');await ready();assert.ok((await exportedText()).includes('Para juegos móviles.'));
+  await catalog.locator('#catalogExportCustomText').fill('W'.repeat(120));await ready();assert.match(await catalog.locator('#catalogExportStatus').innerText(),/no cabe(?:n)? completo/);assert.ok(!(await exportedText()).includes('…'));
+  await catalog.locator('#catalogExportText').selectOption('none');await ready();
+  await download('catalogo-4x4.png');await catalog.locator('#catalogExportFormat').selectOption('pdf');const densePdf=await download('catalogo-4x4.pdf');assert.equal((densePdf.toString('latin1').match(/\/Type \/Page \/Parent/g)||[]).length,2);
+  await catalog.locator('#catalogExportNext').click();await catalog.locator('#catalogExportFormat').selectOption('image');await download('catalogo-4x4-ultima.png');await catalog.locator('#catalogExportClose').click();
   assert.deepEqual(errors,[]);console.log('PASS catálogo y papelera UI: eliminar/cancelar/restaurar, stock intacto, filtros completos, fotos, PNG, PDF paginado, compartir nativo y móvil.');
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exit(1);});
