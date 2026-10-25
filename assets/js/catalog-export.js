@@ -111,8 +111,9 @@ function draw(context,products,loaded,index,count,logo){
  products.forEach((product,i)=>{
   const centered=columns===2&&products.length%2===1&&i===products.length-1;
   const x=centered?(W-w)/2:margin+(i%columns)*(w+gap),y=top+Math.floor(i/columns)*(h+gap);
-  const pad=columns===1?34:22,imageW=Math.round(w*(columns===1 ? 0.52 : 0.54)),imageH=h-2*pad;
-  const photoX=x+pad,photoY=y+pad,infoX=photoX+imageW+(columns===1?30:19),infoW=x+w-pad-infoX;
+  // Marco cuadrado 1:1. Las fotos conservan su relación original (sin recortarlas).
+  const pad=columns===1?34:22,photoSize=Math.round(Math.min(w*(columns===1?.46:.54),h-2*pad)),imageW=photoSize,imageH=photoSize;
+  const photoX=x+pad,photoY=y+(h-photoSize)/2,infoX=photoX+imageW+(columns===1?32:19),infoW=x+w-pad-infoX;
   box(x,y+4,w,h,'#e7eaf0','',16);box(x,y,w,h,'#ffffff','#dee4ec',16);
   box(photoX,photoY,imageW,imageH,'#f8fafc','',10);
   const img=loaded.get(product.id);
