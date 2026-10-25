@@ -53,13 +53,18 @@ async function create(pages,options){
     commands.push('BT',`/${op.bold?'F2':'F1'} ${num(op.size)} Tf`,color(op.color)+' rg',`1 0 0 1 ${num(op.x)} ${num(height-op.y)} Tm`,literal(op.value)+' Tj','ET');
    }else if(op.kind==='image'){
     const record=images.get(op.image);used.add(record.id);commands.push(`q ${num(op.w)} 0 0 ${num(op.h)} ${num(op.x)} ${num(height-op.y-op.h)} cm /Im${record.id} Do Q`);
+   }else if(op.kind==='watermark'){
+    // La transparencia y el modo Diferencia permiten blanco sobre oscuro y negro sobre claro.
+    const angle=-op.angle*Math.PI/180,co=Math.cos(angle),si=Math.sin(angle);
+    commands.push('q','/GWM gs','BT',`/F2 ${num(op.size)} Tf`,'1 1 1 rg',`${num(co)} ${num(si)} ${num(-si)} ${num(co)} ${num(op.x)} ${num(height-op.y-op.size*.32)} Tm`,literal(op.value)+' Tj','ET','Q');
    }else if(op.kind==='link'){
     const url=uri(op.url);if(!url)continue;const id=reserve();ids.links.push(id);
     objects[id]=`<< /Type /Annot /Subtype /Link /Rect [${num(op.x*scale)} ${num((height-op.y-op.h)*scale)} ${num((op.x+op.w)*scale)} ${num((height-op.y)*scale)}] /Border [0 0 0] /A << /S /URI /URI (${url}) >> >>`;
    }
   }
   commands.push('Q');objects[ids.content]={bytes:encoder.encode(commands.join('\n')+'\n')};
-  objects[ids.page]=`<< /Type /Page /Parent ${tree} 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R >> /XObject << ${[...used].map(id=>`/Im${id} ${id} 0 R`).join(' ')} >> >> /Contents ${ids.content} 0 R /Annots [${ids.links.map(id=>id+' 0 R').join(' ')}] >>`;
+  const mark=page.ops.find(op=>op.kind==='watermark'),extras=mark?` /ExtGState << /GWM << /Type /ExtGState /ca ${num(mark.alpha)} /BM /Difference >> >>`:'';
+  objects[ids.page]=`<< /Type /Page /Parent ${tree} 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R >> /XObject << ${[...used].map(id=>`/Im${id} ${id} 0 R`).join(' ')} >>${extras} >> /Contents ${ids.content} 0 R /Annots [${ids.links.map(id=>id+' 0 R').join(' ')}] >>`;
  });
  const parts=[],offsets=[0];let length=0;const append=value=>{const bytes=typeof value==='string'?encoder.encode(value):value;parts.push(bytes);length+=bytes.byteLength;};
  append('%PDF-1.4\n');append(new Uint8Array([37,226,227,207,211,10]));
