@@ -80,14 +80,14 @@ function artist(){
  const link=(x,y,w,h,url)=>ops.push({kind:'link',x,y,w,h,url});
  const watermark=(x,y,w,h,settings)=>{
   const o=window.GC_WATERMARK?.options(settings);if(!o?.watermarkEnabled)return;
-  const text=o.watermarkText,size=Math.max(10,Math.min(w*.078,h*.076,w*.44/(Math.max(5,text.length)*.62))),alpha=o.watermarkOpacity;
+  const text=o.watermarkText,face=window.GC_WATERMARK.fonts[o.watermarkFont],size=Math.max(10,Math.min(w*.078,h*.076,w*.44/(Math.max(5,text.length)*.62))),alpha=o.watermarkOpacity;
   const marks=window.GC_WATERMARK.marks;
   ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.globalAlpha=alpha;ctx.globalCompositeOperation='difference';
-  ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 '+size+'px "GC Catalog", Arial';
+  ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=face.weight+' '+size+'px '+(o.watermarkFont==='arial'?'"GC Catalog", Arial':face.css);
   for(const [u,v] of marks){
    const xx=x+w*u/1000,yy=y+h*v/1000;
    ctx.save();ctx.translate(xx,yy);ctx.rotate(-27*Math.PI/180);ctx.fillText(text,0,0,w*.49);ctx.restore();
-   ops.push({kind:'watermark',x:xx,y:yy,value:text,size,angle:-27,alpha});
+   ops.push({kind:'watermark',x:xx,y:yy,value:text,size,angle:-27,alpha,font:o.watermarkFont,textWidth:Math.min(ctx.measureText(text).width,w*.49),clip:{x,y,w,h}});
   }
   ctx.restore();
  };
