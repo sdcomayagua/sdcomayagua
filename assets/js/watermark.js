@@ -9,19 +9,42 @@ const fonts=Object.freeze({
  trebuchet:{label:'Contemporánea · Trebuchet MS',css:'Trebuchet MS,Arial,sans-serif',pdf:'F3',weight:700},
  impact:{label:'Fuerte · Impact',css:'Impact,Arial Narrow,Arial,sans-serif',pdf:'F3',weight:700}
 });
-const defaults={watermarkEnabled:true,watermarkText:'GAMER COMAYAGUA',watermarkOpacity:.16,watermarkFont:'arial'};
+const defaults={watermarkEnabled:true,watermarkText:'GAMER COMAYAGUA',watermarkOpacity:.16,watermarkFont:'arial',watermarkFontSize:48,watermarkCount:6};
 let current={...defaults};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 function options(raw={}){
  const text=String(raw.watermarkText??defaults.watermarkText).trim().replace(/\s+/g,' ').slice(0,60);
- return {watermarkEnabled:raw.watermarkEnabled===undefined?defaults.watermarkEnabled:raw.watermarkEnabled===true||/^(si|sí|true|1)$/i.test(String(raw.watermarkEnabled)),watermarkText:text||defaults.watermarkText,watermarkOpacity:clamp(Number(raw.watermarkOpacity)||defaults.watermarkOpacity,.08,.30),watermarkFont:Object.hasOwn(fonts,String(raw.watermarkFont||''))?String(raw.watermarkFont):defaults.watermarkFont};
+ const opacity=raw.watermarkOpacity===undefined||raw.watermarkOpacity===''?defaults.watermarkOpacity:Number(raw.watermarkOpacity);
+ const size=raw.watermarkFontSize===undefined||raw.watermarkFontSize===''?defaults.watermarkFontSize:Number(raw.watermarkFontSize);
+ const count=raw.watermarkCount===undefined||raw.watermarkCount===''?defaults.watermarkCount:Number(raw.watermarkCount);
+ return {
+  watermarkEnabled:raw.watermarkEnabled===undefined?defaults.watermarkEnabled:raw.watermarkEnabled===true||/^(si|sí|true|1)$/i.test(String(raw.watermarkEnabled)),
+  watermarkText:text||defaults.watermarkText,
+  watermarkOpacity:clamp(Number.isFinite(opacity)?opacity:defaults.watermarkOpacity,0,1),
+  watermarkFont:Object.hasOwn(fonts,String(raw.watermarkFont||''))?String(raw.watermarkFont):defaults.watermarkFont,
+  watermarkFontSize:clamp(Number.isFinite(size)?Math.round(size):defaults.watermarkFontSize,0,1200),
+  watermarkCount:clamp(Number.isFinite(count)?Math.round(count):defaults.watermarkCount,0,100)
+ };
 }
 const xml=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const marks=[[240,165],[758,165],[240,472],[758,472],[240,779],[758,779]];
-function fontSize(text){return clamp(Math.floor(870/(Math.max(8,text.length)*.98)),15,48);}
+const defaultMarks=[[240,165],[758,165],[240,472],[758,472],[240,779],[758,779]];
+function positions(count){
+ const n=clamp(Math.round(Number(count)||0),0,100);if(n===6)return defaultMarks.map(p=>[...p]);
+ if(!n)return [];
+ const cols=Math.ceil(Math.sqrt(n)),rows=Math.ceil(n/cols);
+ const positions=[];
+ for(let row=0;row<rows;row++){
+  const rowSize=Math.min(cols,n-row*cols);
+  for(let col=0;col<rowSize;col++){
+   positions.push([Math.round((col+.5)*1000/rowSize),Math.round((row+.5)*1000/rows)]);
+  }
+ }
+ return positions;
+}
 function svg(raw){
- const o=options(raw),size=fontSize(o.watermarkText),face=fonts[o.watermarkFont],parts=marks.map(([x,y])=>'<text x="'+x+'" y="'+y+'" text-anchor="middle" dominant-baseline="central" transform="rotate(-27 '+x+' '+y+')">'+xml(o.watermarkText)+'</text>').join('');
- return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000"><g font-family="'+face.css+'" font-size="'+size+'" font-weight="'+face.weight+'" fill="#ffffff">'+parts+'</g></svg>';
+ const o=options(raw),face=fonts[o.watermarkFont];
+ const parts=positions(o.watermarkCount).map(([x,y])=>'<text x="'+x+'" y="'+y+'" text-anchor="middle" dominant-baseline="central" transform="rotate(-27 '+x+' '+y+')">'+xml(o.watermarkText)+'</text>').join('');
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000"><g font-family="'+face.css+'" font-size="'+o.watermarkFontSize+'" font-weight="'+face.weight+'" fill="#ffffff">'+parts+'</g></svg>';
 }
 function style(){
  if(document.getElementById('gcWatermarkStyles'))return;
@@ -34,9 +57,10 @@ function applyTo(root=document){
  style();
  const chosen=root.querySelectorAll('.photo,.detail-main,.detail-thumb,.requested-product');
  const o=current,pattern='url("data:image/svg+xml,'+encodeURIComponent(svg(o))+'")';
+ const visible=o.watermarkEnabled&&o.watermarkOpacity>0&&o.watermarkFontSize>0&&o.watermarkCount>0;
  chosen.forEach(host=>{
   let overlay=host.querySelector(':scope > .gc-watermark-overlay');
-  if(!o.watermarkEnabled){overlay?.remove();return;}
+  if(!visible){overlay?.remove();return;}
   if(!overlay){overlay=document.createElement('span');overlay.className='gc-watermark-overlay';overlay.setAttribute('aria-hidden','true');host.appendChild(overlay);}
   host.classList.add('gc-wm-host');overlay.style.backgroundImage=pattern;overlay.style.setProperty('--gc-wm-opacity',o.watermarkOpacity);
  });
@@ -47,7 +71,7 @@ function preview(target,raw){
  if(!target)return;style();const o=options(raw),pattern='url("data:image/svg+xml,'+encodeURIComponent(svg(o))+'")';
  target.querySelector('.gc-watermark-overlay')?.remove();
  target.classList.add('gc-wm-host');
- if(o.watermarkEnabled){const el=document.createElement('span');el.className='gc-watermark-overlay';el.setAttribute('aria-hidden','true');el.style.backgroundImage=pattern;el.style.setProperty('--gc-wm-opacity',o.watermarkOpacity);target.appendChild(el);}
+ if(o.watermarkEnabled&&o.watermarkOpacity>0&&o.watermarkFontSize>0&&o.watermarkCount>0){const el=document.createElement('span');el.className='gc-watermark-overlay';el.setAttribute('aria-hidden','true');el.style.backgroundImage=pattern;el.style.setProperty('--gc-wm-opacity',o.watermarkOpacity);target.appendChild(el);}
 }
 function openLightbox(source,alt){
  const previous=document.activeElement,dialog=document.createElement('div');dialog.className='gc-wm-lightbox';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label','Vista ampliada del producto');
@@ -60,5 +84,5 @@ function openLightbox(source,alt){
  const key=e=>{if(e.key==='Escape'){e.preventDefault();dismiss();}};document.addEventListener('keydown',key);close.onclick=dismiss;dialog.addEventListener('click',e=>{if(e.target===dialog)dismiss();});
  document.body.appendChild(dialog);close.focus();
 }
-root.GC_WATERMARK={options,set,get,applyTo,preview,openLightbox,marks,fonts};
+root.GC_WATERMARK={options,set,get,applyTo,preview,openLightbox,marks:defaultMarks,positions,fonts};
 })(window);
