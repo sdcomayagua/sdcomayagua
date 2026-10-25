@@ -1,6 +1,6 @@
 
 (function(){'use strict';
-const C=window.GC,config=window.GC_CONFIG,$=id=>document.getElementById(id);
+const C=window.GC,config=window.GC_CONFIG,$=id=>document.getElementById(id);window.GC_WATERMARK?.set(config);
 const imgFallback='assets/img/sin-foto.svg',page=document.body.dataset.page||'inicio';
 let products=[],settings={...config},banks=[],cart={},currentId='',visible=24,latest=null,currentQuoteId='';
 let banksRequest=null,banksStatus='idle',detailTrigger=null;
@@ -117,14 +117,14 @@ function render(){
  if(page==='inicio'){
    list=list.filter(p=>p.stock>0).slice(0,8);
    if($('resultsCount'))$('resultsCount').textContent='Una selección de nuestros productos disponibles';
-   $('productGrid').innerHTML=list.map(card).join('')||'<div class="empty">Pronto tendremos novedades.</div>';
+   $('productGrid').innerHTML=list.map(card).join('')||'<div class="empty">Pronto tendremos novedades.</div>';window.GC_WATERMARK?.applyTo(document);
    return;
  }
  list=filteredProducts();
  if($('resultsCount'))$('resultsCount').textContent=`${list.length} ${list.length===1?'producto':'productos'}`;
  updateCategoryShortcuts();
  $('productGrid').innerHTML=list.slice(0,visible).map(card).join('')||'<div class="empty catalog-empty"><strong>No encontramos productos con esos filtros.</strong><p>Probá con nombre, marca, modelo o código.</p><button type="button" class="btn outline" data-reset-filters>Ver todo el catálogo</button></div>';
- $('showMore')?.classList.toggle('hidden',list.length<=visible);
+ $('showMore')?.classList.toggle('hidden',list.length<=visible);window.GC_WATERMARK?.applyTo(document);
 }
 function open(id,preserve=false){
  const p=products.find(x=>x.id===id);if(!p)return;currentId=id;
@@ -168,7 +168,7 @@ function open(id,preserve=false){
  const chatIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.7 7.4L3 21l1.6-5.5A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 8c0 4 2 6 6 6l1-2-2-1-1 1-2-2 1-1-1-2-2 1Z"/></svg>';
  const shareIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m9 10 6-4M9 14l6 4"/></svg>';
  $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)} — Foto 1 de ${images.length}">${navigation}<a class="detail-open-photo" id="detailOpenPhoto" href="${escapeAttr(normalize(images[0]))}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar foto del producto" ${images[0]===imgFallback?'hidden':''}>${expandIcon}<span>Ampliar</span></a></div>${thumbs}</div><div class="detail-info"><div class="detail-topline"><div class="category">${safe(p.category)}</div><span class="detail-stock ${p.stock?'':'sold-out'}">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Agotado'}</span></div><h3 id="detailTitle">${safe(p.name)}</h3>${p.code?`<p class="detail-code">Código: <span>${safe(p.code)}</span></p>`:''}<div class="detail-price-block"><span class="detail-price-label">Precio por unidad</span>${amount}${promotion}</div><div class="detail-buttons"><button class="btn" id="detailAdd" type="button" ${p.stock?'':'disabled'}>${cartIcon}<span>${p.stock?'Agregar al carrito':'Sin existencias'}</span></button><div class="detail-secondary-actions"><button class="btn outline" id="detailWA" type="button" aria-label="Consultar por WhatsApp">${chatIcon}<span>Consultar</span></button><button class="btn outline" id="detailShare" type="button" aria-label="Compartir este producto">${shareIcon}<span>Compartir</span></button></div></div><div class="detail-payment-note"><span class="detail-payment-symbol" aria-hidden="true">${p.codAllowed?'✓':'i'}</span><div>${paymentNote}</div></div>${extra}</div></div>`;
- const photo=$('detailPhoto'),photoLink=$('detailOpenPhoto'),media=$('detailContent').querySelector('.detail-media');
+ const photo=$('detailPhoto'),photoLink=$('detailOpenPhoto'),media=$('detailContent').querySelector('.detail-media');window.GC_WATERMARK?.applyTo($('detailContent'));photoLink?.addEventListener('click',event=>{if(!window.GC_WATERMARK?.openLightbox)return;event.preventDefault();window.GC_WATERMARK.openLightbox(photo.src,photo.alt);});
  const photoFallback=()=>{photo.onerror=()=>{photo.onerror=null;photo.src=imgFallback;photoLink.hidden=true;}};
  photoFallback();
  let photoIndex=0;
@@ -312,7 +312,7 @@ function printQuote(){
 function handlePublic(data){
  if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');
  const showingDetail=$('detailOverlay')&&!$('detailOverlay').hidden,oldDetail=showingDetail?JSON.stringify(products.find(p=>p.id===currentId)):'';
- products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};
+ products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};window.GC_WATERMARK?.set(settings);
  if(Array.isArray(data.banks)&&data.banks.length)banks=data.banks;
  renderPaymentTerms();renderCategories();render();cleanItems();renderBanks();renderPaymentDetails();
  if($('cartOverlay')&&!$('cartOverlay').hidden)cartRender();
