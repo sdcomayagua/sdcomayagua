@@ -49,7 +49,7 @@ for(const headers of [oldHeaders,newHeaders]){
  assert.equal(pub.settings.codMinimum,350);
  assert.equal('codMinimumUnits' in pub.settings,false);
  assert.ok(pub.products.every(p=>!('cost' in p)));
- assert.equal(pub.products.find(p=>p.promoPrice>0)?.promoPrice,80);
+ for(const p of sample.filter(p=>p.active))assert.equal(pub.products.find(item=>item.id===p.id)?.promoPrice,Number(p.promoPrice)||0);
  const admin=context.adminPayload_();
  assert.equal(admin.products.length,sample.length);
  assert.equal(admin.products[0].cost,15);

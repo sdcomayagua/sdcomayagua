@@ -150,7 +150,7 @@ function render(){
  $('adminRows').innerHTML=rows.map(p=>`<tr>
    <td data-label="Producto"><div class="admin-product-identity"><img loading="lazy" decoding="async" src="${esc(normalizePreview(p.image||parseGallery(p.gallery)[0]))}" alt="" onerror="this.onerror=null;this.src='assets/img/sin-foto.svg'"><div><strong>${esc(p.name)}</strong><span class="admin-product-meta">${esc(p.category)} · ${esc(p.code||'Sin código')}</span>${p.bestSeller?'<span class="admin-requested-tag">★ Más pedidos</span>':''}${noPhoto(p)?'<span class="admin-photo-tag">Sin foto</span>':''}</div></div></td>
    <td data-label="Precio">${C.money(p.price)}</td>
-   <td data-label="Promoción">${p.promoPrice>0?C.money(p.promoPrice):'—'}</td>
+   <td data-label="Promoción">${p.promoPrice>0?C.money(C.unitPrice(p,1)):'—'}</td>
    <td data-label="Costo">${catalogSource==='privado'?C.money(p.cost):'—'}</td>
    <td data-label="Stock"><span class="admin-stock-pill ${p.stock===0?'empty':p.stock<=3?'low':''}">${p.stock} ${p.stock===1?'unidad':'unidades'}</span></td>
    <td data-label="Pago al recibir"><span style="color:${p.codAllowed?'#0f9f6a':'#d64545'}">${p.codAllowed?'✓ Permitido':'× Prohibido'}</span></td>
