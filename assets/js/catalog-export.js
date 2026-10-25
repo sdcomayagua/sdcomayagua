@@ -142,9 +142,10 @@ function updateDownloads(){
 }
 function preview(){
  const page=state?.pages[state.index];if(!page)return;
- $('catalogExportPreview').src=page.url;$('catalogExportPreview').alt=state.title+' · Página '+(state.index+1)+' de '+state.pages.length;$('catalogExportPreview').hidden=false;$('catalogExportEmpty').hidden=true;
- $('catalogExportPage').textContent=`Página ${state.index+1} de ${state.pages.length}`;$('catalogExportPrevious').disabled=state.index===0;$('catalogExportNext').disabled=state.index===state.pages.length-1;
- document.querySelector('.catalog-export-pages').hidden=state.pages.length<2;updateDownloads();
+ const count=state.busy?state.pageCount:state.pages.length;
+ $('catalogExportPreview').src=page.url;$('catalogExportPreview').alt=state.title+' · Página '+(state.index+1)+' de '+count;$('catalogExportPreview').hidden=false;$('catalogExportEmpty').hidden=true;
+ $('catalogExportPage').textContent=`Página ${state.index+1} de ${count}`;$('catalogExportPrevious').disabled=state.index===0;$('catalogExportNext').disabled=state.index===state.pages.length-1;
+ document.querySelector('.catalog-export-pages').hidden=state.busy||state.pages.length<2;updateDownloads();
 }
 async function share(){
  if(!state||state.busy)return;const file=$('catalogExportFormat').value==='pdf'?state.pdfFile:state.pages[state.index]?.file;if(!file)return;
@@ -164,15 +165,18 @@ async function build(){
   if(!window.GC_CATALOG_PDF)throw Error('No se pudo cargar el generador PDF. Recargá la página.');
   await fonts();if(ticket!==epoch)return;
   if(!context.mirrors){try{const response=await fetch('data/catalogo-fotos.json',{cache:'no-cache'});context.mirrors=response.ok?(await response.json()).images||{}:{};}catch{context.mirrors={};}}
-  const logo=await image(context.logo||'assets/img/logo-rojo.webp'),count=Math.ceil(selected.length/size);
+  const logo=await image(context.logo||'assets/img/logo-rojo.webp'),count=Math.ceil(selected.length/size);context.pageCount=count;
+  let pendingPhotos=photos(context,selected.slice(0,size));
   for(let index=0;index<count;index++){
    if(ticket!==epoch)return;$('catalogExportStatus').textContent=`Preparando página ${index+1} de ${count}…`;
-   const entries=selected.slice(index*size,(index+1)*size),loaded=await photos(context,entries);if(ticket!==epoch)return;
+   const entries=selected.slice(index*size,(index+1)*size),loaded=await pendingPhotos;if(ticket!==epoch)return;
+   if(index+1<count)pendingPhotos=photos(context,selected.slice((index+1)*size,(index+2)*size));
    missing+=entries.filter(p=>!loaded.has(p.id)).length;
    const page=draw(context,entries,loaded,index,count,logo),png=await blob(page.canvas);page.canvas.width=1;page.canvas.height=1;
    await window.GC_CATALOG_PDF.prepare(page,pdfImages);
    if(ticket!==epoch)return;
    const url=URL.createObjectURL(png);context.urls.push(url);context.pages.push({url,file:new File([png],context.filename+'_'+String(index+1).padStart(2,'0')+'.png',{type:'image/png'}),ops:page.ops});
+   if(index===0)preview();
   }
   if(ticket!==epoch)return;
   const contact='https://wa.me/'+String(context.settings.whatsapp||'50431517755').replace(/\D/g,'');
@@ -180,7 +184,7 @@ async function build(){
   const output=await window.GC_CATALOG_PDF.create(context.pages,{width:W,height:H,title:context.title,contact});for(const page of context.pages)delete page.ops;pdfImages.clear();if(ticket!==epoch)return;context.pdfFile=new File([output],context.filename+'.pdf',{type:'application/pdf'});context.pdfUrl=URL.createObjectURL(output);context.urls.push(context.pdfUrl);
   $('catalogExportStatus').textContent=missing?`${missing} foto${missing===1?' no se pudo':'s no se pudieron'} incluir. Podés reintentar antes de compartir.`:'Catálogo listo · PNG en alta resolución y PDF con texto nítido.';$('catalogExportRetry').hidden=!missing;
   context.busy=false;preview();
- }catch(error){if(ticket===epoch){release(context);context.pages=[];$('catalogExportEmpty').textContent='No se pudo crear el catálogo.';$('catalogExportStatus').textContent=error.message;$('catalogExportRetry').hidden=false;}}
+ }catch(error){if(ticket===epoch){release(context);context.pages=[];$('catalogExportPreview').hidden=true;$('catalogExportEmpty').hidden=false;$('catalogExportEmpty').textContent='No se pudo crear el catálogo.';$('catalogExportStatus').textContent=error.message;$('catalogExportRetry').hidden=false;}}
  finally{if(ticket===epoch){context.busy=false;for(const id of ['catalogExportPrices','catalogExportOut','catalogExportGroup','catalogExportDensity'])$(id).disabled=false;updateDownloads();}}
 }
 function open(options){
