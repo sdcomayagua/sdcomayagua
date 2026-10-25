@@ -103,6 +103,13 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await catalog.locator('#catalogExportText').selectOption('none');await ready();
   await download('catalogo-4x4.png');await catalog.locator('#catalogExportFormat').selectOption('pdf');const densePdf=await download('catalogo-4x4.pdf');assert.equal((densePdf.toString('latin1').match(/\/Type \/Page \/Parent/g)||[]).length,2);
   await catalog.locator('#catalogExportNext').click();await catalog.locator('#catalogExportFormat').selectOption('image');await download('catalogo-4x4-ultima.png');await catalog.locator('#catalogExportClose').click();
+  const photoCases=[{...products[0],id:'GALLERY',image:'assets/products/no-existe.webp',gallery:'assets/products/kouvolsen-x36-usb-c.webp'},{...products[1],id:'ASK-PHOTO',image:'',gallery:''}];
+  await catalog.evaluate(products=>{window.__photoFallbackRequests=0;window.GC_CATALOG_EXPORT.open({products,title:'Fotos',url:location.href,photoLoader:async()=>{window.__photoFallbackRequests++;return[];}});},photoCases);await ready();
+  assert.equal(await catalog.evaluate(()=>window.__photoFallbackRequests),0);assert.match(await catalog.locator('#catalogExportStatus').innerText(),/1 producto sin foto/);
+  const photoScene=await catalog.evaluate(()=>window.__catalogScenes[0]),galleryCard=photoScene.find(op=>op.kind==='link'&&op.url.includes('producto=GALLERY'));
+  assert.ok(photoScene.some(op=>op.kind==='image'&&op.x>=galleryCard.x&&op.y>=galleryCard.y&&op.x+op.w<=galleryCard.x+galleryCard.w&&op.y+op.h<=galleryCard.y+galleryCard.h));
+  const requestPhoto=photoScene.find(op=>op.kind==='link'&&op.url.startsWith('https://wa.me/')&&op.url.includes('?text='));assert.ok(requestPhoto);assert.match(new URL(requestPhoto.url).searchParams.get('text'),/Dedales V2.*Dedales-002/);
+  await download('catalogo-foto-por-whatsapp.png');await catalog.locator('#catalogExportFormat').selectOption('pdf');await download('catalogo-foto-por-whatsapp.pdf');await catalog.locator('#catalogExportClose').click();
   assert.deepEqual(errors,[]);console.log('PASS catálogo y papelera UI: eliminar/cancelar/restaurar, stock intacto, filtros completos, fotos, PNG, PDF paginado, compartir nativo y móvil.');
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exit(1);});

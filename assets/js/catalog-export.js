@@ -74,11 +74,19 @@ function primary(product){
  return String(product.image||(Array.isArray(gallery)?gallery[0]:String(gallery||'').split(/[\n,;|]/)[0])||'');
 }
 function validSource(src){return /^https:\/\//i.test(src)||/^assets\/(?:products|catalog)\/[\w.-]+$/.test(src);}
+function photoSources(product){
+ let gallery=product.gallery;try{gallery=JSON.parse(gallery)}catch{}
+ const extras=Array.isArray(gallery)?gallery:String(gallery||'').split(/[\n,;|]/);
+ return [...new Set([primary(product),...extras].map(src=>String(src||'').trim()).filter(validSource))].slice(0,10);
+}
 async function photos(context,products){
  const loaded=new Map(),missing=[];
  await Promise.all(products.map(async product=>{
-  const raw=primary(product),mirror=context.mirrors?.[product.id],src=mirror&&mirror.source===raw&&/^assets\/catalog\/[a-f0-9]{24}\.(?:jpg|png|webp|gif)$/.test(mirror.path)?mirror.path:raw;
-  const img=await image(validSource(src)?src:'');if(img)loaded.set(product.id,img);else if(raw)missing.push(product);
+  const raw=primary(product),mirror=context.mirrors?.[product.id],sources=photoSources(product);
+  if(mirror&&mirror.source===raw&&/^assets\/catalog\/[a-f0-9]{24}\.(?:jpg|png|webp|gif)$/.test(mirror.path))sources.unshift(mirror.path);
+  for(const src of sources){const img=await image(src);if(img){loaded.set(product.id,img);return;}}
+  // El respaldo de Apps Script solo puede resolver fotos de Google Drive.
+  if(/^https:\/\/drive\.google\.com\/(?:thumbnail\?id=|file\/d\/)/i.test(raw))missing.push(product);
  }));
  if(missing.length&&context.photoLoader){
   try{
@@ -215,7 +223,18 @@ function draw(context,products,loaded,index,count,logo){
   box(photoX,photoY,photoW,photoH,'#f3f6f9','',dense?8:12);
   const img=loaded.get(product.id);
   if(img){const rect=photo(img,photoX+2,photoY+2,photoW-4,photoH-4);watermark(rect.x,rect.y,rect.w,rect.h,settings);}
-  else label('FOTO NO DISPONIBLE',photoX+photoW/2,photoY+photoH/2,{size:dense?14:22,bold:true,color:muted,width:photoW-30,align:'center',fit:true});
+  else{
+   const cx=photoX+photoW/2,cy=photoY+photoH*.28,iconSize=Math.min(104,photoH*.2),buttonW=Math.min(300,photoW-36),buttonY=photoY+photoH*.72,buttonH=Math.min(48,photoH*.18);
+   box(cx-iconSize*.5,cy-iconSize*.25,iconSize,iconSize*.65,'','#a1b5c7',iconSize*.1);
+   box(cx-iconSize*.2,cy-iconSize*.38,iconSize*.4,iconSize*.15,'#a1b5c7','',3);circle(cx,cy+iconSize*.08,iconSize*.19,'','#a1b5c7');
+   label('Consultá la foto',cx,photoY+photoH*.52,{size:dense?18:compact?25:32,bold:true,color:ink,width:photoW-30,align:'center',fit:true});
+   label('Te la enviamos por WhatsApp',cx,photoY+photoH*.63,{size:dense?12:compact?17:20,color:muted,width:photoW-30,align:'center',fit:true});
+   box(cx-buttonW/2,buttonY,buttonW,buttonH,'#173b58','',7);
+   label('PEDIR FOTO',cx,buttonY+buttonH*.7,{size:dense?12:17,bold:true,color:'#ffffff',width:buttonW-16,align:'center',fit:true});
+   const phone=String(settings.whatsapp||'50431517755').replace(/\D/g,'');
+   const message='Hola, quisiera una foto de '+product.name+' (código '+(product.code||product.id)+').';
+   link(cx-buttonW/2,buttonY,buttonW,buttonH,'https://wa.me/'+phone+'?text='+encodeURIComponent(message));
+  }
   const price=C.unitPrice(product,1),promo=price>0&&price<product.price,available=product.stock>0;
   const status=available?product.stock+' disponible'+(product.stock===1?'':'s'):'AGOTADO';
   const tx=wide?photoX+photoW+34:x+pad,tw=x+w-pad-tx;
@@ -239,7 +258,7 @@ function draw(context,products,loaded,index,count,logo){
   box(stockX,pillY,stockW,pillH,available?'#e8f4ee':'#edf0f4','',dense?5:7);
   label(status,stockX+stockW/2,pillY+pillH*.72,{size:dense?14:compact?16:19,bold:true,color:available?'#087451':'#6a7888',width:stockW-12,align:'center',fit:true});
   label('Cód. '+(product.code||product.id),tx+tw,bandY+(dense?53:compact?63:74),{size:dense?12:compact?15:17,color:muted,width:stockW,align:'right',fit:true});
-  link(x,y,w,h,productUrl(context,product));
+  link(x,img?y:photoY+photoH,w,img?h:y+h-photoY-photoH,productUrl(context,product));
  });
  const footerY=1850,phone=String(settings.whatsapp||'50431517755').replace(/\D/g,''),formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
  label('Precios y existencias sujetos a confirmación.',margin,1839,{size:15,color:muted,width:inner-210});
@@ -313,7 +332,7 @@ async function build(){
   if(context.multipleCategories&&$('catalogExportGroup').checked){const seen=new Set();selected.forEach((product,index)=>{const title=String(product.category||'Otros').trim()||'Otros';if(!seen.has(title)){seen.add(title);sections.push({title,page:Math.floor(index/size)});}});}
   $('catalogExportStatus').textContent='Preparando PDF de alta calidad…';
   const output=await window.GC_CATALOG_PDF.create(context.pages,{width:W,height:H,title:context.title,contact,sections});for(const page of context.pages)delete page.ops;pdfImages.clear();if(ticket!==epoch)return;context.pdfFile=new File([output],context.filename+'.pdf',{type:'application/pdf'});context.pdfUrl=URL.createObjectURL(output);context.urls.push(context.pdfUrl);
-  $('catalogExportStatus').textContent=missing?`${missing} foto${missing===1?' no se pudo':'s no se pudieron'} incluir. Podés reintentar antes de compartir.`:'Catálogo listo · PNG en alta resolución y PDF con texto nítido.';$('catalogExportRetry').hidden=!missing;
+  $('catalogExportStatus').textContent=missing?`Catálogo listo · ${missing} producto${missing===1?' sin foto: incluye':'s sin foto: incluyen'} acceso para solicitarla por WhatsApp.`:'Catálogo listo · PNG en alta resolución y PDF con texto nítido.';$('catalogExportRetry').hidden=!missing;
   if(context.omittedText)$('catalogExportStatus').textContent+=' '+context.omittedText+(context.omittedText===1?' texto no cabe completo':' textos no caben completos')+': acortá la frase o elegí menos productos.';
   context.busy=false;preview();
  }catch(error){if(ticket===epoch){release(context);context.pages=[];$('catalogExportPreview').hidden=true;$('catalogExportEmpty').hidden=false;$('catalogExportEmpty').textContent='No se pudo crear el catálogo.';$('catalogExportStatus').textContent=error.message;$('catalogExportRetry').hidden=false;}}
