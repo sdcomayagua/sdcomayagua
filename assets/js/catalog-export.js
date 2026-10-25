@@ -190,12 +190,18 @@ function draw(context,products,loaded,index,count,logo){
  label('CATÁLOGO / '+context.year,W-60,60,{size:23,bold:true,color:'#ffffff',width:315,align:'right',fit:true});
  label(context.date,W-60,98,{size:21,color:'#d4e0eb',width:315,align:'right'});box(W-132,120,72,6,red);
  box(72,164,11,66,red,'',5);
- const title=label(context.title,111,225,{size:82,bold:true,color:'#ffffff',width:inner*.64,fit:true});
  const categories=[...new Set(products.map(p=>p.category).filter(Boolean))];
- const subtitle=context.multipleCategories?categories.join(' · '):context.count+' producto'+(context.count===1?'':'s')+' · '+(context.prices?'Precios en lempiras':'Consultá disponibilidad');
- const subtitleX=111+title.width+62,subtitleW=W-60-subtitleX;
- if(subtitleW>350){box(subtitleX-30,170,2,59,'#a6b8ca');label(subtitle,subtitleX,209,{size:21,color:'#d4e0eb',width:subtitleW,fit:true});}
- else label(subtitle,112,246,{size:17,color:'#d4e0eb',width:inner-120,fit:true});
+ if(context.multipleCategories){
+  label(context.title,111,207,{size:56,bold:true,color:'#ffffff',width:inner-150,fit:true});
+  const subtitle=categories.slice(0,4).join(' · ')+(categories.length>4?' · '+(categories.length-4)+' categorías más':'');
+  label(subtitle,112,241,{size:20,color:'#d4e0eb',width:inner-120,fit:true});
+ }else{
+  const title=label(context.title,111,225,{size:82,bold:true,color:'#ffffff',width:inner*.64,fit:true});
+  const subtitle=context.count+' producto'+(context.count===1?'':'s')+' · '+(context.prices?'Precios en lempiras':'Consultá disponibilidad');
+  const subtitleX=111+title.width+62,subtitleW=W-60-subtitleX;
+  if(subtitleW>350){box(subtitleX-30,170,2,59,'#a6b8ca');label(subtitle,subtitleX,209,{size:21,color:'#d4e0eb',width:subtitleW,fit:true});}
+  else label(subtitle,112,246,{size:17,color:'#d4e0eb',width:inner-120,fit:true});
+ }
  // Cada cuadrícula conserva el tamaño de sus tarjetas también en la última página.
  const dense=density===16,compact=density===6,wide=density===2,hasExtra=context.textMode!=='none';
  const columns=dense?4:wide?1:2,rows=dense?4:compact?3:2;
@@ -303,8 +309,10 @@ async function build(){
   }
   if(ticket!==epoch)return;
   const contact='https://wa.me/'+String(context.settings.whatsapp||'50431517755').replace(/\D/g,'');
+  const sections=[];
+  if(context.multipleCategories&&$('catalogExportGroup').checked){const seen=new Set();selected.forEach((product,index)=>{const title=String(product.category||'Otros').trim()||'Otros';if(!seen.has(title)){seen.add(title);sections.push({title,page:Math.floor(index/size)});}});}
   $('catalogExportStatus').textContent='Preparando PDF de alta calidad…';
-  const output=await window.GC_CATALOG_PDF.create(context.pages,{width:W,height:H,title:context.title,contact});for(const page of context.pages)delete page.ops;pdfImages.clear();if(ticket!==epoch)return;context.pdfFile=new File([output],context.filename+'.pdf',{type:'application/pdf'});context.pdfUrl=URL.createObjectURL(output);context.urls.push(context.pdfUrl);
+  const output=await window.GC_CATALOG_PDF.create(context.pages,{width:W,height:H,title:context.title,contact,sections});for(const page of context.pages)delete page.ops;pdfImages.clear();if(ticket!==epoch)return;context.pdfFile=new File([output],context.filename+'.pdf',{type:'application/pdf'});context.pdfUrl=URL.createObjectURL(output);context.urls.push(context.pdfUrl);
   $('catalogExportStatus').textContent=missing?`${missing} foto${missing===1?' no se pudo':'s no se pudieron'} incluir. Podés reintentar antes de compartir.`:'Catálogo listo · PNG en alta resolución y PDF con texto nítido.';$('catalogExportRetry').hidden=!missing;
   if(context.omittedText)$('catalogExportStatus').textContent+=' '+context.omittedText+(context.omittedText===1?' texto no cabe completo':' textos no caben completos')+': acortá la frase o elegí menos productos.';
   context.busy=false;preview();

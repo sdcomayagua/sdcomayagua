@@ -10,10 +10,10 @@ function literal(value){
 }
 function uri(value){try{const u=new URL(value);return /^https?:$/.test(u.protocol)?u.href.replace(/[\\()]/g,'\\$&'):'';}catch{return '';}}
 async function jpeg(img){
- const scale=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');
+ const scale=Math.min(1,1400/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');
  canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
  const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
- const data=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('No se pudo preparar una foto para el PDF.')),'image/jpeg',.96));
+ const data=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('No se pudo preparar una foto para el PDF.')),'image/jpeg',.90));
  const result={width:canvas.width,height:canvas.height,bytes:new Uint8Array(await data.arrayBuffer())};canvas.width=1;canvas.height=1;return result;
 }
 async function prepare(page,cache){
@@ -35,7 +35,13 @@ async function create(pages,options){
  for(const [name,base] of Object.entries(baseFonts)){fontIds[name]=reserve();objects[fontIds[name]]=`<< /Type /Font /Subtype /Type1 /BaseFont /${base} /Encoding /WinAnsiEncoding >>`;}
  const pageIds=pages.map(()=>({page:reserve(),content:reserve(),links:[]}));
  for(const page of pages)for(const op of page.ops)if(op.kind==='image'&&!images.has(op.image))images.set(op.image,{id:reserve(),data:op.image});
- objects[catalog]=`<< /Type /Catalog /Pages ${tree} 0 R /PageLayout /OneColumn >>`;
+ const sections=(options.sections||[]).filter(section=>String(section.title||'').trim()&&Number.isInteger(section.page)&&section.page>=0&&section.page<pages.length);
+ const outline=sections.length?reserve():null,outlineIds=sections.map(()=>reserve());
+ if(outline){
+  objects[outline]=`<< /Type /Outlines /First ${outlineIds[0]} 0 R /Last ${outlineIds.at(-1)} 0 R /Count ${sections.length} >>`;
+  sections.forEach((section,index)=>{objects[outlineIds[index]]=`<< /Title ${literal(section.title)} /Parent ${outline} 0 R /Dest [${pageIds[section.page].page} 0 R /Fit]${index?' /Prev '+outlineIds[index-1]+' 0 R':''}${index+1<sections.length?' /Next '+outlineIds[index+1]+' 0 R':''} >>`;});
+ }
+ objects[catalog]=`<< /Type /Catalog /Pages ${tree} 0 R /PageLayout /OneColumn${outline?' /Outlines '+outline+' 0 R':''} >>`;
  objects[tree]=`<< /Type /Pages /Count ${pages.length} /Kids [${pageIds.map(p=>p.page+' 0 R').join(' ')}] >>`;
  for(const [name,id] of [['regular',regular],['bold',bold]]){
   const font=window.GC_CATALOG_FONTS[name],descriptor=reserve(),file=reserve(),bytes=decode(font.data);
