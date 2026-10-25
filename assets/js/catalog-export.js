@@ -78,11 +78,24 @@ function artist(){
  };
  const photo=(img,x,y,w,h)=>{if(!img)return;const s=Math.min(w/img.naturalWidth,h/img.naturalHeight),dw=img.naturalWidth*s,dh=img.naturalHeight*s,left=x+(w-dw)/2,top=y+(h-dh)/2;ctx.drawImage(img,left,top,dw,dh);ops.push({kind:'image',img,x:left,y:top,w:dw,h:dh});};
  const link=(x,y,w,h,url)=>ops.push({kind:'link',x,y,w,h,url});
- return {canvas,ops,box,label,photo,link};
+ const watermark=(x,y,w,h,settings)=>{
+  const o=window.GC_WATERMARK?.options(settings);if(!o?.watermarkEnabled)return;
+  const text=o.watermarkText,size=Math.max(10,Math.min(w*.078,h*.076,w*.78/(Math.max(5,text.length)*.62))),alpha=o.watermarkOpacity;
+  const marks=window.GC_WATERMARK.marks;
+  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.globalAlpha=alpha;ctx.globalCompositeOperation='difference';
+  ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 '+size+'px "GC Catalog", Arial';
+  for(const [u,v] of marks){
+   const xx=x+w*u/1000,yy=y+h*v/1000;
+   ctx.save();ctx.translate(xx,yy);ctx.rotate(-27*Math.PI/180);ctx.fillText(text,0,0,w*.49);ctx.restore();
+   ops.push({kind:'watermark',x:xx,y:yy,value:text,size,angle:-27,alpha});
+  }
+  ctx.restore();
+ };
+ return {canvas,ops,box,label,photo,link,watermark};
 }
 function productUrl(context,product){try{const url=new URL('productos.html',context.url||document.baseURI);url.searchParams.set('producto',product.id);return url.href;}catch{return '';}}
 function draw(context,products,loaded,index,count,logo){
- const page=artist(),{box,label,photo,link}=page,margin=72,inner=W-margin*2,gap=28,ink='#172333',muted='#657386',red='#c72835';
+ const page=artist(),{box,label,photo,link,watermark}=page,margin=72,inner=W-margin*2,gap=28,ink='#172333',muted='#657386',red='#c72835';
  box(0,0,W,H,'#f3f4f6');box(0,0,W,292,'#111b29');box(0,0,W,10,red);
  if(logo){box(margin-2,35,116,116,'#ffffff','',10);photo(logo,margin+3,40,106,106);}
  const brandX=logo?margin+137:margin;
@@ -103,7 +116,7 @@ function draw(context,products,loaded,index,count,logo){
   box(x,y+4,w,h,'#e7eaf0','',16);box(x,y,w,h,'#ffffff','#dee4ec',16);
   box(photoX,photoY,imageW,imageH,'#f8fafc','',10);
   const img=loaded.get(product.id);
-  if(img)photo(img,photoX+5,photoY+5,imageW-10,imageH-10);
+  if(img){photo(img,photoX+5,photoY+5,imageW-10,imageH-10);watermark(photoX+5,photoY+5,imageW-10,imageH-10,context.settings);}
   else{
    label('FOTO NO DISPONIBLE',photoX+imageW/2,photoY+imageH/2,{size:columns===1?23:18,color:muted,width:imageW-25,align:'center'});
    label('Consultá por WhatsApp',photoX+imageW/2,photoY+imageH/2+30,{size:columns===1?19:15,color:muted,width:imageW-25,align:'center'});
