@@ -98,7 +98,7 @@ function draw(context,products,loaded,index,count,logo){
  products.forEach((product,i)=>{
   const centered=columns===2&&products.length%2===1&&i===products.length-1;
   const x=centered?(W-w)/2:margin+(i%columns)*(w+gap),y=top+Math.floor(i/columns)*(h+gap);
-  const pad=columns===1?34:22,imageW=Math.round(w*(columns===1?.52:.54)),imageH=h-2*pad;
+  const pad=columns===1?34:22,imageW=Math.round(w*(columns===1 ? 0.52 : 0.54)),imageH=h-2*pad;
   const photoX=x+pad,photoY=y+pad,infoX=photoX+imageW+(columns===1?30:19),infoW=x+w-pad-infoX;
   box(x,y+4,w,h,'#e7eaf0','',16);box(x,y,w,h,'#ffffff','#dee4ec',16);
   box(photoX,photoY,imageW,imageH,'#f8fafc','',10);
@@ -117,8 +117,8 @@ function draw(context,products,loaded,index,count,logo){
   if(!description&&detail.technology)description=String(detail.technology);
   const detailsY=y+(compact?188:solo?465:268),descriptionLines=solo?11:columns===1?6:compact?3:6;
   if(description)label(description,infoX,detailsY,{size:solo?24:columns===1?21:compact?16:18,color:'#536177',width:infoW,lines:descriptionLines,lineHeight:solo?35:columns===1?30:compact?23:27});
-  if((!description||columns===1)&&detail.technology){
-   const techY=description?detailsY+(solo?335:190):detailsY;
+  if(columns===1&&!solo&&description&&detail.technology&&!description.toLocaleLowerCase('es').includes(String(detail.technology).toLocaleLowerCase('es'))){
+   const techY=detailsY+190;
    if(techY<y+h-220)label(String(detail.technology),infoX,techY,{size:columns===1?19:16,bold:true,color:'#314a67',width:infoW,lines:2,lineHeight:25});
   }
   const price=C.unitPrice(product,1),promo=price>0&&price<product.price,priceY=y+h-(solo?170:columns===1?132:compact?118:139);
