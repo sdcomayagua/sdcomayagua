@@ -26,6 +26,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   const names=['Dedales V1 - Fibra de Carbón','Dedales V2 - Hilo de Plata','Dedales Gamer Pro de doble capa para pantalla táctil','Dedales de tejido transpirable','Dedales V5','Dedales MEMO para celular','Dedales edición azul','Dedales agotados'];
   const products=names.map((name,index)=>({id:'DEDAL-'+index,code:'Dedales-'+String(index+1).padStart(3,'0'),name,category:'Dedales',price:index===0?25:40+index*10,promoPrice:index===1?45:0,stock:index===7?0:20-index,active:true,codAllowed:true,image:index===2?'https://drive.google.com/thumbnail?id=PUBLIC_MIRROR_PHOTO&sz=w1200':'assets/products/kouvolsen-x36-usb-c.webp',cost:999999}));
   products[0].description='Tejido cómodo para jugar en pantallas táctiles.';products[0].details={material:'Fibra de carbono'};products[0].gallery='assets/products/voltrax-vc07-65w.webp';
+  products[6].description='Dedales con tejido conductor para jugar con mayor sensibilidad, comodidad y precisión. Compatibles con juegos táctiles en teléfonos Android y iPhone.';
+  products[7].description='Accesorio diseñado para mejorar el deslizamiento de los dedos sobre la pantalla del celular durante las partidas. Su tejido ligero permite un uso cómodo y una respuesta constante al tocar los controles. Es compatible con Free Fire, Call of Duty Mobile, PUBG Mobile y otros juegos de pantalla táctil. Antes de realizar tu compra, consultá la disponibilidad, los colores y las formas de pago. El precio corresponde al producto publicado. Para conservarlo en buen estado, guardalo limpio y seco después de usarlo y evitá estirar el tejido con fuerza.';
   products.push({id:'OTHER',name:'Artículo de otra categoría',category:'Otros',price:999,stock:3,active:true},{id:'HIDDEN',name:'Producto privado oculto',category:'Dedales',price:999,stock:4,active:false});
   const photoBytes=fs.readFileSync(path.join(root,'assets/products/voltrax-vc07-65w.webp')),context=await browser.newContext({viewport:{width:1440,height:1050}}),catalog=await context.newPage();catalog.on('pageerror',error=>errors.push(error.message));
   await context.route('**/data/catalogo-inicial.js?*',route=>route.fulfill({contentType:'application/javascript',body:'window.GC_CATALOGO_INICIAL='+JSON.stringify(products)+';'}));
@@ -68,8 +70,14 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await catalog.locator('#catalogExportDensity').selectOption('6');await ready();await download('catalogo-compacto.pdf');
   await catalog.locator('#catalogExportFormat').selectOption('image');await download('catalogo-compacto.png');await catalog.locator('#catalogExportFormat').selectOption('pdf');
   await catalog.locator('#catalogExportDensity').selectOption('4');await ready();
-  await catalog.locator('#catalogExportDensity').selectOption('2');await ready();await download('catalogo-fotos-extra-grandes.pdf');
-  await catalog.locator('#catalogExportDensity').selectOption('4');await ready();
+  await catalog.locator('#catalogExportDensity').selectOption('2');await ready();assert.equal(await catalog.locator('#catalogExportText').inputValue(),'description');
+  for(const product of [products[0],products[6],products[7]])assert.ok((await exportedText()).includes(product.description),'Dos productos por página deben incluir su contenido completo.');
+  await download('catalogo-fotos-extra-grandes.pdf');await catalog.locator('#catalogExportFormat').selectOption('image');await download('catalogo-dos-productos-contenido.png');await catalog.locator('#catalogExportFormat').selectOption('pdf');
+  await catalog.locator('#catalogExportText').selectOption('none');await ready();assert.ok(!(await exportedText()).includes(products[7].description));
+  await catalog.locator('#catalogExportDensity').selectOption('4');await ready();assert.equal(await catalog.locator('#catalogExportText').inputValue(),'none');
+  await catalog.locator('#catalogExportDensity').selectOption('2');await ready();assert.equal(await catalog.locator('#catalogExportText').inputValue(),'none');
+  await catalog.locator('#catalogExportText').selectOption('description');await ready();assert.ok((await exportedText()).includes(products[7].description));
+  await catalog.locator('#catalogExportDensity').selectOption('4');await ready();assert.equal(await catalog.locator('#catalogExportText').inputValue(),'none');
   await catalog.locator('#catalogExportShare').click();assert.equal((await catalog.evaluate(()=>window.__shared.at(-1))).files[0].type,'application/pdf');
   await catalog.locator('#catalogExportOut').uncheck();await ready();assert.match(await catalog.locator('#catalogExportCount').innerText(),/^7 productos/);
   await catalog.locator('#catalogExportPrices').uncheck();await ready();assert.equal(await catalog.locator('#catalogExportPricesHelp').isVisible(),true);await catalog.locator('#catalogExportPrices').check();await ready();assert.equal(await catalog.locator('#catalogExportPricesHelp').isVisible(),false);
