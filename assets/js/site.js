@@ -126,14 +126,15 @@ function render(){
  $('productGrid').innerHTML=list.slice(0,visible).map(card).join('')||'<div class="empty catalog-empty"><strong>No encontramos productos con esos filtros.</strong><p>Probá con nombre, marca, modelo o código.</p><button type="button" class="btn outline" data-reset-filters>Ver todo el catálogo</button></div>';
  $('showMore')?.classList.toggle('hidden',list.length<=visible);
 }
-function open(id){
+function open(id,preserve=false){
  const p=products.find(x=>x.id===id);if(!p)return;currentId=id;
- detailTrigger=document.activeElement;
+ const active=document.activeElement,previous=preserve&&!$('detailOverlay').hidden?{scroll:$('detailContent').scrollTop,photo:$('detailPhoto')?.src,focusId:active?.id,photoFocus:active?.hasAttribute('data-photo-index'),inside:$('detailContent').contains(active)}:null;
+ if(!previous)detailTrigger=active;
  const images=galleryOf(p).length?galleryOf(p):[imgFallback];
  const unit=C.unitPrice(p,1),reduced=unit<p.price;
  const amount=reduced?`<div class="product-price detail-price is-promo"><span class="price-previous">Antes <s>${C.money(p.price)}</s></span><span class="price-line"><strong class="price-current">${C.money(unit)}</strong><span class="offer-badge">Oferta</span></span></div>`:`<div class="product-price detail-price"><strong class="price-current">${C.money(unit)}</strong></div>`;
  const detailText=String(p.description||'').trim()
-   ?`<section class="gc-product-description"><h4>Descripción del producto</h4><p>${safe(p.description.trim())}</p></section>`:'';
+   ?`<section class="gc-product-description"><h4>Descripción</h4><p>${safe(p.description.trim())}</p></section>`:'';
  const specs=C.cleanDetails(p.details);
  const specRows=[];
  const feature=(label,value)=>{if(value!==''&&value!==undefined&&value!==null)specRows.push(`<div class="gc-spec-row"><dt>${safe(label)}</dt><dd>${safe(value)}</dd></div>`);};
@@ -160,17 +161,20 @@ function open(id){
  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>';
  const navigation=images.length>1?`<button class="detail-gallery-arrow previous" type="button" data-gallery-step="-1" aria-label="Ver foto anterior">${arrow}</button><button class="detail-gallery-arrow next" type="button" data-gallery-step="1" aria-label="Ver foto siguiente">${arrow}</button>`:'';
  const thumbs=images.length>1?`<div class="detail-gallery-meta"><span>Fotos del producto</span><span id="detailPhotoCount" aria-live="polite" aria-atomic="true">1 de ${images.length}</span></div><div class="detail-thumbs" role="group" aria-label="Elegir foto del producto">${images.map((u,i)=>`<button type="button" class="detail-thumb ${i===0?'active':''}" data-photo-index="${i}" aria-pressed="${i===0}" aria-label="Ver foto ${i+1} de ${images.length}"><img loading="lazy" decoding="async" src="${escapeAttr(normalize(u))}" alt="" onerror="this.onerror=null;this.src='${imgFallback}'"></button>`).join('')}</div>`:'';
- const paymentNote=p.codAllowed?`<strong>Admite pago al recibir</strong><span>Compra mínima de ${C.money(settings.codMinimum??config.codMinimum)} en productos elegibles.</span>`:'<strong>Transferencia o Tigo Money</strong><span>Este producto no admite pago al recibir.</span>';
+ const paymentNote=p.codAllowed?`<strong>Pago al recibir</strong><span>Disponible desde ${C.money(settings.codMinimum??config.codMinimum)} en productos elegibles.</span>`:'<strong>Pago anticipado</strong><span>Transferencia o Tigo Money para este producto.</span>';
  const extra=detailText||technical?`<div class="detail-extra ${detailText&&technical?'has-both':''}">${detailText}${technical}</div>`:'';
  const cartIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01M14 7v6M11 10h6"/></svg>';
- $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)} — Foto 1 de ${images.length}">${navigation}</div>${thumbs}</div><div class="detail-info"><div class="detail-topline"><div class="category">${safe(p.category)}</div><span class="detail-stock ${p.stock?'':'sold-out'}">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Agotado'}</span></div><h3 id="detailTitle">${safe(p.name)}</h3>${amount}${promotion}<div class="detail-payment-note"><span class="detail-payment-symbol" aria-hidden="true">${p.codAllowed?'✓':'i'}</span><div>${paymentNote}</div></div><div class="detail-buttons"><button class="btn" id="detailAdd" type="button" ${p.stock?'':'disabled'}>${cartIcon}<span>${p.stock?'Agregar al carrito':'Sin existencias'}</span></button><button class="btn outline" id="detailWA" type="button">Consultar por WhatsApp</button></div><button class="detail-share" id="detailShare" type="button">Compartir este producto ↗</button></div>${extra}</div>`;
- const photo=$('detailPhoto'),media=$('detailContent').querySelector('.detail-media');
- const photoFallback=()=>{photo.onerror=()=>{photo.onerror=null;photo.src=imgFallback}};
+ const expandIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M3 3l6 6m12-6-6 6M3 21l6-6m12 6-6-6"/></svg>';
+ const chatIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.7 7.4L3 21l1.6-5.5A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 8c0 4 2 6 6 6l1-2-2-1-1 1-2-2 1-1-1-2-2 1Z"/></svg>';
+ const shareIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m9 10 6-4M9 14l6 4"/></svg>';
+ $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)} — Foto 1 de ${images.length}">${navigation}<a class="detail-open-photo" id="detailOpenPhoto" href="${escapeAttr(normalize(images[0]))}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar foto del producto" ${images[0]===imgFallback?'hidden':''}>${expandIcon}<span>Ampliar</span></a></div>${thumbs}</div><div class="detail-info"><div class="detail-topline"><div class="category">${safe(p.category)}</div><span class="detail-stock ${p.stock?'':'sold-out'}">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Agotado'}</span></div><h3 id="detailTitle">${safe(p.name)}</h3>${p.code?`<p class="detail-code">Código: <span>${safe(p.code)}</span></p>`:''}<div class="detail-price-block"><span class="detail-price-label">Precio por unidad</span>${amount}${promotion}</div><div class="detail-buttons"><button class="btn" id="detailAdd" type="button" ${p.stock?'':'disabled'}>${cartIcon}<span>${p.stock?'Agregar al carrito':'Sin existencias'}</span></button><div class="detail-secondary-actions"><button class="btn outline" id="detailWA" type="button" aria-label="Consultar por WhatsApp">${chatIcon}<span>Consultar</span></button><button class="btn outline" id="detailShare" type="button" aria-label="Compartir este producto">${shareIcon}<span>Compartir</span></button></div></div><div class="detail-payment-note"><span class="detail-payment-symbol" aria-hidden="true">${p.codAllowed?'✓':'i'}</span><div>${paymentNote}</div></div>${extra}</div></div>`;
+ const photo=$('detailPhoto'),photoLink=$('detailOpenPhoto'),media=$('detailContent').querySelector('.detail-media');
+ const photoFallback=()=>{photo.onerror=()=>{photo.onerror=null;photo.src=imgFallback;photoLink.hidden=true;}};
  photoFallback();
  let photoIndex=0;
  const showPhoto=index=>{
   photoIndex=(index+images.length)%images.length;
-  photoFallback();photo.src=normalize(images[photoIndex]);photo.alt=`${p.name} — Foto ${photoIndex+1} de ${images.length}`;
+  photoFallback();photo.src=normalize(images[photoIndex]);photoLink.href=normalize(images[photoIndex]);photoLink.hidden=images[photoIndex]===imgFallback;photo.alt=`${p.name} — Foto ${photoIndex+1} de ${images.length}`;
   if($('detailPhotoCount'))$('detailPhotoCount').textContent=`${photoIndex+1} de ${images.length}`;
   media.querySelectorAll('.detail-thumb').forEach((button,i)=>{button.classList.toggle('active',i===photoIndex);button.setAttribute('aria-pressed',String(i===photoIndex))});
   const strip=media.querySelector('.detail-thumbs'),selected=strip?.children[photoIndex];
@@ -182,8 +186,12 @@ function open(id){
  $('detailAdd').onclick=()=>{add(id);close('detailOverlay')};
  $('detailWA').onclick=()=>window.open('https://wa.me/'+config.whatsapp+'?text='+encodeURIComponent('Hola Gamer Comayagua, quiero consultar por '+p.name),'_blank','noopener');
  $('detailShare').onclick=()=>shareCatalogLink(p.name+' | Gamer Comayagua',catalogUrl(p.id));
- $('detailOverlay').hidden=false;$('detailContent').scrollTop=0;document.body.style.overflow='hidden';
- $('detailOverlay').querySelector('[data-close]').focus({preventScroll:true});
+ $('detailOverlay').hidden=false;document.body.style.overflow='hidden';
+ if(previous){
+  const restored=images.findIndex(url=>new URL(normalize(url),document.baseURI).href===previous.photo);if(restored>0)showPhoto(restored);
+  if(previous.inside){const target=previous.photoFocus?media.querySelector(`[data-photo-index="${photoIndex}"]`):$(previous.focusId);(target||$('detailOverlay').querySelector('[data-close]')).focus({preventScroll:true});}
+  $('detailContent').scrollTop=previous.scroll;
+ }else{$('detailContent').scrollTop=0;$('detailOverlay').querySelector('[data-close]').focus({preventScroll:true});}
 }
 function add(id){const p=products.find(x=>x.id===id);if(!p||p.stock<=0)return toast('Producto agotado');if((cart[id]||0)>=p.stock)return toast('No hay más unidades disponibles');cart[id]=(cart[id]||0)+1;cleanItems();toast('Producto agregado al carrito');}
 function close(overlay){const el=$(overlay);if(!el||el.hidden)return;el.hidden=true;document.body.style.overflow=document.querySelector('.overlay:not([hidden])')?'hidden':'';if(overlay==='detailOverlay'&&detailTrigger?.isConnected){detailTrigger.focus({preventScroll:true});detailTrigger=null;}}
@@ -303,10 +311,12 @@ function printQuote(){
 }
 function handlePublic(data){
  if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');
+ const showingDetail=$('detailOverlay')&&!$('detailOverlay').hidden,oldDetail=showingDetail?JSON.stringify(products.find(p=>p.id===currentId)):'';
  products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};
  if(Array.isArray(data.banks)&&data.banks.length)banks=data.banks;
  renderPaymentTerms();renderCategories();render();cleanItems();renderBanks();renderPaymentDetails();
  if($('cartOverlay')&&!$('cartOverlay').hidden)cartRender();
+ if(showingDetail){const current=products.find(p=>p.id===currentId&&p.active);if(!current){close('detailOverlay');toast('Este producto ya no está disponible.');}else if(JSON.stringify(current)!==oldDetail)open(currentId,true);}
  if($('syncStatus')){$('syncStatus').textContent='Catálogo actualizado';$('syncStatus').style.color='#6f7f92';}
  openLinkedProduct();
 }

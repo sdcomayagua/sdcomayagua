@@ -1,6 +1,6 @@
 /* Catálogo público en PNG y PDF. Las fotos y los datos comerciales originales se conservan. */
 (function(){'use strict';
-const C=window.GC,$=id=>document.getElementById(id),W=1440,H=1920,SIZE=6;
+const C=window.GC,$=id=>document.getElementById(id),W=1440,H=2048,SIZE=6;
 let state=null,epoch=0,trigger=null;
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const slug=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,65)||'Productos';
@@ -67,31 +67,39 @@ function text(ctx,value,x,y,width,lines=1,lineHeight=34){
 function contain(ctx,img,x,y,w,h){if(!img)return;const scale=Math.min(w/img.naturalWidth,h/img.naturalHeight),dw=img.naturalWidth*scale,dh=img.naturalHeight*scale;ctx.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh);}
 function draw(context,products,loaded,index,count,logo){
  const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d',{alpha:false});
- ctx.fillStyle='#f1f5f9';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,240);
- if(logo)contain(ctx,logo,62,34,106,106);
- const brandX=logo?190:64;ctx.fillStyle='#162d45';ctx.font='800 38px Arial';ctx.fillText('GAMER COMAYAGUA',brandX,78);ctx.font='22px Arial';ctx.fillStyle='#667e95';ctx.fillText('Comayagua, Honduras · Gaming y tecnología',brandX,115);
- ctx.fillStyle='#152f48';ctx.font='800 48px Arial';text(ctx,context.title,64,193,W-410,1,50);
- ctx.fillStyle='#657c93';ctx.font='22px Arial';ctx.textAlign='right';ctx.fillText(`${context.count} productos · ${index+1}/${count}`,W-64,194);ctx.textAlign='left';ctx.fillStyle='#be292b';ctx.fillRect(64,232,90,5);
- const columns=products.length===1?1:2,rows=Math.ceil(products.length/columns),w=(1312-(columns-1)*24)/columns,h=(1488-(rows-1)*24)/rows;
+ const margin=80,inner=W-2*margin,gap=32,bodyTop=296,bodyHeight=1480;
+ ctx.fillStyle='#f2f5f8';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,264);
+ if(logo)contain(ctx,logo,margin,48,104,104);
+ const brandX=logo?margin+128:margin;ctx.fillStyle='#162d45';ctx.font='800 37px Arial';ctx.fillText('GAMER COMAYAGUA',brandX,92);ctx.font='22px Arial';ctx.fillStyle='#667e95';ctx.fillText('Comayagua, Honduras · Gaming y tecnología',brandX,132);
+ ctx.fillStyle='#152f48';ctx.font='800 46px Arial';text(ctx,context.title,margin,222,W-440,1,50);
+ ctx.fillStyle='#657c93';ctx.font='21px Arial';ctx.textAlign='right';ctx.fillText(`${context.count} productos · ${index+1}/${count}`,W-margin,222);ctx.textAlign='left';ctx.fillStyle='#be292b';ctx.fillRect(margin,257,80,5);
+ const columns=products.length===1?1:2,rows=Math.ceil(products.length/columns),w=(inner-(columns-1)*gap)/columns,h=(bodyHeight-(rows-1)*gap)/rows;
  products.forEach((product,i)=>{
   const centered=products.length%2===1&&i===products.length-1;
-  const x=centered?(W-w)/2:64+(i%columns)*(w+24),y=270+Math.floor(i/columns)*(h+24);
-  rounded(ctx,x,y,w,h,20,'#fff','#dce5ee');
-  const img=loaded.get(product.id);if(img)contain(ctx,img,x+22,y+18,w-44,h-202);else{rounded(ctx,x+22,y+18,w-44,h-202,12,'#f4f7fa');ctx.fillStyle='#7b8da0';ctx.font='24px Arial';ctx.textAlign='center';ctx.fillText('Foto no disponible',x+w/2,y+(h-202)/2+25);ctx.textAlign='left';}
-  ctx.fillStyle='#1c354c';ctx.font='700 26px Arial';text(ctx,product.name,x+22,y+h-149,w-44,2,33);
+  const x=centered?(W-w)/2:margin+(i%columns)*(w+gap),y=bodyTop+Math.floor(i/columns)*(h+gap),pad=32;
+  rounded(ctx,x,y,w,h,22,'#fff','#dce5ee');
+  const img=loaded.get(product.id),photoHeight=h-250;
+  if(img)contain(ctx,img,x+pad,y+28,w-2*pad,photoHeight);
+  else{rounded(ctx,x+pad,y+28,w-2*pad,photoHeight,12,'#f4f7fa');ctx.fillStyle='#7b8da0';ctx.font='24px Arial';ctx.textAlign='center';ctx.fillText('Foto no disponible',x+w/2,y+28+photoHeight/2);ctx.textAlign='left';}
+  ctx.fillStyle='#1c354c';ctx.font='700 26px Arial';text(ctx,product.name,x+pad,y+h-180,w-2*pad,2,35);
   const price=C.unitPrice(product,1),promo=price<product.price;
   if(context.prices){
-   ctx.fillStyle='#172f48';ctx.font='800 43px Arial';ctx.fillText(C.money(price),x+22,y+h-60);
-   if(promo){ctx.font='20px Arial';const old=C.money(product.price),width=ctx.measureText(old).width;ctx.fillStyle='#8090a0';ctx.fillText(old,x+22,y+h-32);ctx.fillRect(x+22,y+h-39,width,1.5);}
-  }else{ctx.fillStyle='#456780';ctx.font='24px Arial';ctx.fillText('Consultá el precio',x+22,y+h-63);}
-  const available=product.stock>0,label=available?`${product.stock} disponible${product.stock===1?'':'s'}`:'Agotado';ctx.font='600 20px Arial';const pillWidth=ctx.measureText(label).width+30;
-  rounded(ctx,x+w-pillWidth-22,y+h-90,pillWidth,40,10,available?'#e7f4ed':'#eef1f4');ctx.fillStyle=available?'#287454':'#6f7e8d';ctx.fillText(label,x+w-pillWidth-7,y+h-63);
-  ctx.font='18px Arial';ctx.fillStyle='#75899c';text(ctx,product.code||product.category,x+22,y+h-15,w-44,1,22);
+   ctx.fillStyle='#172f48';ctx.font='800 43px Arial';ctx.fillText(C.money(price),x+pad,y+h-88);
+   if(promo){ctx.font='20px Arial';const old=C.money(product.price),width=ctx.measureText(old).width;ctx.fillStyle='#8090a0';ctx.fillText(old,x+pad,y+h-61);ctx.fillRect(x+pad,y+h-68,width,1.5);}
+  }else{ctx.fillStyle='#456780';ctx.font='23px Arial';ctx.fillText('Consultá el precio',x+pad,y+h-88);}
+  const available=product.stock>0,label=available?`${product.stock} disponible${product.stock===1?'':'s'}`:'Agotado';ctx.font='600 19px Arial';const pillWidth=ctx.measureText(label).width+30;
+  rounded(ctx,x+w-pillWidth-pad,y+h-121,pillWidth,42,11,available?'#e7f4ed':'#eef1f4');ctx.fillStyle=available?'#287454':'#6f7e8d';ctx.fillText(label,x+w-pillWidth-pad+15,y+h-93);
+  ctx.font='18px Arial';ctx.fillStyle='#75899c';text(ctx,product.code||product.category,x+pad,y+h-34,w-2*pad,1,22);
  });
- ctx.fillStyle='#203b54';ctx.font='700 25px Arial';const phone=String(context.settings.whatsapp||'50431517755').replace(/\D/g,'');ctx.fillText('WhatsApp: '+phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3'),64,1824);
- ctx.textAlign='right';ctx.font='22px Arial';ctx.fillStyle='#60788e';ctx.fillText('Actualizado: '+context.date,W-64,1824);ctx.textAlign='left';
- ctx.font='21px Arial';ctx.fillText('Precios y existencias sujetos a confirmación. Consultá envío y formas de pago.',64,1865);
- ctx.font='18px Arial';ctx.fillText('Catálogo en línea: sdcomayagua.github.io/sdcomayagua',64,1898);
+ // El contacto y las condiciones tienen su propio espacio y margen inferior.
+ const footerTop=1816,footerHeight=152;
+ rounded(ctx,margin,footerTop,inner,footerHeight,18,'#fff','#dce5ee');
+ const phone=String(context.settings.whatsapp||'50431517755').replace(/\D/g,''),formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
+ ctx.fillStyle='#27815b';ctx.font='700 18px Arial';ctx.fillText('WHATSAPP',margin+32,footerTop+38);
+ ctx.fillStyle='#203b54';ctx.font='700 30px Arial';ctx.fillText(formatted,margin+32,footerTop+77);
+ ctx.textAlign='right';ctx.fillStyle='#75899c';ctx.font='18px Arial';ctx.fillText('CATÁLOGO ACTUALIZADO',W-margin-32,footerTop+38);ctx.fillStyle='#365169';ctx.font='24px Arial';ctx.fillText(context.date,W-margin-32,footerTop+77);ctx.textAlign='left';
+ ctx.fillStyle='#e5ebf0';ctx.fillRect(margin+32,footerTop+98,inner-64,1);
+ ctx.fillStyle='#6b8093';ctx.font='20px Arial';text(ctx,'Precios y existencias sujetos a confirmación. Consultá envío y formas de pago.',margin+32,footerTop+129,inner-64,1,26);
  return canvas;
 }
 const blob=(canvas,type,quality)=>new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(Error('El navegador no pudo crear el archivo.')),type,quality));
@@ -103,11 +111,12 @@ function pdf(pages,url){
  object(1,'<< /Type /Catalog /Pages 2 0 R >>');object(2,`<< /Type /Pages /Count ${pages.length} /Kids [${pages.map((_,i)=>(3+i*4)+' 0 R').join(' ')}] >>`);
  const link=String(url||'').replace(/[^\x20-\x7e]/g,'').replace(/[\\()]/g,'\\$&');
  pages.forEach((page,i)=>{
-  const id=3+i*4,command='q 564 0 0 752 24 20 cm /Im0 Do Q\n';
+  const id=3+i*4,scale=Math.min(564/W,744/H),width=W*scale,height=H*scale,left=(612-width)/2,bottom=(792-height)/2,command=`q ${width} 0 0 ${height} ${left} ${bottom} cm /Im0 Do Q\n`;
+  const linkBottom=bottom+(H-1968)*scale,linkTop=bottom+(H-1816)*scale;
   object(id,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /XObject << /Im0 ${id+2} 0 R >> >> /Contents ${id+1} 0 R /Annots [${id+3} 0 R] >>`);
   object(id+1,`<< /Length ${command.length} >>\nstream\n${command}endstream`);
   offsets[id+2]=length;append(`${id+2} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${page.jpeg.length} >>\nstream\n`);append(page.jpeg);append('\nendstream\nendobj\n');
-  object(id+3,`<< /Type /Annot /Subtype /Link /Rect [24 20 588 62] /Border [0 0 0] /A << /S /URI /URI (${link}) >> >>`);
+  object(id+3,`<< /Type /Annot /Subtype /Link /Rect [${left+80*scale} ${linkBottom} ${left+(W-80)*scale} ${linkTop}] /Border [0 0 0] /A << /S /URI /URI (${link}) >> >>`);
  });
  const xref=length;append(`xref\n0 ${offsets.length}\n0000000000 65535 f \n`);for(let i=1;i<offsets.length;i++)append(String(offsets[i]).padStart(10,'0')+' 00000 n \n');append(`trailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
  return new Blob(parts,{type:'application/pdf'});
@@ -153,7 +162,8 @@ async function build(){
    const url=URL.createObjectURL(png);context.urls.push(url);context.pages.push({url,file:new File([png],context.filename+'_'+String(index+1).padStart(2,'0')+'.png',{type:'image/png'}),jpeg:new Uint8Array(await jpeg.arrayBuffer())});
   }
   if(ticket!==epoch)return;
-  const output=pdf(context.pages,context.url);context.pdfFile=new File([output],context.filename+'.pdf',{type:'application/pdf'});context.pdfUrl=URL.createObjectURL(output);context.urls.push(context.pdfUrl);
+  const contact='https://wa.me/'+String(context.settings.whatsapp||'50431517755').replace(/\D/g,'');
+  const output=pdf(context.pages,contact);context.pdfFile=new File([output],context.filename+'.pdf',{type:'application/pdf'});context.pdfUrl=URL.createObjectURL(output);context.urls.push(context.pdfUrl);
   $('catalogExportStatus').textContent=missing?`${missing} foto${missing===1?' no se pudo':'s no se pudieron'} incluir. Podés reintentar antes de compartir.`:'Catálogo listo para descargar o compartir.';$('catalogExportRetry').hidden=!missing;
   context.busy=false;preview();
  }catch(error){if(ticket===epoch){release(context);context.pages=[];$('catalogExportEmpty').textContent='No se pudo crear el catálogo.';$('catalogExportStatus').textContent=error.message;$('catalogExportRetry').hidden=false;}}

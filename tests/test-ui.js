@@ -22,7 +22,7 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  const newest={...product,id:'NEW-001',code:'NEW-001',name:'Producto recién agregado',category:'Novedades',price:350,createdAt:'2026-10-17T02:00:00Z',catalogOrder:1};
  product.createdAt='2026-10-15T02:00:00Z';product.catalogOrder=0;
  const inventory=[product,newest],requests=[];
- let publicGetFails=false,publicPostFails=false,publicSheetHasMetadata=false;
+ let publicGetFails=false,publicPostFails=false,publicSheetHasMetadata=false,publicPostGate=null;
  const publicProducts=()=>inventory.map(({cost,...p})=>p);
  const settings={shipping:110,codMinimum:350,codRate:.1,tigoRate:.07};
  await context.route(/^https?:\/\/(?!127\.0\.0\.1)/,async route=>{
@@ -40,7 +40,8 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
   if(url.hostname==='drive.google.com'&&['TEST_MANAGED_PHOTO','TEST_SECOND_PHOTO'].includes(url.searchParams.get('id'))||url.hostname==='cdn.example')return route.fulfill({contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/a9sAAAAASUVORK5CYII=','base64')});
   return route.abort();
  });
- await page.exposeFunction('__testBackend',req=>{
+ await page.exposeFunction('__testBackend',async req=>{
+  if(req.action==='publicCatalog'&&publicPostGate)await publicPostGate;
   requests.push(req);let result={ok:true};
   if(req.action==='verify')result.features={details:true,extendedDetails:true,productResearch:true,productResearchVersion:6,productResearchSelection:true,bestSellers:true,publicCatalogMetadata:true,researchImageImport:true,researchPhotos:true};
   if(req.action==='adminCatalog')result={ok:true,products:inventory,settings};
@@ -134,9 +135,15 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  assert.equal(await page.locator('#delivery_name').inputValue(),'Cliente de prueba');
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Carrito móvil sin desborde horizontal');
  if(artifacts)await page.screenshot({path:path.join(artifacts,'cart-mobile.png')});
+ let allowPublicPost;publicPostGate=new Promise(resolve=>{allowPublicPost=resolve;});
  await page.goto(productLink);await page.locator('#detailTitle').filter({hasText:'Adaptador OTG USB a TYPE C'}).waitFor();
  assert.equal(await page.locator('#detailOverlay').isVisible(),true,'El enlace compartido abre directamente su producto');
- await page.waitForTimeout(400);assert.match(await page.locator('#detailContent').innerText(),/Plástico/);assert.match(await page.locator('#detailContent').innerText(),/Descripción escrita por el dueño/);assert.match(await page.locator('#detailPhoto').getAttribute('src'),/TEST_MANAGED_PHOTO/);
+ await page.locator('#detailContent').filter({hasText:'Descripción antigua de la hoja'}).waitFor();
+ await page.locator('[data-photo-index="1"]').click();
+ allowPublicPost();publicPostGate=null;
+ await page.locator('#detailContent').filter({hasText:'Plástico'}).waitFor();assert.match(await page.locator('#detailContent').innerText(),/Descripción escrita por el dueño/);
+ assert.match(await page.locator('#detailPhoto').getAttribute('src'),/TEST_SECOND_PHOTO/,'Una respuesta posterior actualiza la ficha conservando la foto elegida');
+ assert.equal(await page.locator('[data-photo-index="1"]').evaluate(el=>el===document.activeElement),true,'La actualización conserva el foco en la galería');
  const savedPublic=JSON.stringify(publicProducts());
  await context.route('**/data/catalogo-respaldo.json?*',route=>route.fulfill({contentType:'application/json',body:savedPublic}));
  publicPostFails=true;
@@ -149,3 +156,4 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  assert.deepEqual(errors,[]);
  await browser.close();server?.close();console.log('PASS UI: selección y cambio de fuente, campos manuales, fotos opcionales, Enter sin guardado, calculadora, redondeo adicional, enlaces para compartir, filtros y móvil.');
 })().catch(error=>{console.error(error);process.exit(1)});
+
