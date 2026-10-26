@@ -147,6 +147,11 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  await page.locator('#detailContent').filter({hasText:'Plástico'}).waitFor();assert.match(await page.locator('#detailContent').innerText(),/Descripción escrita por el dueño/);
  assert.match(await page.locator('#detailPhoto').getAttribute('src'),/TEST_SECOND_PHOTO/,'Una respuesta posterior actualiza la ficha conservando la foto elegida');
  assert.equal(await page.locator('[data-photo-index="1"]').evaluate(el=>el===document.activeElement),true,'La actualización conserva el foco en la galería');
+ await page.locator('#detailAdd').focus();const previousBuy=await page.locator('#detailAdd').elementHandle();product.price+=1;
+ await page.evaluate(()=>window.dispatchEvent(new StorageEvent('storage',{key:'gc_catalog_revision'})));
+ await page.waitForFunction(button=>!button.isConnected,previousBuy);
+ assert.equal(await page.locator('#detailAdd').evaluate(el=>el===document.activeElement),true,'La actualización conserva el foco en el botón de compra fijo');
+ assert.match(await page.locator('#detailPurchaseBar').innerText(),/L 221/,'La barra de compra muestra el precio actualizado');
  const savedPublic=JSON.stringify(publicProducts());
  await context.route('**/data/catalogo-respaldo.json?*',route=>route.fulfill({contentType:'application/json',body:savedPublic}));
  publicPostFails=true;
