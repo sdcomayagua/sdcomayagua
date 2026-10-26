@@ -47,8 +47,8 @@ function updateCategoryShortcuts(){
  $('categoryShortcuts')?.querySelectorAll('[data-category]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.category===category)));
  if($('catalogHeading'))$('catalogHeading').textContent=$('search')?.value.trim()?'Resultados de búsqueda':category===bestSellersCategory?'Más pedidos':category||'Todos los productos';
  if($('clearFilters'))$('clearFilters').hidden=!($('search')?.value.trim()||category||$('sort')?.value!=='newest'||$('onlyAvailable')?.checked);
- if($('shareCategory'))$('shareCategory').textContent='Compartir enlace';
- if($('exportCategory'))$('exportCategory').textContent=category?'Compartir categoría · Imagen / PDF':'Compartir catálogo · Imagen / PDF';
+ if($('shareCategory'))$('shareCategory').setAttribute('aria-label',category?'Compartir enlace de esta categoría':'Compartir enlace del catálogo');
+ if($('exportCategory'))$('exportCategory').setAttribute('aria-label',category?'Descargar o compartir esta categoría en imagen PNG o PDF':'Descargar o compartir catálogo en imagen PNG o PDF');
 }
 function catalogUrl(productId='',category=''){
  const url=new URL('productos.html',document.baseURI);
