@@ -151,12 +151,11 @@ function render(){
    <td data-label="Producto"><div class="admin-product-identity"><img loading="lazy" decoding="async" src="${esc(normalizePreview(p.image||parseGallery(p.gallery)[0]))}" alt="" onerror="this.onerror=null;this.src='assets/img/sin-foto.svg'"><div><strong>${esc(p.name)}</strong><span class="admin-product-meta">${esc(p.category)} · ${esc(p.code||'Sin código')}</span>${p.bestSeller?'<span class="admin-requested-tag">★ Más pedidos</span>':''}${noPhoto(p)?'<span class="admin-photo-tag">Sin foto</span>':''}</div></div></td>
    <td data-label="Precio">${C.money(p.price)}</td>
    <td data-label="Promoción">${p.promoPrice>0?C.money(C.unitPrice(p,1)):'—'}</td>
-   <td data-label="Costo">${catalogSource==='privado'?C.money(p.cost):'—'}</td>
    <td data-label="Stock"><span class="admin-stock-pill ${p.stock===0?'empty':p.stock<=3?'low':''}">${p.stock} ${p.stock===1?'unidad':'unidades'}</span></td>
    <td data-label="Pago al recibir"><span style="color:${p.codAllowed?'#0f9f6a':'#d64545'}">${p.codAllowed?'✓ Permitido':'× Prohibido'}</span></td>
    <td data-label="Estado">${p.deletedAt?'Eliminado':p.active?'Activo':'Oculto'}</td>
    <td data-label="Acciones"><div class="admin-row-actions">${p.deletedAt?`<button type="button" class="btn small outline admin-restore-product" data-restore-product="${esc(p.id)}">Restaurar producto</button>`:`<button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> ${!noPhoto(p)?`<button type="button" class="btn small outline" data-reference-product="${esc(p.id)}">Buscar con mi foto</button>`:''}<button type="button" class="btn small outline" data-disable="${esc(p.id)}" >${!p.active&&serverFeatures.productTrash?'Mostrar':'Ocultar'}</button> <button type="button" class="btn small outline best-seller-toggle ${p.bestSeller?'selected':''}" data-best-seller="${esc(p.id)}" aria-pressed="${p.bestSeller}" aria-label="${p.bestSeller?'Quitar de':'Marcar en'} Más pedidos: ${esc(p.name)}">${p.bestSeller?'★ En Más pedidos':'☆ Más pedidos'}</button><button type="button" class="btn small outline admin-delete-product" data-delete-product="${esc(p.id)}" aria-label="Eliminar ${esc(p.name)}" ${catalogSource!=='privado'||!serverFeatures.productTrash?'disabled title="Sincronizá el panel para habilitar la papelera"':''}>Eliminar</button>`}</div></td>
- </tr>`).join('')||'<tr><td colspan="8"><div class="admin-empty"><strong>No encontramos productos con esos filtros.</strong><p>Probá con nombre, marca, modelo o código.</p><button class="btn outline small" type="button" data-clear-admin>Ver todos los productos</button></div></td></tr>';
+ </tr>`).join('')||'<tr><td colspan="7"><div class="admin-empty"><strong>No encontramos productos con esos filtros.</strong><p>Probá con nombre, marca, modelo o código.</p><button class="btn outline small" type="button" data-clear-admin>Ver todos los productos</button></div></td></tr>';
  $('settingsSummary').textContent=`Envío: ${C.money(settings.shipping??110)} | Mínimo pago al recibir: ${C.money(settings.codMinimum||350)} en productos | Comisión al recibir: ${Math.round((settings.codRate||.1)*100)}% | Tigo Money: ${Math.round((settings.tigoRate||.07)*100)}%`;
  if(typeof CustomEvent==='function')document.dispatchEvent(new CustomEvent('gc:catalog'));
 
@@ -225,6 +224,7 @@ function showProduct(id){
  $('productForm').querySelectorAll('.research-filled').forEach(field=>field.classList.remove('research-filled'));
  const p=products.find(p=>p.id===id)||{id:'',name:'',code:'',category:'',price:0,promoPrice:0,promoText:'',colors:'',stock:0,cost:'',image:'',gallery:'',description:'',discounts:'',codAllowed:true,active:true};
  const f=$('productForm');
+ if($('financeCostEditor'))$('financeCostEditor').open=false;
  f.dataset.originalCategory=p.category||'';f.dataset.originalCode=p.code||'';
  f.dataset.revision=p.revision??'';f.dataset.hasRevision=String(p.revision!==undefined);
  for(const [k,v] of Object.entries(p)){if(k!=='cost'&&k!=='promoPrice'&&f.elements.namedItem(k))formField(f,k).value=v??'';}

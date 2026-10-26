@@ -23,7 +23,9 @@ DETAIL_KEYS = {
     "size", "material", "model", "compatibility",
     "brand", "voltage", "current", "power", "connection", "technology", "included",
 }
-PRIVATE_FIELDS = {"costo", "cost", "ganancia", "inversion", "identidad", "cuenta"}
+PRIVATE_FIELDS = {"costo", "cost", "ganancia", "inversion", "identidad", "cuenta",
+                  "inventorytype", "financerevision", "costknown", "invested",
+                  "tobuy", "potentialprofit", "revisionfinanzas"}
 
 def number(value):
     source = str(value if value is not None else "").strip()
@@ -213,8 +215,8 @@ def main():
     if not api and not csv_url:
         print("Sin fuente pública configurada; se conservan los archivos existentes")
         return
-    # La pestaña pública responde sin sesión aunque /exec rechace el acceso.
-    # Preferirla también evita que un servidor antiguo quite datos nuevos.
+    # La API de solo lectura permite mantener privada la hoja original.
+    # CSV queda únicamente para instalaciones con una hoja pública separada.
     from_public_api = False
     entries = None
     if api:

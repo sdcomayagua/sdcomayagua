@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - 'scripts/sync_catalog_photos.py'
+      - 'scripts/sync_public_catalog.py'
+      - 'data/catalogo-api.url'
+      - 'data/catalogo-csv.url'
       - '.github/workflows/catalogo-sync.yml'
   schedule:
     - cron: "7,17,27,37,47,57 * * * *"
@@ -19,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verificar integridad del sincronizador
         run: python3 -m py_compile scripts/sync_public_catalog.py
-      - name: Actualizar catálogo desde la pestaña pública de Google Sheets
+      - name: Actualizar catálogo desde la API pública de solo lectura
         run: python3 scripts/sync_public_catalog.py
       - name: Preparar fotos públicas para catálogos en imagen y PDF
         run: python3 scripts/sync_catalog_photos.py

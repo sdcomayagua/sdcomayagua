@@ -9,6 +9,8 @@ const GC_SHEET_ID = '1ReprTmtpBpoxIps-c5O-0quUmYgdHSePGIpB2Ey-rQ0';
 const GC_TAB_PRODUCTS = 'Productos';
 const GC_TAB_SETTINGS = 'Configuracion';
 const GC_TAB_BANKS = 'Cuentas';
+// La implementación pública usa una versión con true; ADMIN conserva false.
+const GC_PUBLIC_READ_ONLY = false;
 const GC_PRODUCT_COLUMNS = ['ID','Codigo','Nombre','Categoria','Precio','PrecioPromocion','Costo','Stock','Imagen','Galeria','Descripcion','Descuentos','PagoAlRecibir','Activo','Revision','Colores','PromocionTexto','Detalles','MasPedidos','FechaCreacion'];
 
 /** Ejecutar una sola vez. La clave NUEVA se imprime en Registro de ejecución. */
@@ -29,7 +31,7 @@ function configurarSistema() {
 }
 function doGet(e) {
   const args = (e && e.parameter) || {};
-  if(String(args.action||'')==='panel')return gcPanelHtml_();
+  if(String(args.action||'')==='panel'&&!GC_PUBLIC_READ_ONLY)return gcPanelHtml_();
   const name = String(args.callback || '');
   if (name && !/^[A-Za-z_$][\w$]{0,90}$/.test(name)) return ContentService.createTextOutput('Callback inválido').setMimeType(ContentService.MimeType.TEXT);
   let result;
@@ -52,7 +54,7 @@ function doGet(e) {
 /** Diagnóstico público breve: nunca devuelve el PIN, las claves ni el inventario. */
 function gcHealth_(){
  const props=PropertiesService.getScriptProperties(),pin=String(props.getProperty('ADMIN_PIN')||props.getProperty('ADMIN_TOKEN')||'');
- return {ok:true,version:'GC-20261025-OFFERS-V16',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
+ return {ok:true,version:'GC-20261026-FINANCE-V17',catalogSchemaVersion:2,pinConfigurado:/^\d{6}$/.test(pin)};
 }
 /** POST de formulario enviado dentro de un iframe: evita los problemas CORS de Apps Script. */
 function doPost(e) {
@@ -65,6 +67,7 @@ function doPost(e) {
     requestId = String(req.requestId || '');
     result=gcHandleRequest_(req);
   } catch (err) { result = {ok:false,error:safeError_(err)}; }
+  if(GC_PUBLIC_READ_ONLY)return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.TEXT);
   const message = JSON.stringify({__gcResponse:true,requestId,...result})
     .replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
   // Apps Script encierra HtmlService en un iframe adicional.
@@ -85,6 +88,7 @@ function doPost(e) {
 
 /** Un único enrutador mantiene el mismo PIN y reglas en ambos canales. */
 function gcHandleRequest_(req){
+ if(GC_PUBLIC_READ_ONLY&&!['health','publicCatalog','catalogPhotos'].includes(req.action))throw Error('Esta conexión es de solo lectura pública.');
  let result;
     // El diagnóstico y el catálogo público (sin costos) pueden consultarse sin PIN.
     // Todas las demás operaciones siguen autenticadas por el servidor.
@@ -102,7 +106,7 @@ function gcHandleRequest_(req){
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{finance:true,offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
       }
       else if (req.action === 'operationsSummary') result = gcOperationsSummary_();
       else if (req.action === 'operationsList') result = gcOperationsList_(req);
@@ -113,6 +117,8 @@ function gcHandleRequest_(req){
       else if (req.action === 'inventoryMovementList') result = gcMovementList_(req);
       else if (req.action === 'inventoryResolveDuplicate') result = gcResolveDuplicate_(req);
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
+      else if (req.action === 'financeCatalog') result = gcFinanceCatalog_();
+      else if (req.action === 'saveFinance') result = gcSaveFinance_(req);
       else if (req.action === 'saveOffers') result = gcSaveOffers_(req);
       else if (req.action === 'researchCandidates') result = gcFreeCandidates_(req.name,req.category);
       else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category,req.selection);
@@ -142,7 +148,7 @@ function gcPanelRequest(req){
 }
 /** Aloja el mismo panel público en Google para usar google.script.run. */
 function gcPanelHtml_(){
- const cache=CacheService.getScriptCache(),key='gc_panel_html_v15';let html=cache.get(key);
+ const cache=CacheService.getScriptCache(),key='gc_panel_html_v17';let html=cache.get(key);
  if(!html){
   const response=UrlFetchApp.fetch('https://sdcomayagua.github.io/sdcomayagua/admin.html',{followRedirects:true,muteHttpExceptions:true});
   if(response.getResponseCode()!==200)throw Error('No se pudo abrir el panel. Probá de nuevo en unos minutos.');
@@ -470,7 +476,7 @@ function adminPayload_(){
     bestSeller:yes_(get(r,'MasPedidos')),createdAt:get(r,'FechaCreacion') instanceof Date?get(r,'FechaCreacion').toISOString():String(get(r,'FechaCreacion')),catalogOrder:index,
     id:String(get(r,'ID')),revision:String(get(r,'Revision')),deletedAt:String(get(r,'EliminadoEn')),code:String(get(r,'Codigo')),name:String(get(r,'Nombre')),
     category:String(get(r,'Categoria')||'Otros'),price:money_(get(r,'Precio')),
-    promoPrice:money_(get(r,'PrecioPromocion')),cost:money_(get(r,'Costo')),
+    promoPrice:money_(get(r,'PrecioPromocion')),cost:money_(get(r,'Costo')),costKnown:String(get(r,'Costo')).trim()!=='',
     stock:Math.max(0,Math.floor(money_(get(r,'Stock')))),
     image:String(get(r,'Imagen')),gallery:String(get(r,'Galeria')),
     description:String(get(r,'Descripcion')),discounts:String(get(r,'Descuentos')),
@@ -995,3 +1001,53 @@ function gcResolveDuplicate_(req){
  }finally{lock.releaseLock();}
 }
 
+
+
+/** Finanzas privadas: la clasificación vive solo en FINANZAS, nunca en el catálogo. */
+function gcFinanceHeaders_(){return ['ID','Producto','Inventario','Unidades','Costo unitario','Inversión','Compra pendiente','Precio actual','Utilidad potencial','Estado','Código','RevisionFinanzas'];}
+function gcFinanceType_(value){return ['En tienda','Por encargo','Sin clasificar'].includes(String(value))?String(value):'Sin clasificar';}
+function gcFinanceRow_(id,r){
+ const find=col=>'VLOOKUP($A'+r+';Productos!$A$2:$V$1000;'+col+';FALSE)';
+ const state='=IFNA(IF('+find(21)+'<>"";"Eliminado";IF('+find(13)+'="SI";"Publicado";"Oculto"));"Sin ficha")';
+ const available='OR($J'+r+'="Eliminado";$J'+r+'="Sin ficha")';
+ return [String(id),'=IFNA('+find(3)+';"Sin ficha")','Sin clasificar','=IFNA('+find(7)+';0)',
+  '=IF(COUNTIFS(Productos!$A$2:$A$1000;$A'+r+';Productos!$F$2:$F$1000;"<>")=0;"";IFNA('+find(6)+';""))',
+  '=IF('+available+';0;IF($C'+r+'="En tienda";IF(ISNUMBER($E'+r+');ROUND($D'+r+'*$E'+r+';2);"");0))',
+  '=IF('+available+';0;IF($C'+r+'="Por encargo";IF(ISNUMBER($E'+r+');ROUND($D'+r+'*$E'+r+';2);"");0))',
+  '=IFNA(IF(AND('+find(16)+'>0;'+find(16)+'<'+find(5)+');MIN('+find(5)+';ROUNDDOWN('+find(16)+'+4/10+1/100000000;0));'+find(5)+');"")',
+  '=IF(OR('+available+';$C'+r+'="Sin clasificar");"";IF(AND(ISNUMBER($E'+r+');ISNUMBER($H'+r+'));ROUND(($H'+r+'-$E'+r+')*$D'+r+';2);""))',state,'=IFNA('+find(2)+';"")',''];
+}
+function gcFinanceSheet_(products){
+ const ss=book_();let sheet=ss.getSheetByName('FINANZAS');
+ if(!sheet){sheet=ss.insertSheet('FINANZAS');sheet.appendRow(gcFinanceHeaders_());sheet.setFrozenRows(1);}
+ const values=sheet.getDataRange().getValues(),headers=(values[0]||[]).map(String),required=gcFinanceHeaders_();
+ if(required.some((key,i)=>headers[i]!==key))throw Error('La estructura de FINANZAS cambió. Revisá sus encabezados antes de guardar.');
+ const seen=new Set(values.slice(1).map(r=>String(r[0]))),missing=products.filter(p=>!seen.has(p.id));
+ if(missing.length){const first=values.length+1,rows=missing.map((p,i)=>gcFinanceRow_(p.id,first+i));sheet.getRange(first,1,rows.length,12).setValues(rows);sheet.getRange(first,3,rows.length,1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['En tienda','Por encargo','Sin clasificar'],true).setAllowInvalid(false).build());}
+ return sheet;
+}
+function gcFinanceCatalog_(){
+ const lock=LockService.getScriptLock();lock.waitLock(25000);
+ try{
+  const products=adminPayload_().products,sheet=gcFinanceSheet_(products),rows=sheet.getDataRange().getValues().slice(1),map=new Map(rows.map(r=>[String(r[0]),r]));
+  return {ok:true,source:'privado',products:products.map(p=>({...p,inventoryType:gcFinanceType_(map.get(p.id)?.[2]),financeRevision:String(map.get(p.id)?.[11]||'')}))};
+ }finally{lock.releaseLock();}
+}
+function gcSaveFinance_(req){
+ if(!Array.isArray(req.changes)||!req.changes.length||req.changes.length>500)throw Error('Elegí de 1 a 500 productos para clasificar.');
+ const lock=LockService.getScriptLock();lock.waitLock(25000);
+ try{
+  const products=adminPayload_().products,allowed=new Set(products.map(p=>p.id)),sheet=gcFinanceSheet_(products),range=sheet.getDataRange(),rows=range.getValues(),seen=new Set(),updated=[],changed=new Set(),revision='finance-'+new Date().toISOString()+'-'+Utilities.getUuid();
+  for(const item of req.changes){
+   const id=String(item.id||''),type=String(item.inventoryType||''),index=rows.findIndex((r,i)=>i>0&&String(r[0])===id);
+   if(!allowed.has(id)||index<1||seen.has(id)||!['En tienda','Por encargo','Sin clasificar'].includes(type))throw Error('Producto o clasificación inválida. Sincronizá las finanzas.');
+   seen.add(id);const row=rows[index],current=gcFinanceType_(row[2]);
+   if(current!==type&&(String(item.expectedType)!==current||String(item.expectedRevision||'')!==String(row[11]||'')))throw Error('La clasificación cambió en otro lugar. Sincronizá antes de guardar.');
+   if(current!==type){row[2]=type;row[11]=revision;changed.add(index);}
+   updated.push({id,inventoryType:type,financeRevision:String(row[11]||'')});
+  }
+  const formulas=range.getFormulas();for(let r=1;r<rows.length;r++)for(let c=0;c<12;c++)if(formulas[r]?.[c]&&(!changed.has(r)||c!==2&&c!==11))rows[r][c]=formulas[r][c];
+  if(changed.size)sheet.getRange(2,1,rows.length-1,12).setValues(rows.slice(1).map(r=>Array.from({length:12},(_,i)=>r[i]??'')));
+  return {ok:true,updated};
+ }finally{lock.releaseLock();}
+}

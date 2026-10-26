@@ -313,7 +313,7 @@ function handlePublic(data){
  if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');
  const showingDetail=$('detailOverlay')&&!$('detailOverlay').hidden,oldDetail=showingDetail?JSON.stringify(products.find(p=>p.id===currentId)):'';
  products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};window.GC_WATERMARK?.set(settings);
- if(Array.isArray(data.banks)&&data.banks.length)banks=data.banks;
+ if(Array.isArray(data.banks)){banks=data.banks;banksStatus='ready';}
  renderPaymentTerms();renderCategories();render();cleanItems();renderBanks();renderPaymentDetails();
  if($('cartOverlay')&&!$('cartOverlay').hidden)cartRender();
  if(showingDetail){const current=products.find(p=>p.id===currentId&&p.active);if(!current){close('detailOverlay');toast('Este producto ya no está disponible.');}else if(JSON.stringify(current)!==oldDetail)open(currentId,true);}
@@ -329,6 +329,7 @@ function openLinkedProduct(){
 
 /** Lee exclusivamente CATALOGO PUBLICO WEB, con encabezados públicos comprobados. */
 function catalogFromSheet(){
+ if(config.privateInventory)return Promise.reject(Error('Inventario privado; lectura por API pública.'));
  return new Promise((resolve,reject)=>{
   const id=String(config.spreadsheetUrl||'').match(/\/spreadsheets\/d\/([\w-]+)/)?.[1],gid=config.publicCatalogGid;
   if(!id||!Number.isInteger(gid))return reject(Error('No hay pestaña pública configurada'));
@@ -367,8 +368,9 @@ function refreshOnlineCatalog(force=false){
   let sheetData=null,apiData=null,ready=false;
   const sheetTask=catalogFromSheet().then(data=>{sheetData=data;handlePublic(C.mergeCatalog(sheetData,apiData||{products}));ready=true});
   const apiTask=(async()=>{
-   const url=String(config.apiUrl||'').trim();if(!url)return;
+   const url=String(config.publicApiUrl||config.apiUrl||'').trim();if(!url)return;
    let data;try{data=await jsonp(url)}catch(error){
+    if(config.publicApiUrl)throw error;
     data=await catalogByPost(url);
    }
    apiData=data;handlePublic(sheetData?C.mergeCatalog(sheetData,apiData):data);ready=true;
@@ -414,6 +416,7 @@ function banksFromSheet(){
  });
 }
 function loadBanksFromSheet(){
+ if(config.privateInventory)return;
  if(!$('bankAccounts')&&!$('tigoPaymentDetails'))return;
  if(banksRequest)return banksRequest;
  banksStatus='loading';
@@ -462,7 +465,7 @@ function catalogByPost(url,action='publicCatalog',extra={}){
  });
 }
 async function load(){
- const url=String(config.apiUrl||'').trim();
+ const url=String(config.publicApiUrl||config.apiUrl||'').trim();
  let localReady=false;
  if($('bankAccounts'))loadBanksFromSheet();
  // Render inmediato a partir de un respaldo JS local. Si fetch o Google
@@ -525,7 +528,7 @@ function binds(){
  $('exportCategory')?.addEventListener('click',()=>{
   if(!window.GC_CATALOG_EXPORT)return toast('No se pudo abrir el catálogo. Recargá la página.');
   const category=$('category')?.value||'';
-  window.GC_CATALOG_EXPORT.open({products:filteredProducts(true),title:category===bestSellersCategory?'Más pedidos':category||'Catálogo de productos',url:filteredCatalogUrl(),includeOut:!$('onlyAvailable')?.checked,settings:{...settings},logo:config.logo,photoLoader:async ids=>{let data;try{data=await jsonp(config.apiUrl,'catalogPhotos',{ids:ids.join(',')});if(!Array.isArray(data.images))throw Error('Fotos no disponibles');}catch(error){data=await catalogByPost(config.apiUrl,'catalogPhotos',{ids});}return data.images||[];}});
+  window.GC_CATALOG_EXPORT.open({products:filteredProducts(true),title:category===bestSellersCategory?'Más pedidos':category||'Catálogo de productos',url:filteredCatalogUrl(),includeOut:!$('onlyAvailable')?.checked,settings:{...settings},logo:config.logo,photoLoader:async ids=>{const url=config.publicApiUrl||config.apiUrl;let data;try{data=await jsonp(url,'catalogPhotos',{ids:ids.join(',')});if(!Array.isArray(data.images))throw Error('Fotos no disponibles');}catch(error){if(config.publicApiUrl)throw error;data=await catalogByPost(url,'catalogPhotos',{ids});}return data.images||[];}});
  });
  $('onlyAvailable')?.addEventListener('change',filtersChanged);
  $('category')?.addEventListener('change',filtersChanged);

@@ -1,2 +1,2 @@
-# Fuente: CATALOGO PUBLICO WEB. Encabezados verificados; excluye costos y finanzas.
-https://docs.google.com/spreadsheets/d/1ReprTmtpBpoxIps-c5O-0quUmYgdHSePGIpB2Ey-rQ0/gviz/tq?gid=87012030&headers=1&tqx=out:csv
+# Inventario privado: no consultar Google Sheets sin sesión.
+# El catálogo se actualiza mediante data/catalogo-api.url (API pública de solo lectura).

@@ -3,7 +3,7 @@
 'use strict';
 const A=window.GC_ADMIN,C=window.GC,$=id=>document.getElementById(id),form=$('productForm'),overlay=$('formOverlay');
 if(!A||!form||!$('editorDraftNotice'))return;
-const fields=['name','category','price','promoPrice','cost','stock','codAllowed','image','gallery','discounts','colors','promoText','description','active','weight','weightUnit','width','height','length','measureUnit','size','material','model','compatibility','brand','voltage','current','power','connection','technology','included','researchReferences'];
+const fields=['name','category','price','promoPrice','stock','codAllowed','image','gallery','discounts','colors','promoText','description','active','weight','weightUnit','width','height','length','measureUnit','size','material','model','compatibility','brand','voltage','current','power','connection','technology','included','researchReferences'];
 const groups=[['price','promoPrice'],['weight','weightUnit'],['width','height','length','measureUnit'],['image','gallery'],['name','brand','model']];
 const scope=(String(window.GC_CONFIG?.spreadsheetUrl||'').match(/\/d\/([\w-]+)/)||[])[1]||'catalogo';
 const storageKey='gc_editor_drafts_v1:'+scope,expiry=7*24*60*60*1000;
@@ -13,12 +13,15 @@ let active=null,timer,offer=null,saved=false,pendingHint='';
 function drafts(){
  const raw=JSON.parse(localStorage.getItem(storageKey)||'{}'),now=Date.now(),out={};
  for(const [key,draft] of Object.entries(raw))if(draft?.version===1&&draft.updated>now-expiry&&draft.updated<=now+60000&&draft.before&&draft.patch&&typeof draft.before==='object'&&typeof draft.patch==='object')out[key]=draft;
+ for(const draft of Object.values(out)){delete draft.before.cost;delete draft.patch.cost;}
+ write(out);
  return out;
 }
 function write(all){
  const bounded=Object.fromEntries(Object.entries(all).sort((a,b)=>b[1].updated-a[1].updated).slice(0,10));
  if(Object.keys(bounded).length)localStorage.setItem(storageKey,JSON.stringify(bounded));else localStorage.removeItem(storageKey);
 }
+try{drafts()}catch{}
 function message(text){$('editorDraftStatus').textContent=text;}
 function persist(){
  clearTimeout(timer);

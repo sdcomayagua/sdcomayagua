@@ -22,6 +22,9 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  const newest={...product,id:'NEW-001',code:'NEW-001',name:'Producto recién agregado',category:'Novedades',price:350,createdAt:'2026-10-17T02:00:00Z',catalogOrder:1};
  product.createdAt='2026-10-15T02:00:00Z';product.catalogOrder=0;
  const inventory=[product,newest],requests=[];
+ // Esta prueba conserva el transporte anterior. El catálogo actual con API
+ // separada y sin lecturas de la hoja privada se verifica en category-export-ui.
+ await context.route('**/assets/js/config.js?*',route=>route.fulfill({contentType:'application/javascript',body:fs.readFileSync(path.resolve(__dirname,'../assets/js/config.js'),'utf8').replace(/publicApiUrl:\s*'[^']*'/,"publicApiUrl: ''").replace('privateInventory: true','privateInventory: false')}));
  let publicGetFails=false,publicPostFails=false,publicSheetHasMetadata=false,publicPostGate=null;
  const publicProducts=()=>inventory.map(({cost,...p})=>p);
  const settings={shipping:110,codMinimum:350,codRate:.1,tigoRate:.07};
@@ -69,7 +72,7 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  });
  await page.goto(base+'/admin.html');await page.locator('#secret').fill('123456');await page.locator('#loginBtn').click();
  await page.locator('[data-edit="OTG-001"]').waitFor();await page.locator('[data-best-seller="OTG-001"]').click();await page.waitForFunction(()=>document.querySelector('[data-best-seller="OTG-001"]').getAttribute('aria-pressed')==='true');await page.locator('#refresh').click();await page.locator('[data-edit="OTG-001"]').click();
- await page.locator('[name=cost]').fill('80');await page.locator('[name=discounts]').fill('6:200');
+ await page.locator('#financeCostEditor summary').click();await page.locator('[name=cost]').fill('80');await page.locator('[name=discounts]').fill('6:200');
  await page.locator('#researchQuery').press('Enter');await page.locator('[data-research-source="0"]').waitFor();assert.equal(await page.locator('[data-research-source="2"]').count(),0,'Los videos no se ofrecen como fichas');
  assert.equal(await page.locator('[name=description]').inputValue(),'','Buscar todavía no completa');
  await page.locator('[data-research-source="0"]').click();await page.locator('#researchStatus').filter({hasText:'campos vacíos completados'}).waitFor();
