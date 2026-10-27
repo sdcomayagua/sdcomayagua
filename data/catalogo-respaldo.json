@@ -671,27 +671,6 @@
     "details": {}
   },
   {
-    "bestSeller": false,
-    "createdAt": "",
-    "catalogOrder": 32,
-    "id": "SDC-002",
-    "code": "Dedales-002",
-    "name": "Dedales V3 - Fibra de Carbón",
-    "category": "Dedales",
-    "price": 50,
-    "stock": 1,
-    "image": "https://drive.google.com/thumbnail?id=1-UGLW8TVairLT3HH6c9N_5kD2yRe-L0B&sz=w1200",
-    "gallery": "",
-    "description": "Dedales gamer versión V2 para celular, con tacto cómodo y buena respuesta en pantalla. Recomendados para quienes buscan más control, mejor deslizamiento y comodidad durante partidas largas.",
-    "discounts": "",
-    "codAllowed": true,
-    "active": true,
-    "colors": "",
-    "promoPrice": 0,
-    "promoText": "",
-    "details": {}
-  },
-  {
     "bestSeller": true,
     "createdAt": "",
     "catalogOrder": 33,
@@ -1472,6 +1451,27 @@
     "details": {
       "material": "Fibra de Carbono"
     }
+  },
+  {
+    "bestSeller": false,
+    "createdAt": "",
+    "catalogOrder": 32,
+    "id": "SDC-002",
+    "code": "Dedales-002",
+    "name": "Dedales V3 - Fibra de Carbón",
+    "category": "Dedales",
+    "price": 50,
+    "stock": 1,
+    "image": "https://drive.google.com/thumbnail?id=1-UGLW8TVairLT3HH6c9N_5kD2yRe-L0B&sz=w1200",
+    "gallery": "",
+    "description": "Dedales gamer versión V2 para celular, con tacto cómodo y buena respuesta en pantalla. Recomendados para quienes buscan más control, mejor deslizamiento y comodidad durante partidas largas.",
+    "discounts": "",
+    "codAllowed": true,
+    "active": false,
+    "colors": "",
+    "promoPrice": 0,
+    "promoText": "",
+    "details": {}
   },
   {
     "catalogOrder": 0,
