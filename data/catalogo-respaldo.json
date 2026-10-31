@@ -49,7 +49,7 @@
     "code": "Adaptador-003",
     "name": "Adaptador Lightning (Carga y Jack)",
     "category": "Adaptador",
-    "price": 450,
+    "price": 280,
     "stock": 0,
     "image": "https://drive.google.com/thumbnail?id=1hxr81Gehzhml7IJxj-60Q5_69GQvHDlE&sz=w1200",
     "gallery": "",
@@ -58,7 +58,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 378,
+    "promoPrice": 170,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {}
   },
@@ -70,7 +70,7 @@
     "code": "Adaptador-004",
     "name": "Adaptador OTG USB a TYPE C",
     "category": "Adaptador",
-    "price": 220,
+    "price": 270,
     "stock": 5,
     "image": "https://drive.google.com/thumbnail?id=10z7Jjckh34T74HQn3z5EDYhEMeJyzdmA&sz=w1200",
     "gallery": "https://drive.google.com/thumbnail?id=1WF46KU7OL6bxnwhwmEz9ZuhQZCSpoTzg&sz=w1200, https://drive.google.com/thumbnail?id=1z4c4f2pSzZBT7XGfOPwN1jutwPNYW_XS&sz=w1200",
@@ -79,7 +79,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 185,
+    "promoPrice": 203,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {}
   },
@@ -91,7 +91,7 @@
     "code": "Adaptador-005",
     "name": "Adaptador de Jack a C y Data",
     "category": "Adaptador",
-    "price": 160,
+    "price": 250,
     "stock": 5,
     "image": "https://drive.google.com/thumbnail?id=1__M-rZIdhPnaR6sK60gGaojTpeY7f71_&sz=w1200",
     "gallery": "https://drive.google.com/thumbnail?id=11EcDP9aGKmRWvpPbKpqQ3z0iyFz6isZd&sz=w1200",
@@ -100,7 +100,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 134,
+    "promoPrice": 180,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {}
   },
@@ -121,7 +121,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 294,
+    "promoPrice": 0,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {
       "length": 6.5,
@@ -626,7 +626,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 850,
+    "promoPrice": 0,
     "promoText": "Oferta",
     "details": {
       "weight": 72.0,
@@ -687,7 +687,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 160,
+    "promoPrice": 150,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {
       "weight": 2.0,
@@ -1161,7 +1161,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 588,
+    "promoPrice": 600,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {
       "weight": 130.0,
@@ -1265,16 +1265,16 @@
     "code": "Soporte-003",
     "name": "Soporte para Celular",
     "category": "Soporte",
-    "price": 50,
+    "price": 350,
     "stock": 1,
-    "image": "",
+    "image": "https://drive.google.com/thumbnail?id=11TB_jxcrHdyC-Zv-KjdA13170dj-fzsY&sz=w1200",
     "gallery": "",
     "description": "",
     "discounts": "",
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 42,
+    "promoPrice": 170,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {}
   },
@@ -1328,7 +1328,7 @@
     "code": "Adaptador-007",
     "name": "Multi-function 6 in 1 Adapter",
     "category": "Adaptador",
-    "price": 500,
+    "price": 550,
     "stock": 12,
     "image": "https://drive.google.com/thumbnail?id=1jXM3KolhRu7jNk2L_1it5EyEo8RBXfjF&sz=w1200",
     "gallery": "",
@@ -1337,7 +1337,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 420,
+    "promoPrice": 460,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {
       "model": "KOS-9040",
@@ -1437,7 +1437,7 @@
     "code": "Dedales-006",
     "name": "Dedales V2 - Fibra de Carbono",
     "category": "Dedales",
-    "price": 40,
+    "price": 45,
     "stock": 20,
     "image": "https://drive.google.com/thumbnail?id=1bNx4vwAAJFVGtLvKu7Pps3UKfcVDN50v&sz=w1200",
     "gallery": "https://drive.google.com/thumbnail?id=1Q3s2EqsDuiVSIP9txntVWM2MJVSq1KjI&sz=w1200",
@@ -1446,10 +1446,82 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 34,
+    "promoPrice": 35,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {
       "material": "Fibra de Carbono"
+    }
+  },
+  {
+    "bestSeller": false,
+    "createdAt": "2026-10-31T01:56:24.697Z",
+    "catalogOrder": 78,
+    "id": "b1a12bb4-29e8-462b-a8e0-25bc600bcc09",
+    "code": "Mouse-Gaming-002",
+    "name": "Mouse Redragon Griffin 7200 DPI M607W",
+    "category": "Mouse Gaming",
+    "price": 800,
+    "stock": 2,
+    "image": "https://drive.google.com/thumbnail?id=1sNBM4ENVzODztmh4nGL6mWLZN2f1YuaV&sz=w1200",
+    "gallery": "",
+    "description": "Redragon M607W Griffin en color blanco construido para gamers de PC con diseño ergonómico. Ofrece un sensor de alta precisión de hasta 7200 DPI (ajustable por el usuario en 800/1200/1600/2400/7200 DPI) y aceleración de 10G. Cuenta con microinterruptores de calidad gaming que aseguran durabilidad y alta capacidad de respuesta, además de 7 botones programables por el usuario y almohadillas de teflón para un control óptimo.",
+    "discounts": "",
+    "codAllowed": true,
+    "active": true,
+    "colors": "Blanco",
+    "promoPrice": 700,
+    "promoText": "",
+    "details": {
+      "size": "5.x3.2x1.65",
+      "compatibility": "Windows 10, Windows 8, Windows 7, Windows Vista, Windows XP, Mac OS",
+      "model": "M607W",
+      "brand": "Redragon",
+      "connection": "USB",
+      "references": [
+        {
+          "url": "https://redragonzone.pk/products/redragon-m607-griffin-gaming-mouse-white",
+          "title": "Buy Now - Redragon M607 GRIFFIN Gaming Mouse (White)"
+        }
+      ]
+    }
+  },
+  {
+    "bestSeller": false,
+    "createdAt": "2026-10-31T02:05:38.018Z",
+    "catalogOrder": 79,
+    "id": "925035f4-5aec-46e6-8459-230373d7a28c",
+    "code": "Mouse-003",
+    "name": "Mouse Gaming K90",
+    "category": "Mouse",
+    "price": 390,
+    "stock": 2,
+    "image": "https://drive.google.com/thumbnail?id=1d09XU-sRONXxkS5pprI3Kyllj1rAflIm&sz=w1200",
+    "gallery": "https://drive.google.com/thumbnail?id=1BeNCRFyDcDywG3s4FLQvFiLC2woCXjwk&sz=w1200",
+    "description": "The aoas K90 mouse is a wired gaming mouse with an optical sensor and smooth cursor movement. It features an ergonomic design for greater stability.",
+    "discounts": "",
+    "codAllowed": true,
+    "active": true,
+    "colors": "Black",
+    "promoPrice": 300,
+    "promoText": "",
+    "details": {
+      "material": "ABS",
+      "compatibility": "Windows, Mac, Linux, and Android",
+      "model": "K90",
+      "brand": "aoas",
+      "connection": "wired",
+      "technology": "optical sensor",
+      "included": "1 Mouse",
+      "references": [
+        {
+          "url": "https://www.skroutz.mt/s/27171613/aoas-K90-Gaming-Mouse-3200-DPI-Black.html",
+          "title": "aoas K90 Gaming Mouse 3200 DPI Black - Skroutz.mt"
+        },
+        {
+          "url": "https://www.yourstoreq8.com/pc-and-computer-accessories-ar/gaming-keyboard-and-mouse/mouse/aoas-k90-rgb-gaming-mouse?sl=en",
+          "title": "AOAS K90 RGB Gaming Mouse"
+        }
+      ]
     }
   },
   {
