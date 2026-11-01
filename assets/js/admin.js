@@ -5,7 +5,10 @@ const cfg=window.GC_CONFIG,C=window.GC,S=window.GC_PRODUCT_SEARCH,$=id=>document
 let token='',products=[],deletedProducts=[],settings={},selectedFiles=[],busy=false,previewUrls=[],checkingConnection=null,catalogSource='',detailsSupported=false,extendedDetailsSupported=false,researchSupported=false,bestSellersSupported=false,imageImportSupported=false;
 let researchBusy=false,researchEpoch=0,researchDraft=null,automaticQuery=true,researchSelectable=false,researchSearch=null,researchApplied=[],researchReferencesBefore=null;
 let researchMode='details',researchPhotoDraft=null,imageSearchSupported=false;
-let verifiedProfiles=null,serverFeatures={},checkingFeatures=null,editorBaseline='',editorTrigger=null;
+let verifiedProfiles=null,serverFeatures={},checkingFeatures=null,editorBaseline='',editorTrigger=null,reloading=null;
+let sessionStore;try{sessionStore=localStorage;}catch{try{sessionStore=sessionStorage;}catch{}}
+const session=window.GC_ADMIN_SESSION.create({storage:sessionStore});
+let sessionTimer,lastSessionTouch=0,visibleRows=24,filterKey='';
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
 async function verifiedProfile(name,productName=''){
  if(!verifiedProfiles){
@@ -27,7 +30,9 @@ async function verifiedProfile(name,productName=''){
 const technicalFields=['weight','width','height','length','size','material','model','compatibility','brand','voltage','current','power','connection','technology','included'];
 const extendedFields=['brand','voltage','current','power','connection','technology','included'];
 const technicalLabels={weight:'Peso',width:'Ancho',height:'Alto',length:'Largo / profundidad',size:'Tamaño',material:'Material',model:'Modelo',compatibility:'Compatibilidad',brand:'Marca',voltage:'Voltaje de entrada',current:'Corriente de entrada',power:'Potencia',connection:'Conexión',technology:'Tecnología',included:'Incluye'};
-try{token=sessionStorage.getItem('gc_admin_token')||''}catch{}
+// Las sesiones antiguas no tenían vencimiento: pedimos PIN una vez al migrar.
+try{sessionStorage.removeItem('gc_admin_token');}catch{}
+token=session.read()?.token||'';
 const fallback='assets/img/sin-foto.svg';
 const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const toast=x=>{const el=$('toast');el.textContent=x;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.display='none',3800)};
@@ -39,7 +44,22 @@ function formField(form,name){
  return field;
 }
 function validApi(){return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(cfg.apiUrl||'')}
+function armSession(){clearTimeout(sessionTimer);const saved=session.read();if(saved)sessionTimer=setTimeout(checkSession,Math.max(1,saved.expiresAt-Date.now()));}
+function lockSession(message='Tu sesión venció después de 5 minutos sin actividad. Ingresá tu PIN para continuar.'){
+ token='';session.clear();clearTimeout(sessionTimer);$('secret').value='';
+ $('adminPanel').classList.add('hidden');$('logout').classList.add('hidden');$('loginPanel').classList.remove('hidden');
+ document.querySelectorAll('.overlay').forEach(el=>el.hidden=true);document.body.style.overflow='';
+ $('loginMessage').textContent=message;$('loginMessage').classList.remove('hidden');
+ document.dispatchEvent(new CustomEvent('gc:admin-locked'));
+}
+function checkSession(){if(!token)return;if(!session.read())lockSession();else armSession();}
+function touchSession(force=false){
+ if(!token||!$('loginPanel').classList.contains('hidden'))return;
+ if(!session.read()){lockSession();return;}
+ if(force||Date.now()-lastSessionTouch>15000){session.touch();lastSessionTouch=Date.now();armSession();}
+}
 function request(action,extra={}){
+ if(!['health','verify'].includes(action)&&!session.read()){lockSession();return Promise.reject(Error('Ingresá tu PIN para continuar.'));}
  if(window.GC_GOOGLE_PANEL?.request){
   return new Promise((resolve,reject)=>{
    let ended=false;const timer=setTimeout(()=>finish(Error('Google tardó en responder. Comprobá la conexión y reintentá.')),action==='health'?16000:action==='verify'?28000:180000);
@@ -130,13 +150,15 @@ function renderGalleryPreview(){
  $('imagePreview').onerror=function(){this.onerror=null;this.src=fallback};
  editorEvent('change');
 }
-function render(){
+function render(catalogChanged=false){
  const q=$('adminSearch').value.toLowerCase().trim(),filter=$('adminFilter').value;
  const noPhoto=p=>!p.image&&!parseGallery(p.gallery).length;
  const source=filter==='trash'?deletedProducts:products;
  const rows=source.filter(p=>C.matchesSearch(p.id+' '+C.productSearchText(p),q)&&(filter==='photos'?noPhoto(p):filter==='requested'?p.bestSeller:filter==='out'?p.stock===0:filter==='available'?p.active&&p.stock>0:filter==='low'?p.active&&p.stock>0&&p.stock<=3:filter==='hidden'?!p.active:true));
  const sort=$('adminSort')?.value||'newest';
  rows.sort(sort==='name'?(a,b)=>a.name.localeCompare(b.name,'es'):sort==='stock'?(a,b)=>a.stock-b.stock||C.recentFirst(a,b):sort==='price'?(a,b)=>C.unitPrice(a,1)-C.unitPrice(b,1):C.recentFirst);
+ const nextFilter=JSON.stringify([q,filter,sort]);if(nextFilter!==filterKey){visibleRows=24;filterKey=nextFilter;}
+ try{sessionStorage.setItem('gc_admin_filters',JSON.stringify({query:$('adminSearch').value,filter,sort}));}catch{}
  if($('adminResultCount'))$('adminResultCount').textContent=rows.length+' de '+source.length+(filter==='trash'?' en papelera':' productos');
  if($('adminTrashNotice'))$('adminTrashNotice').hidden=filter!=='trash';
  const trashOption=$('adminFilter').querySelector('[value=trash]');if(trashOption)trashOption.textContent='Papelera ('+deletedProducts.length+')';
@@ -147,7 +169,7 @@ function render(){
  $('statAvailable').textContent=products.filter(p=>p.active&&p.stock>0).length;
  $('statOut').textContent=products.filter(p=>p.active&&!p.stock).length;
  $('statCod').textContent=products.filter(p=>p.active&&p.codAllowed).length;
- $('adminRows').innerHTML=rows.map(p=>`<tr>
+ $('adminRows').innerHTML=rows.slice(0,visibleRows).map(p=>`<tr>
    <td data-label="Producto"><div class="admin-product-identity"><img loading="lazy" decoding="async" src="${esc(normalizePreview(p.image||parseGallery(p.gallery)[0]))}" alt="" onerror="this.onerror=null;this.src='assets/img/sin-foto.svg'"><div><strong>${esc(p.name)}</strong><span class="admin-product-meta">${esc(p.category)} · ${esc(p.code||'Sin código')}</span>${p.bestSeller?'<span class="admin-requested-tag">★ Más pedidos</span>':''}${noPhoto(p)?'<span class="admin-photo-tag">Sin foto</span>':''}</div></div></td>
    <td data-label="Precio">${C.money(p.price)}</td>
    <td data-label="Promoción">${p.promoPrice>0?C.money(C.unitPrice(p,1)):'—'}</td>
@@ -157,10 +179,18 @@ function render(){
    <td data-label="Acciones"><div class="admin-row-actions">${p.deletedAt?`<button type="button" class="btn small outline admin-restore-product" data-restore-product="${esc(p.id)}">Restaurar producto</button>`:`<button type="button" class="btn small outline" data-edit="${esc(p.id)}" >Editar</button> ${!noPhoto(p)?`<button type="button" class="btn small outline" data-reference-product="${esc(p.id)}">Buscar con mi foto</button>`:''}<button type="button" class="btn small outline" data-disable="${esc(p.id)}" >${!p.active&&serverFeatures.productTrash?'Mostrar':'Ocultar'}</button> <button type="button" class="btn small outline best-seller-toggle ${p.bestSeller?'selected':''}" data-best-seller="${esc(p.id)}" aria-pressed="${p.bestSeller}" aria-label="${p.bestSeller?'Quitar de':'Marcar en'} Más pedidos: ${esc(p.name)}">${p.bestSeller?'★ En Más pedidos':'☆ Más pedidos'}</button><button type="button" class="btn small outline admin-delete-product" data-delete-product="${esc(p.id)}" aria-label="Eliminar ${esc(p.name)}" ${catalogSource!=='privado'||!serverFeatures.productTrash?'disabled title="Sincronizá el panel para habilitar la papelera"':''}>Eliminar</button>`}</div></td>
  </tr>`).join('')||'<tr><td colspan="7"><div class="admin-empty"><strong>No encontramos productos con esos filtros.</strong><p>Probá con nombre, marca, modelo o código.</p><button class="btn outline small" type="button" data-clear-admin>Ver todos los productos</button></div></td></tr>';
  $('settingsSummary').textContent=`Envío: ${C.money(settings.shipping??110)} | Mínimo pago al recibir: ${C.money(settings.codMinimum||350)} en productos | Comisión al recibir: ${Math.round((settings.codRate||.1)*100)}% | Tigo Money: ${Math.round((settings.tigoRate||.07)*100)}%`;
- if(typeof CustomEvent==='function')document.dispatchEvent(new CustomEvent('gc:catalog'));
+ if($('adminMore')){$('adminMore').hidden=rows.length<=visibleRows;$('adminMore').textContent='Mostrar más productos ('+Math.min(24,rows.length-visibleRows)+')';}
+ if($('adminShown'))$('adminShown').textContent=rows.length?'Mostrando '+Math.min(rows.length,visibleRows)+' de '+rows.length:'';
+ if(catalogChanged===true&&typeof CustomEvent==='function')document.dispatchEvent(new CustomEvent('gc:catalog'));
 
 }
-async function reload(){
+function reload(){
+ if(reloading)return reloading;
+ $('refresh').disabled=true;$('refresh').setAttribute('aria-busy','true');
+ reloading=reloadCatalog().finally(()=>{reloading=null;$('refresh').disabled=false;$('refresh').removeAttribute('aria-busy');});
+ return reloading;
+}
+async function reloadCatalog(){
  const label=$('adminStatus');
  label.textContent='Sincronizando inventario…';
  // El canal POST ya funciona para autenticar y modificar datos. Lo usamos
@@ -172,7 +202,7 @@ async function reload(){
   products=data.products.map((p,index)=>({...C.cleanProduct(p,index),cost:C.num(p.cost),revision:p.revision==null?undefined:String(p.revision)}));
   deletedProducts=(data.trash||[]).map((p,index)=>({...C.cleanProduct(p,index),cost:C.num(p.cost),revision:String(p.revision??''),deletedAt:String(p.deletedAt||'')}));
   settings=data.settings||{};
-  render();
+  render(true);
   label.textContent='✓ Inventario actualizado desde Google Sheets.';
   return true;
  }catch(error){
@@ -183,7 +213,7 @@ async function reload(){
    if(!Array.isArray(data)||!data.length)throw Error('Respaldo vacío.');
    catalogSource='respaldo';
    const removed=new Set(deletedProducts.map(p=>p.id));products=data.map(C.cleanProduct).filter(p=>!removed.has(p.id));
-   render();
+   render(true);
    label.textContent='Catálogo de respaldo cargado. Para sincronizar cambios al instante, publicá la última versión de Code.gs en Apps Script.';
    return false;
   }catch(backupError){
@@ -205,16 +235,16 @@ function refreshFeatures(){
  checkingFeatures=request('verify').then(verification=>{applyFeatures(verification);return serverFeatures;}).finally(()=>{checkingFeatures=null;});
  return checkingFeatures;
 }
-async function logIn(e){
+async function logIn(e,restore=false){
  if(e)e.preventDefault();
  // El PIN se comprueba directamente en el servidor; no dependemos del test público JSONP.
- const candidate=$('secret').value.trim();
+ const candidate=restore?session.read()?.token||'':$('secret').value.trim();
  if(!/^\d{6}$/.test(candidate)){toast('Ingresá tu PIN de seis dígitos.');return;}
  token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
  try{
-  await refreshFeatures();sessionStorage.setItem('gc_admin_token',token);
+  await refreshFeatures();session.start(token);armSession();$('secret').value='';
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');reload();
- }catch(err){token='';$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
+ }catch(err){token='';session.clear();$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
 }
 function editorEvent(name,detail={}){document.dispatchEvent(new CustomEvent('gc:editor-'+name,{detail}));}
@@ -486,7 +516,7 @@ async function save(e){
   }
   if(!confirmed){
    const merged=C.cleanProduct({...p,id}),index=products.findIndex(product=>product.id===id);
-   if(index>=0)products[index]=merged;else products.unshift(merged);render();
+   if(index>=0)products[index]=merged;else products.unshift(merged);render(true);
   }
   try{localStorage.setItem('gc_catalog_revision',JSON.stringify({id,at:Date.now()}))}catch{}
   editorEvent('saved',{id});setBusy(false);closeForm(true);toast(confirmed?'Ficha guardada y comprobada.':'Producto guardado. No se pudo comprobar la lectura.');
@@ -572,13 +602,13 @@ async function disable(id){
  if(!p||!confirm(active?'¿Mostrar "'+p.name+'" en la tienda?':'¿Ocultar "'+p.name+'" de la tienda? El registro se conservará en el inventario.'))return;
  try{
   const result=serverFeatures.productTrash?await request('setProductVisibility',{id,active,expectedRevision:p.revision}):await request('disableProduct',{id});
-  p.active=serverFeatures.productTrash?active:false;if(result.revision)p.revision=result.revision;render();window.GC_ADMIN.notify();toast(p.active?'Producto visible en la tienda.':'Producto ocultado.');await reload();
+  p.active=serverFeatures.productTrash?active:false;if(result.revision)p.revision=result.revision;render(true);window.GC_ADMIN.notify();toast(p.active?'Producto visible en la tienda.':'Producto ocultado.');await reload();
  }catch(e){toast(e.message)}
 }
 function applyProductState(product,result){
  products=products.filter(p=>p.id!==product.id);deletedProducts=deletedProducts.filter(p=>p.id!==product.id);
  const changed={...product,revision:result.revision,active:result.active===true,deletedAt:result.deleted?result.deletedAt||new Date().toISOString():''};
- (result.deleted?deletedProducts:products).push(changed);render();
+ (result.deleted?deletedProducts:products).push(changed);render(true);
 }
 async function toggleBestSeller(button){
  const product=products.find(p=>p.id===button.dataset.bestSeller);if(!product||button.disabled)return;
@@ -586,7 +616,7 @@ async function toggleBestSeller(button){
  button.disabled=true;
  try{
   const result=await request('setBestSeller',{id:product.id,bestSeller:!product.bestSeller});
-  product.bestSeller=result.bestSeller===true;render();
+  product.bestSeller=result.bestSeller===true;render(true);
   try{localStorage.setItem('gc_catalog_revision',JSON.stringify({id:product.id,at:Date.now()}))}catch{}
   toast(product.bestSeller?'Agregado a Más pedidos.':'Quitado de Más pedidos.');
  }catch(error){button.disabled=false;toast(error.message);}
@@ -599,11 +629,17 @@ function binds(){
  $('googlePanel').href=cfg.apiUrl+'?action=panel';
  $('retryConnection').onclick=connectionCheck;
  window.addEventListener('online',()=>{if(!$('loginPanel').classList.contains('hidden'))connectionCheck();});
- $('logout').onclick=()=>{token='';sessionStorage.removeItem('gc_admin_token');location.reload()};
+ $('logout').onclick=()=>{session.clear();token='';location.reload()};
+ for(const name of ['pointerdown','keydown','input','scroll'])document.addEventListener(name,()=>touchSession(),{passive:true,capture:true});
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')touchSession(true);else checkSession();});
+ window.addEventListener('pagehide',()=>touchSession(true));window.addEventListener('pageshow',checkSession);window.addEventListener('focus',checkSession);
+ window.addEventListener('storage',event=>{if(event.key===session.key)checkSession();});
  $('refresh').onclick=reload;
  $('createNew').onclick=()=>showProduct('');
  $('adminSearch').oninput=render;$('adminFilter').onchange=render;
  if($('adminSort'))$('adminSort').onchange=render;
+ if($('adminMore'))$('adminMore').onclick=()=>{visibleRows+=24;render();};
+ try{const saved=JSON.parse(sessionStorage.getItem('gc_admin_filters')||'null');if(saved){$('adminSearch').value=String(saved.query||'').slice(0,180);$('adminFilter').value=saved.filter||'';$('adminSort').value=saved.sort||'newest';}}catch{}
  const clearAdmin=()=>{$('adminSearch').value='';$('adminFilter').value='';if($('adminSort'))$('adminSort').value='newest';render();$('adminSearch').focus({preventScroll:true});};
  if($('adminClearFilters'))$('adminClearFilters').onclick=clearAdmin;
  window.addEventListener('beforeunload',event=>{if(editorDirty()){event.preventDefault();event.returnValue='';}});
@@ -665,7 +701,8 @@ function binds(){
  document.onkeydown=e=>{if(e.key==='Escape')closeForm()};
  renderGalleryPreview();
  if(!validApi()){$('loginMessage').textContent='Todavía falta conectar el sitio con Apps Script: editá assets/js/config.js.';$('loginMessage').classList.remove('hidden')}
- else {connectionCheck().then(ok=>{if(token){$('secret').value=token;if(ok)logIn();}});}
+ else if(token){$('connectionStatus').textContent='Recuperando tu sesión…';logIn(null,true);}
+ else connectionCheck();
 }
 window.GC_ADMIN={request,products:()=>products,trash:()=>deletedProducts,applyProductState,settings:()=>({...settings}),features:()=>serverFeatures,refreshFeatures,editProduct:showProduct,reload,toast,parseGallery,editorPhotos,appendEditorPhotos,reorderEditorPhotos,preparePhoto,selectedPhotos:()=>[...selectedFiles],addPhotos:mergeSelectedFiles,updateEditorCode,notify:()=>{try{localStorage.setItem('gc_catalog_revision',JSON.stringify({at:Date.now()}))}catch{}}};
 binds();

@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),{create,TTL}=require('../assets/js/admin-session');
+let time=1000000;
+const values=new Map(),storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};
+const a=create({storage,now:()=>time});
+assert.equal(a.read(),null);
+a.start('123456');time+=TTL-1;
+assert.equal(create({storage,now:()=>time}).read().token,'123456','Volver antes de cinco minutos recupera el acceso, incluso en otra pestaña');
+time++;assert.equal(a.read(),null,'El límite de cinco minutos es exacto');assert.equal(values.size,0,'El dato vencido se elimina');
+a.start('123456');time+=100000;a.touch();time+=TTL-1;assert.equal(a.read().token,'123456','La actividad renueva el acceso');
+time++;assert.equal(a.touch(),null,'Una interacción después del vencimiento no revive el PIN');
+a.start('123456');const b=create({storage,now:()=>time});b.clear();assert.equal(a.read(),null,'Cerrar sesión en otra pestaña también bloquea esta');
+values.set(a.key,'contenido inválido');assert.equal(a.read(),null);
+values.set(a.key,JSON.stringify({token:'123456',expiresAt:time+TTL*4}));assert.equal(a.read(),null,'Un vencimiento excesivo no se acepta');
+assert.equal(a.start('12345'),null);assert.equal(a.start('1234567'),null);
+const unavailable=create({storage:{getItem(){throw Error();},setItem(){throw Error();},removeItem(){throw Error();}},now:()=>time});
+unavailable.start('123456');assert.equal(unavailable.read().token,'123456','Bloquear almacenamiento no impide entrar con PIN');time+=TTL;assert.equal(unavailable.read(),null);
+console.log('PASS sesión: regreso, recarga, vencimiento a cinco minutos, renovación, cierre entre pestañas y almacenamiento bloqueado.');

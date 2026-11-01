@@ -29,7 +29,13 @@ function scheduleText(){
 }
 function fonts(){
  if(!fontReady)fontReady=(async()=>{
-  if(!window.GC_CATALOG_FONTS)throw Error('No se pudo cargar la tipografía. Recargá la página.');
+  if(!window.GC_CATALOG_FONTS)await new Promise((resolve,reject)=>{
+   const script=document.createElement('script');let done=false;
+   const finish=error=>{if(done)return;done=true;clearTimeout(timer);script.remove();error?reject(error):resolve();};
+   const timer=setTimeout(()=>finish(Error('No se pudo cargar la tipografía del catálogo. Reintentá.')),15000);
+   script.src='assets/js/catalog-fonts.js?v=gc-catalog-pro-59';
+   script.onload=()=>finish(window.GC_CATALOG_FONTS?null:Error('La tipografía no está disponible.'));script.onerror=()=>finish(Error('No se pudo descargar la tipografía. Reintentá.'));document.head.appendChild(script);
+  });
   for(const [name,font] of Object.entries(window.GC_CATALOG_FONTS)){
    const bytes=Uint8Array.from(atob(font.data),char=>char.charCodeAt(0)),face=new FontFace('GC Catalog',bytes,{weight:name==='bold'?'700':'400'});
    document.fonts.add(await face.load());

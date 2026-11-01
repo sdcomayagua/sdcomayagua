@@ -19,6 +19,8 @@ jobs:
           for file in apps-script/*.gs; do node --check < "$file"; done
       - name: Verificar catálogo, carrito y búsquedas sin servicios externos
         run: |
+          node tests/test-admin-session.js
+          node tests/test-bank-loading.js
           node tests/test-api.js
           node tests/test-native-panel.js
           node tests/test-cart.js
@@ -53,3 +55,4 @@ jobs:
           node tests/test-offers-ui.js
           node tests/test-finance-ui.js
           node tests/test-ui.js
+          node tests/test-session-payments-ui.js
