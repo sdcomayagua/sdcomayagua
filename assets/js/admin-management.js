@@ -13,7 +13,7 @@ const names={orders:'Order',waitlist:'Wait'};
 function setupNotice(){
  const requires=['orders','waitlist','stock'].includes(view);
  $('mgConnection').hidden=ready()||!requires;
- if(!ready())$('mgConnection').innerHTML='Para guardar pedidos, interesados y el aviso compartido de stock, actualizá <b>Code.gs</b> y publicá <b>Nueva versión</b> en Google. <a href="https://github.com/sdcomayagua/sdcomayagua/blob/main/ACTIVAR_GESTION.md" target="_blank" rel="noopener noreferrer">Ver pasos ↗</a>';
+ if(!ready())$('mgConnection').innerHTML='Para guardar pedidos, interesados y el aviso compartido de stock, actualizá <b>Code.gs</b> y publicá <b>Nueva versión</b> en Google. <a href="https://github.com/sdcomayagua/sdcomayagua/blob/main/docs/GUIA_ADMIN.md#activar-gestion" target="_blank" rel="noopener noreferrer">Ver pasos ↗</a>';
  $('mgStockSettings').querySelector('button').disabled=!ready()||stockBusy;
  $('mgNewOrder').disabled=!ready();$('mgNewWait').disabled=!ready();
 }

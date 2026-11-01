@@ -239,3 +239,11 @@ body[data-page="productos"] .wrap,.header .wrap,.topbar .wrap {max-width:1200px}
 .catalog-export-custom .catalog-export-help{margin:8px 0 0}
 #catalogExportTextHelp{margin:8px 0 18px}
 @media(max-width:700px){.catalog-export-custom .field{font-size:16px}}
+/* Controles de la tienda cómodos para tocar en pantallas pequeñas. */
+@media(max-width:760px){
+ body .mobile-nav a,body .mobile-nav button{min-height:46px;justify-content:center}
+ .catalog-page .filters .field{min-height:46px;font-size:16px}
+ .catalog-page .catalog-order{min-height:44px;font-size:14px}
+ .catalog-page .category-shortcut{min-height:42px;font-size:13px}
+ .catalog-page .product-actions .btn{min-height:44px}
+}

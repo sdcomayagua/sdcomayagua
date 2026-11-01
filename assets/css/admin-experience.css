@@ -2,6 +2,18 @@ body[data-page=admin]{background:#f5f8fc;color:#18354f}.admin-quick-actions{disp
 @media(max-width:950px){.admin-quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){body[data-page=admin]{padding-bottom:18px}.admin-area{padding-top:16px}.admin-quick-actions{padding:0 14px 15px;gap:9px}.admin-quick-actions button{grid-template-columns:28px minmax(0,1fr);gap:2px 8px;padding:10px;min-height:77px}.admin-quick-actions button>span{width:28px;height:33px;font-size:20px}.admin-quick-actions strong{font-size:11px}.admin-quick-actions small{font-size:9px}.admin-section-jump{grid-template-columns:1fr;padding:12px 14px;gap:6px}.admin-section-jump>span{font-size:10px}.admin-section-jump .field{font-size:16px;min-height:47px}.mg-tabs{padding:8px 10px}.mg-tabs button{min-height:44px}.mg-metric{min-height:98px}#adminPanel .admin-product-filters{grid-template-columns:1fr 1fr;gap:8px}#adminPanel .admin-product-filters input{grid-column:1/-1}#adminPanel .admin-product-filters .field{font-size:16px;min-height:46px}.admin-shortcut-hint{display:none}.admin-results-bar{font-size:11px;justify-content:space-between}.admin-product-identity>img{width:62px;height:70px}.admin-product-meta{font-size:11px}.admin-stock-pill{font-size:12px}.mg-editor .field,.iv-line .field,#mgProductSearch,#ivProductSearch{font-size:16px}.mg-editor .icon{min-width:42px;min-height:42px}.admin-area .btn{min-height:44px}.mg-record .mg-actions>.btn{flex:1;min-width:135px}#adminPanel .mg-tabs{scroll-padding:14px}.admin-area [data-mg-view],#adminSearch{scroll-margin-top:80px}.admin-area .row.spaced>.row{width:100%;display:flex;gap:8px}.admin-area .row.spaced>.row>.btn{flex:1;font-size:12px;white-space:normal}.admin-product-identity strong{overflow-wrap:anywhere}.admin-area .header .wrap{gap:10px}}
 @media(prefers-reduced-motion:reduce){.admin-quick-actions button{transition:none}}
+/* En celular, el acceso al inventario queda cerca del encabezado. */
+@media(max-width:760px){
+ #adminPanel>#adminSheetShortcut,#adminPanel>.row:first-child:has(#adminSheetShortcut){display:none}
+ .admin-area .mg-heading{flex-direction:row;align-items:center;gap:10px;padding:13px 14px 8px}
+ .admin-area .mg-heading .eyebrow,.admin-area .mg-heading p{display:none}.admin-area .mg-heading h2{font-size:17px;margin:0}
+ .admin-area .mg-heading-links{align-items:flex-end}.admin-area .mg-private{font-size:10px;max-width:145px;padding:5px 7px}
+ .admin-quick-actions{display:flex;overflow-x:auto;gap:8px;padding:6px 14px 12px;scrollbar-width:thin}
+ .admin-quick-actions button{display:flex;flex:none;align-items:center;gap:8px;min-height:46px;padding:9px 11px;max-width:180px;border-radius:9px}
+ .admin-quick-actions button>span{display:grid;flex:none;width:25px;height:27px;font-size:17px}.admin-quick-actions strong{font-size:12px}.admin-quick-actions small{display:none}
+ .admin-section-jump{grid-template-columns:85px minmax(0,1fr);gap:8px;padding:11px 14px}.admin-section-jump>span{display:none}.admin-section-jump label{line-height:1.4}
+ .admin-summary>summary{padding:11px 14px}.admin-area .mg-hub{margin:18px 0 16px}
+}
 
 .admin-row-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:210px}.admin-row-actions .btn{min-height:37px;font-size:10px;padding:7px 9px;white-space:normal;text-align:center}.products-table td[data-label="Producto"]{min-width:235px}.admin-product-identity strong{font-size:13px;line-height:1.5;display:block}#adminRows td[data-label="Acciones"] .admin-row-actions{grid-column:1/-1}@media(max-width:760px){.admin-row-actions{min-width:0;gap:9px}.products-table td[data-label="Producto"]{min-width:0}}
 
@@ -17,4 +29,30 @@ body[data-page=admin]{background:#f5f8fc;color:#18354f}.admin-quick-actions{disp
 .product-delete-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.product-delete-actions .btn{min-height:44px}
 @media(max-width:760px){.admin-row-actions .admin-delete-product{min-height:44px}.product-delete-actions .btn{flex:1}.product-delete-dialog{padding:18px}}
 
-/* ADMIN: accesos breves, productos reconocibles y controles cómodos. */
+/* ADMIN: jerarquía compacta, controles legibles y lista gradual. */
+body[data-page=admin] .admin-area{max-width:1480px;padding-top:24px;padding-bottom:40px}
+.admin-toolbar{gap:18px;align-items:center}.admin-toolbar h1{font-size:30px;line-height:1.2;letter-spacing:-.7px;margin:7px 0}
+.admin-toolbar p.muted{font-size:14px;margin:0}.admin-toolbar>.row{gap:8px}
+.admin-toolbar .btn{min-height:44px;font-size:13px}.admin-area .mg-heading{padding:18px 22px 16px}
+.admin-area .mg-heading h2{font-size:21px}.admin-area .mg-heading p{font-size:13px}
+.admin-quick-actions strong{font-size:14px;line-height:1.35}.admin-quick-actions small{font-size:12px;line-height:1.4}
+.admin-quick-actions button{min-height:78px;background:#f6f9fd;border-radius:12px;transition:background .15s}
+.admin-area .mg-private{font-size:11px}.admin-section-jump label{font-size:13px}.admin-section-jump .field{font-size:14px}.admin-section-jump>span{font-size:12px}
+.admin-area .mg-tabs{border-top:1px solid #e5ebf2;gap:5px;scrollbar-width:thin}.admin-area .mg-tabs button{font-size:13px;padding:11px 13px;min-height:44px}
+#adminPanel .admin-product-filters .field{font-size:14px}.admin-results-bar{font-size:13px}.admin-product-meta{font-size:12px}.admin-product-identity strong{font-size:14px}
+.admin-list-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:18px;color:#62798d;font-size:13px}.admin-list-footer:has(#adminShown:empty){display:none}
+.admin-area .products-table th{font-size:12px}.admin-area .products-table td{font-size:13px;vertical-align:middle}.admin-row-actions .btn{font-size:12px;min-height:40px}
+#loginPanel{padding:30px;border-radius:18px;border-color:#dbe5ef;box-shadow:0 12px 40px #16365008}
+#loginPanel h1{font-size:28px;line-height:1.2;margin:10px 0 14px}#loginPanel .muted{font-size:14px;line-height:1.7}#loginPanel .admin-hint{font-size:12px;line-height:1.7}
+#secret{font-size:21px;letter-spacing:7px;min-height:54px}#secret::placeholder{font-size:15px;letter-spacing:0}#loginBtn{min-height:48px}
+@media(min-width:1100px){.admin-area .mg-tabs{flex-wrap:wrap}.admin-area .stats{grid-template-columns:repeat(4,minmax(0,1fr))}.admin-area .stats article{padding:13px 17px}.admin-area .stats article strong{font-size:26px}}
+@media(max-width:760px){
+ body[data-page=admin] .admin-area{padding:18px 14px 30px}.admin-toolbar{gap:16px}.admin-toolbar h1{font-size:26px}.admin-toolbar p.muted{font-size:13px}.admin-toolbar>.row{display:grid!important;grid-template-columns:1fr 1fr;width:100%;gap:8px}.admin-toolbar #createNew{grid-column:1/-1}.admin-toolbar .btn{font-size:13px;padding:11px;min-height:46px}
+ .admin-area .mg-heading{padding:16px 14px}.admin-area .mg-heading h2{font-size:20px}.admin-area .mg-heading p{font-size:12px}.admin-area .mg-heading-links{align-items:flex-start}.admin-area .mg-private{font-size:10px;white-space:normal;max-width:150px}
+ .admin-quick-actions strong{font-size:13px}.admin-quick-actions small{font-size:11px}.admin-quick-actions button{min-height:86px}.admin-section-jump label{font-size:12px}.admin-section-jump .field{font-size:16px}.admin-section-jump>span{font-size:12px;line-height:1.5}
+ #adminPanel .admin-product-filters .field{font-size:16px}.admin-results-bar{font-size:12px}.admin-product-meta{font-size:12px}.admin-product-identity>img{width:68px;height:72px}.admin-row-actions .btn{font-size:12px;min-height:44px}
+ .admin-area .mg-panel-heading{flex-wrap:wrap}.admin-area .mg-panel-heading h2{font-size:22px}.admin-area .mg-panel-heading p{font-size:13px}.admin-area .mg-panel .btn{min-height:44px;font-size:13px}.admin-area .mg-product-card p{font-size:12px}.admin-area .mg-product-card h3{font-size:15px}
+ .admin-list-footer{flex-direction:column;gap:10px;align-items:stretch;text-align:center}.admin-list-footer .btn{width:100%}#loginPanel{padding:22px 18px}#loginPanel h1{font-size:25px}.admin-area #toast{bottom:18px}
+}
+@media(max-width:380px){.admin-quick-actions button{display:flex;flex-direction:column;align-items:flex-start;gap:6px}.admin-quick-actions button>span{display:none}.admin-area .mg-heading{flex-direction:column;gap:10px}.admin-area .mg-private{max-width:none}}
+@media(prefers-reduced-motion:reduce){.admin-quick-actions button{transition:none}}

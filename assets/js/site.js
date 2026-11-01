@@ -4,8 +4,9 @@ const C=window.GC,config=window.GC_CONFIG,$=id=>document.getElementById(id);wind
 const imgFallback='assets/img/sin-foto.svg',page=document.body.dataset.page||'inicio';
 let products=[],settings={...config},banks=[],cart={},currentId='',visible=24,latest=null,currentQuoteId='';
 let banksRequest=null,banksStatus='idle',detailTrigger=null;
+const publicRequests=new Map();
 let checkoutDelivery={mode:'national',amount:'',note:''};
-let onlineRequest=null,lastOnlineCheck=0,linkedProductOpened=false,pendingOnlineRefresh=false;
+let onlineRequest=null,lastOnlineCheck=0,linkedProductOpened=false,pendingOnlineRefresh=false,hasOnlineCatalog=false;
 const bestSellersCategory='__mas_pedidos__';
 const initialParams=new URLSearchParams(location.search),linkedProductId=initialParams.get('producto');
 let requestedCategory=initialParams.get('coleccion')==='mas-pedidos'?bestSellersCategory:(initialParams.get('categoria')||'').slice(0,120);
@@ -323,10 +324,13 @@ function printQuote(){
 }
 function handlePublic(data){
  if(!data||data.ok===false||!Array.isArray(data.products))throw Error(data?.error||'Respuesta no válida');
+ hasOnlineCatalog=true;
  const showingDetail=$('detailOverlay')&&!$('detailOverlay').hidden,oldDetail=showingDetail?JSON.stringify(products.find(p=>p.id===currentId)):'';
- products=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name);settings={...settings,...data.settings};window.GC_WATERMARK?.set(settings);
- if(Array.isArray(data.banks)){banks=data.banks;banksStatus='ready';}
- renderPaymentTerms();renderCategories();render();cleanItems();renderBanks();renderPaymentDetails();
+ const nextProducts=data.products.map(C.cleanProduct).filter(p=>p.id&&p.name),nextSettings={...settings,...data.settings};
+ const catalogChanged=JSON.stringify(nextProducts)!==JSON.stringify(products)||JSON.stringify(nextSettings)!==JSON.stringify(settings);
+ products=nextProducts;settings=nextSettings;if(catalogChanged)window.GC_WATERMARK?.set(settings);
+ if(Array.isArray(data.banks)){banks=data.banks.filter(x=>x&&typeof x==='object');banksStatus='ready';}
+ renderPaymentTerms();if(catalogChanged){renderCategories();render();}cleanItems();renderBanks();renderPaymentDetails();
  if($('cartOverlay')&&!$('cartOverlay').hidden)cartRender();
  if(showingDetail){const current=products.find(p=>p.id===currentId&&p.active);if(!current){close('detailOverlay');toast('Este producto ya no está disponible.');}else if(JSON.stringify(current)!==oldDetail)open(currentId,true);}
  if($('syncStatus')){$('syncStatus').textContent='Catálogo actualizado';$('syncStatus').style.color='#6f7f92';}
@@ -381,10 +385,7 @@ function refreshOnlineCatalog(force=false){
   const sheetTask=catalogFromSheet().then(data=>{sheetData=data;handlePublic(C.mergeCatalog(sheetData,apiData||{products}));ready=true});
   const apiTask=(async()=>{
    const url=String(config.publicApiUrl||config.apiUrl||'').trim();if(!url)return;
-   let data;try{data=await jsonp(url)}catch(error){
-    if(config.publicApiUrl)throw error;
-    data=await catalogByPost(url);
-   }
+   const data=await publicCatalogRequest(url);
    apiData=data;handlePublic(sheetData?C.mergeCatalog(sheetData,apiData):data);ready=true;
   })();
   await Promise.allSettled([sheetTask,apiTask]);
@@ -393,7 +394,21 @@ function refreshOnlineCatalog(force=false){
  })().finally(()=>{onlineRequest=null;if(pendingOnlineRefresh){pendingOnlineRefresh=false;refreshOnlineCatalog();}});
  return onlineRequest;
 }
-function renderBanks(){if(!$('bankAccounts'))return;const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim());const copyRow=(label,value)=>!String(value||'').trim()?'':`<div class="bank-copy-row" role="button" tabindex="0" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}"><div><small>${safe(label)}</small><strong>${safe(value)}</strong></div><button type="button" class="copy-btn" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}">Copiar</button></div>`;$('bankAccounts').innerHTML=published.length?published.map(x=>`<article class="bank-card"><div class="bank-card-head"><div class="bank-symbol">▣</div><div><div class="eyebrow">Cuenta para depósitos</div><h3>${safe(x.bank||'Banco')}</h3></div></div>${copyRow('Nombre del titular',x.owner)}${copyRow('Número de cuenta',x.account)}${copyRow('Número de identidad',x.identity)}</article>`).join(''):`<div class="bank-empty"><div class="bank-symbol">▣</div><h3>Cuentas no disponibles en este momento</h3><p>Solicitá por WhatsApp los datos para transferir y confirmalos antes de pagar.</p><a class="btn outline" href="https://wa.me/${String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito los datos para depositar mi pedido.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a></div>`;}
+function bankText(account){return [account.bank,account.owner&&'Titular: '+account.owner,'Cuenta: '+account.account,account.identity&&'Identidad: '+account.identity].filter(Boolean).join('\n');}
+function renderBanks(){
+ const target=$('bankAccounts');if(!target)return;
+ const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim()),filter=$('bankFilter');
+ if(filter){
+  const selected=filter.value,names=[...new Set(published.map(x=>String(x.bank||'Banco')))];
+  filter.innerHTML='<option value="">Todos los bancos y billeteras</option>'+names.map(name=>`<option value="${escapeAttr(name)}">${safe(name)}</option>`).join('');filter.value=names.includes(selected)?selected:'';filter.disabled=!published.length;
+ }
+ const shown=filter?.value?published.filter(x=>String(x.bank||'Banco')===filter.value):published;
+ if($('bankStatus'))$('bankStatus').textContent=banksStatus==='loading'?'Consultando datos de pago…':banksStatus==='failed'?'No se pudo actualizar. Tocá Reintentar.':published.length?shown.length+' cuenta'+(shown.length===1?' disponible':'s disponibles'):'No hay cuentas publicadas.';
+ if($('bankRetry')){$('bankRetry').disabled=banksStatus==='loading';$('bankRetry').textContent=banksStatus==='failed'?'Reintentar':'Actualizar';}
+ target.setAttribute('aria-busy',String(banksStatus==='loading'));
+ const copyRow=(label,value)=>!String(value||'').trim()?'':`<div class="bank-copy-row"><div><small>${safe(label)}</small><strong>${safe(value)}</strong></div><button type="button" class="copy-btn" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}">Copiar</button></div>`;
+ target.innerHTML=shown.length?shown.map(x=>`<article class="bank-card"><div class="bank-card-head"><div class="bank-symbol" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m3 8 9-5 9 5H3m2 3v7m5-7v7m4-7v7m5-7v7M3 21h18"/></svg></div><div><div class="eyebrow">Datos para pagar</div><h3>${safe(x.bank||'Banco')}</h3></div></div>${copyRow('Nombre del titular',x.owner)}${copyRow('Número de cuenta',x.account)}${copyRow('Número de identidad',x.identity)}<button type="button" class="btn bank-copy-all" data-copy="${escapeAttr(bankText(x))}" data-label="Todos los datos" data-copy-caption="Copiar todos los datos">Copiar todos los datos</button></article>`).join(''):banksStatus==='loading'||banksStatus==='idle'?'<div class="bank-empty bank-loading" role="status"><span class="bank-loader" aria-hidden="true"></span><h3>Cargando tus opciones de pago</h3><p>Estamos consultando las cuentas publicadas.</p></div>':`<div class="bank-empty"><h3>${banksStatus==='failed'?'No pudimos consultar las cuentas':'No hay cuentas publicadas'}</h3><p>Podés reintentar la carga o solicitar los datos por WhatsApp.</p><a class="btn outline" href="https://wa.me/${String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito los datos para depositar mi pedido.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a></div>`;
+}
 async function copyText(value){try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return true;}}catch{}const input=document.createElement('textarea');input.value=value;input.setAttribute('readonly','');input.style.cssText='position:fixed;top:-1000px;left:-1000px';document.body.append(input);input.select();let ok=false;try{ok=document.execCommand('copy')}catch{}input.remove();return ok;}
 
 /* Respaldo bancario dinámico: consulta SOLO la pestaña Cuentas. Nunca incrusta
@@ -428,16 +443,37 @@ function banksFromSheet(){
  });
 }
 function loadBanksFromSheet(){
- if(config.privateInventory)return;
  if(!$('bankAccounts')&&!$('tigoPaymentDetails'))return;
  if(banksRequest)return banksRequest;
- banksStatus='loading';
+ banksStatus='loading';renderBanks();
  banksRequest=(async()=>{
-  try{banks=await banksFromSheet();banksStatus='ready';renderBanks();}
-  catch(err){banksStatus='failed';console.warn('Cuentas bancarias: revisar publicación del Sheet o Apps Script',err);if(!banks.length)renderBanks();}
-  finally{renderPaymentDetails();}
+  try{
+   const url=String(config.publicApiUrl||config.apiUrl||'').trim();
+   const data=await publicCatalogRequest(url);
+   if(!Array.isArray(data.banks))throw Error('La respuesta no incluyó cuentas publicadas.');
+   banks=data.banks.filter(x=>x&&typeof x==='object');banksStatus='ready';
+  }catch(err){
+   if(!config.privateInventory){try{banks=await banksFromSheet();banksStatus='ready';}catch{banksStatus='failed';}}
+   else banksStatus='failed';
+  }finally{banksRequest=null;renderBanks();renderPaymentDetails();}
  })();
  return banksRequest;
+}
+function publicCatalogRequest(url){
+ if(!url)return Promise.reject(Error('No hay conexión pública configurada.'));
+ if(publicRequests.has(url))return publicRequests.get(url);
+ const task=jsonp(url).catch(async error=>{
+  // JSON permite recuperar cuentas cuando el navegador bloquea el canal JSONP.
+  const controller=typeof AbortController==='function'?new AbortController():null;
+  const timer=controller?setTimeout(()=>controller.abort(),8000):null;
+  try{
+   const response=await fetch(url+(url.includes('?')?'&':'?')+'action=publicCatalog',{cache:'no-store',...(controller?{signal:controller.signal}:{})});
+   if(!response.ok)throw error;const data=await response.json();
+   if(data?.ok===false||!Array.isArray(data.products))throw error;return data;
+  }catch(failure){if(url===config.publicApiUrl)throw failure;return catalogByPost(url);}
+  finally{if(timer!==null)clearTimeout(timer);}
+ }).finally(()=>publicRequests.delete(url));
+ publicRequests.set(url,task);return task;
 }
 function jsonp(url,action='public',extra={}){return new Promise((resolve,reject)=>{const callback='gcPublic_'+Date.now()+'_'+Math.floor(Math.random()*9999);const script=document.createElement('script');let ended=false,timeout=setTimeout(()=>done(Error('Tiempo de espera agotado')),13000);function done(err,data){if(ended)return;ended=true;clearTimeout(timeout);delete window[callback];script.remove();err?reject(err):resolve(data)}window[callback]=d=>d?.ok===false?done(Error(d.error||'Sin respuesta del catálogo')):done(null,d);script.onerror=()=>done(Error('Sin conexión con Apps Script'));script.onload=()=>{if(!ended)done(Error('Google no devolvió el catálogo'))};script.src=url+(url.includes('?')?'&':'?')+new URLSearchParams({action,...extra,callback,t:Date.now()});document.head.appendChild(script)})}
 /**
@@ -479,6 +515,9 @@ function catalogByPost(url,action='publicCatalog',extra={}){
 async function load(){
  const url=String(config.publicApiUrl||config.apiUrl||'').trim();
  let localReady=false;
+ // Las cuentas y el catálogo se consultan en paralelo con el respaldo local.
+ // No mostrar «no disponibles» mientras la red todavía está respondiendo.
+ const online=refreshOnlineCatalog();
  if($('bankAccounts'))loadBanksFromSheet();
  // Render inmediato a partir de un respaldo JS local. Si fetch o Google
  // quedan pendientes, el cliente sigue viendo los productos y puede navegar.
@@ -504,19 +543,19 @@ async function load(){
    data=await response.json();
   }finally{if(stop!==null)clearTimeout(stop)}
   if(!Array.isArray(data))throw Error('El respaldo tiene un formato inválido');
-  products=data.map(C.cleanProduct).filter(p=>p.id&&p.name);
-  renderCategories();render();cleanItems();renderBanks();
+  const nextProducts=data.map(C.cleanProduct).filter(p=>p.id&&p.name);
+  if(!hasOnlineCatalog&&JSON.stringify(nextProducts)!==JSON.stringify(products)){products=nextProducts;renderCategories();render();cleanItems();renderBanks();}
   localReady=true;
-  if($('syncStatus'))$('syncStatus').textContent='Actualizando catálogo…';
+  if($('syncStatus')&&!hasOnlineCatalog)$('syncStatus').textContent='Actualizando catálogo…';
  }catch(error){
   console.warn('Respaldo no disponible:',error);
-  if($('syncStatus'))$('syncStatus').textContent='No se pudo cargar el respaldo; verificando catálogo en línea…';
+  if($('syncStatus')&&!hasOnlineCatalog)$('syncStatus').textContent='No se pudo cargar el respaldo; verificando catálogo en línea…';
  }
  if(!url&&!Number.isInteger(config.publicCatalogGid)){
   if($('syncStatus'))$('syncStatus').textContent=localReady?'Confirmá precio y existencias por WhatsApp.':'No hay conexión configurada con Google Sheets.';
   return;
  }
- await refreshOnlineCatalog();
+ await online;
  openLinkedProduct();
 }
 function binds(){
@@ -573,7 +612,9 @@ function binds(){
   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}
  });
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){close('detailOverlay');close('cartOverlay')}});
- const onBankCopy=async b=>{if(!b)return;const ok=await copyText(b.dataset.copy);toast(ok?b.dataset.label+' copiado al portapapeles':'No se pudo copiar. Mantené presionado el dato para copiarlo.');if(ok){const button=b.matches('button')?b:b.querySelector('button');if(button){button.textContent='✓ Copiado';setTimeout(()=>{if(button.isConnected)button.textContent='Copiar'},2000)}}};
+ $('bankFilter')?.addEventListener('change',renderBanks);
+ $('bankRetry')?.addEventListener('click',()=>loadBanksFromSheet());
+ const onBankCopy=async b=>{if(!b)return;const ok=await copyText(b.dataset.copy);toast(ok?b.dataset.label+' copiado al portapapeles':'No se pudo copiar. Mantené presionado el dato para copiarlo.');if(ok){const button=b.matches('button')?b:b.querySelector('button');if(button){button.textContent='✓ Copiado';setTimeout(()=>{if(button.isConnected)button.textContent=button.dataset.copyCaption||'Copiar'},2000)}}};
  $('bankAccounts')?.addEventListener('click',e=>onBankCopy(e.target.closest('[data-copy]')));
  $('tigoPaymentDetails')?.addEventListener('click',e=>onBankCopy(e.target.closest('[data-copy]')));
  $('bankAccounts')?.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.bank-copy-row')){e.preventDefault();onBankCopy(e.target)}});
