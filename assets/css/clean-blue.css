@@ -370,3 +370,35 @@ body[data-page="productos"] .mobile-wa-fab.is-visible{background:#102640!importa
   body[data-page="productos"] .store-hero-actions a{font-size:12px!important}
 }
 @media(prefers-reduced-motion:reduce){body[data-page="productos"] .product{transition:none!important}}
+
+
+/* GAMER COMAYAGUA — Catálogo directo, sin portada ni bloques promocionales.
+   Se mantiene toda la lógica de búsqueda, filtros, productos y carrito. */
+body[data-page="productos"] .catalog-page .catalog{
+  padding-top:12px!important;
+}
+body[data-page="productos"] .catalog-page .filters{
+  margin:0 0 10px!important;
+}
+body[data-page="productos"] .catalog-browse-bar{
+  margin:8px 0 14px!important;
+}
+body[data-page="productos"] .catalog-visually-hidden{
+  position:absolute!important;width:1px!important;height:1px!important;
+  padding:0!important;margin:-1px!important;overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;
+}
+body[data-page="productos"] .header{
+  box-shadow:0 3px 14px rgba(16,38,64,.05)!important;
+}
+@media(max-width:760px){
+  body[data-page="productos"] .catalog-page .catalog{
+    padding-top:8px!important;
+  }
+  body[data-page="productos"] .catalog-page .filters{
+    padding:7px!important;margin:0 0 9px!important;
+  }
+  body[data-page="productos"] .catalog-browse-bar{
+    margin:5px 0 12px!important;
+  }
+}
