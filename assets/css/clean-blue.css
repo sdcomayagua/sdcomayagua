@@ -1,0 +1,372 @@
+/* GAMER COMAYAGUA — Clean Blue v3 | Solo presentación; no modifica compras ni datos. */
+:root{
+  color-scheme:light;
+  --gc-ink:#0b1729;--gc-ink-2:#112745;--gc-navy:#112745;
+  --gc-red:#ff0000;--gc-red-deep:#d70000;--gc-blue:#2865aa;
+  --gc-cyan:#c4e0ff;--gc-paper:#fff;--gc-line:#dce5f0;
+  --gc-copy:#152841;--gc-muted:#64758c;--gc-glow:0 16px 38px #11274519;
+  --cb-bg:#fff;--cb-navy:#102640;--cb-navy-2:#183657;
+  --cb-border:#2c4b6a;--cb-red:#ff0000;--cb-soft:#edf3f9;
+  --cb-white:#fff;--cb-muted:#b7cce0;--cb-text:#162b45;
+}
+body[data-page="productos"],body[data-page="pagos"],body[data-page="cuentas"]{
+  background:#fff!important;color:var(--cb-text)!important;
+  background-image:none!important;overflow-x:clip;accent-color:#2269b3
+}
+body[data-page] :focus-visible{outline:3px solid #ff0000!important;outline-offset:3px}
+body[data-page] ::selection{background:#b9d6f6;color:#102640}
+body[data-page] .topbar{
+  background:#f7f9fc!important;border-bottom:1px solid #dce5f0!important;color:#526680!important
+}
+body[data-page] .topbar strong{color:#102640!important}
+body[data-page] .topbar [data-shipping-price]{color:#d90000!important}
+body[data-page] .header{
+  position:sticky;top:0;z-index:40;
+  background:#fff!important;border-bottom:1px solid #dce5f0!important;
+  box-shadow:0 7px 23px rgba(16,38,64,.07)!important;backdrop-filter:none!important
+}
+body[data-page] .header .brand-wordmark b{color:#112745!important;text-shadow:none!important}
+body[data-page] .header .brand-wordmark>span{color:#e00000!important}
+body[data-page] .header .nav a{
+  color:#415773!important;background:transparent!important;
+  box-shadow:none!important;border:1px solid transparent!important
+}
+body[data-page] .header .nav a:hover{color:#102640!important;background:#f0f5fa!important}
+body[data-page] .header .nav a[aria-current="page"]{
+  background:#102640!important;color:#fff!important;
+  border-color:#102640!important;box-shadow:none!important
+}
+body[data-page] .header .nav .cart-trigger{
+  background:#ff0000!important;color:#fff!important;border:1px solid #ff0000!important;
+  box-shadow:0 6px 18px rgba(255,0,0,.18)!important
+}
+body[data-page] .header .nav .cart-trigger:hover{background:#d60000!important;border-color:#d60000!important}
+body[data-page] .header .cart-trigger .count{background:#fff!important;color:#d60000!important}
+body[data-page] .eyebrow{color:#407aad!important}
+body[data-page] .footer{background:#f8fafd!important;border-top:1px solid #dce5f0!important;color:#64758c!important}
+body[data-page] .footer a{color:#214a78!important}
+/* PRODUCTOS: portada azul compacto con jerarquía clara */
+body[data-page="productos"] .catalog{padding-top:20px;padding-bottom:48px}
+body[data-page="productos"] .store-intro{
+  position:relative;display:grid;grid-template-columns:minmax(0,1fr) 250px;
+  align-items:center;gap:25px;min-height:258px!important;padding:30px clamp(24px,3.4vw,49px)!important;
+  margin-bottom:14px;overflow:hidden;isolation:isolate;
+  border:1px solid #1b3e64!important;border-radius:18px!important;
+  background:linear-gradient(115deg,#0b1c32 0%,#102a49 62%,#1e456c 100%)!important;
+  box-shadow:0 15px 32px rgba(18,44,75,.16)!important;color:#fff!important
+}
+body[data-page="productos"] .store-intro::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle at 83% 15%,#87bdf417,transparent 32%),linear-gradient(135deg,transparent 73%,#8cc4fc0a 74%,transparent 74.5%);
+  mask-image:none
+}
+body[data-page="productos"] .store-intro::after{display:none!important}
+body[data-page="productos"] .store-hero-copy{position:relative;z-index:1;max-width:750px}
+body[data-page="productos"] .store-kicker{
+  margin:0 0 12px;color:#bddcff!important;font-size:10px!important;
+  font-weight:800!important;letter-spacing:1.4px!important
+}
+body[data-page="productos"] .store-kicker span{
+  background:#ff0000!important;box-shadow:0 0 0 4px rgba(255,0,0,.14)!important
+}
+body[data-page="productos"] .store-intro h1{
+  margin:0!important;max-width:710px;color:#fff!important;
+  font-size:clamp(31px,3.35vw,51px)!important;line-height:1.075!important;
+  font-weight:850!important;letter-spacing:-.038em!important;text-wrap:balance
+}
+body[data-page="productos"] .store-intro h1 span{color:#c5e1ff!important;text-shadow:none!important}
+body[data-page="productos"] .store-intro p{
+  display:block;max-width:590px;color:#d6e5f5!important;margin:12px 0 0!important;
+  font-size:clamp(13px,1.08vw,16px)!important;line-height:1.55
+}
+body[data-page="productos"] .store-hero-actions{gap:10px;margin-top:20px!important}
+body[data-page="productos"] .store-hero-actions a{border-radius:10px!important;min-height:46px!important;font-size:12px!important;font-weight:750!important}
+body[data-page="productos"] .store-hero-primary{
+  background:#ff0000!important;color:#fff!important;border:1px solid #ff0000!important;
+  box-shadow:0 6px 14px #ff00002b!important
+}
+body[data-page="productos"] .store-hero-primary:hover{background:#dc0000!important;box-shadow:0 6px 19px #ff000033!important}
+body[data-page="productos"] .store-hero-whatsapp{
+  background:#ffffff11!important;color:#fff!important;border:1px solid #7ca5ce!important
+}
+body[data-page="productos"] .store-hero-whatsapp:hover{background:#ffffff22!important;border-color:#c9e3ff!important}
+body[data-page="productos"] .store-delivery{
+  position:relative;z-index:1;display:flex;gap:11px;align-items:center;justify-content:center;
+  min-width:0;padding:17px;background:#ffffff10!important;color:#fff!important;
+  border:1px solid #749bc3!important;border-radius:13px!important;box-shadow:none!important
+}
+body[data-page="productos"] .store-delivery>svg{color:#c7e4ff!important}
+body[data-page="productos"] .store-delivery small{color:#ccdfef!important}
+body[data-page="productos"] .store-delivery strong{font-size:30px;color:#fff!important}
+body[data-page="productos"] .mx-rain{display:none!important}
+/* Los tres bloques de beneficios y tarjetas destacadas son azul marino */
+body[data-page="productos"] .store-benefits{gap:11px;margin-bottom:18px}
+body[data-page="productos"] .store-benefit{
+  background:#102640!important;border:1px solid #294c70!important;color:#fff!important;
+  border-radius:13px!important;box-shadow:0 6px 14px #10264017!important;padding:13px!important
+}
+body[data-page="productos"] .store-benefit strong{color:#fff!important}
+body[data-page="productos"] .store-benefit span{color:#c6d7e8!important}
+body[data-page="productos"] .store-benefit b{color:#fff!important}
+body[data-page="productos"] .store-benefit>svg{background:#1c3b5d!important;color:#fff!important}
+body[data-page="productos"] .filters{
+  background:#fff!important;border:1px solid #dce5f0!important;border-radius:13px!important;
+  box-shadow:0 7px 16px rgba(16,38,64,.06)!important;padding:10px!important
+}
+body[data-page] input:not([type=checkbox]):not([type=radio]),body[data-page] select,body[data-page] textarea{
+  background:#fff!important;color:#172f4b!important;
+  border:1px solid #cbd8e8!important;border-radius:9px!important;
+  box-shadow:none!important;min-height:44px
+}
+body[data-page] input::placeholder,body[data-page] textarea::placeholder{color:#718297!important;opacity:1}
+body[data-page] input:focus,body[data-page] select:focus,body[data-page] textarea:focus{
+  border-color:#3975ba!important;box-shadow:0 0 0 3px #3975ba23!important
+}
+body[data-page] select option{background:#fff;color:#172f4b}
+body[data-page="productos"] .filters #search{background-color:#fff!important}
+body[data-page="productos"] .catalog-browse-bar{color:#405978}
+body[data-page="productos"] .category-shortcut{
+  background:#fff!important;color:#26435f!important;border:1px solid #cad8e7!important
+}
+body[data-page="productos"] .category-shortcut:hover,body[data-page="productos"] .category-shortcut[aria-pressed="true"]{
+  background:#102640!important;color:#fff!important;border-color:#102640!important
+}
+body[data-page="productos"] .category-next,body[data-page="productos"] .rail-control{
+  color:#315a89!important;background:#edf3f9!important;border-color:#dae5f1!important
+}
+body[data-page="productos"] .catalog-filter-actions button,body[data-page="productos"] .catalog-available{color:#243f59!important}
+body[data-page="productos"] #shareCategory,body[data-page="productos"] #exportCategory,body[data-page="productos"] #clearFilters{
+  background:#fff!important;color:#23415f!important;border:1px solid #cbd8e8!important
+}
+body[data-page="productos"] #shareCategory:hover,body[data-page="productos"] #exportCategory:hover{border-color:#315b8a!important}
+body[data-page="productos"] .catalog-summary h2,body[data-page="productos"] .section-top h2{color:#102640!important}
+body[data-page="productos"] .section-top h2:after{background:#ff0000!important}
+body[data-page="productos"] #resultsCount,body[data-page="productos"] #syncStatus,body[data-page="productos"] .catalog-meta{color:#62748a!important;background:transparent!important}
+body[data-page="productos"] .best-sellers{
+  background:#102640!important;color:#fff!important;border:1px solid #294c70!important;
+  border-radius:14px!important;box-shadow:0 8px 22px #10264019!important;padding:14px!important
+}
+body[data-page="productos"] .best-sellers .best-sellers-title h2,body[data-page="productos"] .best-sellers-title,body[data-page="productos"] .best-sellers h2{color:#fff!important}
+body[data-page="productos"] #viewBestSellers{color:#cde3fa!important}
+body[data-page="productos"] .requested-product{
+  background:#1d3a5a!important;border:1px solid #3d5d80!important;color:#fff!important;
+  box-shadow:none!important;border-radius:11px!important
+}
+body[data-page="productos"] .requested-product strong{color:#fff!important}
+body[data-page="productos"] .requested-product small{color:#d5e7fb!important}
+body[data-page="productos"] .requested-product img{background:#fff}
+/* Productos: contenedor azul y zona de fotografía blanca para mostrar fielmente los artículos */
+body[data-page="productos"] .product{
+  background:#102640!important;color:#fff!important;border:1px solid #274a6e!important;
+  box-shadow:0 9px 21px rgba(16,38,64,.15)!important;border-radius:15px!important;
+  overflow:hidden;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease
+}
+body[data-page="productos"] .product:hover{
+  transform:translateY(-3px);border-color:#547ea8!important;box-shadow:0 14px 27px rgba(16,38,64,.20)!important
+}
+body[data-page="productos"] .product .photo,body[data-page="productos"] .product .photo.missing-photo{
+  background:#f5f7fa!important;border-bottom:1px solid #dce5ef!important
+}
+body[data-page="productos"] .product .photo-open{background:transparent!important}
+body[data-page="productos"] .photo-inspect{
+  background:#fff!important;border-color:#d2dfed!important;color:#173e67!important
+}
+body[data-page="productos"] .product .product-body{background:#102640!important;color:#fff!important}
+body[data-page="productos"] .product h3,body[data-page="productos"] .product .product-name{color:#fff!important}
+body[data-page="productos"] .product .category{color:#a9bfd5!important}
+body[data-page="productos"] .product .price-current{color:#fff!important}
+body[data-page="productos"] .product.is-promo .price-current{color:#fff!important}
+body[data-page="productos"] .product .price-previous{color:#bdcde0!important}
+body[data-page="productos"] .product .stock{color:#cbdaea!important}
+body[data-page="productos"] .product .tag{background:#eef4fa!important;color:#143d63!important;border-color:#e0e9f4!important}
+body[data-page="productos"] .product .tag.out{color:#84252b!important;background:#fff0f0!important}
+body[data-page="productos"] .offer-badge{background:#ff0000!important;color:#fff!important;border:1px solid #ff0000!important}
+body[data-page="productos"] .product .promo-note{color:#d7e3f0!important}
+body[data-page="productos"] .product-actions{border-color:#365575!important}
+body[data-page="productos"] .product-actions .btn,body[data-page="productos"] .product-actions .btn.green{
+  background:#ff0000!important;color:#fff!important;border:1px solid #ff0000!important;
+  box-shadow:none!important;border-radius:9px!important;font-weight:750
+}
+body[data-page="productos"] .product-actions .btn:hover:not(:disabled){background:#dc0000!important;border-color:#dc0000!important}
+body[data-page="productos"] .product-actions .outline{
+  background:#234669!important;color:#fff!important;border:1px solid #476a8e!important
+}
+body[data-page="productos"] #showMore{
+  background:#fff!important;color:#102640!important;border:1px solid #829cba!important
+}
+/* Pagos y cuentas: fondo blanco + bloques principales azul marino */
+body[data-page="pagos"] .gc-payments .payments-hero,body[data-page="cuentas"] .bank-page .page-banner{
+  position:relative;background:#102640!important;color:#fff!important;border:1px solid #294c70!important;
+  border-radius:18px!important;box-shadow:0 12px 24px #1026401b!important;overflow:hidden
+}
+body[data-page="pagos"] .payments-hero:before,body[data-page="cuentas"] .page-banner:before{display:none!important}
+body[data-page="pagos"] .payments-hero:after,body[data-page="cuentas"] .page-banner:after{display:none!important}
+body[data-page="pagos"] .gc-payments .payments-hero h1,body[data-page="cuentas"] .bank-page .page-banner h1{color:#fff!important}
+body[data-page="pagos"] .payments-hero h1 span{color:#cfe6ff!important}
+body[data-page="pagos"] .payments-hero p,body[data-page="cuentas"] .page-banner p{color:#d7e6f5!important}
+body[data-page="pagos"] .payments-hero .eyebrow,body[data-page="cuentas"] .page-banner .eyebrow{color:#bbd8f5!important}
+body[data-page="pagos"] .payment-shipping{
+  background:#1d3b5e!important;color:#fff!important;border:1px solid #486b8e!important;
+  box-shadow:none!important
+}
+body[data-page="pagos"] .payment-shipping .shipping-icon{color:#fff!important;background:#294b70!important}
+body[data-page="pagos"] .payment-shipping strong,body[data-page="pagos"] .payment-shipping small,body[data-page="pagos"] .payment-shipping .shipping-label{color:#fff!important}
+body[data-page="pagos"] .shipping-calculator{
+  background:#102640!important;border:1px solid #294c70!important;border-radius:16px!important;
+  box-shadow:0 8px 22px #10264017!important;color:#fff!important
+}
+body[data-page="pagos"] .shipping-calculator h2,body[data-page="pagos"] .shipping-calculator h3,body[data-page="pagos"] .shipping-calculator .eyebrow{color:#fff!important}
+body[data-page="pagos"] .shipping-calculator p,body[data-page="pagos"] .shipping-calculator small{color:#cdddf0!important}
+body[data-page="pagos"] .shipping-calculator .shipping-calc-form,body[data-page="pagos"] .shipping-calculator .shipping-calc-result{background:transparent!important;color:#fff!important;border-color:#476484!important}
+body[data-page="pagos"] .shipping-calculator .shipping-calc-result strong{color:#fff!important}
+body[data-page="pagos"] .payment-card{
+  background:#102640!important;border:1px solid #294c70!important;color:#fff!important;
+  border-radius:15px!important;box-shadow:0 8px 20px #10264015!important
+}
+body[data-page="pagos"] .payment-card h3,body[data-page="pagos"] .payment-card strong{color:#fff!important}
+body[data-page="pagos"] .payment-card p,body[data-page="pagos"] .payment-card small,body[data-page="pagos"] .payment-card li{color:#cbdced!important}
+body[data-page="pagos"] .payment-card-icon{color:#fff!important;background:#26486a!important}
+body[data-page="pagos"] .payment-link{color:#d1e7ff!important}
+body[data-page="pagos"] .payment-explain,body[data-page="pagos"] .payment-example,
+body[data-page="pagos"] .payment-formulas,body[data-page="pagos"] .payment-disclaimer,body[data-page="pagos"] .shipping-help{
+  background:#f3f6fa!important;border:1px solid #dce5f0!important;color:#203d5c!important
+}
+body[data-page="pagos"] .payment-explain h2,body[data-page="pagos"] .payment-explain h3,body[data-page="pagos"] .payment-example h3{color:#102640!important}
+body[data-page="pagos"] .payments-actions{
+  background:#102640!important;border:1px solid #294c70!important;color:#fff!important
+}
+body[data-page="pagos"] .payments-actions h2{color:#fff!important}
+body[data-page="pagos"] .payments-actions p{color:#d3e5f5!important}
+body[data-page="cuentas"] .bank-card,body[data-page="cuentas"] .bank-empty{
+  background:#102640!important;color:#fff!important;border:1px solid #294c70!important;
+  box-shadow:0 9px 22px #10264018!important;border-radius:15px!important
+}
+body[data-page="cuentas"] .bank-card h3,body[data-page="cuentas"] .bank-card strong{color:#fff!important}
+body[data-page="cuentas"] .bank-card .eyebrow,body[data-page="cuentas"] .bank-copy-row small{color:#c3d8ec!important}
+body[data-page="cuentas"] .bank-copy-row{border-color:#365775!important}
+body[data-page="cuentas"] .bank-symbol{background:#26486a!important;color:#fff!important}
+body[data-page="cuentas"] .copy-btn{
+  background:#fff!important;color:#102640!important;border:1px solid #b9d0e6!important
+}
+body[data-page="cuentas"] .copy-btn:hover{background:#e9f2fc!important}
+body[data-page="cuentas"] .bank-copy-all{background:#ff0000!important;color:#fff!important;border:1px solid #ff0000!important}
+body[data-page="cuentas"] .bank-tools>label,body[data-page="cuentas"] .bank-update>span{color:#4b647e!important}
+body[data-page="cuentas"] .bank-warning{background:#edf3f9!important;color:#38536f!important;border-color:#d8e4f0!important}
+/* Ventanas de detalle y carrito: base blanca, paneles interiores legibles */
+body[data-page] .overlay{background:#0a182bb3!important;backdrop-filter:blur(5px)}
+body[data-page] .overlay .dialog{background:#fff!important;color:#172f4b!important;border:1px solid #d4e0ec!important;box-shadow:0 26px 65px #07172838!important}
+body[data-page] .dialog .dialog-head{background:#fff!important;border-color:#dce5f0!important;color:#102640!important}
+body[data-page] .dialog .dialog-head h2,body[data-page] .dialog .dialog-head .eyebrow{color:#102640!important}
+body[data-page] .dialog .icon{background:#f0f5fa!important;color:#102640!important;border:1px solid #d4e0ec!important}
+body[data-page] .dialog .detail-main{background:#f4f6f9!important;border-color:#dce5f0!important}
+body[data-page] .dialog .detail-info h2,body[data-page] .dialog .detail-extra h4{color:#102640!important}
+body[data-page] .dialog .detail-code,body[data-page] .dialog .detail-gallery-meta{color:#708399!important}
+body[data-page] .dialog .detail-price-block{
+  background:#102640!important;border:1px solid #294c70!important;border-radius:13px!important
+}
+body[data-page] .dialog .detail-price-label,body[data-page] .dialog .detail-price-block .price-previous,body[data-page] .dialog .detail-price-block .promo-note{color:#cfdeee!important}
+body[data-page] .dialog .detail-price-block .price-current,body[data-page] .dialog .detail-price-block .price-current strong{color:#fff!important}
+body[data-page] .dialog .detail-payment-note{background:#edf3fa!important;border-color:#dce5f0!important;color:#365472!important}
+body[data-page] .dialog .detail-payment-note strong,body[data-page] .dialog .detail-payment-note span{color:#3b5876!important}
+body[data-page] .dialog .detail-payment-symbol{background:#deebf8!important;color:#224e7a!important}
+body[data-page] .dialog #detailWA,body[data-page] .dialog #detailShare{
+  background:#fff!important;color:#20476e!important;border-color:#cdddeb!important
+}
+body[data-page] .dialog .detail-dock-price,body[data-page] .dialog .detail-dock-price strong{color:#102640!important}
+body[data-page] .dialog .detail-purchase-bar{background:#fff!important;border-color:#dce5f0!important}
+body[data-page] #detailAdd{background:#ff0000!important;color:#fff!important;border-color:#ff0000!important;box-shadow:none!important}
+body[data-page] #detailAdd:hover:not(:disabled){background:#d90000!important;border-color:#d90000!important}
+body[data-page] .dialog .order-products{background:#fff!important;color:#172f4b!important;border-color:#dce5f0!important}
+body[data-page] .dialog .order-label{color:#647890!important}
+body[data-page] .dialog .cart-line{background:transparent!important;border-color:#dce5f0!important;color:#172f4b!important}
+body[data-page] .dialog .cart-line strong{color:#102640!important}
+body[data-page] .dialog .cart-line p{color:#65778c!important}
+body[data-page] .dialog .cart-line .actions button{background:#fff!important;color:#173c60!important;border-color:#dce5f0!important}
+body[data-page] .dialog #checkoutControls{
+  background:#102640!important;border:1px solid #294c70!important;border-radius:13px!important;color:#fff!important
+}
+body[data-page] .dialog #checkoutControls>h3,body[data-page] .dialog #checkoutControls h3,body[data-page] .dialog #checkoutControls h4{color:#fff!important}
+body[data-page] .dialog #checkoutControls .method{
+  background:#1d3b5e!important;color:#fff!important;border:1px solid #527394!important
+}
+body[data-page] .dialog #checkoutControls .method:has(input:checked){
+  background:#2d527b!important;border-color:#a3c8ee!important;color:#fff!important
+}
+body[data-page] .dialog #checkoutControls .total-row,body[data-page] .dialog #checkoutControls .payment-helper,body[data-page] .dialog #checkoutControls .admin-hint{color:#d1dfef!important}
+body[data-page] .dialog #checkoutControls .total-row strong,body[data-page] .dialog #checkoutControls .total-row.big{color:#fff!important}
+body[data-page] .dialog #checkoutControls .bank-cart-link{color:#d9eaff!important}
+body[data-page] .dialog #checkoutControls .payment-split>div{
+  background:#1d3b5e!important;border-color:#4d7299!important;color:#fff!important
+}
+body[data-page] .dialog #checkoutControls .payment-split span,body[data-page] .dialog #checkoutControls .payment-split small{color:#cbdced!important}
+body[data-page] .dialog #checkoutControls .payment-split strong{color:#fff!important}
+body[data-page] .dialog #checkoutControls .delivery-intro,body[data-page] .dialog #checkoutControls .delivery-extra label{color:#d1dfef!important}
+body[data-page] .dialog #checkoutControls .delivery-method{
+  background:#fff!important;color:#193957!important;border:1px solid #cad9e8!important
+}
+body[data-page] .dialog #checkoutControls .delivery-method strong{color:#193957!important}
+body[data-page] .dialog #checkoutControls .delivery-method small{color:#5f7890!important}
+body[data-page] .dialog #checkoutControls .delivery-method:has(input:checked){
+  background:#eaf3ff!important;border-color:#4893e4!important
+}
+body[data-page] .dialog #checkoutControls .warning,body[data-page] .dialog #checkoutControls .cod-availability{
+  color:#294761!important;background:#f0f5fa!important;border:1px solid #dce5f0!important
+}
+body[data-page] .dialog #checkoutControls #sendQuote{background:#ff0000!important;color:#fff!important;border:1px solid #ff0000!important}
+body[data-page] .dialog #checkoutControls #printQuote{
+  background:#fff!important;color:#102640!important;border:1px solid #d5e5f2!important
+}
+body[data-page] .dialog #checkoutControls #clearCart{
+  background:transparent!important;color:#dfe9f6!important;border:none!important;box-shadow:none!important
+}
+body[data-page] .mobile-nav{
+  background:#fff!important;border-top:1px solid #dce5f0!important;box-shadow:0 -6px 16px #10264012!important;backdrop-filter:none!important
+}
+body[data-page] .mobile-nav a,body[data-page] .mobile-nav button{color:#4c6681!important}
+body[data-page] .mobile-nav a[aria-current="page"]{background:#102640!important;color:#fff!important;box-shadow:none!important}
+body[data-page] .mobile-nav .mobile-cart-badge{background:#ff0000!important;color:#fff!important}
+body[data-page="productos"] .mobile-wa-fab.is-visible{background:#102640!important;color:#fff!important;border-color:#274b70!important}
+/* Respeto al espacio de los dedos y la barra de navegación del celular. */
+@media(max-width:900px){
+  body[data-page="productos"] .store-intro{grid-template-columns:minmax(0,1fr) 190px;min-height:236px!important}
+}
+@media(max-width:760px){
+  body[data-page="productos"] .catalog{padding-top:12px}
+  body[data-page="productos"] .store-intro{
+    display:flex!important;flex-direction:column;align-items:stretch;
+    gap:13px!important;min-height:0!important;padding:20px 17px!important;
+    border-radius:14px!important;margin-bottom:11px
+  }
+  body[data-page="productos"] .store-intro h1{font-size:clamp(27px,7.5vw,38px)!important;line-height:1.09!important}
+  body[data-page="productos"] .store-intro p{display:block!important;font-size:13px!important;max-width:100%;margin-top:10px!important}
+  body[data-page="productos"] .store-kicker{font-size:9px!important;letter-spacing:1px!important}
+  body[data-page="productos"] .store-hero-actions{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;margin-top:16px!important;width:100%
+  }
+  body[data-page="productos"] .store-hero-actions a{min-height:45px!important;padding:9px 7px!important;font-size:11px!important;line-height:1.2}
+  body[data-page="productos"] .store-delivery{
+    width:100%;min-height:55px;justify-content:flex-start;gap:10px;padding:10px 13px!important
+  }
+  body[data-page="productos"] .store-delivery>svg{display:block!important;width:25px!important;height:25px!important}
+  body[data-page="productos"] .store-delivery>span{
+    display:flex!important;flex-direction:row!important;align-items:center!important;
+    justify-content:space-between!important;width:100%;gap:9px!important
+  }
+  body[data-page="productos"] .store-delivery small{font-size:10px!important;white-space:normal!important}
+  body[data-page="productos"] .store-delivery strong{font-size:23px!important;flex:none}
+  body[data-page="productos"] .store-benefits{grid-template-columns:1fr!important;gap:7px!important}
+  body[data-page="productos"] .store-benefit{padding:10px 12px!important}
+  body[data-page="productos"] .filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px!important;padding:8px!important}
+  body[data-page="productos"] .filters #search{grid-column:1/-1!important}
+  body[data-page="productos"] .product:hover{transform:none}
+  body[data-page="pagos"] .payments-hero,body[data-page="cuentas"] .page-banner{padding:21px 16px!important}
+  body[data-page] .mobile-nav{padding-bottom:calc(6px + env(safe-area-inset-bottom))}
+  body[data-page] #toast{bottom:calc(95px + env(safe-area-inset-bottom))!important}
+}
+@media(max-width:370px){
+  body[data-page="productos"] .store-intro{padding:17px 13px!important}
+  body[data-page="productos"] .store-intro h1{font-size:26px!important}
+  body[data-page="productos"] .store-hero-actions{grid-template-columns:1fr}
+  body[data-page="productos"] .store-hero-actions a{font-size:12px!important}
+}
+@media(prefers-reduced-motion:reduce){body[data-page="productos"] .product{transition:none!important}}
