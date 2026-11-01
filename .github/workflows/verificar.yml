@@ -55,3 +55,4 @@ jobs:
           node tests/test-offers-ui.js
           node tests/test-finance-ui.js
           node tests/test-ui.js
+          node tests/test-session-payments-ui.js

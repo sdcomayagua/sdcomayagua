@@ -2,18 +2,7 @@ body[data-page=admin]{background:#f5f8fc;color:#18354f}.admin-quick-actions{disp
 @media(max-width:950px){.admin-quick-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){body[data-page=admin]{padding-bottom:18px}.admin-area{padding-top:16px}.admin-quick-actions{padding:0 14px 15px;gap:9px}.admin-quick-actions button{grid-template-columns:28px minmax(0,1fr);gap:2px 8px;padding:10px;min-height:77px}.admin-quick-actions button>span{width:28px;height:33px;font-size:20px}.admin-quick-actions strong{font-size:11px}.admin-quick-actions small{font-size:9px}.admin-section-jump{grid-template-columns:1fr;padding:12px 14px;gap:6px}.admin-section-jump>span{font-size:10px}.admin-section-jump .field{font-size:16px;min-height:47px}.mg-tabs{padding:8px 10px}.mg-tabs button{min-height:44px}.mg-metric{min-height:98px}#adminPanel .admin-product-filters{grid-template-columns:1fr 1fr;gap:8px}#adminPanel .admin-product-filters input{grid-column:1/-1}#adminPanel .admin-product-filters .field{font-size:16px;min-height:46px}.admin-shortcut-hint{display:none}.admin-results-bar{font-size:11px;justify-content:space-between}.admin-product-identity>img{width:62px;height:70px}.admin-product-meta{font-size:11px}.admin-stock-pill{font-size:12px}.mg-editor .field,.iv-line .field,#mgProductSearch,#ivProductSearch{font-size:16px}.mg-editor .icon{min-width:42px;min-height:42px}.admin-area .btn{min-height:44px}.mg-record .mg-actions>.btn{flex:1;min-width:135px}#adminPanel .mg-tabs{scroll-padding:14px}.admin-area [data-mg-view],#adminSearch{scroll-margin-top:80px}.admin-area .row.spaced>.row{width:100%;display:flex;gap:8px}.admin-area .row.spaced>.row>.btn{flex:1;font-size:12px;white-space:normal}.admin-product-identity strong{overflow-wrap:anywhere}.admin-area .header .wrap{gap:10px}}
 @media(prefers-reduced-motion:reduce){.admin-quick-actions button{transition:none}}
-/* En celular, el acceso al inventario queda cerca del encabezado. */
-@media(max-width:760px){
- #adminPanel>#adminSheetShortcut,#adminPanel>.row:first-child:has(#adminSheetShortcut){display:none}
- .admin-area .mg-heading{flex-direction:row;align-items:center;gap:10px;padding:13px 14px 8px}
- .admin-area .mg-heading .eyebrow,.admin-area .mg-heading p{display:none}.admin-area .mg-heading h2{font-size:17px;margin:0}
- .admin-area .mg-heading-links{align-items:flex-end}.admin-area .mg-private{font-size:10px;max-width:145px;padding:5px 7px}
- .admin-quick-actions{display:flex;overflow-x:auto;gap:8px;padding:6px 14px 12px;scrollbar-width:thin}
- .admin-quick-actions button{display:flex;flex:none;align-items:center;gap:8px;min-height:46px;padding:9px 11px;max-width:180px;border-radius:9px}
- .admin-quick-actions button>span{display:grid;flex:none;width:25px;height:27px;font-size:17px}.admin-quick-actions strong{font-size:12px}.admin-quick-actions small{display:none}
- .admin-section-jump{grid-template-columns:85px minmax(0,1fr);gap:8px;padding:11px 14px}.admin-section-jump>span{display:none}.admin-section-jump label{line-height:1.4}
- .admin-summary>summary{padding:11px 14px}.admin-area .mg-hub{margin:18px 0 16px}
-}
+
 
 .admin-row-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:210px}.admin-row-actions .btn{min-height:37px;font-size:10px;padding:7px 9px;white-space:normal;text-align:center}.products-table td[data-label="Producto"]{min-width:235px}.admin-product-identity strong{font-size:13px;line-height:1.5;display:block}#adminRows td[data-label="Acciones"] .admin-row-actions{grid-column:1/-1}@media(max-width:760px){.admin-row-actions{min-width:0;gap:9px}.products-table td[data-label="Producto"]{min-width:0}}
 
@@ -56,3 +45,17 @@ body[data-page=admin] .admin-area{max-width:1480px;padding-top:24px;padding-bott
 }
 @media(max-width:380px){.admin-quick-actions button{display:flex;flex-direction:column;align-items:flex-start;gap:6px}.admin-quick-actions button>span{display:none}.admin-area .mg-heading{flex-direction:column;gap:10px}.admin-area .mg-private{max-width:none}}
 @media(prefers-reduced-motion:reduce){.admin-quick-actions button{transition:none}}
+
+/* En celular, el acceso al inventario queda cerca del encabezado. */
+@media(max-width:760px){
+ #adminPanel>#adminSheetShortcut,#adminPanel>.row:first-child:has(#adminSheetShortcut){display:none}
+ .admin-area .mg-heading{flex-direction:row;align-items:center;gap:10px;padding:13px 14px 8px}
+ .admin-area .mg-heading .eyebrow,.admin-area .mg-heading p{display:none}.admin-area .mg-heading h2{font-size:17px;margin:0}
+ .admin-area .mg-heading-links{align-items:flex-end}.admin-area .mg-private{font-size:10px;max-width:145px;padding:5px 7px}
+ .admin-quick-actions{display:flex;overflow-x:auto;gap:8px;padding:6px 14px 12px;scrollbar-width:none}
+ .admin-quick-actions button{display:flex;flex:none;align-items:center;gap:8px;min-height:46px;padding:9px 11px;max-width:180px;border-radius:9px}
+ .admin-quick-actions button>span{display:grid;flex:none;width:25px;height:27px;font-size:17px}.admin-quick-actions strong{font-size:12px}.admin-quick-actions small{display:none}
+ .admin-section-jump{grid-template-columns:85px minmax(0,1fr);gap:8px;padding:11px 14px}.admin-section-jump>span{display:none}.admin-section-jump label{line-height:1.4}
+ .admin-summary>summary{padding:11px 14px}.admin-area .mg-hub{margin:18px 0 16px}
+}
+.admin-quick-actions::-webkit-scrollbar{display:none}
