@@ -9,16 +9,16 @@ function literal(value){
  let result='';for(const char of String(value||'')){const cp=char.codePointAt(0),byte=cp<256?cp:winAnsi.get(cp)??63;result+='\\'+byte.toString(8).padStart(3,'0');}return '('+result+')';
 }
 function uri(value){try{const u=new URL(value);return /^https?:$/.test(u.protocol)?u.href.replace(/[\\()]/g,'\\$&'):'';}catch{return '';}}
-async function jpeg(img){
+async function jpeg(img,grayscale=false){
  const scale=Math.min(1,1400/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');
  canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
- const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+ const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);if(grayscale)ctx.filter='grayscale(1)';ctx.drawImage(img,0,0,canvas.width,canvas.height);ctx.filter='none';
  const data=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('No se pudo preparar una foto para el PDF.')),'image/jpeg',.90));
  const result={width:canvas.width,height:canvas.height,bytes:new Uint8Array(await data.arrayBuffer())};canvas.width=1;canvas.height=1;return result;
 }
 async function prepare(page,cache){
  for(const op of page.ops)if(op.kind==='image'){
-  const key=op.img.currentSrc||op.img.src;if(!cache.has(key))cache.set(key,await jpeg(op.img));
+  const key=(op.img.currentSrc||op.img.src)+'|'+(op.grayscale?'AGOTADO_GRIS':'COLOR');if(!cache.has(key))cache.set(key,await jpeg(op.img,!!op.grayscale));
   op.image=cache.get(key);delete op.img;
  }
 }

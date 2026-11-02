@@ -48,10 +48,19 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await catalog.screenshot({path:path.join(artifacts,'detail-mobile.png')});await catalog.locator('#detailOverlay [data-close]').click();await catalog.setViewportSize({width:1440,height:1050});
   await catalog.locator('#exportCategory').click();await ready();assert.equal(await catalog.locator('#catalogExportCategory').innerText(),'Dedales');assert.match(await catalog.locator('#catalogExportCount').innerText(),/^8 productos/);assert.equal(await catalog.locator('#catalogExportRetry').isVisible(),false);
   assert.match(await catalog.locator('#catalogExportPage').innerText(),/Página 1 de 2/);
+  assert.equal(await catalog.locator('#catalogExportDensity').inputValue(),'6','El formato predeterminado usa 6 productos');
+  assert.match(await catalog.locator('#catalogExportDensity option:checked').innerText(),/Recomendado/);
   const png=await download('catalogo.png');assert.equal(png.readUInt32BE(16),3060);assert.equal(png.readUInt32BE(20),3960);
   const scenes=await catalog.evaluate(()=>window.__catalogScenes),cards=scenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto='));
-  assert.equal(cards.length,4);assert.equal(cards[0].y,cards[1].y);assert.equal(cards[2].y,cards[3].y);assert.ok(cards[1].x>cards[0].x);assert.ok(cards[2].y>cards[0].y);
-  for(const card of cards){const images=scenes[0].filter(op=>op.kind==='image'&&op.x>=card.x&&op.y>=card.y&&op.x+op.w<=card.x+card.w&&op.y+op.h<=card.y+card.h);assert.ok(images.some(op=>op.w*op.h>card.w*card.h*.3),'La foto debe ocupar una parte importante de la tarjeta.');}
+  assert.equal(cards.length,6);assert.equal(cards[0].y,cards[1].y);assert.equal(cards[2].y,cards[3].y);assert.equal(cards[4].y,cards[5].y);
+  assert.equal(new Set(cards.map(c=>c.x)).size,2);assert.equal(new Set(cards.map(c=>c.y)).size,3);
+  assert.ok(cards[2].y>cards[0].y&&cards[4].y>cards[2].y);
+  assert.ok(cards[0].y<=230,'Cabecera compacta da más espacio a fotos');
+  for(const card of cards){const images=scenes[0].filter(op=>op.kind==='image'&&op.x>=card.x&&op.y>=card.y&&op.x+op.w<=card.x+card.w&&op.y+op.h<=card.y+card.h);assert.ok(images.some(op=>op.w*op.h>card.w*card.h*.12),'La foto debe ocupar una parte importante de la tarjeta.');}
+  const soldOutScene=scenes[1],unavailable=soldOutScene.filter(op=>op.kind==='image'&&op.grayscale);
+  assert.equal(unavailable.length,1,'La fotografía del agotado se dibuja en escala de grises');
+  assert.ok(soldOutScene.some(op=>op.kind==='text'&&op.value==='AGOTADO'&&op.color==='#ffffff'),'Sello AGOTADO de alto contraste en PNG y PDF');
+  assert.ok(soldOutScene.some(op=>op.kind==='image'&&!op.grayscale),'Los productos disponibles conservan su color');
   const exportedText=()=>catalog.evaluate(()=>window.__catalogScenes.flat().filter(op=>op.kind==='text').map(op=>op.value).join(' '));
   assert.equal(await catalog.locator('#catalogExportText').inputValue(),'none');assert.ok(!(await exportedText()).includes(products[0].description));
   await catalog.locator('#catalogExportText').selectOption('details');await ready();assert.match(await exportedText(),/Material: Fibra de carbono/);
@@ -67,6 +76,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   const start=Number(pdf.toString('latin1').match(/startxref\n(\d+)/)[1]);assert.equal(pdf.subarray(start,start+4).toString(),'xref');
   assert.match(pdf.toString('latin1'),/\/BaseFont \/GCCatalog-Bold/);assert.match(pdf.toString('latin1'),/\/Encoding \/WinAnsiEncoding/);assert.match(pdf.toString('latin1'),/\/FontFile2 /);
   assert.equal((pdf.toString('latin1').match(/\/Subtype \/Link/g)||[]).length,10);
+  assert.ok((pdf.toString('latin1').match(/\/Subtype \/Image/g)||[]).length>=4,'El PDF conserva versiones a color y en gris de la misma fotografía');
   await catalog.locator('#catalogExportDensity').selectOption('6');await ready();await download('catalogo-compacto.pdf');
   await catalog.locator('#catalogExportFormat').selectOption('image');await download('catalogo-compacto.png');await catalog.locator('#catalogExportFormat').selectOption('pdf');
   await catalog.locator('#catalogExportDensity').selectOption('4');await ready();
@@ -88,13 +98,13 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await catalog.locator('#search').fill('');await catalog.locator('#exportCategory').click();await ready();await catalog.locator('#catalogExportOverlay').press('Escape');assert.equal(await catalog.locator('#catalogExportOverlay').isVisible(),false);
   await catalog.locator('#search').fill('edición azul');await catalog.locator('#exportCategory').click();await ready();assert.match(await catalog.locator('#catalogExportCount').innerText(),/^1 producto/);await download('catalogo-un-producto.png');await catalog.locator('#catalogExportClose').click();
   await catalog.locator('#search').fill('');await catalog.locator('#category').selectOption('');await catalog.locator('#exportCategory').click();await ready();assert.equal(await catalog.locator('#catalogExportGroupLabel').isVisible(),true);await catalog.locator('#catalogExportFormat').selectOption('pdf');
-  const grouped=(await download('catalogo-ordenado.pdf')).toString('latin1');assert.ok(grouped.indexOf('producto=OTHER')>grouped.indexOf('producto=DEDAL-'));assert.equal((grouped.match(/\/Type \/Page \/Parent/g)||[]).length,3);assert.match(grouped,/\/Type \/Outlines/);const groupedPages=[...grouped.matchAll(/(\d+) 0 obj\n<< \/Type \/Page \/Parent/g)].map(m=>Number(m[1])),destinations=[...grouped.matchAll(/\/Dest \[(\d+) 0 R \/Fit\]/g)].map(m=>Number(m[1]));assert.deepEqual(destinations,[groupedPages[0],groupedPages[2]]);
+  const grouped=(await download('catalogo-ordenado.pdf')).toString('latin1');assert.ok(grouped.indexOf('producto=OTHER')>grouped.indexOf('producto=DEDAL-'));assert.equal((grouped.match(/\/Type \/Page \/Parent/g)||[]).length,2);assert.match(grouped,/\/Type \/Outlines/);const groupedPages=[...grouped.matchAll(/(\d+) 0 obj\n<< \/Type \/Page \/Parent/g)].map(m=>Number(m[1])),destinations=[...grouped.matchAll(/\/Dest \[(\d+) 0 R \/Fit\]/g)].map(m=>Number(m[1]));assert.deepEqual(destinations,[groupedPages[0],groupedPages[1]]);
   await catalog.locator('#catalogExportGroup').uncheck();await ready();const recent=(await download('catalogo-recientes.pdf')).toString('latin1');assert.ok(recent.indexOf('producto=OTHER')<recent.indexOf('producto=DEDAL-'));assert.ok(!recent.includes('/Type /Outlines'));await catalog.locator('#catalogExportClose').click();
   const gridProducts=Array.from({length:17},(_,index)=>({...products[index%8],id:'GRID-'+index,code:'Catálogo-'+String(index+1).padStart(3,'0'),name:index===0?'Accesorio gamer de alta precisión para pantallas táctiles de teléfonos Android y iPhone':products[index%8].name,image:'assets/products/kouvolsen-x36-usb-c.webp'}));
   await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products,title:'Cuadrícula',url:location.href,settings:{watermarkEnabled:false}}),gridProducts);await ready();await catalog.locator('#catalogExportDensity').selectOption('16');await ready();
   const denseScenes=await catalog.evaluate(()=>window.__catalogScenes),denseCards=denseScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')),lastCard=denseScenes[1].find(op=>op.kind==='link'&&op.url.includes('producto='));
   assert.equal(denseCards.length,16);assert.equal(new Set(denseCards.map(op=>op.x)).size,4);assert.equal(new Set(denseCards.map(op=>op.y)).size,4);assert.equal(lastCard.w,denseCards[0].w);assert.equal(lastCard.h,denseCards[0].h);
-  for(const scene of denseScenes)assert.ok(scene.filter(op=>op.kind==='text'&&op.y>274&&op.y<1816).every(op=>!op.value.includes('…')),'Las tarjetas no deben mostrar texto cortado.');
+  for(const scene of denseScenes)assert.ok(scene.filter(op=>op.kind==='text'&&op.y>225&&op.y<1818).every(op=>!op.value.includes('…')),'Las tarjetas no deben mostrar texto cortado.');
   for(const product of gridProducts)assert.ok((await exportedText()).includes(product.name),'El nombre completo debe conservarse.');
   const firstTitle=denseScenes[0].filter(op=>op.kind==='text'&&op.bold&&op.color==='#101b2b'&&op.x>=denseCards[0].x&&op.x<denseCards[0].x+denseCards[0].w&&op.y>denseCards[0].y&&op.y<denseCards[0].y+denseCards[0].h),firstPrice=denseScenes[0].find(op=>op.kind==='text'&&op.value==='PRECIO'&&op.y>denseCards[0].y);
   assert.ok(firstTitle.every(op=>op.y+op.size*.25<firstPrice.y-16),'Un nombre largo debe quedar separado del precio.');
