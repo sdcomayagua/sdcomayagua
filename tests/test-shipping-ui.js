@@ -44,8 +44,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.equal(await page.locator('#delivery_city').inputValue(),'','Un municipio anterior no debe permanecer seleccionado');
   await page.locator('#delivery_department').selectOption('Comayagua');
   await page.locator('#delivery_city').selectOption('Siguatepeque');
-  await page.locator('#delivery_phone').fill('3217-7578');
-  await message();assert.equal(new URL((await page.evaluate(()=>window.__opened.at(-1))).url).pathname,'/50432177578','Cotización dirigida al cliente');
+  await page.locator('#delivery_phone').fill('3000-0000');
+  await message();assert.equal(new URL((await page.evaluate(()=>window.__opened.at(-1))).url).pathname,'/50430000000','Cotización dirigida al cliente');
   await page.locator('#delivery_phone').fill('123');
   const priorMessages=await page.evaluate(()=>window.__opened.length);
   await page.locator('#sendQuote').click();
