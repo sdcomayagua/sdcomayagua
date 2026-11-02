@@ -113,7 +113,7 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  publicGetFails=true;
  await page.goto(base+'/productos.html?categoria=Adaptador');
  await page.waitForFunction(()=>document.querySelectorAll('[data-add]').length===1&&document.querySelector('[data-add]').dataset.add==='OTG-001');
- assert.equal(await page.locator('#bestSellersSection').isVisible(),true);
+ assert.equal(await page.locator('#bestSellersSection').isVisible(),false,'En celular los más pedidos se consultan desde Categorías, sin ocupar espacio adicional');assert.equal(await page.locator('#category option[value="__mas_pedidos__"]').count(),1);
  assert.ok(requests.some(r=>r.action==='publicCatalog'),'GET bloqueado debe usar POST aunque la hoja pública responda');
  if(artifacts){await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(artifacts,'most-requested-mobile.png')});}
  assert.equal(await page.locator('#category').inputValue(),'Adaptador','Un enlace de categoría abre el filtro correcto');
