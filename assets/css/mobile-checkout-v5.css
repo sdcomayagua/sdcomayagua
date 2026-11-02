@@ -190,3 +190,175 @@ body[data-page] #checkoutControls .method{color:#19344e!important}
  body[data-page] #cartOverlay .cart-line .actions button[data-qty]{width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important}
  body[data-page] #cartOverlay .cart-line .actions button[data-remove]{min-width:78px!important;min-height:44px!important}
 }
+
+
+/* Corrección v5.1: la regla antigua de site.css fija .actions en grid-row:1.
+   Esto invierte el producto y sus controles en móviles. Se restablecen filas
+   explícitas, sin offsets ni ancho fuera de la ventana. */
+@media(max-width:760px){
+ body[data-page] #cartOverlay .dialog{
+   width:min(100%,540px)!important;
+   max-width:calc(100vw - 12px)!important;
+   padding:16px!important;
+   border-radius:18px!important;
+   overflow-x:hidden!important;
+ }
+ body[data-page] #cartOverlay .dialog-head{
+   margin:0 0 15px!important;
+   padding:9px 0 16px!important;
+   background:#fff!important;
+   border-bottom:1px solid #e2e9f1!important;
+ }
+ body[data-page] #cartOverlay .dialog-head h2{font-size:22px!important}
+ body[data-page] #cartOverlay .cart-items{
+   display:grid!important;
+   grid-template-columns:minmax(0,1fr)!important;
+   gap:10px!important;
+   min-width:0!important;
+ }
+ body[data-page] #cartOverlay .order-products{
+   min-width:0!important;overflow:visible!important;
+ }
+ body[data-page] #cartOverlay .cart-line{
+   position:relative!important;
+   display:grid!important;
+   grid-template-columns:64px minmax(0,1fr)!important;
+   grid-template-rows:auto auto!important;
+   grid-auto-flow:row!important;
+   align-items:start!important;
+   column-gap:11px!important;
+   row-gap:10px!important;
+   width:100%!important;
+   min-width:0!important;
+   padding:12px!important;
+   margin:0!important;
+   border:1px solid #e2e9f1!important;
+   border-radius:14px!important;
+   background:#fff!important;
+   box-shadow:0 2px 8px rgba(20,50,80,.035)!important;
+ }
+ body[data-page] #cartOverlay .cart-line:first-child{padding:12px!important}
+ body[data-page] #cartOverlay .cart-line>img{
+   grid-column:1!important;
+   grid-row:1!important;
+   display:block!important;
+   width:64px!important;
+   height:64px!important;
+   max-width:64px!important;
+   object-fit:contain!important;
+   border-radius:10px!important;
+   background:#f7f9fc!important;
+ }
+ body[data-page] #cartOverlay .cart-line>div:not(.actions){
+   grid-column:2!important;
+   grid-row:1!important;
+   align-self:center!important;
+   width:100%!important;
+   min-width:0!important;
+   overflow-wrap:anywhere!important;
+ }
+ body[data-page] #cartOverlay .cart-line>div:not(.actions)>strong{
+   display:block!important;
+   font-size:13px!important;
+   line-height:1.3!important;
+   color:#173451!important;
+   margin:0!important;
+ }
+ body[data-page] #cartOverlay .cart-line>div:not(.actions)>p{
+   font-size:11px!important;
+   line-height:1.5!important;
+   color:#6a7f95!important;
+   margin:3px 0!important;
+ }
+ body[data-page] #cartOverlay .cart-line>div:not(.actions)>strong:last-child{
+   font-size:15px!important;
+   font-weight:800!important;
+   color:#132c49!important;
+ }
+ body[data-page] #cartOverlay .cart-line .actions{
+   grid-column:1/-1!important;
+   grid-row:2!important; /* ¡Importante! El CSS antiguo tenía grid-row:1 */
+   display:flex!important;
+   align-items:center!important;
+   justify-content:flex-start!important;
+   flex-wrap:nowrap!important;
+   width:100%!important;
+   max-width:none!important;
+   min-width:0!important;
+   gap:7px!important;
+   margin:0!important;
+   padding:0!important;
+   position:static!important;
+   transform:none!important;
+ }
+ body[data-page] #cartOverlay .cart-line .actions button[data-qty]{
+   display:grid!important;
+   place-items:center!important;
+   flex:0 0 44px!important;
+   width:44px!important;
+   min-width:44px!important;
+   height:44px!important;
+   min-height:44px!important;
+   padding:0!important;
+   margin:0!important;
+   border:1px solid #ccdaea!important;
+   border-radius:10px!important;
+   background:#f2f6fb!important;
+   color:#17446c!important;
+   font-size:24px!important;
+   line-height:1!important;
+   touch-action:manipulation;
+ }
+ body[data-page] #cartOverlay .cart-line .actions b{
+   flex:0 0 28px!important;
+   min-width:28px!important;
+   padding:0!important;
+   margin:0!important;
+   font-size:16px!important;
+   font-weight:800!important;
+   text-align:center!important;
+   color:#142f4e!important;
+ }
+ body[data-page] #cartOverlay .cart-line .actions button[data-remove]{
+   display:inline-flex!important;
+   justify-content:center!important;
+   align-items:center!important;
+   gap:6px!important;
+   flex:0 0 auto!important;
+   width:auto!important;
+   max-width:110px!important;
+   min-width:84px!important;
+   height:44px!important;
+   min-height:44px!important;
+   padding:0 10px!important;
+   margin:0 0 0 auto!important;
+   background:#fff7f7!important;
+   border:1px solid #f0d5d7!important;
+   color:#bd2b3e!important;
+   font-size:12px!important;
+   font-weight:750!important;
+   border-radius:10px!important;
+   touch-action:manipulation;
+ }
+ body[data-page] #cartOverlay .cart-line .actions button[data-remove] .remove-text{display:inline!important}
+ body[data-page] #cartOverlay .cart-line .actions button:active{transform:scale(.97)}
+ body[data-page] #cartOverlay #deliveryFields{margin-top:15px!important}
+ body[data-page] #cartOverlay #checkoutControls{
+   min-width:0!important;
+   margin-top:2px!important;
+   border-radius:13px!important;
+ }
+}
+@media(max-width:340px){
+ body[data-page] #cartOverlay .cart-line{grid-template-columns:54px minmax(0,1fr)!important;padding:9px!important}
+ body[data-page] #cartOverlay .cart-line:first-child{padding:9px!important}
+ body[data-page] #cartOverlay .cart-line>img{width:54px!important;height:54px!important;max-width:54px!important}
+ body[data-page] #cartOverlay .cart-line .actions{gap:4px!important}
+ body[data-page] #cartOverlay .cart-line .actions button[data-qty]{
+   width:42px!important;min-width:42px!important;height:44px!important;min-height:44px!important;flex-basis:42px!important
+ }
+ body[data-page] #cartOverlay .cart-line .actions b{flex-basis:21px!important;min-width:21px!important}
+ body[data-page] #cartOverlay .cart-line .actions button[data-remove]{
+   min-width:73px!important;padding:0 6px!important;font-size:11px!important
+ }
+}

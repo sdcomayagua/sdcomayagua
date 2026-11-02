@@ -73,6 +73,19 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    await page.setViewportSize({width,height:844});await page.locator('#deliveryOptions').scrollIntoViewIfNeeded();
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Carrito sin desborde móvil');
    assert.equal(await page.locator('#cartOverlay .dialog').evaluate(el=>el.scrollWidth>el.clientWidth),false,'Diálogo sin desborde móvil');
+   const controls=await page.locator('#cartOverlay .cart-line').first().evaluate(row=>{
+    const get=el=>el.getBoundingClientRect(),image=row.querySelector('img'),actions=row.querySelector('.actions'),buttons=[...actions.querySelectorAll('button')];
+    const box=get(row),pic=get(image),bar=get(actions),taps=buttons.map(get);
+    return {barBelowImage:bar.top>=pic.bottom-2,barInsideCard:bar.left>=box.left-2&&bar.right<=box.right+2,
+     tapsInsideCard:taps.every(t=>t.left>=box.left-2&&t.right<=box.right+2&&t.height>=44),
+     inlineButtons:Math.max(...taps.map(t=>t.top))-Math.min(...taps.map(t=>t.top))<3,
+     rowsWithinCard:row.scrollWidth<=row.clientWidth+1};
+   });
+   assert.equal(controls.barBelowImage,true,'Botones de cantidad debajo de imagen y nombre');
+   assert.equal(controls.barInsideCard,true,'Controles dentro de la tarjeta');
+   assert.equal(controls.tapsInsideCard,true,'Botones táctiles completos y de al menos 44px');
+   assert.equal(controls.inlineButtons,true,'Sumar, restar y quitar en la misma fila');
+   assert.equal(controls.rowsWithinCard,true,'Tarjeta sin desborde horizontal');
    for(const choice of await page.locator('.delivery-method').all())assert.ok((await choice.boundingBox()).height>=44);
    assert.ok((await page.locator('#deliveryNote').boundingBox()).height>=44);
    if(width===390&&artifacts)await page.screenshot({path:path.join(artifacts,'delivery-mobile.png')});
