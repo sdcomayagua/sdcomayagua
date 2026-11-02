@@ -28,7 +28,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   const printed=async()=>{await page.locator('#printQuote').click();const out=await page.evaluate(()=>window.__opened.at(-1));assert.equal(out.url,'');assert.ok(out.html.startsWith('<!doctype html>'));return page.evaluate(html=>new DOMParser().parseFromString(html,'text/html').body.textContent,out.html);};
   await page.goto(base+'/productos.html');await page.locator('#syncStatus').filter({hasText:'Catálogo actualizado'}).waitFor();
   for(const p of products)await page.locator(`[data-add="${p.id}"]`).click();
-  await page.locator('#openCart').click();await total('480');assert.equal(await page.locator('#deliveryOptions legend').innerText(),'Entrega y envío');
+  await page.locator('#openCart').click();await total('480');assert.equal(await page.locator('#cartSummary').innerText(),'2 productos · L 370 en artículos');assert.equal(await page.locator('#deliveryOptions legend').innerText(),'Entrega y envío');
   assert.ok((await page.locator('#deliveryOptions').boundingBox()).y<(await page.locator('.method-grid').boundingBox()).y,'Entrega aparece antes del pago');
   await select('local');assert.equal(await page.locator('#sendQuote').isDisabled(),true);assert.equal(await page.locator('#printQuote').isDisabled(),true);assert.equal(await page.locator('#deliveryError').isVisible(),true);
   for(const bad of ['-1','2.5','1000001']){await page.locator('#deliveryAmount').fill(bad);assert.equal(await page.locator('#sendQuote').isDisabled(),true);}
@@ -76,16 +76,25 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    const controls=await page.locator('#cartOverlay .cart-line').first().evaluate(row=>{
     const get=el=>el.getBoundingClientRect(),image=row.querySelector('img'),actions=row.querySelector('.actions'),buttons=[...actions.querySelectorAll('button')];
     const box=get(row),pic=get(image),bar=get(actions),taps=buttons.map(get);
+    const payment=document.querySelector('#checkoutControls').getBoundingClientRect(),order=document.querySelector('.order-products').getBoundingClientRect();
     return {barBelowImage:bar.top>=pic.bottom-2,barInsideCard:bar.left>=box.left-2&&bar.right<=box.right+2,
+     barBesideThumbnail:bar.left>=pic.right-2,
      tapsInsideCard:taps.every(t=>t.left>=box.left-2&&t.right<=box.right+2&&t.height>=44),
      inlineButtons:Math.max(...taps.map(t=>t.top))-Math.min(...taps.map(t=>t.top))<3,
-     rowsWithinCard:row.scrollWidth<=row.clientWidth+1};
+     rowsWithinCard:row.scrollWidth<=row.clientWidth+1,
+     fullWidth:order.width>=payment.width*.96&&box.width>=order.width-2,
+     compactHeight:box.height<=165,
+     removeLabelHidden:getComputedStyle(actions.querySelector('.remove-text')).display==='none'};
    });
    assert.equal(controls.barBelowImage,true,'Botones de cantidad debajo de imagen y nombre');
    assert.equal(controls.barInsideCard,true,'Controles dentro de la tarjeta');
    assert.equal(controls.tapsInsideCard,true,'Botones táctiles completos y de al menos 44px');
    assert.equal(controls.inlineButtons,true,'Sumar, restar y quitar en la misma fila');
    assert.equal(controls.rowsWithinCard,true,'Tarjeta sin desborde horizontal');
+   assert.equal(controls.barBesideThumbnail,true,'Controles debajo del precio y a la derecha de la foto');
+   assert.equal(controls.fullWidth,true,'Tarjeta ocupa el ancho disponible del carrito');
+   assert.equal(controls.compactHeight,true,'Tarjeta móvil compacta sin desperdiciar altura');
+   assert.equal(controls.removeLabelHidden,true,'Botón Quitar compacto con etiqueta accesible');
    for(const choice of await page.locator('.delivery-method').all())assert.ok((await choice.boundingBox()).height>=44);
    assert.ok((await page.locator('#deliveryNote').boundingBox()).height>=44);
    if(width===390&&artifacts)await page.screenshot({path:path.join(artifacts,'delivery-mobile.png')});
