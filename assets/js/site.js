@@ -209,7 +209,7 @@ function open(id,preserve=false){
 function add(id){const p=products.find(x=>x.id===id);if(!p||p.stock<=0)return toast('Producto agotado');if((cart[id]||0)>=p.stock)return toast('No hay más unidades disponibles');cart[id]=(cart[id]||0)+1;cleanItems();toast('Producto agregado al carrito');}
 function close(overlay){const el=$(overlay);if(!el||el.hidden)return;el.hidden=true;document.body.style.overflow=document.querySelector('.overlay:not([hidden])')?'hidden':'';if(overlay==='detailOverlay'&&detailTrigger?.isConnected){detailTrigger.focus({preventScroll:true});detailTrigger=null;}}
 function cartOpen(){$('toast').style.display='none';$('cartOverlay').hidden=false;document.body.style.overflow='hidden';cartRender();}
-function cartRender(){const rows=items();$('cartLines').innerHTML=rows.length?rows.map(({product:p,qty})=>`<div class="cart-line"><img src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}'" alt=""><div><strong>${safe(p.name)}</strong><p>${C.money(C.unitPrice(p,qty))} × ${qty}</p><strong>${C.money(qty*C.unitPrice(p,qty))}</strong></div><div class="actions"><button data-qty="${escapeAttr(p.id)}" data-step="-1" title="Restar" aria-label="Restar una unidad de ${escapeAttr(p.name)}">−</button><b>${qty}</b><button data-qty="${escapeAttr(p.id)}" data-step="1" title="Sumar" aria-label="Sumar una unidad de ${escapeAttr(p.name)}" ${qty>=p.stock?'disabled':''}>+</button><button data-remove="${escapeAttr(p.id)}" title="Eliminar" aria-label="Eliminar ${escapeAttr(p.name)}">×</button></div></div>`).join(''):'<div class="empty">El carrito está vacío.</div>';$('checkoutControls').classList.toggle('hidden',!rows.length);calc();}
+function cartRender(){const rows=items();$('cartLines').innerHTML=rows.length?rows.map(({product:p,qty})=>`<div class="cart-line"><img src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}'" alt=""><div><strong>${safe(p.name)}</strong><p>${C.money(C.unitPrice(p,qty))} × ${qty}</p><strong>${C.money(qty*C.unitPrice(p,qty))}</strong></div><div class="actions"><button data-qty="${escapeAttr(p.id)}" data-step="-1" title="Restar" aria-label="Restar una unidad de ${escapeAttr(p.name)}">−</button><b>${qty}</b><button data-qty="${escapeAttr(p.id)}" data-step="1" title="Sumar" aria-label="Sumar una unidad de ${escapeAttr(p.name)}" ${qty>=p.stock?'disabled':''}>+</button><button data-remove="${escapeAttr(p.id)}" title="Quitar del carrito" aria-label="Quitar ${escapeAttr(p.name)}"><span aria-hidden="true">×</span><span class="remove-text">Quitar</span></button></div></div>`).join(''):'<div class="empty">El carrito está vacío.</div>';$('checkoutControls').classList.toggle('hidden',!rows.length);calc();}
 function calc(){
  const selection=document.querySelector('[name=payMethod]:checked')?.value||'transfer';
  const q=C.quote(items(),selection,settings,checkoutDelivery);latest=q;renderDeliveryChoice(q.delivery);
@@ -266,7 +266,8 @@ function deliveryData(){
 function shippingForm(){
  const host=document.querySelector('.order-products');if(!host||$('deliveryFields'))return;
  const field=(key,label,autocomplete,placeholder)=>`<label>${label}<input class="field" id="delivery_${key}" maxlength="120" autocomplete="${autocomplete}" placeholder="${placeholder}" ${key==='phone'?'type="tel" inputmode="tel"':''}></label>`;
- host.insertAdjacentHTML('beforeend',`<details class="delivery-fields" id="deliveryFields"><summary>Datos del cliente o entrega <span>Opcional</span></summary><p>Agregalos para incluirlos en tu cotización de WhatsApp.</p><div>${field('name','Nombre','shipping name','Quien recibe el paquete')}${field('phone','Celular','shipping tel','Ej. 9999-9999')}${field('department','Departamento','shipping address-level1','Ej. Comayagua')}${field('city','Municipio / ciudad','shipping address-level2','Lugar de entrega')}<label class="delivery-address">Dirección y referencia<textarea class="field" id="delivery_address" maxlength="350" autocomplete="shipping street-address" placeholder="Barrio, colonia, casa y punto de referencia"></textarea></label></div></details>`);
+ host.insertAdjacentHTML('beforeend',`<details class="delivery-fields" id="deliveryFields"><summary>Datos del cliente o entrega <span>Opcional</span></summary><p>Agregalos para incluirlos en tu cotización de WhatsApp.</p><div>${field('name','Nombre','shipping name','Quien recibe el paquete')}${field('phone','Celular','shipping tel','Ej. 9999-9999')}<label>Departamento<select class="field" id="delivery_department" autocomplete="shipping address-level1" aria-label="Departamento"><option value="">Selecciona un departamento</option></select></label><label>Municipio / ciudad<select class="field" id="delivery_city" autocomplete="shipping address-level2" aria-label="Municipio" disabled><option value="">Primero elige un departamento</option></select></label><label class="delivery-address">Dirección y referencia<textarea class="field" id="delivery_address" maxlength="350" autocomplete="shipping street-address" placeholder="Barrio, colonia, casa y punto de referencia"></textarea></label></div></details>`);
+ window.GC_HONDURAS?.bind($('delivery_department'),$('delivery_city'));
 }
 function renderCodAvailability(q){
  const el=$('codAvailability');if(!el)return;
@@ -307,7 +308,23 @@ function renderPaymentDetails(){
  }
 }
 function prepareQuote(){calc();if(!latest.delivery.valid){toast(latest.delivery.error);$('deliveryAmount')?.focus();return null}if(!latest.valid.length){toast('Agregá productos');return null}if(latest.mode==='cod'&&!latest.codAllowed){toast('Pago al recibir no disponible para esta compra');return null}currentQuoteId=C.number();return {id:currentQuoteId,text:C.waMessage(items(),latest,currentQuoteId,deliveryData()),q:latest};}
-function waQuote(){const q=prepareQuote();if(!q)return;window.open('https://wa.me/'+String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')+'?text='+encodeURIComponent(q.text),'_blank','noopener');}
+function quoteRecipient(){
+ const input=deliveryData().phone;
+ if(!input)return String(settings.whatsapp||config.whatsapp).replace(/\D/g,'');
+ const digits=input.replace(/\D/g,'');
+ const local=digits.length===11&&digits.startsWith('504')?digits.slice(3):digits;
+ return /^[389]\d{7}$/.test(local)?'504'+local:'';
+}
+function waQuote(){
+ const recipient=quoteRecipient();
+ if(!recipient){
+  toast('Revisá el celular del cliente: escribí 8 dígitos de Honduras.');
+  if($('deliveryFields'))$('deliveryFields').open=true;
+  $('delivery_phone')?.focus();return;
+ }
+ const q=prepareQuote();if(!q)return;
+ window.open('https://wa.me/'+recipient+'?text='+encodeURIComponent(q.text),'_blank','noopener');
+}
 function printQuote(){
  const prepared=prepareQuote();if(!prepared)return;
  const q=prepared.q,uid=prepared.id,entries=items(),labels={transfer:'Transferencia / depósito',tigo:'Tigo Money',cod:'Pagar al recibir'};

@@ -33,6 +33,25 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await select('local');assert.equal(await page.locator('#sendQuote').isDisabled(),true);assert.equal(await page.locator('#printQuote').isDisabled(),true);assert.equal(await page.locator('#deliveryError').isVisible(),true);
   for(const bad of ['-1','2.5','1000001']){await page.locator('#deliveryAmount').fill(bad);assert.equal(await page.locator('#sendQuote').isDisabled(),true);}
   await page.locator('#deliveryAmount').fill('50');await total('420');assert.equal(await page.locator('#deliveryError').isVisible(),false);
+  await page.locator('#deliveryFields summary').click();
+  assert.equal(await page.locator('#delivery_department option').count(),19,'18 departamentos y placeholder');
+  assert.equal(await page.locator('#delivery_city').isDisabled(),true);
+  await page.locator('#delivery_department').selectOption('Comayagua');
+  assert.equal(await page.locator('#delivery_city option').count(),22,'21 municipios de Comayagua y placeholder');
+  await page.locator('#delivery_city').selectOption('Siguatepeque');
+  await page.locator('#delivery_department').selectOption('Cortés');
+  assert.equal(await page.locator('#delivery_city option').count(),13,'12 municipios de Cortés y placeholder');
+  assert.equal(await page.locator('#delivery_city').inputValue(),'','Un municipio anterior no debe permanecer seleccionado');
+  await page.locator('#delivery_department').selectOption('Comayagua');
+  await page.locator('#delivery_city').selectOption('Siguatepeque');
+  await page.locator('#delivery_phone').fill('3217-7578');
+  await message();assert.equal(new URL((await page.evaluate(()=>window.__opened.at(-1))).url).pathname,'/50432177578','Cotización dirigida al cliente');
+  await page.locator('#delivery_phone').fill('123');
+  const priorMessages=await page.evaluate(()=>window.__opened.length);
+  await page.locator('#sendQuote').click();
+  assert.equal(await page.evaluate(()=>window.__opened.length),priorMessages,'Número inválido no debe abrir WhatsApp de la tienda');
+  await page.locator('#delivery_phone').fill('');
+
   assert.match(await message(),/Entrega: Envío en Comayagua\nEnvío: L 50/);assert.match(await printed(),/Envío en Comayagua/);assert.match(await printed(),/TOTAL A PAGARL 420/);
   await page.locator('#deliveryAmount').fill('0');await total('370');assert.match(await message(),/Envío: L 0/);
   await select('free');await page.locator('#deliveryNote').fill('Compra grande / entrega en mi ruta');await total('370');

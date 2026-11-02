@@ -129,12 +129,12 @@ const product={id:'OTG-001',code:'OTG-001',name:'Adaptador OTG USB a TYPE C',cat
  await page.locator('#clearFilters').click();assert.equal(await page.locator('#category').inputValue(),'');assert.equal(await page.locator('#search').inputValue(),'');assert.equal(new URL(page.url()).searchParams.has('buscar'),false);
  if(artifacts)await page.screenshot({path:path.join(artifacts,'catalog-mobile.png')});
  assert.equal(await page.locator('[data-add]').first().getAttribute('data-add'),'NEW-001','Los más recientes se muestran primero');
- await page.locator('#viewBestSellers').click();assert.match(await page.locator('#catalogHeading').innerText(),/Más pedidos/);assert.equal(await page.locator('[data-add]').count(),1);await page.locator('#clearFilters').click();
+ await page.locator('#category').selectOption('__mas_pedidos__');assert.match(await page.locator('#catalogHeading').innerText(),/Más pedidos/);assert.equal(await page.locator('[data-add]').count(),1);await page.locator('#clearFilters').click();
  await page.locator('[data-add="OTG-001"]').click();await page.locator('#openCart').click();
  assert.match(await page.locator('#codAvailability').innerText(),/Te faltan L 130/);
  await page.locator('[data-qty="OTG-001"][data-step="1"]').click();assert.match(await page.locator('#codAvailability').innerText(),/disponible/);
  await page.locator('[name=payMethod][value=tigo]').check();assert.match(await page.locator('#checkoutTotals').innerText(),/L 590/);
- await page.locator('#deliveryFields summary').click();await page.locator('#delivery_name').fill('Cliente de prueba');await page.locator('#delivery_city').fill('Comayagua');
+ await page.locator('#deliveryFields summary').click();await page.locator('#delivery_name').fill('Cliente de prueba');assert.equal(await page.locator('#delivery_department option').count(),19);await page.locator('#delivery_department').selectOption('Comayagua');await page.locator('#delivery_city').selectOption('Comayagua');
  assert.equal(await page.locator('#delivery_name').inputValue(),'Cliente de prueba');
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Carrito móvil sin desborde horizontal');
  if(artifacts)await page.screenshot({path:path.join(artifacts,'cart-mobile.png')});
