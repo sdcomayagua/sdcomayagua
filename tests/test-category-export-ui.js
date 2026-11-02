@@ -57,10 +57,10 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.ok(cards[2].y>cards[0].y&&cards[4].y>cards[2].y);
   assert.ok(cards[0].y<=230,'Cabecera compacta da más espacio a fotos');
   for(const card of cards){const images=scenes[0].filter(op=>op.kind==='image'&&op.x>=card.x&&op.y>=card.y&&op.x+op.w<=card.x+card.w&&op.y+op.h<=card.y+card.h);assert.ok(images.some(op=>op.w*op.h>card.w*card.h*.12),'La foto debe ocupar una parte importante de la tarjeta.');}
-  const soldOutScene=scenes[1],unavailable=soldOutScene.filter(op=>op.kind==='image'&&op.grayscale);
-  assert.equal(unavailable.length,1,'La fotografía del agotado se dibuja en escala de grises');
-  assert.ok(soldOutScene.some(op=>op.kind==='text'&&op.value==='AGOTADO'&&op.color==='#ffffff'),'Sello AGOTADO de alto contraste en PNG y PDF');
-  assert.ok(soldOutScene.some(op=>op.kind==='image'&&!op.grayscale),'Los productos disponibles conservan su color');
+  const allExportOps=scenes.flat(),unavailable=allExportOps.filter(op=>op.kind==='image'&&op.grayscale);
+  assert.equal(unavailable.length,1,'La fotografía del agotado se dibuja en escala de grises en cualquier página');
+  assert.ok(allExportOps.some(op=>op.kind==='text'&&op.value==='AGOTADO'&&op.color==='#ffffff'),'Sello AGOTADO de alto contraste en PNG y PDF');
+  assert.ok(allExportOps.some(op=>op.kind==='image'&&!op.grayscale),'Los productos disponibles conservan su color');
   const exportedText=()=>catalog.evaluate(()=>window.__catalogScenes.flat().filter(op=>op.kind==='text').map(op=>op.value).join(' '));
   assert.equal(await catalog.locator('#catalogExportText').inputValue(),'none');assert.ok(!(await exportedText()).includes(products[0].description));
   await catalog.locator('#catalogExportText').selectOption('details');await ready();assert.match(await exportedText(),/Material: Fibra de carbono/);
