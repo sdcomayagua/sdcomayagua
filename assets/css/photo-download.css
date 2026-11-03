@@ -1,0 +1,18 @@
+/* Descargas seguras de fotografías | Gamer Comayagua */
+.gc-photo-download-tools{margin:14px 0 18px;padding:16px;border:1px solid #cbdced;border-radius:14px;background:#f4f8fc;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.gc-photo-download-tools strong{color:#18344d;font-size:15px}
+.gc-photo-download-tools p{font-size:13px;color:#52687c;margin:5px 0 0;line-height:1.55}
+.gc-photo-download-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+#gcPhotoDownloadStatus{font-size:12px;color:#395f7c;max-width:320px;overflow-wrap:anywhere}
+.gc-download-product{min-height:38px;white-space:normal;text-align:center}
+.gc-download-photo{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.gc-photo-download-status{font-size:12px;color:#476d85;margin:8px 0;line-height:1.5;overflow-wrap:anywhere}
+@media(max-width:760px){
+ .gc-photo-download-tools{padding:13px;align-items:stretch}
+ .gc-photo-download-actions{width:100%;align-items:stretch}
+ .gc-photo-download-actions .btn{width:100%;min-height:46px}
+ #gcPhotoDownloadStatus{max-width:100%}
+ .gc-download-product{min-height:44px;flex:1}
+ .gc-download-photo{flex:1 1 100%;width:100%;font-size:14px}
+ .detail-secondary-actions{flex-wrap:wrap}
+}
