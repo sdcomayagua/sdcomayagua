@@ -59,3 +59,7 @@ body[data-page=admin] .admin-area{max-width:1480px;padding-top:24px;padding-bott
  .admin-summary>summary{padding:11px 14px}.admin-area .mg-hub{margin:18px 0 16px}
 }
 .admin-quick-actions::-webkit-scrollbar{display:none}
+
+/* Ocultar la recuperación salvo si Google falló durante una sesión aún vigente. */
+#restoreSessionBtn[hidden]{display:none!important}
+#restoreSessionBtn:not([hidden]){display:inline-flex;align-items:center;justify-content:center;min-height:44px}
