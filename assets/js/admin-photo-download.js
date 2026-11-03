@@ -30,8 +30,10 @@ function init(){
    const button=document.createElement('button');
    button.type='button';button.className='btn small outline gc-download-product';
    button.dataset.downloadProduct=String(p.id);
-   button.textContent='↓ Descargar fotos';button.title='Descargar todas las fotos de este artículo con marca de agua';
-   button.setAttribute('aria-label','Descargar fotos de '+p.name);
+   const count=D().sources(p).length;
+   button.textContent=count===1?'↓ Descargar JPG':'↓ Descargar ZIP';
+   button.title=count===1?'Guardar la única foto como JPG con marca de agua':'Guardar todas las fotos del artículo en un ZIP con marca de agua';
+   button.setAttribute('aria-label',(count===1?'Descargar foto JPG de ':'Descargar fotos ZIP de ')+p.name);
    const del=actions.querySelector('[data-delete-product]');
    if(del)actions.insertBefore(button,del);else actions.appendChild(button);
   }
