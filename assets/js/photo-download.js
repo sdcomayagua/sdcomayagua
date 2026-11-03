@@ -44,18 +44,37 @@ function catalogPhoto(id){
  });
 }
 async function imageFor(product,source,index){
- try{return await loadImage(sourceUrl(source));}catch(first){
-  if(window.GC_ADMIN?.request&&product?.id){
-   try{
-    const response=await window.GC_ADMIN.request('adminPhotoData',{id:product.id,index});
-    if(/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(response.data||''))return await loadImage(response.data);
-   }catch(error){}
-  }
-  if(index===0&&product?.id){
-   try{return await loadImage(await catalogPhoto(String(product.id)));}catch(error){}
-  }
-  throw Error('No se puede procesar "'+String(product?.name||'esta foto')+'" (foto '+(index+1)+'). La fuente no permite crear una copia con marca de agua.');
+ // Google Drive deja visualizar imágenes en <img>, pero no siempre permite leerlas
+ // desde un canvas. En Admin priorizamos el canal autenticado de Apps Script.
+ const drive=/^https:\/\/drive\.google\.com\//i.test(source);
+ const admin=typeof window.GC_ADMIN?.request==='function';
+ let serverError=null,publicError=null;
+ if(drive&&admin&&product?.id){
+  try{
+   const response=await window.GC_ADMIN.request('adminPhotoData',{id:String(product.id),index});
+   if(!/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(response?.data||''))throw Error('Google no devolvió la imagen de este artículo.');
+   return await loadImage(response.data);
+  }catch(error){serverError=error;}
  }
+ try{return await loadImage(sourceUrl(source));}catch(error){if(!serverError)serverError=error;}
+ if(index===0&&product?.id){
+  try{return await loadImage(await catalogPhoto(String(product.id)));}
+  catch(error){publicError=error;}
+ }
+ if(drive&&admin){
+  const detail=String(serverError?.message||'');
+  if(/operaci[oó]n no reconocida|unknown action|not implemented/i.test(detail)){
+   throw Error('La función de fotos todavía no está activada en Google Apps Script. Publicá una nueva versión del archivo Code.gs en la implementación existente (/exec). Consultá la guía de activación que aparece en este panel.');
+  }
+  if(/pin|sesión|autorizad|acceso|credencial/i.test(detail)){
+   throw Error('Google rechazó el acceso a la foto. Cerrá sesión, ingresá de nuevo con tu PIN y probá otra vez. Si continúa, verificá la implementación de Apps Script.');
+  }
+  throw Error('Google Drive no entregó una copia descargable de "'+String(product?.name||'este producto')+'" (foto '+(index+1)+'). '+(detail?'Detalle: '+detail+' ':'')+'Verificá que Code.gs esté actualizado y publicado como nueva versión de /exec.');
+ }
+ if(drive){
+  throw Error('Esta fotografía está alojada en Google Drive y el servidor público no entregó una copia con acceso de descarga.'+(publicError?' Revisá la conexión de Google Apps Script.':''));
+ }
+ throw Error('No se puede generar la foto '+(index+1)+' de "'+String(product?.name||'este producto')+'": su servidor bloquea la creación de una imagen con marca de agua.');
 }
 function paint(image,settings){
  const ratio=Math.min(1,MAX_SIDE/Math.max(image.naturalWidth,image.naturalHeight));
