@@ -301,10 +301,16 @@ async function share(){
  try{await navigator.share({files:[file],title:'Gamer Comayagua · '+state.title});}
  catch(error){if(error.name!=='AbortError')$('catalogExportShareHelp').textContent='No se pudo abrir el menú para compartir. Usá Descargar y adjuntá el archivo.';}
 }
+function paginate(items,size){
+ const count=Math.ceil(items.length/size),balanced=(size===9||size===12)&&count>1;
+ if(!balanced)return Array.from({length:count},(_,i)=>items.slice(i*size,(i+1)*size));
+ const min=Math.floor(items.length/count),extra=items.length%count;let start=0;
+ return Array.from({length:count},(_,i)=>{const n=min+(i<extra?1:0),page=items.slice(start,start+n);start+=n;return page;});
+}
 async function build(){
  const context=state;if(!context)return;const ticket=++epoch;context.busy=true;release(context);context.pages=[];context.index=0;context.prices=$('catalogExportPrices').checked;$('catalogExportPricesHelp').hidden=context.prices;
- const size=[2,4,6,9,12,16].includes(Number($('catalogExportDensity').value))?Number($('catalogExportDensity').value):6,selected=context.products.filter(p=>$('catalogExportOut').checked||p.stock>0);if($('catalogExportGroup').checked&&context.multipleCategories)selected.sort((a,b)=>a.category.localeCompare(b.category,'es'));context.count=selected.length;context.density=size;context.textMode=$('catalogExportText').value;context.notes=new Map(extraText.notes);context.omittedText=0;
- $('catalogExportCount').textContent=selected.length+' producto'+(selected.length===1?'':'s')+' · '+Math.ceil(selected.length/size)+' página'+(selected.length>size?'s':'');
+ const size=[2,4,6,9,12,16].includes(Number($('catalogExportDensity').value))?Number($('catalogExportDensity').value):6,selected=context.products.filter(p=>$('catalogExportOut').checked||p.stock>0);if($('catalogExportGroup').checked&&context.multipleCategories)selected.sort((a,b)=>a.category.localeCompare(b.category,'es'));context.count=selected.length;context.density=size;const plan=paginate(selected,size);context.textMode=$('catalogExportText').value;context.notes=new Map(extraText.notes);context.omittedText=0;
+ $('catalogExportCount').textContent=selected.length+' producto'+(selected.length===1?'':'s')+' · '+plan.length+' página'+(plan.length>1?'s':'');
  $('catalogExportPreview').hidden=true;$('catalogExportEmpty').hidden=false;$('catalogExportEmpty').textContent=selected.length?'Preparando fotos y páginas…':'No hay productos con esta selección.';
  $('catalogExportRetry').hidden=true;$('catalogExportStatus').textContent='Preparando catálogo…';document.querySelector('.catalog-export-pages').hidden=true;
  for(const id of buildInputs)$(id).disabled=true;updateDownloads();
@@ -314,12 +320,12 @@ async function build(){
   if(!window.GC_CATALOG_PDF)throw Error('No se pudo cargar el generador PDF. Recargá la página.');
   await fonts();if(ticket!==epoch)return;
   if(!context.mirrors){try{const response=await fetch('data/catalogo-fotos.json',{cache:'no-cache'});context.mirrors=response.ok?(await response.json()).images||{}:{};}catch{context.mirrors={};}}
-  const logo=await image(context.logo||'assets/img/logo-rojo.webp'),count=Math.ceil(selected.length/size);context.pageCount=count;
-  let pendingPhotos=photos(context,selected.slice(0,size));
+  const logo=await image(context.logo||'assets/img/logo-rojo.webp'),count=plan.length;context.pageCount=count;
+  let pendingPhotos=photos(context,plan[0]);
   for(let index=0;index<count;index++){
    if(ticket!==epoch)return;$('catalogExportStatus').textContent=`Preparando página ${index+1} de ${count}…`;
-   const entries=selected.slice(index*size,(index+1)*size),loaded=await pendingPhotos;if(ticket!==epoch)return;
-   if(index+1<count)pendingPhotos=photos(context,selected.slice((index+1)*size,(index+2)*size));
+   const entries=plan[index],loaded=await pendingPhotos;if(ticket!==epoch)return;
+   if(index+1<count)pendingPhotos=photos(context,plan[index+1]);
    missing+=entries.filter(p=>!loaded.has(p.id)).length;
    const page=draw(context,entries,loaded,index,count,logo),png=await blob(page.canvas);page.canvas.width=1;page.canvas.height=1;
    await window.GC_CATALOG_PDF.prepare(page,pdfImages);
@@ -330,7 +336,7 @@ async function build(){
   if(ticket!==epoch)return;
   const contact='https://wa.me/'+String(context.settings.whatsapp||'50431517755').replace(/\D/g,'');
   const sections=[];
-  if(context.multipleCategories&&$('catalogExportGroup').checked){const seen=new Set();selected.forEach((product,index)=>{const title=String(product.category||'Otros').trim()||'Otros';if(!seen.has(title)){seen.add(title);sections.push({title,page:Math.floor(index/size)});}});}
+  if(context.multipleCategories&&$('catalogExportGroup').checked){const seen=new Set();selected.forEach((product,index)=>{const title=String(product.category||'Otros').trim()||'Otros';if(!seen.has(title)){seen.add(title);sections.push({title,page:plan.findIndex(group=>group.some(p=>p.id===product.id))});}});}
   $('catalogExportStatus').textContent='Preparando PDF de alta calidad…';
   const output=await window.GC_CATALOG_PDF.create(context.pages,{width:W,height:H,title:context.title,contact,sections});for(const page of context.pages)delete page.ops;pdfImages.clear();if(ticket!==epoch)return;context.pdfFile=new File([output],context.filename+'.pdf',{type:'application/pdf'});context.pdfUrl=URL.createObjectURL(output);context.urls.push(context.pdfUrl);
   $('catalogExportStatus').textContent=missing?`Catálogo listo · ${missing} producto${missing===1?' sin foto: incluye':'s sin foto: incluyen'} acceso para solicitarla por WhatsApp.`:'Catálogo listo · PNG en alta resolución y PDF con texto nítido.';$('catalogExportRetry').hidden=!missing;
@@ -344,7 +350,7 @@ function open(options){
  const products=(options.products||[]).map(C.cleanProduct).filter(p=>p.active&&p.id&&p.name);
  const now=new Date(),parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Tegucigalpa',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now),part=type=>parts.find(p=>p.type===type).value;
  state={...options,products,multipleCategories:new Set(products.map(p=>p.category)).size>1,year:part('year'),title:String(options.title||'Catálogo').slice(0,120),date:new Intl.DateTimeFormat('es-HN',{timeZone:'America/Tegucigalpa',dateStyle:'medium'}).format(now),filename:'GC_Catalogo_'+slug(options.title)+'_'+part('year')+part('month')+part('day'),pages:[],urls:[],index:0,busy:true,settings:options.settings||{},mirrors:null};
- $('catalogExportTitle').textContent=state.multipleCategories?'Compartir catálogo':'Compartir categoría';$('catalogExportCategory').textContent=state.title;$('catalogExportOut').checked=options.includeOut!==false;$('catalogExportPrices').checked=true;$('catalogExportFormat').value='image';$('catalogExportDensity').value=state.multipleCategories?'9':'6';$('catalogExportText').value=layoutTextMode(Number($('catalogExportDensity').value));textEditor(true);$('catalogExportGroup').checked=true;$('catalogExportGroupLabel').hidden=!state.multipleCategories;$('catalogExportOverlay').hidden=false;document.body.style.overflow='hidden';$('catalogExportClose').focus();build();
+ $('catalogExportTitle').textContent=state.multipleCategories?'Compartir catálogo':'Compartir categoría';$('catalogExportCategory').textContent=state.title;$('catalogExportOut').checked=options.includeOut!==false;$('catalogExportPrices').checked=true;$('catalogExportFormat').value='image';$('catalogExportDensity').value=state.multipleCategories&&state.products.length>16?'9':'6';$('catalogExportText').value=layoutTextMode(Number($('catalogExportDensity').value));textEditor(true);$('catalogExportGroup').checked=true;$('catalogExportGroupLabel').hidden=!state.multipleCategories;$('catalogExportOverlay').hidden=false;document.body.style.overflow='hidden';$('catalogExportClose').focus();build();
 }
 window.GC_CATALOG_EXPORT={open};
 })();
