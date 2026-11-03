@@ -14,10 +14,13 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  await page.goto(base+'/admin.html');await page.locator('#secret').fill('123456');await page.locator('#loginBtn').click();await page.locator('#adminRows [data-edit]').first().waitFor();
  await page.locator('#adminSearch').fill('Cable');await page.locator('#adminSort').selectOption('name');await page.locator('#adminSection').selectOption('stock');
  const healthCount=requests.filter(action=>action==='health').length;
- await page.goto(base+'/productos.html');await page.clock.fastForward(299000);await page.goto(base+'/admin.html');await page.locator('#adminPanel:not(.hidden)').waitFor();
+ await page.goto(base+'/productos.html');await page.clock.fastForward(10000);await page.goto(base+'/admin.html');
+ await page.locator('#adminPanel:not(.hidden)').waitFor();
+ assert.equal(await page.locator('#loginPanel').isHidden(),true,'Regresar después de 10 segundos mantiene el Admin abierto');
+ await page.goto(base+'/productos.html');await page.clock.fastForward(599000);await page.goto(base+'/admin.html');await page.locator('#adminPanel:not(.hidden)').waitFor();
  assert.equal(requests.filter(action=>action==='health').length,healthCount,'Restaurar no depende del diagnóstico público bloqueado');
  assert.equal(await page.locator('#adminSearch').inputValue(),'Cable');assert.equal(await page.locator('#adminSort').inputValue(),'name');assert.equal(await page.locator('#adminSection').inputValue(),'stock','Se conserva la sección elegida');
- await page.clock.fastForward(300000);await page.locator('#loginPanel:not(.hidden)').waitFor();assert.match(await page.locator('#loginMessage').innerText(),/5 minutos/);assert.equal(await page.locator('#adminPanel').isHidden(),true,'Al vencer se ocultan los datos privados');
+ await page.clock.fastForward(600000);await page.locator('#loginPanel:not(.hidden)').waitFor();assert.match(await page.locator('#loginMessage').innerText(),/10 minutos/);assert.equal(await page.locator('#adminPanel').isHidden(),true,'Al vencer se ocultan los datos privados');
  await page.locator('#secret').fill('123456');await page.locator('#loginBtn').click();await page.locator('#adminPanel:not(.hidden)').waitFor();await page.locator('#logout').click();await page.locator('#loginPanel:not(.hidden)').waitFor();await page.reload();assert.equal(await page.locator('#loginPanel').isVisible(),true,'Cerrar sesión no restaura el acceso');
  await page.clock.resume();
  await page.goto(base+'/cuentas.html');await page.locator('.bank-card').first().waitFor();assert.equal(await page.locator('.bank-card').count(),2,'Solo se muestran cuentas publicadas');
