@@ -10,7 +10,7 @@ function init(){
  const filters=$('adminRows').closest('.box'),launch=filters?.querySelector('.bulk-launch');
  if(launch&&!$('gcPhotoDownloadTools')){
   const wrap=document.createElement('section');wrap.id='gcPhotoDownloadTools';wrap.className='gc-photo-download-tools';
-  wrap.innerHTML='<div><strong>Fotografías con marca de agua</strong><p>Descargá todas las fotos de un artículo o el catálogo completo, ordenado en carpetas ZIP. Los originales no se modifican.</p></div><div class="gc-photo-download-actions"><button class="btn outline" id="gcDownloadAll" type="button">↓ Descargar todas las fotos</button><span id="gcPhotoDownloadStatus" role="status" aria-live="polite"></span></div>';
+  wrap.innerHTML='<div><strong>Fotografías con marca de agua</strong><p>Descargá las fotos con marca de agua, ordenadas por artículo. Los originales no se modifican. Para imágenes de Google Drive, la versión actual de Apps Script debe estar publicada.</p><a class="gc-photo-download-help" href="docs/ACTIVAR_DESCARGAS_CON_MARCA.md" target="_blank" rel="noopener noreferrer">Cómo activar las descargas de Google Drive ↗</a></div><div class="gc-photo-download-actions"><button class="btn outline" id="gcDownloadAll" type="button">↓ Descargar todas las fotos</button><span id="gcPhotoDownloadStatus" role="status" aria-live="polite"></span></div>';
   launch.insertAdjacentElement('afterend',wrap);
   $('gcDownloadAll').addEventListener('click',()=>execute(async()=>{
     const list=products().filter(p=>D().sources(p).length);
@@ -42,7 +42,7 @@ async function execute(task){
  busy=true;const buttons=document.querySelectorAll('#gcDownloadAll,[data-download-product]');buttons.forEach(b=>b.disabled=true);
  progress('Generando las fotografías protegidas…');
  try{await task();progress('✓ Descarga preparada. Revisá tus descargas.');}
- catch(error){progress('No se completó: '+error.message);A()?.toast?.(error.message);}
+ catch(error){progress('No se completó: '+error.message);A()?.toast?.('No se pudo descargar. Revisá el mensaje y la guía en Fotografías con marca de agua.');}
  finally{busy=false;buttons.forEach(b=>b.disabled=false);}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
