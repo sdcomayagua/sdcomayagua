@@ -73,14 +73,14 @@ async function create(pages,options){
     const angle=-op.angle*Math.PI/180,co=Math.cos(angle),si=Math.sin(angle),key=window.GC_WATERMARK?.fonts?.[op.font]?.pdf||'F2';
     const width=op.textWidth||op.size*String(op.value).length*.55,xx=op.x-width*co/2,yy=height-op.y-width*si/2-op.size*.32;
     const clip=op.clip,cy=height-clip.y-clip.h;
-    commands.push('q',`${num(clip.x)} ${num(cy)} ${num(clip.w)} ${num(clip.h)} re W n`,'/GWM gs','BT',`/${key} ${num(op.size)} Tf`,'1 1 1 rg',`${num(co)} ${num(si)} ${num(-si)} ${num(co)} ${num(xx)} ${num(yy)} Tm`,literal(op.value)+' Tj','ET','Q');
+    commands.push('q',`${num(clip.x)} ${num(cy)} ${num(clip.w)} ${num(clip.h)} re W n`,'/GWM gs','BT',`/${key} ${num(op.size)} Tf`,'0.09 0.26 0.42 rg',`${num(co)} ${num(si)} ${num(-si)} ${num(co)} ${num(xx)} ${num(yy)} Tm`,literal(op.value)+' Tj','ET','Q');
    }else if(op.kind==='link'){
     const url=uri(op.url);if(!url)continue;const id=reserve();ids.links.push(id);
     objects[id]=`<< /Type /Annot /Subtype /Link /Rect [${num(op.x*scale)} ${num((height-op.y-op.h)*scale)} ${num((op.x+op.w)*scale)} ${num((height-op.y)*scale)}] /Border [0 0 0] /A << /S /URI /URI (${url}) >> >>`;
    }
   }
   commands.push('Q');objects[ids.content]={bytes:encoder.encode(commands.join('\n')+'\n')};
-  const mark=page.ops.find(op=>op.kind==='watermark'),extras=mark?` /ExtGState << /GWM << /Type /ExtGState /ca ${num(mark.alpha)} /BM /Difference >> >>`:'';
+  const mark=page.ops.find(op=>op.kind==='watermark'),extras=mark?` /ExtGState << /GWM << /Type /ExtGState /ca ${num(mark.alpha)} /BM /Normal >> >>`:'';
   objects[ids.page]=`<< /Type /Page /Parent ${tree} 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R ${Object.entries(fontIds).map(([name,id])=>'/'+name+' '+id+' 0 R').join(' ')} >> /XObject << ${[...used].map(id=>`/Im${id} ${id} 0 R`).join(' ')} >>${extras} >> /Contents ${ids.content} 0 R /Annots [${ids.links.map(id=>id+' 0 R').join(' ')}] >>`;
  });
  const parts=[],offsets=[0];let length=0;const append=value=>{const bytes=typeof value==='string'?encoder.encode(value):value;parts.push(bytes);length+=bytes.byteLength;};
