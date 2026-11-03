@@ -181,7 +181,19 @@ async function group(products,settings,onProgress){
  }
  return zip(entries);
 }
-async function product(product,settings,onProgress){const blob=await group([product],settings,onProgress);save(blob,safeName(product.code||product.name)+'-fotos-GAMER-COMAYAGUA.zip');return true;}
+async function product(product,settings,onProgress){
+ const photos=sources(product);
+ if(!photos.length)throw Error('Este artículo no tiene fotografías para descargar.');
+ if(photos.length===1){
+  // Una foto se guarda directamente en JPG; no hacemos ZIP innecesarios.
+  await one(product,photos[0],0,settings);
+  onProgress?.(1,1,product.name);
+  return true;
+ }
+ const blob=await group([product],settings,onProgress);
+ save(blob,safeName(product.code||product.name)+'-fotos-GAMER-COMAYAGUA.zip');
+ return true;
+}
 async function all(products,settings,onProgress){const available=products.filter(p=>sources(p).length);const blob=await group(available,settings,onProgress);save(blob,'GAMER-COMAYAGUA-fotos-por-articulo.zip');return true;}
 root.GC_PHOTO_DOWNLOAD={sources,photoBlob,one,product,all,safeName};
 })(window);

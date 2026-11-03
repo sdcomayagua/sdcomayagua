@@ -6,8 +6,9 @@ let token='',products=[],deletedProducts=[],settings={},selectedFiles=[],busy=fa
 let researchBusy=false,researchEpoch=0,researchDraft=null,automaticQuery=true,researchSelectable=false,researchSearch=null,researchApplied=[],researchReferencesBefore=null;
 let researchMode='details',researchPhotoDraft=null,imageSearchSupported=false;
 let verifiedProfiles=null,serverFeatures={},checkingFeatures=null,editorBaseline='',editorTrigger=null,reloading=null;
-let sessionStore;try{sessionStore=localStorage;}catch{try{sessionStore=sessionStorage;}catch{}}
-const session=window.GC_ADMIN_SESSION.create({storage:sessionStore});
+let sessionStore,sessionFallback;try{sessionStore=window.localStorage;}catch{}
+try{sessionFallback=window.sessionStorage;}catch{}
+const session=window.GC_ADMIN_SESSION.create({storage:sessionStore,fallbackStorage:sessionFallback});
 let sessionTimer,lastSessionTouch=0,visibleRows=24,filterKey='';
 function researchQuery(){return ($('researchQuery').value||formField($('productForm'),'name').value).trim();}
 async function verifiedProfile(name,productName=''){
@@ -45,11 +46,12 @@ function formField(form,name){
 }
 function validApi(){return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(cfg.apiUrl||'')}
 function armSession(){clearTimeout(sessionTimer);const saved=session.read();if(saved)sessionTimer=setTimeout(checkSession,Math.max(1,saved.expiresAt-Date.now()));}
-function lockSession(message='Tu sesión venció después de 5 minutos sin actividad. Ingresá tu PIN para continuar.'){
+function lockSession(message='Tu sesión venció después de 10 minutos sin actividad. Ingresá tu PIN para continuar.'){
  token='';session.clear();clearTimeout(sessionTimer);$('secret').value='';
  $('adminPanel').classList.add('hidden');$('logout').classList.add('hidden');$('loginPanel').classList.remove('hidden');
  document.querySelectorAll('.overlay').forEach(el=>el.hidden=true);document.body.style.overflow='';
  $('loginMessage').textContent=message;$('loginMessage').classList.remove('hidden');
+ if($('restoreSessionBtn'))$('restoreSessionBtn').hidden=true;
  document.dispatchEvent(new CustomEvent('gc:admin-locked'));
 }
 function checkSession(){if(!token)return;if(!session.read())lockSession();else armSession();}
@@ -235,17 +237,45 @@ function refreshFeatures(){
  checkingFeatures=request('verify').then(verification=>{applyFeatures(verification);return serverFeatures;}).finally(()=>{checkingFeatures=null;});
  return checkingFeatures;
 }
+function invalidAdminCredential(error){
+ return /(?:clave de administraci[oó]n incorrecta|PIN (?:inv[aá]lido|incorrecto)|no hay PIN v[aá]lido|demasiados intentos|acceso denegado por credenciales)/i.test(String(error?.message||''));
+}
 async function logIn(e,restore=false){
  if(e)e.preventDefault();
- // El PIN se comprueba directamente en el servidor; no dependemos del test público JSONP.
  const candidate=restore?session.read()?.token||'':$('secret').value.trim();
- if(!/^\d{6}$/.test(candidate)){toast('Ingresá tu PIN de seis dígitos.');return;}
- token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';$('loginMessage').classList.add('hidden');
+ if(!/^\d{6}$/.test(candidate)){
+  if(restore){lockSession();return;}
+  toast('Ingresá tu PIN de seis dígitos.');return;
+ }
+ token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';
+ if(restore){$('loginForm').classList.add('hidden');$('connectionStatus').textContent='Recuperando sesión anterior…';}
+ $('loginMessage').classList.add('hidden');
+ if($('restoreSessionBtn'))$('restoreSessionBtn').hidden=true;
  try{
-  await refreshFeatures();session.start(token);armSession();$('secret').value='';
-  $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');reload();
- }catch(err){token='';session.clear();$('loginMessage').textContent=err.message;$('loginMessage').classList.remove('hidden')}
- finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel'}
+  // Revalidamos siempre contra Google antes de mostrar información privada.
+  // Una falla de conexión al volver no debe borrar un PIN aún vigente.
+  try{await refreshFeatures();}
+  catch(error){
+   if(!restore||invalidAdminCredential(error)||!session.read())throw error;
+   await new Promise(resolve=>setTimeout(resolve,750));
+   await refreshFeatures();
+  }
+  // El vencimiento se renueva solo después de la comprobación del servidor.
+  if(restore&&!session.read())throw Error('La sesión ya venció. Ingresá nuevamente tu PIN.');
+  session.start(token);armSession();$('secret').value='';
+  $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');
+  if(!session.persisted())console.warn('No fue posible guardar la sesión entre visitas: almacenamiento del navegador bloqueado.');
+  reload();
+ }catch(err){
+  token='';
+  if(!restore||invalidAdminCredential(err)||!session.read())session.clear();
+  const canRetry=restore&&!!session.read()&&!invalidAdminCredential(err);
+  $('loginMessage').textContent=canRetry
+   ?'La sesión sigue guardada, pero Google no respondió al reconectar. Tocá «Recuperar sesión» para intentar de nuevo sin escribir el PIN. Si el navegador borra sus datos al cerrar, tendrás que ingresarlo nuevamente.'
+   :String(err?.message||'No se pudo iniciar sesión.');
+  $('loginMessage').classList.remove('hidden');
+  if($('restoreSessionBtn'))$('restoreSessionBtn').hidden=!canRetry;
+ }finally{$('loginForm').classList.remove('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel';}
 }
 function editorEvent(name,detail={}){document.dispatchEvent(new CustomEvent('gc:editor-'+name,{detail}));}
 function showProduct(id){
@@ -630,6 +660,7 @@ function binds(){
  $('retryConnection').onclick=connectionCheck;
  window.addEventListener('online',()=>{if(!$('loginPanel').classList.contains('hidden'))connectionCheck();});
  $('logout').onclick=()=>{session.clear();token='';location.reload()};
+ if($('restoreSessionBtn'))$('restoreSessionBtn').onclick=()=>logIn(null,true);
  for(const name of ['pointerdown','keydown','input','scroll'])document.addEventListener(name,()=>touchSession(),{passive:true,capture:true});
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')touchSession(true);else checkSession();});
  window.addEventListener('pagehide',()=>touchSession(true));window.addEventListener('pageshow',checkSession);window.addEventListener('focus',checkSession);

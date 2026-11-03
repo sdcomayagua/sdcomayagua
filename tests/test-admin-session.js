@@ -4,8 +4,8 @@ const values=new Map(),storage={getItem:key=>values.get(key)??null,setItem:(key,
 const a=create({storage,now:()=>time});
 assert.equal(a.read(),null);
 a.start('123456');time+=TTL-1;
-assert.equal(create({storage,now:()=>time}).read().token,'123456','Volver antes de cinco minutos recupera el acceso, incluso en otra pestaña');
-time++;assert.equal(a.read(),null,'El límite de cinco minutos es exacto');assert.equal(values.size,0,'El dato vencido se elimina');
+assert.equal(create({storage,now:()=>time}).read().token,'123456','Volver antes de diez minutos recupera el acceso, incluso en otra pestaña');
+time++;assert.equal(a.read(),null,'El límite de diez minutos es exacto');assert.equal(values.size,0,'El dato vencido se elimina');
 a.start('123456');time+=100000;a.touch();time+=TTL-1;assert.equal(a.read().token,'123456','La actividad renueva el acceso');
 time++;assert.equal(a.touch(),null,'Una interacción después del vencimiento no revive el PIN');
 a.start('123456');const b=create({storage,now:()=>time});b.clear();assert.equal(a.read(),null,'Cerrar sesión en otra pestaña también bloquea esta');
@@ -14,4 +14,16 @@ values.set(a.key,JSON.stringify({token:'123456',expiresAt:time+TTL*4}));assert.e
 assert.equal(a.start('12345'),null);assert.equal(a.start('1234567'),null);
 const unavailable=create({storage:{getItem(){throw Error();},setItem(){throw Error();},removeItem(){throw Error();}},now:()=>time});
 unavailable.start('123456');assert.equal(unavailable.read().token,'123456','Bloquear almacenamiento no impide entrar con PIN');time+=TTL;assert.equal(unavailable.read(),null);
-console.log('PASS sesión: regreso, recarga, vencimiento a cinco minutos, renovación, cierre entre pestañas y almacenamiento bloqueado.');
+const fallbackValues=new Map(),fallback={getItem:key=>fallbackValues.get(key)??null,setItem:(key,value)=>fallbackValues.set(key,value),removeItem:key=>fallbackValues.delete(key)};
+const blockedPrimary={getItem(){throw Error('Bloqueado');},setItem(){throw Error('Bloqueado');},removeItem(){throw Error('Bloqueado');}};
+const withFallback=create({storage:blockedPrimary,fallbackStorage:fallback,now:()=>time});
+withFallback.start('456789');
+assert.equal(withFallback.persisted(),true,'Si localStorage está bloqueado, usar sessionStorage');
+assert.equal(create({storage:blockedPrimary,fallbackStorage:fallback,now:()=>time}).read().token,'456789','Al regresar en la misma pestaña conserva el PIN con sessionStorage');
+time+=10000;
+assert.equal(create({storage:blockedPrimary,fallbackStorage:fallback,now:()=>time}).read().token,'456789','Regresar a los diez segundos no requiere PIN');
+time+=TTL-10000;
+assert.equal(withFallback.read(),null,'Después de 10 minutos desde la última actividad el PIN vence');
+assert.equal(fallbackValues.size,0,'Una sesión vencida se limpia del almacenamiento alternativo');
+
+console.log('PASS sesión: regreso, recarga, vencimiento a diez minutos, renovación, cierre entre pestañas y almacenamiento bloqueado.');
