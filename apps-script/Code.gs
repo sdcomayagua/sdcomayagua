@@ -117,6 +117,7 @@ function gcHandleRequest_(req){
       else if (req.action === 'inventoryMovementList') result = gcMovementList_(req);
       else if (req.action === 'inventoryResolveDuplicate') result = gcResolveDuplicate_(req);
       else if (req.action === 'adminCatalog') result = {ok:true,...adminPayload_()};
+      else if (req.action === 'adminPhotoData') result = gcAdminPhotoData_(req);
       else if (req.action === 'financeCatalog') result = gcFinanceCatalog_();
       else if (req.action === 'saveFinance') result = gcSaveFinance_(req);
       else if (req.action === 'saveOffers') result = gcSaveOffers_(req);
@@ -747,6 +748,30 @@ function gcCatalogPhotos_(req){
     }catch(error){}
   }
   return {ok:true,images};
+}
+
+/** Devuelve UNA foto del inventario solo tras validar el PIN en gcHandleRequest_.
+ * Resuelve restricciones CORS de Drive para las descargas protegidas.
+ * No expone información financiera ni fotografías del archivo privado a GET.
+ */
+function gcAdminPhotoData_(req){
+ const id=String(req.id||''),index=Number(req.index);
+ if(!id||id.length>180||!Number.isInteger(index)||index<0||index>9)throw Error('Fotografía inválida.');
+ const product=adminPayload_().products.find(p=>p.id===id);
+ if(!product)throw Error('El artículo no existe en el inventario.');
+ const sources=[],append=url=>{url=String(url||'').trim();if(url&&!sources.includes(url))sources.push(url);};
+ append(product.image);
+ let gallery=String(product.gallery||'').trim();
+ try{const parsed=JSON.parse(gallery);if(Array.isArray(parsed))gallery=parsed.join('\n');}catch(error){}
+ gallery.split(/[\n,;|]/).forEach(append);
+ const source=sources[index];
+ if(!source)throw Error('No se encontró esa fotografía.');
+ const match=source.match(/^https:\/\/drive\.google\.com\/(?:thumbnail\?id=|file\/d\/)([A-Za-z0-9_-]+)/i);
+ if(!match)throw Error('La foto no está guardada en Google Drive. Usá una imagen alojada en la tienda.');
+ const blob=DriveApp.getFileById(match[1]).getBlob();
+ const mime=String(blob.getContentType()).split(';')[0].toLowerCase(),bytes=blob.getBytes();
+ if(!/^image\/(?:jpeg|png|webp)$/.test(mime)||!bytes.length||bytes.length>2000000)throw Error('La foto supera 2 MB o tiene un formato incompatible.');
+ return {ok:true,data:'data:'+mime+';base64,'+Utilities.base64Encode(bytes)};
 }
 
 function uploadImage_(f){
