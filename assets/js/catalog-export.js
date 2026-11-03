@@ -261,6 +261,19 @@ function draw(context,products,loaded,index,count,logo){
   label('Cód. '+(product.code||product.id),tx+tw,bandY+(dense?53:compact?63:74),{size:dense?12:compact?15:17,color:muted,width:stockW,align:'right',fit:true});
   link(x,img?y:photoY+photoH,w,img?h:y+h-photoY-photoH,productUrl(context,product));
  });
+ // En páginas Premium con ocho productos, la novena tarjeta invita a consultar.
+ if(feature&&products.length===8&&count>1){
+  const x=margin+2*(w+gap),y=bodyTop+2*(h+gap);
+  box(x,y,w,h,'#f3f7fb','#dce5ef',15);
+  box(x+25,y+25,w-50,65,navy,'',10);
+  label('¿BUSCÁS ALGO MÁS?',x+w/2,y+68,{size:23,bold:true,color:'#ffffff',width:w-74,align:'center',fit:true});
+  label('Te ayudamos por WhatsApp',x+w/2,y+205,{size:24,bold:true,color:ink,width:w-45,align:'center',fit:true});
+  label('Modelos, colores y disponibilidad',x+w/2,y+253,{size:16,color:muted,width:w-55,align:'center',fit:true});
+  box(x+38,y+h-115,w-76,65,red,'',12);
+  label('ESCRIBINOS',x+w/2,y+h-75,{size:22,bold:true,color:'#ffffff',width:w-90,align:'center',fit:true});
+  const phone=String(settings.whatsapp||'50431517755').replace(/\D/g,'');
+  link(x,y,w,h,'https://wa.me/'+phone);
+ }
  const footerY=1850,phone=String(settings.whatsapp||'50431517755').replace(/\D/g,''),formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
  label('Precios y existencias sujetos a confirmación.',margin,1839,{size:15,color:muted,width:inner-210});
  label(String(index+1).padStart(2,'0')+' / '+String(count).padStart(2,'0'),W-margin,1839,{size:17,bold:true,color:muted,width:180,align:'right'});
@@ -302,7 +315,7 @@ async function share(){
  catch(error){if(error.name!=='AbortError')$('catalogExportShareHelp').textContent='No se pudo abrir el menú para compartir. Usá Descargar y adjuntá el archivo.';}
 }
 function paginate(items,size){
- const count=Math.ceil(items.length/size),balanced=(size===9||size===12)&&count>1;
+ const count=Math.ceil(items.length/size),balanced=(size===9||size===12||(size===16&&items.length>size*2))&&count>1;
  if(!balanced)return Array.from({length:count},(_,i)=>items.slice(i*size,(i+1)*size));
  const min=Math.floor(items.length/count),extra=items.length%count;let start=0;
  return Array.from({length:count},(_,i)=>{const n=min+(i<extra?1:0),page=items.slice(start,start+n);start+=n;return page;});
