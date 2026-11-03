@@ -248,6 +248,7 @@ async function logIn(e,restore=false){
   toast('Ingresá tu PIN de seis dígitos.');return;
  }
  token=candidate;$('loginBtn').disabled=true;$('loginBtn').textContent='Verificando…';
+ if(restore){$('loginForm').classList.add('hidden');$('connectionStatus').textContent='Recuperando sesión anterior…';}
  $('loginMessage').classList.add('hidden');
  if($('restoreSessionBtn'))$('restoreSessionBtn').hidden=true;
  try{
@@ -274,7 +275,7 @@ async function logIn(e,restore=false){
    :String(err?.message||'No se pudo iniciar sesión.');
   $('loginMessage').classList.remove('hidden');
   if($('restoreSessionBtn'))$('restoreSessionBtn').hidden=!canRetry;
- }finally{$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel';}
+ }finally{$('loginForm').classList.remove('hidden');$('loginBtn').disabled=false;$('loginBtn').textContent='Ingresar al panel';}
 }
 function editorEvent(name,detail={}){document.dispatchEvent(new CustomEvent('gc:editor-'+name,{detail}));}
 function showProduct(id){
