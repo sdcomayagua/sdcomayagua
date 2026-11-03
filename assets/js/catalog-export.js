@@ -89,8 +89,11 @@ async function photos(context,products){
  const loaded=new Map(),missing=[];
  await Promise.all(products.map(async product=>{
   const raw=primary(product),mirror=context.mirrors?.[product.id],sources=photoSources(product);
-  if(mirror&&mirror.source===raw&&/^assets\/catalog\/[a-f0-9]{24}\.(?:jpg|png|webp|gif)$/.test(mirror.path))sources.unshift(mirror.path);
-  for(const src of sources){const img=await image(src);if(img){loaded.set(product.id,img);return;}}
+  const local=[mirror,...(Array.isArray(mirror?.gallery)?mirror.gallery:[])];
+  for(const entry of local){
+   if(entry?.source&&sources.includes(entry.source)&&/^assets\/catalog\/[a-f0-9]{24}\.(?:jpg|png|webp|gif)$/.test(entry.path||''))sources.unshift(entry.path);
+  }
+  for(const src of [...new Set(sources)]){const img=await image(src);if(img){loaded.set(product.id,img);return;}}
   // El respaldo de Apps Script solo puede resolver fotos de Google Drive.
   if(/^https:\/\/drive\.google\.com\/(?:thumbnail\?id=|file\/d\/)/i.test(raw))missing.push(product);
  }));
@@ -155,18 +158,20 @@ function artist(){
  const link=(x,y,w,h,url)=>ops.push({kind:'link',x,y,w,h,url});
  const watermark=(x,y,w,h,settings)=>{
   const helper=window.GC_WATERMARK,o=helper?.options(settings);
-  if(!o?.watermarkEnabled||o.watermarkFontSize<=0||o.watermarkCount<=0||o.watermarkOpacity<=0)return;
-  const text=o.watermarkText,face=helper.fonts[o.watermarkFont],size=o.watermarkFontSize*w/1000,alpha=o.watermarkOpacity;
-  const marks=helper.positions(o.watermarkCount);
-  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.globalAlpha=alpha;ctx.globalCompositeOperation='difference';
-  ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=face.weight+' '+size+'px '+(o.watermarkFont==='arial'?'"GC Catalog", Arial':face.css);
-  const measured=ctx.measureText(text).width;
-  for(const [u,v] of marks){
-   const xx=x+w*u/1000,yy=y+h*v/1000;
-   ctx.save();ctx.translate(xx,yy);ctx.rotate(-27*Math.PI/180);ctx.fillText(text,0,0);ctx.restore();
-   ops.push({kind:'watermark',x:xx,y:yy,value:text,size,angle:-27,alpha,font:o.watermarkFont,textWidth:measured,clip:{x,y,w,h}});
-  }
-  ctx.restore();
+  if(!o?.watermarkEnabled||!o.watermarkText||o.watermarkOpacity<=0)return;
+  const value=String(o.watermarkText).slice(0,45),face=helper.fonts[o.watermarkFont]||helper.fonts.arial;
+  let size=Math.min(o.watermarkFontSize*w/1000,Math.min(w*.16,h*.14));
+  size=Math.max(9,size);
+  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+  ctx.font=face.weight+' '+size+'px '+(o.watermarkFont==='arial'?'"GC Catalog", Arial':face.css);
+  const width=ctx.measureText(value).width;
+  if(width>w*.72&&width>0)size*=w*.72/width;
+  ctx.font=face.weight+' '+size+'px '+(o.watermarkFont==='arial'?'"GC Catalog", Arial':face.css);
+  const measured=ctx.measureText(value).width,cx=x+w*.5,cy=y+h*.52,alpha=Math.min(.18,Math.max(.08,o.watermarkOpacity));
+  ctx.translate(cx,cy);ctx.rotate(-19*Math.PI/180);ctx.globalAlpha=alpha;
+  ctx.globalCompositeOperation='source-over';ctx.fillStyle='#17436c';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(value,0,0);ctx.restore();
+  ops.push({kind:'watermark',x:cx,y:cy,value,size,angle:-19,alpha,font:o.watermarkFont,textWidth:measured,clip:{x,y,w,h}});
  };
  return {canvas,ops,box,label,block,path,photo,link,watermark};
 }
