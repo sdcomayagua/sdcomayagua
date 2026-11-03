@@ -33,6 +33,27 @@ class PhotosTest(unittest.TestCase):
             self.assertEqual(calls[-1], "https://drive.google.com/thumbnail?id=OTHER_DRIVE_PHOTO&sz=w1600")
             self.assertEqual(result['A']['size'], 1600)
 
+    def test_gallery_is_mirrored_and_reused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "data").mkdir()
+            a = "https://drive.google.com/thumbnail?id=PUBLIC_DRIVE_MAIN&sz=w1200"
+            b = "https://drive.google.com/thumbnail?id=PUBLIC_DRIVE_EXTRA&sz=w1200"
+            rows = [{"id": "Mouse-003", "active": True, "image": a, "gallery": b}]
+            calls = []
+            def fetch(request, timeout):
+                calls.append(request.full_url)
+                payload = b"\xff\xd8\xff" + (b"FIRST" if "MAIN" in request.full_url else b"EXTRA")
+                return io.BytesIO(payload)
+            files = photos.sync(rows, root, fetch)
+            self.assertIn("gallery", files["Mouse-003"])
+            self.assertEqual(files["Mouse-003"]["gallery"][0]["source"], b)
+            self.assertEqual(len(calls), 2)
+            self.assertTrue((root / files["Mouse-003"]["gallery"][0]["path"]).is_file())
+            repeat = photos.sync(rows, root, fetch)
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(repeat["Mouse-003"]["gallery"], files["Mouse-003"]["gallery"])
+
     def test_failure_never_saves_html_or_large_responses(self):
         for payload in [b"<html>Iniciar sesion</html>", b"\xff\xd8\xff" + b"x" * photos.MAX_BYTES]:
             with tempfile.TemporaryDirectory() as directory:
