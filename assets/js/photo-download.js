@@ -18,6 +18,28 @@ function sourceUrl(url){
  const match=String(url).match(/drive\.google\.com\/(?:file\/d\/|thumbnail\?id=)([A-Za-z0-9_-]+)/i);
  return match?'https://drive.google.com/thumbnail?id='+encodeURIComponent(match[1])+'&sz=w1600':url;
 }
+/* Las copias del catálogo se sirven desde GitHub Pages, sin bloqueo CORS.
+ * El sincronizador actualiza también la galería; no tocamos originales de Drive.
+ */
+let mirrorsRequest=null;
+function photoKey(source){
+ const match=String(source||'').match(/drive\.google\.com\/(?:file\/d\/|thumbnail\?id=)([A-Za-z0-9_-]+)/i);
+ return match?'drive:'+match[1]:String(source||'').trim();
+}
+async function localCopy(product,source){
+ if(!product?.id||typeof fetch!=='function')return '';
+ if(!mirrorsRequest){
+  mirrorsRequest=fetch('data/catalogo-fotos.json',{cache:'no-cache'})
+   .then(response=>response.ok?response.json():null)
+   .catch(()=>null);
+ }
+ const data=await mirrorsRequest,entry=data?.images?.[String(product.id)];
+ if(!entry)return '';
+ const items=[entry,...(Array.isArray(entry.gallery)?entry.gallery:[])];
+ const key=photoKey(source);
+ const matched=items.find(item=>item&&photoKey(item.source)===key);
+ return matched&&/^assets\/catalog\/[a-f0-9]{24}\.(?:jpg|jpeg|png|gif|webp)$/i.test(matched.path||'')?matched.path:'';
+}
 function loadImage(url){
  return new Promise((resolve,reject)=>{
   const photo=new Image();let finished=false;
@@ -44,6 +66,13 @@ function catalogPhoto(id){
  });
 }
 async function imageFor(product,source,index){
+ // Primera opción: copia local de GitHub Pages, sin necesidad de Apps Script.
+ const mirror=await localCopy(product,source);
+ if(mirror){
+  try{return await loadImage(mirror);}
+  catch(error){/* La copia puede estar sincronizándose: se intenta el servidor. */}
+ }
+
  // Google Drive deja visualizar imágenes en <img>, pero no siempre permite leerlas
  // desde un canvas. En Admin priorizamos el canal autenticado de Apps Script.
  const drive=/^https:\/\/drive\.google\.com\//i.test(source);
