@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const source=fs.readFileSync(require('node:path').join(__dirname,'../assets/js/photo-download.js'),'utf8');
 
 function start(request,mirrors=null){
- const calls=[];
+ const calls=[],downloads=[];
  const window={GC_ADMIN:{request:async(...args)=>{calls.push(args);return request(...args)}},
   GC_CONFIG:{publicApiUrl:'https://example.invalid/exec'},
   GC_WATERMARK:{options:()=>({watermarkEnabled:false}),get:()=>({})}};
@@ -24,15 +24,15 @@ function start(request,mirrors=null){
   createElement(kind){
    if(kind==='canvas')return {width:0,height:0,getContext:()=>ctx,toBlob:fn=>fn(new Blob([new Uint8Array([0xff,0xd8,0xff])],{type:'image/jpeg'}))};
    if(kind==='script')return {remove(){},set src(v){this._src=v;},get src(){return this._src;}};
-   if(kind==='a')return {click(){},remove(){}};
+   if(kind==='a')return {click(){downloads.push({name:this.download,href:this.href});},remove(){}};
    throw Error('Elemento inesperado '+kind);
   },
   head:{appendChild(script){queueMicrotask(()=>script.onerror?.());}},
   body:{appendChild(){}}
  };
- const context={window,document,Image:ImageMock,Blob,URL,setTimeout,clearTimeout,TextEncoder,Uint8Array,Uint32Array,console,Math,...(mirrors?{fetch:async()=>({ok:true,json:async()=>({images:mirrors})})}:{})};
+ const context={window,document,Image:ImageMock,Blob,URL,setTimeout:(fn,ms)=>{const t=setTimeout(fn,ms);t.unref?.();return t;},clearTimeout,TextEncoder,Uint8Array,Uint32Array,console,Math,...(mirrors?{fetch:async()=>({ok:true,json:async()=>({images:mirrors})})}:{})};
  vm.runInNewContext(source,context,{filename:'photo-download.js'});
- return {downloader:window.GC_PHOTO_DOWNLOAD,calls};
+ return {downloader:window.GC_PHOTO_DOWNLOAD,calls,downloads};
 }
 const product={id:'925035f4-5aec-46e6-8459-230373d7a28c',name:'Mouse Gaming K90',code:'Mouse-003',image:'https://drive.google.com/thumbnail?id=1d09XU-sRONXxkS5pprI3Kyllj1rAflIm&sz=w1200',gallery:'https://drive.google.com/thumbnail?id=1BeNCRFyDcDywG3s4FLQvFiLC2woCXjwk&sz=w1200'};
 (async()=>{
@@ -55,6 +55,15 @@ const product={id:'925035f4-5aec-46e6-8459-230373d7a28c',name:'Mouse Gaming K90'
  assert.equal(localMain.type,'image/jpeg');
  assert.equal(localSecond.type,'image/jpeg');
  assert.equal(local.calls.length,0,'Las copias locales no requieren Apps Script');
+
+ const single={...product,gallery:''};
+ await local.downloader.product(single,{},()=>{});
+ assert.equal(local.downloads.length,1,'Con una foto se genera una descarga');
+ assert.match(local.downloads[0].name,/\.jpg$/,'Con una foto se descarga JPEG sin ZIP');
+ await local.downloader.product(product,{},()=>{});
+ assert.equal(local.downloads.length,2,'Con varias fotos se prepara otra descarga');
+ assert.match(local.downloads[1].name,/\.zip$/,'Con dos fotos se descarga ZIP');
+
 
  const old=start(async()=>{throw Error('Operación no reconocida.');});
  await assert.rejects(old.downloader.photoBlob(product,product.image,0,{}),/Code\.gs|Apps Script/);
