@@ -36,3 +36,22 @@
 
 .gc-photo-download-help{display:inline-block;margin:8px 0 0;color:#175b9a;font-weight:650;font-size:12px;line-height:1.5;text-decoration:underline;text-underline-offset:2px}
 .gc-photo-download-help:focus-visible{outline:3px solid #3182ce;outline-offset:3px;border-radius:4px}
+
+
+/* Inventario compacto: el botón de descarga comparte la misma cuadrícula. */
+#adminPanel #adminRows .admin-row-actions{gap:6px;align-items:stretch}
+#adminPanel #adminRows .admin-row-actions .btn{min-width:0;margin:0;padding:7px 8px;line-height:1.25;font-size:11px;min-height:39px;overflow-wrap:break-word}
+#adminPanel #adminRows .admin-row-actions .admin-delete-product,
+#adminPanel #adminRows .admin-row-actions .admin-restore-product{grid-column:auto}
+#adminPanel #adminRows .admin-row-actions .best-seller-toggle{margin-top:0}
+#adminPanel #adminRows .admin-row-actions .gc-download-product{background:#eff6fe;border-color:#bfd5ed;color:#18588e;font-weight:750}
+#adminPanel #adminRows .admin-row-actions .gc-download-product:hover{background:#e3efff}
+#adminPanel #adminRows .admin-row-actions .gc-photo-row-status{grid-column:1/-1;margin:1px 0 0;padding:9px 11px;border:1px solid #c9e3d4;border-radius:9px;background:#f0f9f3;color:#18623c;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+#adminPanel #adminRows .admin-row-actions .gc-photo-row-status.is-error{border-color:#f1c5bd;background:#fff5f3;color:#9b332b}
+@media(min-width:1100px){
+ #adminPanel #adminRows .admin-row-actions{grid-template-columns:repeat(3,minmax(0,1fr));min-width:330px}
+}
+@media(max-width:760px){
+ #adminPanel #adminRows .admin-row-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #adminPanel #adminRows .admin-row-actions .btn{font-size:12px;min-height:44px}
+}
