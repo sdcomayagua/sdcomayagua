@@ -10,7 +10,7 @@ function init(){
  const filters=$('adminRows').closest('.box'),launch=filters?.querySelector('.bulk-launch');
  if(launch&&!$('gcPhotoDownloadTools')){
   const wrap=document.createElement('section');wrap.id='gcPhotoDownloadTools';wrap.className='gc-photo-download-tools';
-  wrap.innerHTML='<div><strong>Fotografías con marca de agua</strong><p>Descargá las fotos con marca de agua, ordenadas por artículo. Los originales no se modifican. Para imágenes de Google Drive, la versión actual de Apps Script debe estar publicada.</p><a class="gc-photo-download-help" href="https://github.com/sdcomayagua/sdcomayagua/blob/main/docs/ACTIVAR_DESCARGAS_CON_MARCA.md" target="_blank" rel="noopener noreferrer">Cómo activar las descargas de Google Drive ↗</a></div><div class="gc-photo-download-actions"><button class="btn outline" id="gcDownloadAll" type="button">↓ Descargar todas las fotos</button><span id="gcPhotoDownloadStatus" role="status" aria-live="polite"></span></div>';
+  wrap.innerHTML='<div><strong>Fotografías con marca de agua</strong><p>Descargá las fotos con marca de agua, ordenadas por artículo. Los originales no se modifican. Las fotos de Drive se descargan mediante copias locales cuando están sincronizadas; Apps Script se usa si hace falta.</p><a class="gc-photo-download-help" href="https://github.com/sdcomayagua/sdcomayagua/blob/main/docs/ACTIVAR_DESCARGAS_CON_MARCA.md" target="_blank" rel="noopener noreferrer">Cómo activar las descargas de Google Drive ↗</a></div><div class="gc-photo-download-actions"><button class="btn outline" id="gcDownloadAll" type="button">↓ Descargar todas las fotos</button><span id="gcPhotoDownloadStatus" role="status" aria-live="polite"></span></div>';
   launch.insertAdjacentElement('afterend',wrap);
   $('gcDownloadAll').addEventListener('click',()=>execute(async()=>{
     const list=products().filter(p=>D().sources(p).length);
@@ -18,32 +18,74 @@ function init(){
     await D().all(list,A().settings(),(i,total,name)=>progress('Preparando '+i+' de '+total+' · '+name));
   }));
  }
- const rows=$('adminRows'),observer=new MutationObserver(()=>{for(const row of rows.querySelectorAll('tr')){
-  const edit=row.querySelector('[data-edit]');if(!edit||row.querySelector('[data-download-product]'))continue;
-  const p=selected(edit.dataset.edit);if(!p||!D().sources(p).length)continue;
-  const actions=row.querySelector('.admin-row-actions');if(!actions)continue;
-  const button=document.createElement('button');button.type='button';button.className='btn small outline gc-download-product';button.dataset.downloadProduct=String(p.id);button.textContent='↓ Descargar por artículo';button.title='Descargar todas las fotos de este producto con marca de agua';
-  actions.appendChild(button);
- }});
- observer.observe(rows,{childList:true}); // render reemplaza las filas completas.
- // Se ejecuta después de que se obtiene el catálogo; también cubre las filas iniciales.
- const populate=()=>{for(const row of rows.querySelectorAll('tr')){const edit=row.querySelector('[data-edit]');if(!edit||row.querySelector('[data-download-product]'))continue;const p=selected(edit.dataset.edit);if(!p||!D().sources(p).length)continue;const target=row.querySelector('.admin-row-actions');if(!target)continue;const button=document.createElement('button');button.type='button';button.className='btn small outline gc-download-product';button.dataset.downloadProduct=String(p.id);button.textContent='↓ Descargar por artículo';target.appendChild(button);}};
- // Compatibilidad con navegadores sin carga inmediata.
- populate();document.addEventListener('gc:catalog',populate);
+ const rows=$('adminRows');
+ function populate(){
+  for(const row of rows.querySelectorAll('tr')){
+   const edit=row.querySelector('[data-edit]');
+   if(!edit||row.querySelector('[data-download-product]'))continue;
+   const p=selected(edit.dataset.edit);
+   if(!p||!D().sources(p).length)continue;
+   const actions=row.querySelector('.admin-row-actions');
+   if(!actions)continue;
+   const button=document.createElement('button');
+   button.type='button';button.className='btn small outline gc-download-product';
+   button.dataset.downloadProduct=String(p.id);
+   button.textContent='↓ Descargar fotos';button.title='Descargar todas las fotos de este artículo con marca de agua';
+   button.setAttribute('aria-label','Descargar fotos de '+p.name);
+   const del=actions.querySelector('[data-delete-product]');
+   if(del)actions.insertBefore(button,del);else actions.appendChild(button);
+  }
+ }
+ const observer=new MutationObserver(populate);
+ observer.observe(rows,{childList:true});
+ populate();
+ document.addEventListener('gc:catalog',populate);
  rows.addEventListener('click',event=>{
-  const button=event.target.closest('[data-download-product]');if(!button)return;
+  const button=event.target.closest('[data-download-product]');
+  if(!button)return;
   event.preventDefault();event.stopPropagation();
-  execute(async()=>{const p=selected(button.dataset.downloadProduct);if(!p)throw Error('Producto no encontrado. Sincronizá el inventario.');
-   await D().product(p,A().settings(),(i,total)=>progress('Preparando '+i+' de '+total+' fotos · '+p.name));});
+  execute(async()=>{
+   const p=selected(button.dataset.downloadProduct);
+   if(!p)throw Error('Producto no encontrado. Sincronizá el inventario.');
+   await D().product(p,A().settings(),(i,total)=>progress('Preparando '+i+' de '+total+' fotos · '+p.name));
+  },button);
  },true);
 }
-async function execute(task){
- if(busy)return;
- busy=true;const buttons=document.querySelectorAll('#gcDownloadAll,[data-download-product]');buttons.forEach(b=>b.disabled=true);
- progress('Generando las fotografías protegidas…');
- try{await task();progress('✓ Descarga preparada. Revisá tus descargas.');}
- catch(error){progress('No se completó: '+error.message);A()?.toast?.('No se pudo descargar. Revisá el mensaje y la guía en Fotografías con marca de agua.');}
- finally{busy=false;buttons.forEach(b=>b.disabled=false);}
+function rowMessage(button,message,error=false){
+ if(!button)return;
+ const actions=button.closest('.admin-row-actions');
+ if(!actions)return;
+ let note=actions.querySelector('.gc-photo-row-status');
+ if(!note){
+  note=document.createElement('p');
+  note.className='gc-photo-row-status';
+  note.setAttribute('role','status');note.setAttribute('aria-live','polite');
+  actions.appendChild(note);
+ }
+ note.textContent=message;
+ note.classList.toggle('is-error',error);
 }
+async function execute(task,button=null){
+ if(busy)return;
+ busy=true;
+ const buttons=document.querySelectorAll('#gcDownloadAll,[data-download-product]');
+ buttons.forEach(b=>b.disabled=true);
+ progress('Generando fotografías con marca de agua…');
+ rowMessage(button,'Preparando las fotos…');
+ try{
+  await task();
+  progress('✓ Archivo preparado. Revisá tus descargas.');
+  rowMessage(button,'✓ Archivo preparado con marca de agua.');
+ }catch(error){
+  const detail=String(error?.message||'Error al preparar fotografías.');
+  progress('No se completó: '+detail);
+  rowMessage(button,detail,true);
+  // No mostrar un aviso flotante sobre los controles: el mensaje está junto al artículo.
+ }finally{
+  busy=false;
+  buttons.forEach(b=>b.disabled=false);
+ }
+}
+
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
