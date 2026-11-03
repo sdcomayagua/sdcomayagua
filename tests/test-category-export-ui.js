@@ -101,6 +101,15 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   const grouped=(await download('catalogo-ordenado.pdf')).toString('latin1');assert.ok(grouped.indexOf('producto=OTHER')>grouped.indexOf('producto=DEDAL-'));assert.equal((grouped.match(/\/Type \/Page \/Parent/g)||[]).length,2);assert.match(grouped,/\/Type \/Outlines/);const groupedPages=[...grouped.matchAll(/(\d+) 0 obj\n<< \/Type \/Page \/Parent/g)].map(m=>Number(m[1])),destinations=[...grouped.matchAll(/\/Dest \[(\d+) 0 R \/Fit\]/g)].map(m=>Number(m[1]));assert.deepEqual(destinations,[groupedPages[0],groupedPages[1]]);
   await catalog.locator('#catalogExportGroup').uncheck();await ready();const recent=(await download('catalogo-recientes.pdf')).toString('latin1');assert.ok(recent.indexOf('producto=OTHER')<recent.indexOf('producto=DEDAL-'));assert.ok(!recent.includes('/Type /Outlines'));await catalog.locator('#catalogExportClose').click();
   const gridProducts=Array.from({length:17},(_,index)=>({...products[index%8],id:'GRID-'+index,code:'Catálogo-'+String(index+1).padStart(3,'0'),name:index===0?'Accesorio gamer de alta precisión para pantallas táctiles de teléfonos Android y iPhone':products[index%8].name,image:'assets/products/kouvolsen-x36-usb-c.webp'}));
+  const premiumProducts=gridProducts.map((p,i)=>({...p,category:i<9?'Dedales':'Artículos Gamer'}));
+  await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products,title:'Vitrina de productos',url:location.href,settings:{watermarkEnabled:false}}),premiumProducts);
+  await ready();
+  assert.equal(await catalog.locator('#catalogExportDensity').inputValue(),'9','Con más de 16 artículos el catálogo completo usa Premium 3 × 3');
+  assert.match(await catalog.locator('#catalogExportCount').innerText(),/2 páginas/);
+  const premiumScenes=await catalog.evaluate(()=>window.__catalogScenes);
+  assert.deepEqual(premiumScenes.map(scene=>scene.filter(op=>op.kind==='link'&&op.url.includes('producto=')).length),[9,8],'Premium distribuye 17 productos en 9 y 8');
+  assert.ok(premiumScenes[1].some(op=>op.kind==='text'&&op.value==='ESCRIBINOS'),'El último hueco invita a conversar por WhatsApp');
+  await catalog.locator('#catalogExportClose').click();
   await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products,title:'Cuadrícula',url:location.href,settings:{watermarkEnabled:false}}),gridProducts);await ready();await catalog.locator('#catalogExportDensity').selectOption('16');await ready();
   const denseScenes=await catalog.evaluate(()=>window.__catalogScenes),denseCards=denseScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')),lastCard=denseScenes[1].find(op=>op.kind==='link'&&op.url.includes('producto='));
   assert.equal(denseCards.length,16);assert.equal(new Set(denseCards.map(op=>op.x)).size,4);assert.equal(new Set(denseCards.map(op=>op.y)).size,4);assert.equal(lastCard.w,denseCards[0].w);assert.equal(lastCard.h,denseCards[0].h);
