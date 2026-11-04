@@ -18,7 +18,7 @@ assert.equal(sum.prices,2,'Se detectan precios inválidos y promociones no váli
 assert.equal(sum.out,1,'Agotados visibles');
 assert.equal(M.filter(rows,{key:'photo'}).length,3);
 assert.equal(M.filter(rows,{key:'price'}).length,2);
-assert.equal(M.filter(rows,{key:'ok'}).length,0);
+assert.equal(M.filter(rows,{key:'ok'}).length,1,'El producto B está completo y no debe aparecer entre pendientes');
 assert.equal(M.photos(list[1]).length,3,'Foto principal más dos adicionales');
 assert.equal(M.photos({image:'',gallery:'[]'}).length,0);
 assert.ok(M.analyze([p('Q',{code:'DUP'}),p('R',{code:'dup'})]).every(r=>r.issues.some(i=>i.key==='duplicate-code')),'Los códigos duplicados se detectan sin discriminar mayúsculas');
