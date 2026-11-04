@@ -156,3 +156,18 @@ body[data-page="cuentas"] .bank-copy-row.bank-account-primary{
 body[data-page="cuentas"] .bank-copy-row.bank-account-primary strong{
  color:#133e68;font-size:clamp(15px,2.4vw,19px);letter-spacing:.2px
 }
+
+@media(max-width:760px){
+ body[data-page="pagos"] .mobile-nav,
+ body[data-page="cuentas"] .mobile-nav{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:3px!important;padding-inline:8px!important;
+ }
+ body[data-page="pagos"] .mobile-nav a,
+ body[data-page="cuentas"] .mobile-nav a,
+ body[data-page="pagos"] .mobile-nav button,
+ body[data-page="cuentas"] .mobile-nav button{
+  min-width:0!important;min-height:49px!important;
+  padding:5px 2px!important;font-size:10px!important
+ }
+}
