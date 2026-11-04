@@ -16,6 +16,7 @@ jobs:
       - name: Verificar JavaScript y Apps Script
         run: |
           for file in assets/js/*.js; do node --check "$file"; done
+          node --check sw.js
           for file in apps-script/*.gs; do node --check < "$file"; done
       - name: Verificar catálogo, carrito y búsquedas sin servicios externos
         run: |
@@ -26,6 +27,9 @@ jobs:
           node tests/test-native-panel.js
           node tests/test-cart.js
           node tests/test-cart-storage.js
+          node tests/test-homepage.js
+          node tests/test-compare-model.js
+          node tests/test-pwa-safety.js
           node tests/test-offers.js
           node tests/test-finance.js
           node tests/test-product-trash.js
