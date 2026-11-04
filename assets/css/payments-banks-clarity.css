@@ -1,0 +1,252 @@
+/* Gamer Comayagua · Bancos y Pagos 2026-11-04
+   Corrige contraste del número de cuenta y totales; evita secciones comprimidas.
+   Se carga después de clean-blue.css y mobile-shop-polish.css. */
+
+/* Mismo ritmo visual y ancho útil que la portada y el catálogo */
+body[data-page="cuentas"] .bank-page,
+body[data-page="pagos"] .gc-payments{min-width:0;overflow-x:clip}
+body[data-page="cuentas"] .bank-page .wrap,
+body[data-page="pagos"] .gc-payments .wrap{
+  max-width:1760px;
+  width:calc(100% - clamp(24px,3.4vw,64px));
+  margin-left:auto;
+  margin-right:auto;
+  padding-left:clamp(12px,1.4vw,24px);
+  padding-right:clamp(12px,1.4vw,24px);
+  min-width:0;
+}
+body[data-page="cuentas"] .bank-page .page-banner,
+body[data-page="pagos"] .gc-payments .payments-hero{
+  padding:clamp(23px,3vw,42px)!important;
+  margin-top:24px;
+  margin-bottom:24px;
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+body[data-page="cuentas"] .bank-page .page-banner p{
+  max-width:900px;
+  line-height:1.65;
+}
+body[data-page="cuentas"] .bank-grid,
+body[data-page="pagos"] .payment-cards{min-width:0}
+body[data-page="cuentas"] .bank-grid>*,
+body[data-page="pagos"] .payment-cards>*{min-width:0}
+
+/* Bancos: información real y números en alto contraste.
+   El diseño azul oscuro se conserva en el encabezado, no en las tarjetas. */
+body[data-page="cuentas"] .bank-page .bank-card,
+body[data-page="cuentas"] .bank-page .bank-empty{
+  background:#fff!important;
+  color:#20354c!important;
+  border:1px solid #dce5ef!important;
+  box-shadow:0 6px 22px rgba(20,44,76,.075)!important;
+  border-radius:17px!important;
+}
+body[data-page="cuentas"] .bank-page .bank-card h3,
+body[data-page="cuentas"] .bank-page .bank-card strong{
+  color:#17334f!important;
+}
+body[data-page="cuentas"] .bank-page .bank-card .eyebrow,
+body[data-page="cuentas"] .bank-page .bank-copy-row small{
+  color:#526c89!important;
+}
+body[data-page="cuentas"] .bank-page .bank-copy-row{
+  border-bottom:1px solid #e0e7ef!important;
+  min-width:0;
+}
+body[data-page="cuentas"] .bank-page .bank-copy-row>div{
+  flex:1 1 auto;
+  min-width:0;
+}
+body[data-page="cuentas"] .bank-page .bank-copy-row strong{
+  display:block;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  color:#17334f!important;
+  font-variant-numeric:tabular-nums;
+}
+body[data-page="cuentas"] .bank-page .bank-copy-row.bank-account-primary{
+  margin-top:10px;
+  border:1px solid #c3dcf3!important;
+  background:#eaf3fd!important;
+  border-radius:12px!important;
+  padding:14px 15px!important;
+  gap:12px;
+}
+body[data-page="cuentas"] .bank-page .bank-copy-row.bank-account-primary small{
+  color:#3e607e!important;
+  font-weight:700;
+}
+body[data-page="cuentas"] .bank-page .bank-copy-row.bank-account-primary strong{
+  color:#0f3860!important;
+  font-size:clamp(16px,1.5vw,21px)!important;
+  font-weight:850;
+  letter-spacing:.25px;
+  line-height:1.35;
+}
+body[data-page="cuentas"] .bank-page .bank-card .copy-btn{
+  flex:none;
+  min-width:78px;
+  min-height:44px;
+  color:#15406b!important;
+  background:#fff!important;
+  border:1px solid #bdcfe1!important;
+  border-radius:9px;
+}
+body[data-page="cuentas"] .bank-page .bank-symbol{
+  color:#f5faff!important;
+  background:#1c517e!important;
+}
+body[data-page="cuentas"] .bank-page .bank-copy-all{
+  min-height:48px;
+  border-radius:10px!important;
+}
+
+/* Pagos: la calculadora usa campos claros con etiquetas y totales legibles. */
+body[data-page="pagos"] .gc-payments .shipping-calculator{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:clamp(22px,3vw,48px);
+  background:#fff!important;
+  color:#17334e!important;
+  border:1px solid #dce6f0!important;
+  box-shadow:0 8px 24px rgba(21,53,86,.07)!important;
+  border-radius:18px!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+body[data-page="pagos"] .gc-payments .shipping-calculator h2,
+body[data-page="pagos"] .gc-payments .shipping-calculator h3{
+  color:#17334e!important;
+}
+body[data-page="pagos"] .gc-payments .shipping-calculator .eyebrow{
+  color:#1d609b!important;
+}
+body[data-page="pagos"] .gc-payments .shipping-calculator p,
+body[data-page="pagos"] .gc-payments .shipping-calculator small{
+  color:#526b83!important;
+}
+body[data-page="pagos"] .gc-payments .shipping-calc-form,
+body[data-page="pagos"] .gc-payments .shipping-calc-result{
+  color:#17334e!important;
+  border-color:#d4e1ed!important;
+}
+body[data-page="pagos"] .gc-payments .shipping-calc-form label{
+  color:#294a69!important;
+  font-weight:700;
+}
+body[data-page="pagos"] .gc-payments .shipping-calc-result{
+  background:#eff5fc!important;
+  border:1px solid #d9e7f5!important;
+  border-radius:14px;
+  padding:clamp(18px,2.3vw,28px);
+  min-width:0;
+}
+body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-row,
+body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-total{
+  color:#2d4d6c!important;
+  gap:12px;
+  min-width:0;
+}
+body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-row strong,
+body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-total strong{
+  color:#122f4e!important;
+  font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere;
+  white-space:normal;
+  text-align:right;
+}
+body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-total{
+  border-color:#cbd9e8!important;
+}
+body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-split{
+  min-width:0;
+}
+body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-split>div{
+  min-width:0;
+  background:#fff!important;
+  border:1px solid #c9ddec!important;
+}
+body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-split strong{
+  color:#123d68!important;
+  font-size:clamp(19px,2vw,25px);
+  overflow-wrap:anywhere;
+}
+body[data-page="pagos"] .gc-payments .shipping-calculator .field{
+  min-width:0;width:100%;
+  background:#fff!important;color:#17334e!important;
+  border:1px solid #b8cddd!important;
+}
+body[data-page="pagos"] .gc-payments .shipping-calculator .field:focus-visible{
+  outline-color:#1763bb;
+}
+/* En PC grande, aprovechar el espacio vacío del hero de pagos. */
+@media(min-width:1120px){
+ body[data-page="pagos"] .gc-payments .payments-hero{
+   display:grid;
+   grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr);
+   gap:10px 42px;
+   align-items:center;
+ }
+ body[data-page="pagos"] .gc-payments .payments-hero>.eyebrow,
+ body[data-page="pagos"] .gc-payments .payments-hero>h1,
+ body[data-page="pagos"] .gc-payments .payments-hero>p{
+   grid-column:1;
+   min-width:0;
+ }
+ body[data-page="pagos"] .gc-payments .payments-hero .payment-shipping{
+   grid-column:2;
+   grid-row:1/4;
+   width:100%;max-width:none;
+   margin-top:0;
+   align-self:center;
+ }
+}
+/* Tablet: tarjetas y calculadora no se aplastan. */
+@media(min-width:701px) and (max-width:1000px){
+ body[data-page="pagos"] .gc-payments .shipping-calculator{gap:20px;padding:22px}
+ body[data-page="pagos"] .gc-payments .shipping-calc-result{padding:18px}
+ body[data-page="cuentas"] .bank-page .bank-card{padding:18px}
+}
+@media(max-width:700px){
+ body[data-page="cuentas"] .bank-page .wrap,
+ body[data-page="pagos"] .gc-payments .wrap{
+   width:calc(100% - 20px);
+   padding-left:10px;
+   padding-right:10px;
+ }
+ body[data-page="pagos"] .gc-payments .payments-hero,
+ body[data-page="cuentas"] .bank-page .page-banner{
+   padding:22px 18px!important;
+   margin-top:14px;
+   margin-bottom:16px;
+   border-radius:15px!important;
+ }
+ body[data-page="pagos"] .gc-payments .shipping-calculator{
+   grid-template-columns:minmax(0,1fr);
+   gap:18px;
+   padding:19px 15px!important;
+ }
+ body[data-page="pagos"] .gc-payments .shipping-calc-result{padding:15px}
+ body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-split{
+   grid-template-columns:repeat(2,minmax(0,1fr));
+   gap:8px;
+ }
+ body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-split>div{padding:12px 9px}
+ body[data-page="cuentas"] .bank-page .bank-card{padding:16px 13px}
+ body[data-page="cuentas"] .bank-page .bank-copy-row{
+   gap:8px;
+   align-items:center;
+ }
+ body[data-page="cuentas"] .bank-page .bank-copy-row.bank-account-primary{padding:12px 10px!important}
+ body[data-page="cuentas"] .bank-page .bank-copy-row.bank-account-primary strong{
+   font-size:clamp(16px,4.5vw,19px)!important;
+ }
+ body[data-page="cuentas"] .bank-page .bank-card .copy-btn{min-width:69px;padding:9px 10px}
+}
+@media(max-width:350px){
+ body[data-page="pagos"] .gc-payments .shipping-calc-result .estimate-split{grid-template-columns:1fr}
+ body[data-page="cuentas"] .bank-page .bank-copy-row.bank-account-primary strong{font-size:16px!important}
+}
