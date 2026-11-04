@@ -99,15 +99,18 @@ function gcHandleRequest_(req){
     } else if (req.action === 'catalogPhotos') {
       result=gcCatalogPhotos_(req);
     } else {
-      assertAdmin_(req.token);
+      gcSessionAuthorize_(req.token);
       if (req.action === 'verify') {
         const p=PropertiesService.getScriptProperties();
         const provider=String(p.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').trim().toUpperCase();
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{finance:true,offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{sessionTokens:true,finance:true,offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result.sessionToken=gcSessionValid_(req.token)?String(req.token):gcSessionOpen_();
       }
+      else if (req.action === 'sessionPing') result={ok:true,message:'Sesión vigente'};
+      else if (req.action === 'sessionLogout') result=gcSessionClose_(req.token);
       else if (req.action === 'operationsSummary') result = gcOperationsSummary_();
       else if (req.action === 'operationsList') result = gcOperationsList_(req);
       else if (req.action === 'operationsSave') result = gcOperationsSave_(req);
@@ -187,6 +190,47 @@ function ensurePublicMetadata_(){
   return true;
 }
 function safeError_(err){return String((err&&err.message)||err||'Error desconocido').slice(0,380);}
+/** Sesión de 10 min sin guardar el PIN en el navegador.
+ * Requiere publicar Code.gs como nueva versión de la implementación privada /exec.
+ * Un despliegue público de solo lectura NUNCA puede emitir sesiones administrativas.
+ */
+function gcSessionValid_(candidate){
+ return /^gc_[0-9a-f]{64}$/i.test(String(candidate||''));
+}
+function gcSessionKey_(token){
+ const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(token),Utilities.Charset.UTF_8);
+ return 'gc_session_'+Utilities.base64EncodeWebSafe(bytes).replace(/=+$/,'').slice(0,43);
+}
+function gcSessionPinStamp_(){
+ const props=PropertiesService.getScriptProperties();
+ const pin=String(props.getProperty('ADMIN_PIN')||props.getProperty('ADMIN_TOKEN')||'');
+ if(!/^\d{6}$/.test(pin))throw Error('No hay PIN válido para iniciar sesión.');
+ const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,'GC-PIN-V1:'+pin,Utilities.Charset.UTF_8);
+ return Utilities.base64EncodeWebSafe(bytes);
+}
+function gcSessionOpen_(){
+ // Dos UUID aleatorios aportan un identificador que no puede adivinarse.
+ const token='gc_'+Utilities.getUuid().replace(/-/g,'')+Utilities.getUuid().replace(/-/g,'');
+ CacheService.getScriptCache().put(gcSessionKey_(token),gcSessionPinStamp_(),600);
+ return token;
+}
+function gcSessionAuthorize_(candidate){
+ const token=String(candidate==null?'':candidate).trim();
+ if(!gcSessionValid_(token)){assertAdmin_(token);return false;}
+ const cache=CacheService.getScriptCache(),key=gcSessionKey_(token);
+ const stamp=cache.get(key);
+ if(!stamp||stamp!==gcSessionPinStamp_()){
+  cache.remove(key);
+  throw Error('Tu sesión venció o se cerró. Ingresá nuevamente tu PIN.');
+ }
+ cache.put(key,stamp,600);
+ return true;
+}
+function gcSessionClose_(candidate){
+ if(gcSessionValid_(candidate))CacheService.getScriptCache().remove(gcSessionKey_(candidate));
+ return {ok:true,message:'Sesión cerrada'};
+}
+
 function assertAdmin_(candidate){
   // ADMIN_PIN es una propiedad privada: nunca incluir su valor en GitHub.
   const props=PropertiesService.getScriptProperties();
