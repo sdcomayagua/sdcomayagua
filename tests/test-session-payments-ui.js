@@ -30,7 +30,15 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  await page.clock.resume();
  await page.goto(base+'/cuentas.html');await page.locator('.bank-card').first().waitFor();assert.equal(await page.locator('.bank-card').count(),2,'Solo se muestran cuentas publicadas');
  await page.locator('#bankFilter').selectOption('Banco de prueba');assert.equal(await page.locator('.bank-card').count(),1);await page.getByRole('button',{name:'Copiar Nombre del titular',exact:true}).click();assert.equal(await page.evaluate(()=>window.__copied),'Gabriel de prueba');
- await page.getByRole('button',{name:'Copiar todos los datos',exact:true}).click();assert.equal(await page.evaluate(()=>window.__copied),'Banco de prueba\nTitular: Gabriel de prueba\nCuenta: 0012\nIdentidad: 0000');
+ const bankLabels=await page.locator('.bank-card .bank-copy-row small').allTextContents();
+ assert.deepEqual(bankLabels,['Nombre del titular','Número de identidad','Número de cuenta'],'Identidad debajo del titular y cuenta al final');
+ assert.equal(await page.locator('.bank-card .bank-account-primary strong').innerText(),'0012');
+ assert.equal(await page.locator('header .nav a[href="index.html"]').count(),1,'Inicio aparece en la navegación de Cuentas');
+ await page.setViewportSize({width:390,height:844});
+ assert.equal(await page.locator('.mobile-nav a[href="index.html"]').isVisible(),true,'Inicio disponible en navegación móvil de Cuentas');
+ await page.setViewportSize({width:1280,height:900});
+
+ await page.getByRole('button',{name:'Copiar todos los datos',exact:true}).click();assert.equal(await page.evaluate(()=>window.__copied),'Banco de prueba\nTitular: Gabriel de prueba\nIdentidad: 0000\nCuenta: 0012');
  for(const width of [320,390,1280]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Cuentas sin desborde en '+width);const box=await page.locator('.bank-copy-all').boundingBox();assert.ok(box.height>=44);}
  assert.deepEqual(errors,[]);await browser.close();await new Promise(resolve=>server.close(resolve));
  console.log('PASS navegador: sesión restaurada sin diagnóstico, filtros y sección conservados, vencimiento, cierre explícito, bancos y copias con titular en celular y PC.');
