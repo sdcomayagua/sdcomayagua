@@ -1,0 +1,26 @@
+const assert=require('node:assert/strict'),M=require('../assets/js/cart-storage.js');
+let now=1_000_000;
+function store(){const values=new Map();return {getItem:key=>values.get(key)??null,setItem:(key,v)=>values.set(key,v),removeItem:key=>values.delete(key),values};}
+const primary=store(),fallback=store();
+let a=M.create({storage:primary,fallback,now:()=>now});
+assert.equal(Object.keys(a.read()).length,0);
+a.save({'Mouse-003':2,'OTG-001':1});
+assert.equal(a.read()['Mouse-003'],2);
+let b=M.create({storage:primary,fallback,now:()=>now+5000});
+assert.equal(b.read()['OTG-001'],1,'El carrito permanece tras cerrar y volver');
+now+=M.LIFE+1;
+assert.equal(Object.keys(b.read()).length,0,'El carrito vence después de 7 días');
+assert.equal(primary.getItem(M.KEY),null);
+fallback.setItem('gc_cart',JSON.stringify({'OTG-001':2}));
+const migrated=a.read();
+assert.equal(migrated['OTG-001'],2,'Migra el carrito antiguo de sessionStorage');
+assert.equal(fallback.getItem('gc_cart'),null);
+const blocked={getItem(){throw Error('bloqueado')},setItem(){throw Error('bloqueado')},removeItem(){throw Error('bloqueado')}};
+const alternate=store(),c=M.create({storage:blocked,fallback:alternate,now:()=>now});
+c.save({'GC-1':3});
+assert.equal(M.create({storage:blocked,fallback:alternate,now:()=>now+30}).read()['GC-1'],3);
+const clean=M.clean({'GC-2':2,'__proto__':5,'bad id!':1,'GC-3':9999,'GC-4':0,'GC-5':1.25,'GC-6':1});
+assert.deepEqual(Object.keys(clean).sort(),['GC-2','GC-6']);
+c.clear();
+assert.equal(alternate.getItem(M.KEY),null,'Vaciar carrito elimina la copia');
+console.log('PASS: carrito persistente, migración, expiración, saneamiento y fallback.');
