@@ -106,8 +106,8 @@ function gcHandleRequest_(req){
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{sessionTokens:true,finance:true,offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
-        result.sessionToken=gcSessionValid_(req.token)?String(req.token):gcSessionOpen_();
+        result={ok:true,message:'Acceso autorizado',features:{sessionTokens:gcSessionSupported_(),finance:true,offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        if(gcSessionSupported_())result.sessionToken=gcSessionValid_(req.token)?String(req.token):gcSessionOpen_();
       }
       else if (req.action === 'sessionPing') result={ok:true,message:'Sesión vigente'};
       else if (req.action === 'sessionLogout') result=gcSessionClose_(req.token);
@@ -194,6 +194,10 @@ function safeError_(err){return String((err&&err.message)||err||'Error desconoci
  * Requiere publicar Code.gs como nueva versión de la implementación privada /exec.
  * Un despliegue público de solo lectura NUNCA puede emitir sesiones administrativas.
  */
+function gcSessionSupported_(){
+ return typeof Utilities!=='undefined'&&!!Utilities.DigestAlgorithm&&
+  typeof Utilities.computeDigest==='function'&&typeof Utilities.base64EncodeWebSafe==='function'&&typeof Utilities.getUuid==='function';
+}
 function gcSessionValid_(candidate){
  return /^gc_[0-9a-f]{64}$/i.test(String(candidate||''));
 }
