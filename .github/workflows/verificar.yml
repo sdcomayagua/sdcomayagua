@@ -25,6 +25,7 @@ jobs:
           node tests/test-api.js
           node tests/test-native-panel.js
           node tests/test-cart.js
+          node tests/test-cart-storage.js
           node tests/test-offers.js
           node tests/test-finance.js
           node tests/test-product-trash.js
