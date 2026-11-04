@@ -17,7 +17,7 @@
   const put=(store,key,value)=>{try{store?.setItem(key,value);return store?.getItem(key)===value}catch{return false}};
   const del=(store,key)=>{try{store?.removeItem(key)}catch{}};
   function read(){
-   const saved=get(storage,KEY);
+   const saved=get(storage,KEY)??get(fallback,KEY);
    if(saved!==null&&saved!==undefined){
     try{
      const record=JSON.parse(saved);
@@ -25,7 +25,7 @@
       return clean(record.items);
      }
     }catch(error){}
-    del(storage,KEY);
+    del(storage,KEY);del(fallback,KEY);
    }
    const legacy=get(fallback,OLD_KEY);
    if(legacy){
