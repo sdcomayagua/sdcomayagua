@@ -40,6 +40,63 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 
  await page.getByRole('button',{name:'Copiar todos los datos',exact:true}).click();assert.equal(await page.evaluate(()=>window.__copied),'Banco de prueba\nTitular: Gabriel de prueba\nIdentidad: 0000\nCuenta: 0012');
  for(const width of [320,390,1280]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Cuentas sin desborde en '+width);const box=await page.locator('.bank-copy-all').boundingBox();assert.ok(box.height>=44);}
+
+ // Contraste bancario y ancho responsivo. Datos ficticios; no hay PIN ni cuentas reales en las pruebas.
+ for(const width of [320,390,768,1280,1830]){
+  await page.setViewportSize({width,height:920});
+  const layout=await page.evaluate(()=>{
+   const card=document.querySelector('.bank-card'),row=card?.querySelector('.bank-account-primary'),
+    value=row?.querySelector('strong'),button=row?.querySelector('button'),heading=document.querySelector('.page-banner');
+   const lum=color=>{
+    const rgb=(color.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+    const cv=n=>{const c=n/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4};
+    return .2126*cv(rgb[0])+.7152*cv(rgb[1])+.0722*cv(rgb[2]);
+   };
+   const l=lum(getComputedStyle(value).color),b=lum(getComputedStyle(row).backgroundColor);
+   return {overflow:document.documentElement.scrollWidth>innerWidth,
+    contrast:(Math.max(l,b)+.05)/(Math.min(l,b)+.05),
+    valueVisible:value.getBoundingClientRect().width>0,
+    accountText:value.textContent.trim(),
+    rowRight:row.getBoundingClientRect().right,
+    buttonRight:button.getBoundingClientRect().right,
+    headingWidth:heading.getBoundingClientRect().width
+   };
+  });
+  assert.equal(layout.overflow,false,'Cuentas sin scroll horizontal a '+width+'px');
+  assert.ok(layout.contrast>=7,'Número de cuenta claramente legible a '+width+'px');
+  assert.ok(layout.valueVisible&&layout.accountText==='0012','Cuenta de prueba visible y completa');
+  assert.ok(layout.buttonRight<=layout.rowRight+1,'Copiar cuenta no se sale de la tarjeta');
+  if(width>=1280)assert.ok(layout.headingWidth>=width*.88,'Se aprovecha el ancho de escritorio');
+ }
+ await page.goto(base+'/pagos.html');
+ await page.locator('.estimate-total strong').waitFor();
+ for(const width of [320,390,768,1280,1830]){
+  await page.setViewportSize({width,height:920});
+  const layout=await page.evaluate(()=>{
+   const form=document.querySelector('.shipping-calc-form'),label=form.querySelector('label'),
+     calculator=document.querySelector('.shipping-calculator'),total=document.querySelector('.estimate-total strong'),
+     result=document.querySelector('.shipping-calc-result');
+   const lum=color=>{
+    const rgb=(color.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+    const cv=n=>{const c=n/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4};
+    return .2126*cv(rgb[0])+.7152*cv(rgb[1])+.0722*cv(rgb[2]);
+   };
+   const ratio=(a,b)=>{const l=lum(a),m=lum(b);return (Math.max(l,m)+.05)/(Math.min(l,m)+.05)};
+   return {overflow:document.documentElement.scrollWidth>innerWidth,
+    labelContrast:ratio(getComputedStyle(label).color,getComputedStyle(calculator).backgroundColor),
+    totalContrast:ratio(getComputedStyle(total).color,getComputedStyle(result).backgroundColor),
+    totalText:total.textContent,
+    calculatorWidth:calculator.getBoundingClientRect().width,
+    totalRight:total.getBoundingClientRect().right,
+    resultRight:result.getBoundingClientRect().right};
+  });
+  assert.equal(layout.overflow,false,'Pagos sin scroll horizontal a '+width+'px');
+  assert.ok(layout.labelContrast>=7,'Etiquetas del cálculo legibles a '+width+'px');
+  assert.ok(layout.totalContrast>=7,'Total del pedido legible a '+width+'px');
+  assert.ok(layout.totalText.includes('480'),'Se conserva el total correcto de la cotización');
+  assert.ok(layout.totalRight<=layout.resultRight+1,'Total no se sale de la calculadora');
+  if(width>=1280)assert.ok(layout.calculatorWidth>=width*.88,'Calculadora aprovecha el ancho de PC');
+ }
  assert.deepEqual(errors,[]);await browser.close();await new Promise(resolve=>server.close(resolve));
  console.log('PASS navegador: sesión restaurada sin diagnóstico, filtros y sección conservados, vencimiento, cierre explícito, bancos y copias con titular en celular y PC.');
 })().catch(error=>{console.error(error);process.exit(1);});
