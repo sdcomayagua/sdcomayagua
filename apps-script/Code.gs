@@ -198,14 +198,14 @@ function gcSessionValid_(candidate){
  return /^gc_[0-9a-f]{64}$/i.test(String(candidate||''));
 }
 function gcSessionKey_(token){
- const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(token),Utilities.Charset.UTF_8);
+ const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(token));
  return 'gc_session_'+Utilities.base64EncodeWebSafe(bytes).replace(/=+$/,'').slice(0,43);
 }
 function gcSessionPinStamp_(){
  const props=PropertiesService.getScriptProperties();
  const pin=String(props.getProperty('ADMIN_PIN')||props.getProperty('ADMIN_TOKEN')||'');
  if(!/^\d{6}$/.test(pin))throw Error('No hay PIN válido para iniciar sesión.');
- const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,'GC-PIN-V1:'+pin,Utilities.Charset.UTF_8);
+ const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,'GC-PIN-V1:'+pin));
  return Utilities.base64EncodeWebSafe(bytes);
 }
 function gcSessionOpen_(){
