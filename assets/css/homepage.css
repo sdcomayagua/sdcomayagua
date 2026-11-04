@@ -5,7 +5,7 @@ body.gc-home{margin:0;min-width:320px;background:#fff;color:var(--gc-ink);font-f
 .gc-home a{color:inherit;text-decoration:none}
 .gc-home button,.gc-home a{touch-action:manipulation}
 .gc-home :focus-visible{outline:3px solid #236fca;outline-offset:3px}
-.home-wrap{width:min(1190px,100% - 44px);margin-inline:auto}
+.home-wrap{width:calc(100% - clamp(30px,4.4vw,80px));max-width:1760px;margin-inline:auto}
 .home-header{position:relative;z-index:20;background:#fff;border-bottom:1px solid #e2e9f0}
 .home-header-inner{min-height:84px;display:flex;align-items:center;gap:22px}
 .home-brand{display:inline-flex;align-items:center;gap:10px;font-size:17px;font-weight:900;letter-spacing:-.5px;white-space:nowrap}
@@ -86,6 +86,13 @@ body.gc-home{margin:0;min-width:320px;background:#fff;color:var(--gc-ink);font-f
 .home-footer-inner nav{display:flex;gap:18px;flex-wrap:wrap}
 .home-footer-inner nav a{font-size:12px;color:#d8e9f7}
 .home-mobile-nav{display:none}
+/* Portada a ancho de catálogo en PC grande. Seis destacados ocupan una fila,
+   manteniendo tres columnas en portátiles y dos en teléfonos. */
+@media(min-width:1700px){
+ .home-products{grid-template-columns:repeat(6,minmax(0,1fr));gap:16px}
+ .home-categories{gap:18px}
+ .home-category{min-height:132px;padding:22px}
+}
 @media(max-width:1000px){
  .home-desktop-nav a{padding:9px 8px;font-size:12px}
  .home-hero-grid{gap:26px}
@@ -93,7 +100,7 @@ body.gc-home{margin:0;min-width:320px;background:#fff;color:var(--gc-ink);font-f
 }
 @media(max-width:760px){
  body.gc-home{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
- .home-wrap{width:min(100% - 30px,1190px)}
+ .home-wrap{width:calc(100% - 30px)}
  .home-header-inner{min-height:68px;gap:10px}
  .home-brand{font-size:14px;gap:5px}.home-brand img{height:47px;width:47px}
  .home-desktop-nav{display:none}
