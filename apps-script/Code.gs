@@ -209,7 +209,7 @@ function gcSessionPinStamp_(){
  const props=PropertiesService.getScriptProperties();
  const pin=String(props.getProperty('ADMIN_PIN')||props.getProperty('ADMIN_TOKEN')||'');
  if(!/^\d{6}$/.test(pin))throw Error('No hay PIN válido para iniciar sesión.');
- const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,'GC-PIN-V1:'+pin));
+ const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,'GC-PIN-V1:'+pin);
  return Utilities.base64EncodeWebSafe(bytes);
 }
 function gcSessionOpen_(){
