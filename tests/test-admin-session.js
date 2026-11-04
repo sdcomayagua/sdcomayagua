@@ -26,4 +26,11 @@ time+=TTL-10000;
 assert.equal(withFallback.read(),null,'Después de 10 minutos desde la última actividad el PIN vence');
 assert.equal(fallbackValues.size,0,'Una sesión vencida se limpia del almacenamiento alternativo');
 
+const secured='gc_'+('ab'.repeat(32));
+assert.equal(require('../assets/js/admin-session').validToken(secured),true,'Token de 64 hex válido');
+assert.equal(require('../assets/js/admin-session').validToken('gc_invalid'),false);
+const opaque=create({storage,now:()=>time});
+assert.equal(opaque.start(secured).token,secured);
+assert.equal(create({storage,now:()=>time}).read().token,secured,'Vuelve con el token sin guardar el PIN');
+opaque.clear();
 console.log('PASS sesión: regreso, recarga, vencimiento a diez minutos, renovación, cierre entre pestañas y almacenamiento bloqueado.');

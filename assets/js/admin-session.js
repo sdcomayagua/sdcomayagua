@@ -2,6 +2,7 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.GC_ADMIN_SESSION=factory();})(typeof self!=='undefined'?self:globalThis,function(){
  'use strict';
  const TTL=10*60*1000,KEY='gc_admin_session_v1';
+ const validToken=value=>/^(?:\d{6}|gc_[0-9a-f]{64})$/i.test(String(value||''));
  function create({storage,fallbackStorage,now=Date.now,ttl=TTL,key=KEY}={}){
   let memory=null,memoryOnly=false,usedStorage=null;
   const stores=[storage,fallbackStorage].filter((item,i,all)=>item&&all.indexOf(item)===i);
@@ -23,13 +24,13 @@
     }
     if(!found&&stores.length)record=null;
    }
-   if(!record||!/^\d{6}$/.test(record.token)||!Number.isFinite(record.expiresAt)||record.expiresAt<=now()||record.expiresAt>now()+ttl){
+   if(!record||!validToken(record.token)||!Number.isFinite(record.expiresAt)||record.expiresAt<=now()||record.expiresAt>now()+ttl){
     clear();return null;
    }
    memory=record;return {...record};
   }
   function start(token){
-   if(!/^\d{6}$/.test(String(token))){clear();return null;}
+   if(!validToken(token)){clear();return null;}
    memory={token:String(token),expiresAt:now()+ttl};
    memoryOnly=true;usedStorage=null;
    for(const target of stores){
@@ -47,5 +48,5 @@
   function touch(){const record=read();return record?start(record.token):null;}
   return {read,start,touch,clear,ttl,key,persisted:()=>!memoryOnly&&!!usedStorage};
  }
- return {create,TTL,KEY};
+ return {create,TTL,KEY,validToken};
 });
