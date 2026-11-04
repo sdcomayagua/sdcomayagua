@@ -21,6 +21,29 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.equal(await page.locator('#homeProducts .home-product').count()>0,true);
   assert.equal(await page.locator('#installApp').isVisible(),false,'La instalación no aparece si el navegador no la ofrece');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Portada PC sin desborde');
+  await page.setViewportSize({width:1840,height:1000});
+  const wide=await page.evaluate(()=>{
+   const categories=document.getElementById('homeCategories'),products=document.getElementById('homeProducts');
+   return {categoriesWidth:categories.getBoundingClientRect().width,productsWidth:products.getBoundingClientRect().width,
+    productColumns:getComputedStyle(products).gridTemplateColumns.split(' ').filter(Boolean).length,
+    categoriesColumns:getComputedStyle(categories).gridTemplateColumns.split(' ').filter(Boolean).length,
+    overflow:document.documentElement.scrollWidth>innerWidth};
+  });
+  assert.ok(wide.categoriesWidth>=1840*.93,'Categorías ocupan casi todo el ancho del PC, como el catálogo');
+  assert.ok(wide.productsWidth>=1840*.93,'Productos destacados ocupan casi todo el ancho del PC');
+  assert.equal(wide.categoriesColumns,4,'Categorías siguen alineadas en cuatro columnas');
+  assert.equal(wide.productColumns,6,'Seis productos destacados caben en una fila en PC ancho');
+  assert.equal(wide.overflow,false,'Portada ancha sin desplazamiento horizontal');
+  await page.setViewportSize({width:980,height:860});
+  const tablet=await page.evaluate(()=>({
+   categoryColumns:getComputedStyle(document.getElementById('homeCategories')).gridTemplateColumns.split(' ').filter(Boolean).length,
+   productColumns:getComputedStyle(document.getElementById('homeProducts')).gridTemplateColumns.split(' ').filter(Boolean).length,
+   overflow:document.documentElement.scrollWidth>innerWidth
+  }));
+  assert.equal(tablet.categoryColumns,2,'Tablet muestra dos categorías por fila');
+  assert.equal(tablet.productColumns,3,'Tablet conserva tres productos por fila');
+  assert.equal(tablet.overflow,false,'Tablet sin desbordes');
+  await page.setViewportSize({width:1365,height:900});
   for(const width of [390,360]){
    await page.setViewportSize({width,height:840});
    assert.equal(await page.locator('.home-mobile-nav').isVisible(),true);
