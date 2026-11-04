@@ -132,3 +132,7 @@ body.gc-home{margin:0;min-width:320px;background:#fff;color:var(--gc-ink);font-f
  .home-product-price{font-size:17px}
 }
 @media(prefers-reduced-motion:reduce){.gc-home *{transition:none!important;scroll-behavior:auto!important}}
+
+.home-btn[hidden]{display:none!important}
+.home-visual-grid>a{display:block;min-width:0}
+.home-visual-grid>a img{width:100%;height:auto;display:block}
