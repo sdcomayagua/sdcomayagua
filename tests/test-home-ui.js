@@ -40,6 +40,19 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#compareOverlay [data-close]').click();
   await page.locator('#compareClear').click();
   assert.equal(await page.locator('#compareDock').isVisible(),false);
+  await page.locator('[data-add]').first().click();
+  const saved=await page.evaluate(()=>localStorage.getItem('gc_cart_v2'));
+  assert.ok(saved&&JSON.parse(saved).items,'El carrito se guarda en este navegador');
+  await page.goto(base+'/index.html');
+  await page.locator('#homeResumeCart').waitFor({state:'visible'});
+  assert.match(await page.locator('#homeResumeCart').innerText(),/Retomar carrito/);
+  await page.locator('#homeResumeCart').click();
+  await page.locator('#cartOverlay').waitFor({state:'visible'});
+  assert.equal(await page.locator('#cartOverlay [data-close]').evaluate(el=>el===document.activeElement),true,'El foco inicia dentro del carrito al abrirlo');
+  assert.match(await page.locator('.cart-save-note').innerText(),/7 días/);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#cartOverlay').isHidden(),true);
+  assert.equal(await page.locator('#openCart').evaluate(el=>el===document.activeElement),true,'Al cerrar el carrito el foco vuelve al botón de abrir');
   assert.deepEqual(errors,[]);
   console.log('PASS portada y comparador en PC y móvil.');
  }finally{await browser.close();await new Promise(done=>server.close(done));}

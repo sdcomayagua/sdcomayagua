@@ -34,7 +34,19 @@
   }
   return {count:list.length,categories:categories.length};
  }
+ function resumeCart(){
+  const link=$('homeResumeCart');
+  if(!link||!root.GC_CART_STORAGE)return;
+  let storage=null,fallback=null;
+  try{storage=root.localStorage;}catch(error){}
+  try{fallback=root.sessionStorage;}catch(error){}
+  const saved=root.GC_CART_STORAGE.create({storage,fallback}).read();
+  const count=Object.values(saved).reduce((n,qty)=>n+Number(qty||0),0);
+  link.hidden=count<1;
+  if(count&&$('homeResumeCartCount'))$('homeResumeCartCount').textContent='('+count+')';
+ }
  async function init(){
+  resumeCart();
   if($('homeYear'))$('homeYear').textContent=String(new Date().getFullYear());
   display(root.GC_CATALOGO_INICIAL||[]);
   const controller=typeof AbortController!=='undefined'?new AbortController():null;

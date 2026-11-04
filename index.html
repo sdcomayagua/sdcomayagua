@@ -16,10 +16,10 @@
  <link rel="icon" type="image/webp" href="assets/img/logo-rojo.webp">
  <link rel="manifest" href="manifest.webmanifest">
  <link rel="stylesheet" href="assets/css/site.css?v=gc-admin-77">
- <link rel="stylesheet" href="assets/css/homepage.css?v=gc-home-20261104">
+ <link rel="stylesheet" href="assets/css/homepage.css?v=gc-cart-access-20261104">
  <script defer src="assets/js/core.js?v=gc-offers-75"></script>
  <script defer src="data/catalogo-inicial.js?v=gc-home-20261104"></script>
- <script defer src="assets/js/homepage.js?v=gc-home-20261104"></script>
+ <script defer src="assets/js/cart-storage.js?v=gc-cart-home-20261104"></script><script defer src="assets/js/homepage.js?v=gc-cart-home-20261104"></script>
  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Store","name":"Gamer Comayagua","url":"https://sdcomayagua.github.io/sdcomayagua/","image":"https://sdcomayagua.github.io/sdcomayagua/assets/img/logo-rojo.webp","description":"Tienda de accesorios gamer y tecnología con atención por WhatsApp en Honduras.","areaServed":{"@type":"Country","name":"Honduras"},"availableLanguage":"es"}</script>
  <title>Gamer Comayagua | Accesorios gamer y tecnología en Honduras</title>
 <script defer src="assets/js/pwa-register.js?v=gc-pwa-20261104"></script></head>
@@ -47,7 +47,7 @@
      <h1>Equipate para jugar. <em>Comprá más fácil.</em></h1>
      <p>Mouse, teclados, accesorios para celular y más. Explorá nuestro catálogo y confirmá disponibilidad, métodos de pago y envío por WhatsApp.</p>
      <div class="home-hero-actions">
-      <a class="home-btn home-btn-primary" href="productos.html">Explorar productos <span aria-hidden="true">→</span></a>
+      <a class="home-btn home-btn-primary" href="productos.html">Explorar productos <span aria-hidden="true">→</span></a><a id="homeResumeCart" href="productos.html?carrito=1" class="home-btn home-btn-resume" hidden>Retomar carrito <span id="homeResumeCartCount"></span></a>
       <a class="home-btn home-btn-outline" href="https://wa.me/50431517755?text=Hola%20Gamer%20Comayagua%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20productos." target="_blank" rel="noopener noreferrer">Preguntar por WhatsApp</a><button type="button" id="installApp" class="home-btn home-btn-outline" hidden>Instalar tienda</button>
      </div>
      <p class="home-hero-note">Precios y existencias sujetos a confirmación al realizar el pedido.</p>

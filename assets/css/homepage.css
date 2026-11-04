@@ -136,3 +136,9 @@ body.gc-home{margin:0;min-width:320px;background:#fff;color:var(--gc-ink);font-f
 .home-btn[hidden]{display:none!important}
 .home-visual-grid>a{display:block;min-width:0}
 .home-visual-grid>a img{width:100%;height:auto;display:block}
+
+/* Mostrar el acceso al carrito guardado solo cuando existen artículos. */
+.home-btn-resume{background:#e9f3ff;color:#174e87;border:1px solid #b9d5f0;font-weight:750}
+.home-btn-resume:hover{background:#dcecff;color:#103b67}
+#homeResumeCart[hidden]{display:none!important}
+#homeResumeCartCount{font-variant-numeric:tabular-nums}
