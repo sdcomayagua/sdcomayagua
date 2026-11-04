@@ -71,11 +71,11 @@ function request(action,extra={}){
  }
  if(!validApi())return Promise.reject(Error('No se encontró la dirección de Apps Script. Podés administrar el inventario desde Google Sheets mientras se revisa la conexión.'));
  return new Promise((resolve,reject)=>{
-  const requestId='req'+Date.now()+Math.random().toString(36).slice(2),frame=document.createElement('iframe'),form=document.createElement('form');
+  const requestId='req'+(window.crypto?.randomUUID?.()||Date.now()+Math.random().toString(36).slice(2)),frame=document.createElement('iframe'),form=document.createElement('form');
   let timer,complete=false;
   function finish(err,data){if(complete)return;complete=true;clearTimeout(timer);window.removeEventListener('message',listener);frame.remove();form.remove();err?reject(err):resolve(data)}
   frame.name='frame_'+requestId;frame.style.cssText='position:absolute;width:0;height:0;visibility:hidden;border:0';document.body.appendChild(frame);
-  function listener(ev){if(ev.source!==frame.contentWindow)return;const allowed=ev.origin==='null'||/^https:\/\/(?:script\.google\.com|(?:[a-z0-9-]+\.)*googleusercontent\.com)$/i.test(ev.origin);if(!allowed)return;const d=ev.data;if(!d||d.__gcResponse!==true||d.requestId!==requestId)return;if(d.ok)finish(null,d);else finish(Error(d.error||'No se pudo completar la operación'))}
+  function listener(ev){const allowed=ev.origin==='null'||/^https:\/\/(?:script\.google\.com|(?:[a-z0-9-]+\.)*googleusercontent\.com)$/i.test(ev.origin);if(!allowed)return;const d=ev.data;if(!d||d.__gcResponse!==true||d.requestId!==requestId)return;if(d.ok)finish(null,d);else finish(Error(d.error||'No se pudo completar la operación'))}
   window.addEventListener('message',listener);
   form.method='POST';form.target=frame.name;form.action=cfg.apiUrl;form.style.display='none';
   const field=document.createElement('input');field.name='payload';field.value=JSON.stringify({requestId,action,...(action==='health'?{}:{token}),...extra});
