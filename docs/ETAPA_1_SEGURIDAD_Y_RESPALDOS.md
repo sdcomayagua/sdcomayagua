@@ -16,7 +16,7 @@
 
 1. **Auditoría de fichas:** filtros de fotos faltantes, una sola foto, texto genérico o ausente, características técnicas, categorías imprecisas, precios/promociones y stock.
 2. **Exportación CSV:** reporte descargable solo dentro del Admin autenticado. Omite costos, datos de clientes, credenciales y neutraliza fórmulas de hoja de cálculo.
-3. **Comunicaciones del Admin:** verificar el origen **y** la ventana del iframe que devuelve cada respuesta de Apps Script, sin modificar el protocolo del servidor.
+3. **Comunicaciones del Admin:** identificadores criptográficamente aleatorios para asociar cada respuesta de Apps Script a su solicitud. Se conserva el iframe anidado que requiere Google; no se cambia el protocolo del servidor.
 4. **Pruebas:** CI comprueba el modelo independiente y el Admin en escritorio/celular.
 
 ## Riesgos pendientes de seguridad
