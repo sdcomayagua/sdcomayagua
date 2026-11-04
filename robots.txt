@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /sdcomayagua/
+Disallow: /sdcomayagua/admin.html
+Sitemap: https://sdcomayagua.github.io/sdcomayagua/sitemap.xml

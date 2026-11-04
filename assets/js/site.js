@@ -1,8 +1,9 @@
 
 (function(){'use strict';
-const C=window.GC,config=window.GC_CONFIG,$=id=>document.getElementById(id);window.GC_WATERMARK?.set(config);
+const C=window.GC,config=window.GC_CONFIG,$=id=>document.getElementById(id),Compare=window.GC_COMPARE;window.GC_WATERMARK?.set(config);
 const imgFallback='assets/img/sin-foto.svg',page=document.body.dataset.page||'inicio';
 let products=[],settings={...config},banks=[],cart={},currentId='',visible=24,latest=null,currentQuoteId='';
+let compareIds=[];
 const cartStorage=window.GC_CART_STORAGE?.create({storage:(()=>{try{return localStorage}catch{return null}})(),fallback:(()=>{try{return sessionStorage}catch{return null}})()});
 let banksRequest=null,banksStatus='idle',detailTrigger=null;
 const publicRequests=new Map();
@@ -98,9 +99,38 @@ function card(p){
  const zoom='<span class="photo-inspect" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M10 7v6M7 10h6"/></svg></span>';
  const cartIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01M14 7v6M11 10h6"/></svg>';
  return `<article class="product ${p.stock?'':'out'}">
-  <div class="photo"><button type="button" class="photo-open" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}"><img loading="lazy" decoding="async" src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}';this.closest('.photo').classList.add('missing-photo')" alt="${safe(p.name)}">${zoom}</button><span class="tag ${p.stock?'':'out'}">${p.stock?'En stock':'Agotado'}</span></div>
+  <div class="photo"><button type="button" class="photo-open" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}"><img loading="lazy" decoding="async" src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}';this.closest('.photo').classList.add('missing-photo')" alt="${safe(p.name)}">${zoom}</button><span class="tag ${p.stock?'':'out'}">${p.stock?'En stock':'Agotado'}</span><button class="compare-toggle" type="button" data-compare="${escapeAttr(p.id)}" aria-label="${compareIds.includes(p.id)?'Quitar de comparación':'Comparar producto'}: ${escapeAttr(p.name)}" aria-pressed="${compareIds.includes(p.id)}" title="${compareIds.includes(p.id)?'Quitar de comparación':'Agregar para comparar'}"><span aria-hidden="true">⇄</span></button></div>
   <div class="product-body"><div class="category">${safe(p.category)}</div><h3><button type="button" class="product-name" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}">${safe(p.name)}</button></h3>${amount}${p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:''}<div class="stock">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Sin existencias'}</div><div class="product-actions"><button type="button" class="btn" data-add="${escapeAttr(p.id)}" aria-label="${p.stock?'Agregar':'Agotado'}: ${escapeAttr(p.name)}" ${!p.stock?'disabled':''}>${p.stock?cartIcon+'<span>Agregar</span>':'Agotado'}</button></div></div>
  </article>`;
+}
+function syncCompare(){
+ if(!Compare)return;
+ compareIds=compareIds.filter(id=>products.some(p=>p.id===id&&p.active));
+ const size=compareIds.length,host=$('compareDock');
+ if(host)host.hidden=size===0;
+ if($('compareCount'))$('compareCount').textContent=size+' de 3 seleccionados';
+ if($('compareOpen'))$('compareOpen').disabled=size<2;
+ document.querySelectorAll('[data-compare]').forEach(button=>{
+  const selected=compareIds.includes(button.dataset.compare),p=products.find(p=>p.id===button.dataset.compare);
+  button.setAttribute('aria-pressed',String(selected));
+  button.title=selected?'Quitar de comparación':'Agregar para comparar';
+  button.setAttribute('aria-label',(selected?'Quitar de comparación':'Comparar producto')+': '+(p?.name||'artículo'));
+ });
+}
+function compareToggle(id){
+ if(!Compare||!products.some(p=>p.id===id&&p.active))return;
+ const next=Compare.toggle(compareIds,id);
+ if(next.limit){toast('Podés comparar hasta 3 productos a la vez.');return;}
+ compareIds=next.ids;syncCompare();
+}
+function compareOpen(){
+ const selected=compareIds.map(id=>products.find(p=>p.id===id&&p.active)).filter(Boolean);
+ if(!Compare||selected.length<2)return toast('Elegí al menos 2 productos para comparar.');
+ const headers=selected.map(p=>'<th scope="col"><img loading="lazy" src="'+escapeAttr(pic(p))+'" alt="" onerror="this.onerror=null;this.src=\''+imgFallback+'\'"><strong>'+safe(p.name)+'</strong><a href="'+escapeAttr(catalogUrl(p.id))+'">Ver detalles</a></th>').join('');
+ const rows=Compare.fields(selected,C.unitPrice,C.money);
+ $('compareBody').innerHTML='<p class="compare-help">Características según las fichas publicadas; confirmá compatibilidad y existencias antes de comprar.</p><div class="compare-scroll" tabindex="0" aria-label="Tabla de comparación de productos, desplazable horizontalmente"><table class="compare-table"><thead><tr><th scope="col">Características</th>'+headers+'</tr></thead><tbody>'+rows.map(([name,values])=>'<tr><th scope="row">'+safe(name)+'</th>'+values.map(v=>'<td>'+safe(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+ $('compareOverlay').hidden=false;document.body.style.overflow='hidden';
+ $('compareOverlay').querySelector('[data-close]')?.focus({preventScroll:true});
 }
 function renderBestSellers(){
  const section=$('bestSellersSection'),list=$('bestSellersList');if(!section||!list)return;
@@ -136,7 +166,7 @@ function render(){
  if($('resultsCount'))$('resultsCount').textContent=`${list.length} ${list.length===1?'producto':'productos'}`;
  updateCategoryShortcuts();
  $('productGrid').innerHTML=list.slice(0,visible).map(card).join('')||'<div class="empty catalog-empty"><strong>No encontramos productos con esos filtros.</strong><p>Probá con nombre, marca, modelo o código.</p><button type="button" class="btn outline" data-reset-filters>Ver todo el catálogo</button></div>';
- $('showMore')?.classList.toggle('hidden',list.length<=visible);window.GC_WATERMARK?.applyTo(document);
+ $('showMore')?.classList.toggle('hidden',list.length<=visible);window.GC_WATERMARK?.applyTo(document);syncCompare();
 }
 function open(id,preserve=false){
  const p=products.find(x=>x.id===id);if(!p)return;currentId=id;
@@ -616,8 +646,10 @@ function binds(){
  $('sort')?.addEventListener('change',filtersChanged);
  $('showMore')?.addEventListener('click',()=>{visible+=24;render()});
  $('openCart')?.addEventListener('click',cartOpen);$('mobileCart')?.addEventListener('click',cartOpen);
+ $('compareOpen')?.addEventListener('click',compareOpen);
+ $('compareClear')?.addEventListener('click',()=>{compareIds=[];syncCompare();});
  $('mobileCategories')?.addEventListener('click',()=>{const picker=$('category');if(!picker)return;picker.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});picker.focus({preventScroll:true});});
- $('productGrid')?.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.hasAttribute('data-reset-filters'))resetFilters();if(t.dataset.add)add(t.dataset.add);if(t.dataset.detail)open(t.dataset.detail)});
+ $('productGrid')?.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.hasAttribute('data-reset-filters'))resetFilters();if(t.dataset.compare)compareToggle(t.dataset.compare);if(t.dataset.add)add(t.dataset.add);if(t.dataset.detail)open(t.dataset.detail)});
  document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'&&$('search')&&!document.querySelector('.overlay:not([hidden])')){event.preventDefault();$('search').focus();$('search').select();}});
  $('cartLines')?.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.remove){delete cart[b.dataset.remove];cartRender()}else if(b.dataset.qty){const id=b.dataset.qty,p=products.find(x=>x.id===id);cart[id]=Math.min(p.stock,(cart[id]||0)+Number(b.dataset.step));if(cart[id]<=0)delete cart[id];cartRender()}});
  document.querySelectorAll('[name=payMethod]').forEach(e=>e.addEventListener('change',calc));

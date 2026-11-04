@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),M=require('../assets/js/compare-model.js');
+let ids=[];
+ids=M.toggle(ids,'mouse').ids;ids=M.toggle(ids,'teclado').ids;ids=M.toggle(ids,'soporte').ids;
+assert.deepEqual(ids,['mouse','teclado','soporte']);
+const blocked=M.toggle(ids,'extra');assert.equal(blocked.limit,true);assert.deepEqual(blocked.ids,ids);
+assert.deepEqual(M.toggle(ids,'teclado').ids,['mouse','soporte']);
+assert.deepEqual(M.toggle(['mouse','mouse'],'mouse').ids,[]);
+const products=[{name:'Mouse',price:390,stock:2,category:'Mouse',details:{brand:'GC',model:'K90',connection:'USB'},colors:'Negro'},{name:'Teclado',price:1200,stock:0,category:'Teclados',details:{model:'G-104'}}];
+const fields=M.fields(products,p=>p.price,p=>'L '+p);
+assert.equal(fields.find(x=>x[0]==='Precio')[1][0],'L 390');
+assert.equal(fields.find(x=>x[0]==='Modelo')[1][1],'G-104');
+assert.equal(fields.find(x=>x[0]==='Existencias')[1][1],'Agotado');
+console.log('PASS comparador: máximo tres, selección y características públicas.');
