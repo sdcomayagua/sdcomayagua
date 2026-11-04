@@ -71,7 +71,7 @@ function request(action,extra={}){
  }
  if(!validApi())return Promise.reject(Error('No se encontró la dirección de Apps Script. Podés administrar el inventario desde Google Sheets mientras se revisa la conexión.'));
  return new Promise((resolve,reject)=>{
-  const requestId='req'+Date.now()+Math.random().toString(36).slice(2),frame=document.createElement('iframe'),form=document.createElement('form');
+  const requestId='req'+(window.crypto?.randomUUID?.()||Date.now()+Math.random().toString(36).slice(2)),frame=document.createElement('iframe'),form=document.createElement('form');
   let timer,complete=false;
   function finish(err,data){if(complete)return;complete=true;clearTimeout(timer);window.removeEventListener('message',listener);frame.remove();form.remove();err?reject(err):resolve(data)}
   frame.name='frame_'+requestId;frame.style.cssText='position:absolute;width:0;height:0;visibility:hidden;border:0';document.body.appendChild(frame);

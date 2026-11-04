@@ -1,35 +1,51 @@
-/* Diagnóstico de calidad de fichas: análisis local, sin sobrescribir el inventario. */
+/* Panel de auditoría local: no modifica precios, fotos ni inventario. */
 (function(){'use strict';
-const $=id=>document.getElementById(id),A=()=>window.GC_ADMIN;
-function problems(p){
- const issues=[],photos=A()?.parseGallery?.(p.gallery)||[];
- if(!p.image&&!photos.length)issues.push('Sin fotografías');
- if(!String(p.description||'').trim())issues.push('Sin descripción');
- if(!(Number(p.price)>0))issues.push('Precio pendiente');
- if(p.active&&Number(p.stock)===0)issues.push('Agotado');
- if(p.promoPrice>0&&p.promoPrice>=p.price)issues.push('Promoción sin rebaja');
- if(p.costKnown&&p.cost>0&&p.price>0&&p.price<p.cost)issues.push('Precio menor que costo');
- return issues;
+const $=id=>document.getElementById(id),A=()=>window.GC_ADMIN,M=()=>window.GC_QUALITY_MODEL;
+let current=[],limit=12;
+const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function cards(r){
+ const labels=r.issues.map(i=>'<span class="gc-quality-tag '+i.level+'">'+escapeHtml(i.label)+'</span>').join('');
+ return '<li class="gc-quality-item"><div class="gc-quality-entry"><strong>'+escapeHtml(r.name)+'</strong><small>'+
+  escapeHtml([r.category,r.code||'Sin código'].filter(Boolean).join(' · '))+' · '+r.images+' foto'+(r.images===1?'':'s')+
+  '</small><div class="gc-quality-tags">'+labels+'</div></div><button type="button" class="btn outline small" data-quality-edit="'+escapeHtml(r.id)+'">Corregir</button></li>';
 }
-function render(){
- if(!$('gcQualityPanel')||!A())return;
- const products=A().products().filter(p=>!p.deletedAt),active=products.filter(p=>p.active),flagged=active.map(p=>({p,issues:problems(p)})).filter(x=>x.issues.length);
- const missing=active.filter(p=>!p.image&&!A().parseGallery(p.gallery).length).length;
- const descriptions=active.filter(p=>!String(p.description||'').trim()).length;
- const prices=active.filter(p=>!(Number(p.price)>0)||(p.costKnown&&p.cost>0&&p.price<p.cost)||(p.promoPrice>0&&p.promoPrice>=p.price)).length;
- $('gcQualityStats').innerHTML='<article><b>'+Math.max(0,active.length-flagged.length)+'</b><span>Fichas sin alertas</span></article><article><b>'+missing+'</b><span>Sin foto</span></article><article><b>'+descriptions+'</b><span>Sin descripción</span></article><article><b>'+prices+'</b><span>Revisar precio</span></article>';
- $('gcQualityList').innerHTML=flagged.slice(0,12).map(({p,issues})=>'<li><div><strong>'+escapeHtml(p.name)+'</strong><small>'+escapeHtml(issues.join(' · '))+'</small></div><button type="button" class="btn outline small" data-quality-edit="'+escapeHtml(p.id)+'">Corregir</button></li>').join('')||'<li class="gc-quality-empty">Las fichas activas están completas según las comprobaciones básicas.</li>';
- $('gcQualityMore').textContent=flagged.length>12?'Mostrando 12 de '+flagged.length+' fichas por revisar. Buscá el resto desde Inventario.':'Revisión automática: '+flagged.length+' fichas con avisos.';
+function refresh(){
+ if(!$('gcQualityPanel')||!A()||!M())return;
+ current=M().analyze(A().products());
+ const stat=M().summary(current),pairs=[['Requieren revisión',current.filter(r=>r.issues.length).length],['Sin foto',stat.missingPhotos],['Textos por mejorar',stat.descriptions],['Precios por revisar',stat.prices]];
+ $('gcQualityStats').innerHTML=pairs.map(([label,n])=>'<article><b>'+n+'</b><span>'+label+'</span></article>').join('');
+ updateList();
 }
-function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function updateList(){
+ const filter=$('gcQualityFilter')?.value||'all',query=$('gcQualitySearch')?.value||'';
+ const items=M().filter(current,{key:filter,query});
+ $('gcQualityList').innerHTML=items.slice(0,limit).map(cards).join('')||'<li class="gc-quality-empty">No hay artículos con este filtro.</li>';
+ $('gcQualityMore').textContent='Mostrando '+Math.min(limit,items.length)+' de '+items.length+' fichas. Los indicadores son avisos para revisión manual.';
+ $('gcQualityShowMore').hidden=items.length<=limit;
+ $('gcQualityExport').disabled=!items.length;
+}
+function download(){
+ const rows=M().filter(current,{key:$('gcQualityFilter').value,query:$('gcQualitySearch').value});
+ if(!rows.length)return;
+ const data=M().csv(rows),blob=new Blob([data],{type:'text/csv;charset=utf-8'}),href=URL.createObjectURL(blob);
+ const link=document.createElement('a');link.href=href;link.download='Gamer-Comayagua-revision-de-productos.csv';
+ document.body.appendChild(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(href),30000);
+ $('gcQualityMore').textContent='Informe CSV preparado. No incluye costos, información de clientes ni datos de acceso.';
+}
 function init(){
- const inventory=$('mgViewInventory'),list=$('adminRows');if(!inventory||!list||!A())return;
- const box=document.createElement('section');box.id='gcQualityPanel';box.className='gc-quality-panel';box.setAttribute('aria-label','Control de calidad del inventario');
- box.innerHTML='<div class="gc-quality-header"><div><span>CALIDAD DEL CATÁLOGO</span><h2>Productos por mejorar</h2><p>Comprobación automática de fotografías, descripción, existencias y precios. No cambia tus productos.</p></div><button class="btn outline small" type="button" id="gcQualityRefresh">↻ Revisar</button></div><div class="gc-quality-stats" id="gcQualityStats"></div><ul class="gc-quality-list" id="gcQualityList"></ul><p id="gcQualityMore" class="gc-quality-more"></p>';
+ const inventory=$('mgViewInventory'),list=$('adminRows');if(!inventory||!list||!A()||!M())return;
+ const box=document.createElement('section');box.id='gcQualityPanel';box.className='gc-quality-panel';
+ box.setAttribute('aria-label','Control de calidad del inventario');
+ box.innerHTML='<div class="gc-quality-header"><div><span>ETAPA 1 · CALIDAD DEL CATÁLOGO</span><h2>Fichas que necesitan atención</h2><p>Detecta fotos faltantes, descripciones genéricas, problemas de precio y existencias. No modifica ningún producto.</p></div><button class="btn outline small" type="button" id="gcQualityRefresh">↻ Revisar</button></div><div class="gc-quality-stats" id="gcQualityStats"></div><div class="gc-quality-controls"><label for="gcQualityFilter">Revisar</label><select id="gcQualityFilter" class="field"><option value="all">Todas las pendientes</option><option value="high">Urgentes</option><option value="photo">Fotografías</option><option value="description">Descripción y características</option><option value="price">Precios y promociones</option><option value="stock">Existencias</option><option value="ok">Sin alertas</option></select><label for="gcQualitySearch">Buscar</label><input type="search" class="field" id="gcQualitySearch" placeholder="Nombre o código del artículo"><button class="btn outline" id="gcQualityExport" type="button">↓ Exportar revisión CSV</button></div><ul class="gc-quality-list" id="gcQualityList"></ul><p id="gcQualityMore" class="gc-quality-more" role="status" aria-live="polite"></p><button id="gcQualityShowMore" class="btn outline small" type="button" hidden>Ver más pendientes</button>';
  const first=inventory.querySelector('.box');if(first)first.insertAdjacentElement('afterend',box);else inventory.prepend(box);
- $('gcQualityRefresh').onclick=render;
- $('gcQualityList').addEventListener('click',e=>{const b=e.target.closest('[data-quality-edit]');if(b)A().editProduct(b.dataset.qualityEdit);});
- document.addEventListener('gc:catalog',render);render();
+ $('gcQualityRefresh').onclick=refresh;
+ $('gcQualityFilter').onchange=()=>{limit=12;updateList();};
+ $('gcQualitySearch').oninput=()=>{limit=12;updateList();};
+ $('gcQualityExport').onclick=download;
+ $('gcQualityShowMore').onclick=()=>{limit+=24;updateList();};
+ $('gcQualityList').addEventListener('click',event=>{const button=event.target.closest('[data-quality-edit]');if(button)A().editProduct(button.dataset.qualityEdit);});
+ document.addEventListener('gc:catalog',refresh);refresh();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

@@ -55,3 +55,21 @@
  #adminPanel #adminRows .admin-row-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
  #adminPanel #adminRows .admin-row-actions .btn{font-size:12px;min-height:44px}
 }
+
+/* Auditoría de fichas: responsive y cómoda en pantallas táctiles. */
+.gc-quality-controls{display:grid;grid-template-columns:auto minmax(175px,1fr) auto minmax(185px,1fr) auto;gap:10px;align-items:center;margin:16px 0 14px}
+.gc-quality-controls label{font-size:12px;font-weight:750;color:#375874}
+.gc-quality-controls .field{min-width:0;min-height:42px}
+.gc-quality-controls .btn{min-height:42px;white-space:normal}
+.gc-quality-item{display:flex;align-items:center;gap:14px}
+.gc-quality-entry{display:grid;gap:5px;min-width:0;flex:1}
+.gc-quality-tags{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:3px}
+.gc-quality-tag{display:inline-flex;align-items:center;background:#eef3fa;color:#2c4f6f;border-radius:7px;font-size:11px;padding:3px 7px;line-height:1.3}
+.gc-quality-tag.high{background:#fff0ec;color:#a43e2b}
+.gc-quality-tag.medium{background:#fff7e6;color:#895c14}
+.gc-quality-tag.low{background:#edf3fa;color:#4e6278}
+.gc-quality-empty{font-size:13px;color:#52687c}
+#gcQualityShowMore[hidden]{display:none!important}
+#gcQualityShowMore:not([hidden]){margin-top:10px;min-height:42px}
+@media(max-width:1000px){.gc-quality-controls{grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr)}.gc-quality-controls #gcQualityExport{grid-column:1/-1}}
+@media(max-width:650px){.gc-quality-controls{grid-template-columns:1fr;gap:7px}.gc-quality-controls label{margin-top:5px}.gc-quality-controls #gcQualityExport{grid-column:1}.gc-quality-item{align-items:stretch;flex-direction:column}.gc-quality-item .btn{width:100%;min-height:44px}}
