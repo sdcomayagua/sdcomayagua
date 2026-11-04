@@ -1,0 +1,158 @@
+/* Gamer Comayagua: tarjetas móviles tipo tienda y navegación coherente.
+   Se carga al final para no sobrescribir el diseño de escritorio existente. */
+@media (min-width:761px) and (max-width:1050px){
+ body[data-page] .header .nav{gap:4px}
+ body[data-page] .header .nav a{padding:9px 7px;font-size:11px;white-space:nowrap}
+ body[data-page] .header .nav .cart-trigger{padding:9px 10px}
+}
+@media (max-width:760px){
+ body[data-page="productos"]{background:#f5f7fa!important}
+ body[data-page="productos"] .catalog-page #productGrid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px 10px!important;
+  align-items:stretch!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product{
+  overflow:hidden!important;
+  border:1px solid #e1e6ed!important;
+  border-radius:18px!important;
+  background:#fff!important;
+  box-shadow:0 4px 14px rgba(20,41,68,.065)!important;
+  opacity:1!important;
+  transition:transform .15s ease,box-shadow .15s ease!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .photo,
+ body[data-page="productos"] .catalog-page #productGrid .product .photo.missing-photo{
+  position:relative!important;
+  height:auto!important;min-height:0!important;
+  aspect-ratio:1/1.04!important;
+  background:#f8f9fb!important;
+  border-bottom:1px solid #eef0f4!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .photo-open{
+  padding:12px 10px!important;
+  background:transparent!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .photo-open img{
+  width:100%!important;height:100%!important;
+  object-fit:contain!important;
+  filter:none;
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product.out .photo-open img{
+  filter:grayscale(1)!important;opacity:.55!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .tag{
+  top:9px!important;left:9px!important;
+  border-radius:999px!important;
+  padding:4px 8px!important;font-size:9px!important;
+  background:#fff!important;color:#277348!important;
+  border:1px solid #d5e7da!important;z-index:2
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product.out .tag{
+  color:#7a8390!important;border-color:#e0e2e7!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .compare-toggle{
+  top:9px!important;right:9px!important;
+  width:36px!important;height:36px!important;
+  border-radius:50%!important;
+  background:#fff!important;border:1px solid #e1e8f0!important;
+  box-shadow:0 2px 8px #132c4417!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .gc-sale-flag{
+  position:absolute;z-index:2;bottom:10px;left:10px;
+  padding:5px 8px;border-radius:8px;
+  background:#ffe9e8;color:#b91e2b;
+  font-size:11px;font-weight:850;letter-spacing:.1px;
+  box-shadow:0 1px 6px #a31b220b;
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .product-body{
+  flex:1!important;display:flex!important;flex-direction:column!important;
+  gap:7px!important;padding:12px 11px 11px!important;
+  background:#fff!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .category{
+  text-transform:uppercase!important;font-size:9px!important;
+  letter-spacing:.5px!important;font-weight:750!important;color:#718099!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product h3{
+  min-height:49px!important;margin:0!important;line-height:1.4!important;
+  font-size:13px!important;
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .product-name{
+  font-size:13px!important;line-height:1.4!important;font-weight:730!important;
+  color:#192c42!important;text-align:left!important;
+  display:-webkit-box!important;-webkit-box-orient:vertical!important;
+  -webkit-line-clamp:3!important;overflow:hidden!important;
+  white-space:normal!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .product-price{
+  margin:0!important;min-height:38px!important;gap:3px!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .price-current{
+  font-size:23px!important;font-weight:850!important;
+  letter-spacing:-.6px!important;color:#122d49!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .price-previous{
+  color:#8090a2!important;font-size:10px!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .stock{
+  min-height:16px!important;font-size:10px!important;color:#64758a!important;
+  margin:0!important;line-height:1.3!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .product-actions{
+  margin-top:auto!important;padding-top:5px!important;
+  border:0!important;grid-template-columns:1fr!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .product-actions .btn{
+  width:100%!important;display:flex!important;align-items:center!important;
+  justify-content:center!important;gap:8px!important;
+  min-height:46px!important;
+  padding:9px 8px!important;
+  border:1px solid #f23043!important;border-radius:12px!important;
+  background:#ee3042!important;color:#fff!important;
+  font-size:12px!important;font-weight:800!important;
+  box-shadow:0 3px 9px rgba(230,33,61,.17)!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .product-actions .btn:disabled{
+  border-color:#dde2e8!important;background:#e9edf1!important;
+  color:#82909e!important;box-shadow:none!important
+ }
+ body[data-page="productos"] .catalog-page #productGrid .product .product-actions .btn svg{
+  width:19px!important;height:19px!important
+ }
+ body[data-page="productos"] .mobile-nav{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:3px!important;min-height:68px;
+  background:#fffffff7!important;
+  border-top:1px solid #dfe5ec!important;
+  backdrop-filter:blur(16px);
+ }
+ body[data-page="productos"] .mobile-nav a,
+ body[data-page="productos"] .mobile-nav button{
+  min-height:51px!important;gap:3px!important;font-size:10px!important;
+  color:#62748b!important
+ }
+ body[data-page="productos"] .mobile-nav a[aria-current="page"]{
+  background:#edf3fc!important;color:#173f70!important;
+  box-shadow:inset 0 2px #1e62a9!important
+ }
+ #detailOverlay .detail-purchase-bar .btn,
+ #cartOverlay #sendQuote{min-height:48px!important}
+}
+@media(max-width:375px){
+ body[data-page="productos"] .catalog-page #productGrid{gap:9px 8px!important}
+ body[data-page="productos"] .catalog-page #productGrid .product .product-body{padding:10px 8px!important}
+ body[data-page="productos"] .catalog-page #productGrid .product .product-name{font-size:12px!important}
+ body[data-page="productos"] .catalog-page #productGrid .product .price-current{font-size:20px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-page="productos"] .catalog-page #productGrid .product{transition:none!important}
+}
+/* La cuenta es el dato final y más fácil de localizar al compartir pagos. */
+body[data-page="cuentas"] .bank-copy-row.bank-account-primary{
+ background:#f0f6fd;border:1px solid #d7e5f3;border-radius:11px;
+ padding:11px 12px
+}
+body[data-page="cuentas"] .bank-copy-row.bank-account-primary strong{
+ color:#133e68;font-size:clamp(15px,2.4vw,19px);letter-spacing:.2px
+}
