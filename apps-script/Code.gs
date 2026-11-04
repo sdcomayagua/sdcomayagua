@@ -99,7 +99,7 @@ function gcHandleRequest_(req){
     } else if (req.action === 'catalogPhotos') {
       result=gcCatalogPhotos_(req);
     } else {
-      gcSessionAuthorize_(req.token);
+      gcSessionAuthorize_(req.token,req.action);
       if (req.action === 'verify') {
         const p=PropertiesService.getScriptProperties();
         const provider=String(p.getProperty('PRODUCT_RESEARCH_PROVIDER')||'GRATIS').trim().toUpperCase();
@@ -214,9 +214,13 @@ function gcSessionOpen_(){
  CacheService.getScriptCache().put(gcSessionKey_(token),gcSessionPinStamp_(),600);
  return token;
 }
-function gcSessionAuthorize_(candidate){
+function gcSessionAuthorize_(candidate,action){
  const token=String(candidate==null?'':candidate).trim();
- if(!gcSessionValid_(token)){assertAdmin_(token);return false;}
+ if(!gcSessionValid_(token)){
+  const restricted=String(PropertiesService.getScriptProperties().getProperty('GC_REQUIRE_SESSION')||'').toUpperCase()==='SI';
+  if(restricted&&action!=='verify')throw Error('La sesión debe iniciarse nuevamente con el PIN.');
+  assertAdmin_(token);return false;
+ }
  const cache=CacheService.getScriptCache(),key=gcSessionKey_(token);
  const stamp=cache.get(key);
  if(!stamp||stamp!==gcSessionPinStamp_()){
