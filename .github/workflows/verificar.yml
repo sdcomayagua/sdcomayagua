@@ -21,6 +21,7 @@ jobs:
       - name: Verificar catálogo, carrito y búsquedas sin servicios externos
         run: |
           node tests/test-admin-session.js
+          node tests/test-server-sessions.js
           node tests/test-admin-quality.js
           node tests/test-bank-loading.js
           node tests/test-api.js
@@ -64,3 +65,4 @@ jobs:
           node tests/test-ui.js
           node tests/test-home-ui.js
           node tests/test-session-payments-ui.js
+          node tests/test-session-token-ui.js
