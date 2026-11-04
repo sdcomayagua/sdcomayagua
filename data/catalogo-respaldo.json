@@ -140,7 +140,7 @@
     "code": "Articulos-Gamer-001",
     "name": "Gatillos Gamer Pro / Triggers Pro para celular",
     "category": "Artículos Gamer",
-    "price": 370,
+    "price": 450,
     "stock": 1,
     "image": "https://drive.google.com/thumbnail?id=1YogZQKYjN3trng3IOGH4rbGYw5s-gJbX&sz=w1200",
     "gallery": "https://drive.google.com/thumbnail?id=1ncCv3K97Z-bfVd0UdzaFtGa-G7TYF7B4&sz=w1200, https://drive.google.com/thumbnail?id=1cNKAKXq1gCJ6WjwP9cRukyRI6TCpCCdu&sz=w1200, https://drive.google.com/thumbnail?id=1RlNrz_Pd9LSfXET8PG_m1zGds0zkMNbS&sz=w1200",
@@ -149,7 +149,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 311,
+    "promoPrice": 370,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {}
   },
@@ -617,7 +617,7 @@
     "code": "Coolers-002",
     "name": "Enfriador MEMO CX16 PRO - 2026",
     "category": "Coolers",
-    "price": 900,
+    "price": 850,
     "stock": 8,
     "image": "https://drive.google.com/thumbnail?id=1Oq_FT_Yjtgm6Tmpj_UeP65_bFVtn2lNF&sz=w1200",
     "gallery": "https://drive.google.com/thumbnail?id=1e0nr_xmQ17uow5THu5cfetzDb-X77e3S&sz=w1200, https://drive.google.com/thumbnail?id=1ta_ZWm3Fy6q4m-PyCLUvABQHnfZaVWY8&sz=w1200, https://drive.google.com/thumbnail?id=1jyBli5rXdpnViqng1eKRCZGRxQ3xNi0H&sz=w1200, https://drive.google.com/thumbnail?id=1V5ROCiIIxLsp5hdUtNHxdlIRaPXI8RSd&sz=w1200, https://drive.google.com/thumbnail?id=14vix-LxIxbbjP8_KJ0DYVzEUC7vO4IJd&sz=w1200, https://drive.google.com/thumbnail?id=1N8hO-UvFYm8uJYgzREzRYrRHQUrqIiGz&sz=w1200, https://drive.google.com/thumbnail?id=1FuzBtWvyWefsF3GSgTwTa_w_vv7z9KTT&sz=w1200, https://drive.google.com/thumbnail?id=1qIvb_pyQ_EgizGtJBYlTImZuY2ChDGqQ&sz=w1200, https://drive.google.com/thumbnail?id=199fE_6B8CwAdPPErWfchBwGHc8hS_a4v&sz=w1200",
@@ -1520,6 +1520,37 @@
         {
           "url": "https://www.yourstoreq8.com/pc-and-computer-accessories-ar/gaming-keyboard-and-mouse/mouse/aoas-k90-rgb-gaming-mouse?sl=en",
           "title": "AOAS K90 RGB Gaming Mouse"
+        }
+      ]
+    }
+  },
+  {
+    "bestSeller": false,
+    "createdAt": "2026-11-04T03:07:44.838Z",
+    "catalogOrder": 80,
+    "id": "b7732837-4de4-4d2c-95b3-1a3189fdcf75",
+    "code": "Accesorios-para-Celulares-001",
+    "name": "Gatillos F6 Sarafox",
+    "category": "Accesorios para Celulares",
+    "price": 700,
+    "stock": 1,
+    "image": "https://drive.google.com/thumbnail?id=17IfnampwCvgA9-yiAc_9s9oRgGR6dp7B&sz=w1200",
+    "gallery": "",
+    "description": "Los gatillos SARAFOX F6 es compatible con dispositivos Android e iOS El producto está diseñado para mejorar su experiencia de juego proporcionando un mejor",
+    "discounts": "",
+    "codAllowed": true,
+    "active": true,
+    "colors": "",
+    "promoPrice": 600,
+    "promoText": "",
+    "details": {
+      "compatibility": "Android e iOS",
+      "model": "F6",
+      "brand": "Sarafox",
+      "references": [
+        {
+          "url": "https://www.mercadolibre.com.co/gatillos-para-celular-f6-sarafox-original-incluye-fundas/up/MCOU2411962652",
+          "title": "Gatillos Para Celular F6 Sarafox Original Incluye Fundas"
         }
       ]
     }
