@@ -50,6 +50,32 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Portada móvil sin desborde horizontal');
   }
   await page.goto(base+'/productos.html');
+
+  await page.waitForFunction(()=>document.querySelectorAll('#productGrid .product').length>2);
+  assert.equal(await page.locator('header .nav a[href="index.html"]').count(),1,'Inicio se conserva en el menú de escritorio');
+  assert.equal(await page.locator('.mobile-nav a[href="index.html"]').count(),1,'Inicio se conserva en el menú móvil');
+  for(const width of [320,390,760]){
+   await page.setViewportSize({width,height:844});
+   const layout=await page.evaluate(()=>{
+    const card=document.querySelector('#productGrid .product');
+    const button=card.querySelector('[data-add]');
+    const grid=document.querySelector('#productGrid');
+    return {overflow:document.documentElement.scrollWidth>innerWidth,
+     columns:getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length,
+     radius:parseFloat(getComputedStyle(card).borderTopLeftRadius),
+     buttonHeight:button.getBoundingClientRect().height,
+     homeVisible:[...document.querySelectorAll('.mobile-nav a')].some(a=>a.getAttribute('href')==='index.html'&&a.getBoundingClientRect().width>0)};
+   });
+   assert.equal(layout.overflow,false,'Catálogo sin desplazamiento horizontal a '+width+'px');
+   assert.equal(layout.columns,2,'Dos tarjetas por fila en móvil a '+width+'px');
+   assert.ok(layout.radius>=16,'Tarjetas modernas redondeadas a '+width+'px');
+   assert.ok(layout.buttonHeight>=44,'Botón Agregar cómodo para tocar a '+width+'px');
+   assert.equal(layout.homeVisible,true,'Inicio aparece en barra móvil a '+width+'px');
+  }
+  await page.setViewportSize({width:920,height:900});
+  assert.equal(await page.locator('header .nav a[href="index.html"]').isVisible(),true,'Inicio visible en PC angosta');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Sin desborde en PC angosta');
+  await page.setViewportSize({width:390,height:840});
   await page.waitForFunction(()=>document.querySelectorAll('[data-compare]').length>2);
   await page.locator('[data-compare]').nth(0).click();
   await page.locator('[data-compare]').nth(1).click();
