@@ -27,9 +27,14 @@ self.addEventListener('fetch',event=>{
  }
  if(!safeStatic(url.pathname))return;
  event.respondWith((async()=>{
-  const cache=await caches.open(CACHE),cached=await cache.match(request);
-  const refresh=fetch(request).then(response=>{if(response.ok)cache.put(request,response.clone()).catch(()=>{});return response;});
-  if(cached){event.waitUntil(refresh.catch(()=>{}));return cached;}
-  return refresh.catch(()=>Response.error());
+  // En línea siempre se sirve el código más reciente; evita JavaScript antiguo con HTML nuevo.
+  const cache=await caches.open(CACHE);
+  try{
+   const response=await fetch(request);
+   if(response.ok)cache.put(request,response.clone()).catch(()=>{});
+   return response;
+  }catch(error){
+   return await cache.match(request)||Response.error();
+  }
  })());
 });
