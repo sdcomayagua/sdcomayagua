@@ -7,16 +7,16 @@ overlay.innerHTML='<section class="dialog gc-quick-dialog" role="dialog" aria-mo
  '<div class="dialog-head"><div><span class="eyebrow">Edición rápida · inventario</span><h2 id="gcQuickTitle">Actualizar producto</h2></div><button class="icon" type="button" id="gcQuickClose" aria-label="Cerrar">×</button></div>'+
  '<p class="gc-quick-product" id="gcQuickName"></p>'+
  '<form id="gcQuickForm" novalidate><div class="gc-quick-grid">'+
- '<label>Precio normal (L)<input class="field" name="price" type="number" step="0.01" min="0.01" required></label>'+
- '<label>Precio de promoción (L)<input class="field" name="promoPrice" type="number" step="0.01" min="0" placeholder="Sin promoción"></label>'+
- '<label>Existencias<input class="field" name="stock" type="number" step="1" min="0" required></label></div>'+
+ '<label>Precio normal (L)<input class="field" name="quickPrice" type="number" step="0.01" min="0.01" required></label>'+
+ '<label>Precio de promoción (L)<input class="field" name="quickPromoPrice" type="number" step="0.01" min="0" placeholder="Sin promoción"></label>'+
+ '<label>Existencias<input class="field" name="quickStock" type="number" step="1" min="0" required></label></div>'+
  '<p class="gc-quick-help">Se conservan fotos, descripciones, características y costos. Antes de guardar se comprueba la revisión del inventario para evitar sobrescribir cambios de otra sesión.</p>'+
  '<p class="gc-quick-note" id="gcQuickMessage" role="status" aria-live="polite"></p>'+
  '<div class="gc-quick-actions"><button class="btn outline" type="button" id="gcQuickCancel">Cancelar</button><button class="btn green" type="submit" id="gcQuickSave" disabled>Guardar cambios</button></div></form></section>';
 document.body.appendChild(overlay);
 let editing=null,trigger=null,saving=false;
 const form=$('gcQuickForm'),controls=[...form.querySelectorAll('input')],button=$('gcQuickSave');
-function values(){return {price:form.elements.namedItem('price').value,stock:form.elements.namedItem('stock').value,promoPrice:form.elements.namedItem('promoPrice').value};}
+function values(){return {price:form.elements.namedItem('quickPrice').value,stock:form.elements.namedItem('quickStock').value,promoPrice:form.elements.namedItem('quickPromoPrice').value};}
 function sync(){
  if(!editing||saving)return;
  try{const next=M.validate(editing,values());button.disabled=!M.changed(editing,next);$('gcQuickMessage').textContent='';}
@@ -31,12 +31,12 @@ function open(id,source){
  if(!p){A.toast('Sincronizá el inventario antes de editar este producto.');return;}
  editing=p;trigger=source;
  $('gcQuickName').textContent=[p.name,p.code].filter(Boolean).join(' · ');
- form.elements.namedItem('price').value=p.price;
- form.elements.namedItem('stock').value=p.stock;
- form.elements.namedItem('promoPrice').value=p.promoPrice>0?p.promoPrice:'';
+ form.elements.namedItem('quickPrice').value=p.price;
+ form.elements.namedItem('quickStock').value=p.stock;
+ form.elements.namedItem('quickPromoPrice').value=p.promoPrice>0?p.promoPrice:'';
  $('gcQuickMessage').textContent='';
  overlay.hidden=false;document.body.style.overflow='hidden';
- sync();form.elements.namedItem('price').focus({preventScroll:true});
+ sync();form.elements.namedItem('quickPrice').focus({preventScroll:true});
 }
 async function submit(event){
  event.preventDefault();if(saving||!editing)return;
