@@ -59,7 +59,7 @@
   return {mode,label:known?labels[mode]:labels.national,amount:shipping,valid,error:valid?'':known?'Ingresá un costo de envío entre L 0 y L 1,000,000, sin centavos.':'Elegí una opción de entrega válida.',note:mode==='free'?String(choice.note||'').trim().slice(0,120):''};
  }
  function quote(items,mode,config={},delivery={}){
-  const option=deliveryOption(config,delivery),shipping=option.amount,min=num(config.codMinimum??350),codRate=num(config.codRate??.1),tigoRate=num(config.tigoRate??.07);
+  const option=deliveryOption(config,delivery),shipping=option.amount,min=num(config.codMinimum??350),codRate=num(config.codRate??.1),tigoRate=num(config.tigoRate??.10);
   const valid=items.filter(i=>i.product&&i.qty>0&&i.product.active&&i.product.stock>0);
   const subtotal=valid.reduce((v,i)=>v+unitPrice(i.product,i.qty)*i.qty,0);
   const qty=valid.reduce((v,i)=>v+i.qty,0),violations=[];
@@ -81,7 +81,7 @@
   lines.push('',`Productos: ${money(q.subtotal)}`,`Entrega: ${q.delivery?.label||'Envío nacional'}`,`Envío: ${money(q.shipping)}`);
   if(q.delivery?.note)lines.push(`Motivo del envío gratis: ${q.delivery.note}`);
   lines.push(`Forma de pago: ${names[q.mode]||q.mode}`);
-  if(q.mode==='cod'||q.mode==='tigo')lines.push(`${q.mode==='tigo'?'Comisión de Tigo Money':'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)'}: ${money(q.fee)}`);
+  if(q.mode==='cod'||q.mode==='tigo')lines.push(`${q.mode==='tigo'?'Comisión de Tigo Money ('+Math.round(q.rate*100)+'%)':'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)'}: ${money(q.fee)}`);
   lines.push(`*TOTAL: ${money(q.total)}*`);
   if(q.mode==='cod')lines.push(`*ANTICIPO A DEPOSITAR (${q.shipping?'envío + comisión':'comisión'}): ${money(q.deposit)}*`,`*SALDO EN EFECTIVO ${q.delivery?.mode==='pickup'?'AL RETIRAR':'AL RECIBIR'}: ${money(q.balance)}*`);
   const shippingFields=[['name','Nombre'],['phone','Celular'],['department','Departamento'],['city','Municipio / ciudad'],['address','Dirección y referencia']];
