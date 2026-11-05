@@ -49,6 +49,7 @@ jobs:
           node tests/test-product-search.js
           python3 tests/test-sync.py
           python3 tests/test-catalog-photos.py
+          python3 scripts/verify_public_backup.py
 
       - name: Preparar navegador para verificar el panel
         run: |
@@ -66,3 +67,15 @@ jobs:
           node tests/test-home-ui.js
           node tests/test-session-payments-ui.js
           node tests/test-session-token-ui.js
+      - name: Capturar pantallas y verificar contraste visual
+        env:
+          GC_VISUAL_ARTIFACTS: artifacts/visual
+        run: node tests/test-visual-guardrails.js
+      - name: Adjuntar capturas de PC y celular
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas-visual-${{ github.run_id }}
+          path: artifacts/visual/
+          if-no-files-found: ignore
+          retention-days: 14
