@@ -12,6 +12,19 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  await page.addInitScript(()=>{window.GC_GOOGLE_PANEL={request:req=>window.__backend(req)};Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.__copied=text;}}});});
  await page.clock.install();
  await page.goto(base+'/admin.html');await page.locator('#secret').fill('123456');await page.locator('#loginBtn').click();await page.locator('#adminRows [data-edit]').first().waitFor();
+ // La edición rápida debe mantener características y costos privados.
+ await page.locator('#adminRows [data-quick-edit]').first().click();
+ await page.locator('#gcQuickOverlay:not([hidden])').waitFor();
+ assert.equal(await page.locator('#gcQuickSave').isDisabled(),true);
+ await page.locator('#gcQuickForm [name=price]').fill('235');
+ await page.locator('#gcQuickForm [name=stock]').fill('6');
+ await page.locator('#gcQuickSave').click();
+ await page.locator('#gcQuickOverlay[hidden]').waitFor();
+ assert.equal(Number(env.get('A','Precio')),235,'Precio confirmado por Google de prueba');
+ assert.equal(Number(env.get('A','Stock')),6,'Existencias confirmadas');
+ assert.equal(env.get('A','Costo'),73,'Costo privado intacto');
+ assert.equal(env.get('A','Descripcion'),'Ficha real','Texto original intacto');
+ assert.equal(await page.locator('#gcLocalStats article').count(),4,'Panel local de estadísticas');
  await page.locator('#adminSearch').fill('Cable');await page.locator('#adminSort').selectOption('name');await page.locator('#adminSection').selectOption('stock');
  const healthCount=requests.filter(action=>action==='health').length;
  await page.goto(base+'/productos.html');await page.clock.fastForward(10000);await page.goto(base+'/admin.html');
