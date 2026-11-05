@@ -1,0 +1,80 @@
+/* Gamer Comayagua — refinamiento visual responsive, noviembre 2026.
+   Capa no invasiva: no altera carrito, precios, inventario ni checkout. */
+:root{--gc-polish-shadow:0 12px 32px rgba(20,42,73,.09);--gc-polish-ring:#2476c7}
+html{scroll-padding-top:88px}
+body.gc-home,body[data-page="productos"]{-webkit-font-smoothing:antialiased}
+.gc-home :is(a,button):focus-visible,body[data-page="productos"] :is(a,button,input,select):focus-visible{outline:3px solid var(--gc-polish-ring)!important;outline-offset:3px}
+.gc-home .home-header{box-shadow:0 4px 24px rgba(18,42,68,.045)}
+.gc-home .home-hero{background:radial-gradient(ellipse at 85% 14%,rgba(46,119,181,.33),transparent 43%),linear-gradient(125deg,#0d2038 0%,#153c61 100%)}
+.gc-home .home-copy h1{max-width:15ch;text-wrap:balance}
+.gc-home .home-visual{transform:none;box-shadow:0 28px 65px rgba(3,13,31,.25)}
+.gc-home .home-category,.gc-home .home-product{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.gc-home .home-category:hover,.gc-home .home-product:hover{transform:translateY(-4px);box-shadow:var(--gc-polish-shadow)}
+.gc-home .home-product-media{aspect-ratio:1.3;background:linear-gradient(180deg,#fff,#f7fafc)}
+.gc-home .home-product-media img{transition:transform .25s ease}
+.gc-home .home-product:hover .home-product-media img{transform:scale(1.035)}
+.gc-home .home-btn,.gc-home .home-header-cta{min-height:46px}
+body[data-page="productos"] .catalog-page{min-width:0}
+body[data-page="productos"] .catalog-page .wrap{max-width:1500px}
+body[data-page="productos"] .catalog-page .filters{min-width:0}
+body[data-page="productos"] .catalog-page .filters > *{min-width:0;max-width:100%}
+body[data-page="productos"] #productGrid{align-items:stretch}
+body[data-page="productos"] #productGrid .product{min-width:0;transition:transform .2s ease,box-shadow .2s ease}
+body[data-page="productos"] #productGrid .product:hover{transform:translateY(-3px);box-shadow:var(--gc-polish-shadow)}
+body[data-page="productos"] #productGrid .product .product-name{overflow-wrap:anywhere}
+body[data-page="productos"] #productGrid .product img{max-width:100%}
+@media(min-width:1200px){
+ .gc-home .home-wrap{max-width:1480px}
+ .gc-home .home-hero-grid{gap:clamp(35px,5vw,90px);padding-block:76px}
+ .gc-home .home-copy h1{font-size:clamp(48px,4.4vw,68px)}
+ .gc-home .home-section{padding-block:75px}
+ .gc-home .home-product-copy{padding:20px}
+}
+@media(min-width:761px) and (max-width:1100px){
+ .gc-home .home-header-inner{gap:12px}
+ .gc-home .home-brand{font-size:14px}
+ .gc-home .home-brand img{width:50px;height:50px}
+ .gc-home .home-desktop-nav a{font-size:12px;padding:10px 8px}
+ .gc-home .home-hero-grid{gap:26px}
+ .gc-home .home-copy h1{font-size:clamp(36px,4.6vw,52px)}
+}
+@media(max-width:760px){
+ html{scroll-padding-top:68px}
+ .gc-home .home-header{position:relative}
+ .gc-home .home-wrap{width:calc(100% - 32px)}
+ .gc-home .home-hero-grid{padding-block:38px 34px;gap:27px}
+ .gc-home .home-copy h1{max-width:17ch;line-height:1.11;font-size:clamp(34px,8.4vw,47px)}
+ .gc-home .home-copy>p{line-height:1.65}
+ .gc-home .home-hero-actions{align-items:stretch}
+ .gc-home .home-hero-actions .home-btn{flex:1 1 170px}
+ .gc-home .home-visual{box-shadow:0 15px 42px rgba(3,13,31,.19)}
+ .gc-home .home-section{padding-block:42px}
+ .gc-home .home-section-heading>a{min-height:40px;display:inline-flex;align-items:center}
+ .gc-home .home-products{gap:12px}
+ .gc-home .home-product-media{aspect-ratio:1.1}
+ .gc-home .home-product-copy{padding:12px}
+ .gc-home .home-product-copy strong{overflow-wrap:anywhere}
+ .gc-home .home-product-link{min-height:45px}
+ .gc-home .home-mobile-nav{padding-bottom:calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(14px);background:rgba(255,255,255,.97)}
+ .gc-home .home-mobile-nav a{min-width:0;min-height:48px}
+ body[data-page="productos"] .catalog-page .filters{gap:10px}
+ body[data-page="productos"] .catalog-page #productGrid .product .product-actions .btn{min-height:46px!important}
+ body[data-page="productos"] .catalog-page #productGrid .product .price-current{font-size:clamp(18px,5vw,23px)!important;overflow-wrap:anywhere}
+}
+@media(max-width:380px){
+ .gc-home .home-wrap{width:calc(100% - 24px)}
+ .gc-home .home-brand{font-size:12px}
+ .gc-home .home-brand img{width:43px;height:43px}
+ .gc-home .home-header-cta{max-width:125px;text-align:center}
+ .gc-home .home-categories{gap:8px}
+ .gc-home .home-category{padding:12px}
+ .gc-home .home-products{gap:8px}
+ .gc-home .home-product-copy{padding:10px}
+ .gc-home .home-hero-actions .home-btn{flex-basis:100%}
+}
+@media(hover:none){
+ .gc-home .home-category:hover,.gc-home .home-product:hover,body[data-page="productos"] #productGrid .product:hover{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .gc-home .home-category,.gc-home .home-product,.gc-home .home-product-media img,body[data-page="productos"] #productGrid .product{transition:none!important}
+}
