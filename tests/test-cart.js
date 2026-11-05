@@ -107,3 +107,13 @@ assert.equal(C.quote(order,'transfer',config,{mode:'national',note:'Texto anteri
 assert.match(C.waMessage(order,C.quote(order,'cod',config,{mode:'pickup'}),'GC-RETIRO'),/SALDO EN EFECTIVO AL RETIRAR/);
 console.log('PASS entrega por cotización: nacional, Comayagua, retiro, gratis, costos inválidos, comisiones, anticipo, restricciones y WhatsApp.');
 
+// Nueva comisión de Pagar al recibir: 15 % declarado de forma transparente.
+const cod15=C.quote(order,'cod',{shipping:110,codMinimum:350,codRate:.15,tigoRate:.07});
+assert.equal(cod15.rate,.15);
+assert.deepEqual([cod15.subtotal,cod15.shipping,cod15.fee,cod15.total,cod15.deposit,cod15.balance],[370,110,72,552,182,370]);
+assert.match(C.waMessage(order,cod15,'GC-15'),/Comisión por pagar al recibir \(15%\): L 72/);
+assert.equal(C.quote(order,'transfer',{shipping:110,codRate:.15}).total,480,'Transferencia sin comisión COD');
+assert.equal(C.quote(order,'tigo',{shipping:110,codRate:.15,tigoRate:.07}).total,C.quote(order,'tigo',{shipping:110,tigoRate:.07}).total,'Tigo Money sin cambios');
+console.log('PASS comisión COD 15% informada al cliente, total, anticipo y otras modalidades intactas.');
+
+
