@@ -1,7 +1,7 @@
 // Regresión: cuentas independientes del respaldo, inventario privado y fallo de JSONP.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 function fixture(){
- const elements=new Map(['bankAccounts','bankStatus','bankRetry','bankFilter','copyAllBanks'].map(id=>[id,{innerHTML:'',textContent:'',value:'',setAttribute(name,value){this[name]=value;}}]));
+ const elements=new Map(['bankAccounts','bankStatus','bankRetry','bankFilter','copyAllBanks'].map(id=>[id,{innerHTML:'',textContent:'',value:'',dataset:{},setAttribute(name,value){this[name]=value;}}]));
  const config={privateInventory:true,publicApiUrl:'https://script.google.com/macros/s/public-test/exec',whatsapp:'50400000000'},pending=[];
  const context={window:{GC:require('../assets/js/core'),GC_CONFIG:config},document:{body:{dataset:{page:'cuentas'}},getElementById:id=>elements.get(id),createElement:()=>({remove(){}}),head:{appendChild:script=>pending.push(script)}},location:{search:''},URLSearchParams,URL,setTimeout,clearTimeout,console,AbortController,fetch:async()=>({ok:true,json:async()=>({ok:true,products:[],banks:[{bank:'Alternativa',owner:'Titular de prueba',account:'0007',visible:true}]})})};
  let source=fs.readFileSync(__dirname+'/../assets/js/site.js','utf8');source=source.replace("try{\n binds();", "window.test={loadBanksFromSheet,publicCatalogRequest,bankText,allBanksText};return;\ntry{\n binds();");vm.runInNewContext(source,context);
