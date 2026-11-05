@@ -126,18 +126,18 @@ body[data-page] #cartOverlay .deposit-row small{line-height:1.45!important;overf
    justify-content:flex-end!important;gap:5px!important;
  }
  body[data-page] #cartOverlay .cart-line .actions button[data-qty]{
-   width:41px!important;min-width:41px!important;height:43px!important;min-height:43px!important;flex-basis:41px!important
+   width:41px!important;min-width:41px!important;height:44px!important;min-height:44px!important;flex-basis:41px!important
  }
  body[data-page] #cartOverlay .cart-line .actions b{min-width:23px!important;flex-basis:23px!important}
  body[data-page] #cartOverlay .cart-line .actions button[data-remove]{
-   min-width:38px!important;min-height:43px!important
+   min-width:38px!important;min-height:44px!important
  }
 }
 @media(max-width:370px){
  body.gc-home .home-mobile-nav a,body[data-page] .mobile-nav a,body[data-page] .mobile-nav button{font-size:9px!important}
  body[data-page] #cartOverlay .cart-line{grid-template-columns:48px minmax(0,1fr)!important;padding:10px!important;column-gap:8px!important}
  body[data-page] #cartOverlay .cart-line>img{width:48px!important;height:48px!important}
- body[data-page] #cartOverlay .cart-line .actions button[data-qty]{width:36px!important;min-width:36px!important;height:42px!important;min-height:42px!important;flex-basis:36px!important}
+ body[data-page] #cartOverlay .cart-line .actions button[data-qty]{width:36px!important;min-width:36px!important;height:44px!important;min-height:44px!important;flex-basis:36px!important}
  body[data-page] #cartOverlay .cart-line .actions button[data-remove]{min-width:36px!important}
 }
 @media(prefers-reduced-motion:reduce){body.gc-home *,body[data-page] *{scroll-behavior:auto!important}}
