@@ -125,3 +125,30 @@ console.log('PASS Tigo Money 10% real informado en WhatsApp y demás modalidades
 
 
 
+
+// Envío incluido por producto: campo heredado compatible con Apps Script,
+// kits mobiladores automáticos, excepción explícita y carritos mixtos.
+const included=C.cleanProduct({id:'KIT-01',name:'Kit movilador gamer',price:370,stock:3,active:true,codAllowed:true,discounts:'6:345'});
+assert.equal(included.freeShipping,true,'Kit movilador incluye envío por defecto');
+const marked=C.cleanProduct({id:'MOUSE-01',name:'Mouse inalámbrico',price:370,stock:3,active:true,codAllowed:true,discounts:'6:345,ENVIOGRATIS'});
+assert.equal(marked.freeShipping,true);
+assert.equal(C.unitPrice(marked,6),345,'La etiqueta no modifica descuentos por unidad');
+const optOut=C.cleanProduct({id:'KIT-02',name:'Kit mobilador especial',price:370,stock:2,active:true,codAllowed:true,discounts:'ENVIOCOSTO'});
+assert.equal(optOut.freeShipping,false,'El administrador puede desactivar el envío automático');
+assert.equal(C.withoutShippingFlag('6:345,ENVIOGRATIS,12:330'),'6:345,12:330');
+const includedQuote=C.quote(cart([marked,1]),'transfer',config);
+assert.equal(includedQuote.shipping,0);
+assert.equal(includedQuote.total,370);
+assert.match(includedQuote.delivery.label,/Envío gratis/);
+const includedCod=C.quote(cart([marked,1]),'cod',{...config,codRate:.15});
+assert.equal(includedCod.shipping,0);
+assert.equal(includedCod.deposit,57);
+assert.equal(includedCod.balance,370);
+assert.equal(includedCod.total,427);
+assert.match(C.waMessage(cart([marked,1]),includedCod,'GC-GRATIS'),/Envío: L 0/);
+const mixedQuote=C.quote(cart([marked,1],[P('Cargador común',100,2),1]),'transfer',config);
+assert.equal(mixedQuote.shipping,110,'En pedidos mixtos se cobra una sola tarifa');
+assert.equal(C.quote(cart([optOut,1]),'transfer',config).shipping,110);
+assert.equal(C.quote(cart([marked,1]),'transfer',config,{mode:'pickup'}).shipping,0);
+assert.equal(C.quote(cart([marked,1]),'transfer',config,{mode:'local',amount:40}).shipping,40,'Costo local explícito no se sobreescribe');
+console.log('PASS envío gratis individual, kits mobiladores, excepción, descuentos y pago al recibir con anticipo.');
