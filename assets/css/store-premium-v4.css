@@ -53,3 +53,8 @@ body[data-page="productos"] .catalog-page .section-top h2{letter-spacing:-.8px}
 @media(prefers-reduced-motion:reduce){
  body[data-page="productos"] #productGrid .product{transition:none!important}
 }
+
+body[data-page="productos"] #productGrid .product .gc-download-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%;min-width:0}
+body[data-page="productos"] #productGrid .product .gc-download-row button{display:flex;align-items:center;justify-content:center;min-width:0;width:100%;min-height:40px;padding:8px 3px;border:1px solid #c7dae9;background:#f4f8fc;color:#215579;font-size:11px;line-height:1.2;font-weight:800;border-radius:10px;cursor:pointer}
+body[data-page="productos"] #productGrid .product .gc-download-row button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:380px){body[data-page="productos"] #productGrid .product .gc-download-row button{font-size:10px}}
