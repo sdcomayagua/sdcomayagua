@@ -16,8 +16,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  await page.locator('#adminRows [data-quick-edit]').first().click();
  await page.locator('#gcQuickOverlay:not([hidden])').waitFor();
  assert.equal(await page.locator('#gcQuickSave').isDisabled(),true);
- await page.locator('#gcQuickForm [name=price]').fill('235');
- await page.locator('#gcQuickForm [name=stock]').fill('6');
+ await page.locator('#gcQuickForm [name=quickPrice]').fill('235');
+ await page.locator('#gcQuickForm [name=quickStock]').fill('6');
  await page.locator('#gcQuickSave').click();
  await page.locator('#gcQuickOverlay[hidden]').waitFor();
  assert.equal(Number(env.get('A','Precio')),235,'Precio confirmado por Google de prueba');
