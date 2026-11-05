@@ -23,6 +23,7 @@ jobs:
           node tests/test-admin-session.js
           node tests/test-server-sessions.js
           node tests/test-admin-quality.js
+          node tests/test-commercial-tools.js
           node tests/test-bank-loading.js
           node tests/test-api.js
           node tests/test-native-panel.js
@@ -49,6 +50,7 @@ jobs:
           node tests/test-product-search.js
           python3 tests/test-sync.py
           python3 tests/test-catalog-photos.py
+          python3 tests/test-product-seo.py
           python3 scripts/verify_public_backup.py
           python3 scripts/report_catalog_quality.py --csv /tmp/revision-productos.csv --json /tmp/calidad-resumen.json
 
