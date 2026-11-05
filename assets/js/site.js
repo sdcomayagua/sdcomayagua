@@ -454,14 +454,42 @@ function refreshOnlineCatalog(force=false){
  return onlineRequest;
 }
 function bankText(account){return [account.bank,account.owner&&'Titular: '+account.owner,account.identity&&'Identidad: '+account.identity,'Cuenta: '+account.account].filter(Boolean).join('\n');}
+function bankSort(a,b){
+ const priority=x=>/tigo\s*money/i.test(String(x.bank||''))?2:/\b(?:cash|kash)\b/i.test(String(x.bank||''))?1:0;
+ return priority(a)-priority(b)||String(a.bank||'').localeCompare(String(b.bank||''),'es',{sensitivity:'base',numeric:true});
+}
+function allBanksText(accounts){
+ const list=accounts.filter(x=>C.yes(x.visible)&&String(x.account||'').trim()).sort(bankSort);
+ if(!list.length)return '';
+ const owners=[...new Set(list.map(x=>String(x.owner||'').trim()).filter(Boolean))];
+ const identities=[...new Set(list.map(x=>String(x.identity||'').trim()).filter(Boolean))];
+ const sharedOwner=owners.length===1?owners[0]:'',sharedIdentity=identities.length===1?identities[0]:'';
+ const lines=['*GAMER COMAYAGUA*','*BANCOS Y MEDIOS DE PAGO DISPONIBLES*',''];
+ if(sharedOwner)lines.push('Titular: '+sharedOwner);
+ if(sharedIdentity)lines.push('DNI / Identidad: '+sharedIdentity);
+ if(sharedOwner||sharedIdentity)lines.push('');
+ lines.push('*Cuentas para depósito o transferencia*');
+ list.forEach(x=>{
+  const label=String(x.bank||'Banco').trim();
+  const isTigo=/tigo\s*money/i.test(label);
+  lines.push('', '*'+label+'*');
+  if(!sharedOwner&&x.owner)lines.push('Titular: '+String(x.owner).trim());
+  if(!sharedIdentity&&x.identity)lines.push('DNI / Identidad: '+String(x.identity).trim());
+  lines.push((isTigo?'Número de teléfono: ':'Número de cuenta: ')+String(x.account).trim());
+ });
+ lines.push('','Confirmá la cuenta y el monto antes de depositar.');
+ return lines.join('\n');
+}
 function renderBanks(){
  const target=$('bankAccounts');if(!target)return;
- const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim()),filter=$('bankFilter');
+ const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim()).sort(bankSort),filter=$('bankFilter');
  if(filter){
   const selected=filter.value,names=[...new Set(published.map(x=>String(x.bank||'Banco')))];
   filter.innerHTML='<option value="">Todos los bancos y billeteras</option>'+names.map(name=>`<option value="${escapeAttr(name)}">${safe(name)}</option>`).join('');filter.value=names.includes(selected)?selected:'';filter.disabled=!published.length;
  }
  const shown=filter?.value?published.filter(x=>String(x.bank||'Banco')===filter.value):published;
+ const allButton=$('copyAllBanks');
+ if(allButton){allButton.hidden=!published.length;allButton.disabled=banksStatus==='loading';allButton.dataset.copy=allBanksText(published);}
  if($('bankStatus'))$('bankStatus').textContent=banksStatus==='loading'?'Consultando datos de pago…':banksStatus==='failed'?'No se pudo actualizar. Tocá Reintentar.':published.length?shown.length+' cuenta'+(shown.length===1?' disponible':'s disponibles'):'No hay cuentas publicadas.';
  if($('bankRetry')){$('bankRetry').disabled=banksStatus==='loading';$('bankRetry').textContent=banksStatus==='failed'?'Reintentar':'Actualizar';}
  target.setAttribute('aria-busy',String(banksStatus==='loading'));
@@ -686,6 +714,7 @@ function binds(){
  $('bankRetry')?.addEventListener('click',()=>loadBanksFromSheet());
  const onBankCopy=async b=>{if(!b)return;const ok=await copyText(b.dataset.copy);toast(ok?b.dataset.label+' copiado al portapapeles':'No se pudo copiar. Mantené presionado el dato para copiarlo.');if(ok){const button=b.matches('button')?b:b.querySelector('button');if(button){button.textContent='✓ Copiado';setTimeout(()=>{if(button.isConnected)button.textContent=button.dataset.copyCaption||'Copiar'},2000)}}};
  $('bankAccounts')?.addEventListener('click',e=>onBankCopy(e.target.closest('[data-copy]')));
+ $('copyAllBanks')?.addEventListener('click',e=>onBankCopy(e.currentTarget));
  $('tigoPaymentDetails')?.addEventListener('click',e=>onBankCopy(e.target.closest('[data-copy]')));
  $('bankAccounts')?.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.bank-copy-row')){e.preventDefault();onBankCopy(e.target)}});
  try{cart=cartStorage?.read()||{}}catch{cart={}};
