@@ -254,7 +254,7 @@ function calc(){
  const summary=$('cartSummary');if(summary)summary.textContent=q.units?String(q.units)+' '+(q.units===1?'producto':'productos')+' · '+C.money(q.subtotal)+' en artículos':'Tu carrito está vacío';
  const n=$('deniedNotice');n.classList.toggle('hidden',!(selection==='cod'&&!q.codAllowed));n.textContent=q.reasons.join(' ');
  const showFee=q.mode==='cod'||q.mode==='tigo',pickup=q.delivery.mode==='pickup';
- $('checkoutTotals').innerHTML=q.delivery.valid?`<div class="totals"><div class="total-row"><span>Productos</span><strong>${C.money(q.subtotal)}</strong></div><div class="total-row"><span>${safe(q.delivery.label)}</span><strong>${C.money(q.shipping)}</strong></div>${showFee?`<div class="total-row"><span>${q.mode==='cod'?'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)':'Comisión de Tigo Money ('+Math.round(q.rate*100)+'%)'}</span><strong>${C.money(q.fee)}</strong></div>`:''}<div class="total-row big"><span>Total</span><strong>${C.money(q.total)}</strong></div>${q.mode==='cod'?`<div class="payment-split"><div class="deposit-row"><span>Anticipo a depositar</span><strong>${C.money(q.deposit)}</strong><small>${q.shipping?'Envío + comisión':'Comisión'}</small></div><div class="cash-row"><span>${pickup?'Al retirar':'Al recibir'}</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:''}</div>`:'<p class="payment-helper">Completá el costo de envío para calcular el total de esta cotización.</p>';
+ $('checkoutTotals').innerHTML=q.delivery.valid?`<div class="totals"><div class="total-row"><span>Productos</span><strong>${C.money(q.subtotal)}</strong></div><div class="total-row"><span>${safe(q.delivery.label)}</span><strong>${C.money(q.shipping)}</strong></div>${showFee?`<div class="total-row"><span>${q.mode==='cod'?'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)':'Comisión de Tigo Money ('+Math.round(q.rate*100)+'%)'}</span><strong>${C.money(q.fee)}</strong></div>`:''}<div class="total-row big"><span>Total</span><strong>${C.money(q.total)}</strong></div>${q.mode==='cod'?`<div class="payment-split"><div class="deposit-row"><span>Total a depositar</span><strong>${C.money(q.deposit)}</strong><small>${q.shipping?'Envío '+C.money(q.shipping)+' + comisión '+C.money(q.fee):'Comisión '+C.money(q.fee)+' · envío gratis'}</small></div><div class="cash-row"><span>${pickup?'Al retirar':'Al recibir'}</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:''}</div>`:'<p class="payment-helper">Completá el costo de envío para calcular el total de esta cotización.</p>';
  if($('codDepositHelp')){$('codDepositHelp').hidden=selection!=='cod';$('codDepositHelp').textContent=pickup?'Depositá el anticipo y pagá el saldo al retirar en tienda.':'Depositá el anticipo y pagá el saldo al recibir tu pedido.';}
  const disabled=!q.delivery.valid||(selection==='cod'&&!q.codAllowed);$('sendQuote').disabled=disabled;$('printQuote').disabled=disabled;
  renderPaymentDetails();renderCodAvailability(q);
@@ -274,7 +274,7 @@ function renderDeliveryChoice(option){
  if($('deliveryNote').value!==checkoutDelivery.note)$('deliveryNote').value=checkoutDelivery.note;
  $('deliveryLocalFields').hidden=checkoutDelivery.mode!=='local';$('deliveryAmount').disabled=checkoutDelivery.mode!=='local';
  $('deliveryFreeFields').hidden=checkoutDelivery.mode!=='free';$('deliveryNote').disabled=checkoutDelivery.mode!=='free';
- $('deliveryNationalPrice').textContent=C.money(settings.shipping??config.shipping);
+ $('deliveryNationalPrice').textContent=option.mode==='national'&&option.amount===0?'L 0 · incluido':C.money(settings.shipping??config.shipping);
  $('deliveryError').hidden=option.valid;$('deliveryError').textContent=option.error;
  $('deliveryAmount').setAttribute('aria-invalid',String(!option.valid&&checkoutDelivery.mode==='local'));
 }
@@ -296,9 +296,10 @@ function renderShippingEstimate(){
  const input=$('estimateSubtotal'),value=Number(input.value);
  if(!Number.isFinite(value)||value<=0||value>1000000){target.textContent='Ingresá un importe de productos mayor que cero.';return;}
  const mode=$('estimateMethod').value;
- const q=C.quote([{product:{name:'Productos del ejemplo',price:value,stock:1,active:true,codAllowed:true},qty:1}],mode,settings);
+ const free=!!$('estimateShippingFree')?.checked;
+ const q=C.quote([{product:{name:'Productos del ejemplo',price:value,stock:1,active:true,codAllowed:true,freeShipping:free},qty:1}],mode,settings);
  const line=(label,amount)=>`<div class="estimate-row"><span>${label}</span><strong>${C.money(amount)}</strong></div>`;
- target.innerHTML=line('Productos',q.subtotal)+line('Envío con empaque',q.shipping)+((mode==='cod'||mode==='tigo')?line(mode==='tigo'?'Comisión Tigo Money ('+Math.round(q.rate*100)+'%)':'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)',q.fee):'')+`<div class="estimate-total"><span>Total de la compra</span><strong>${C.money(q.total)}</strong></div>`+(mode==='cod'?q.codAllowed?`<div class="estimate-split"><div><span>Depositás antes del envío</span><strong>${C.money(q.deposit)}</strong><small>Envío + comisión</small></div><div><span>Pagás al recibir</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:`<p class="warning">${safe(q.reasons.join(' '))}</p>`:'<p class="estimate-note">Pago completo antes de despachar el pedido.</p>');
+ target.innerHTML=line('Productos',q.subtotal)+line(q.shipping===0?'Envío gratis incluido':'Envío con empaque',q.shipping)+((mode==='cod'||mode==='tigo')?line(mode==='tigo'?'Comisión Tigo Money ('+Math.round(q.rate*100)+'%)':'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)',q.fee):'')+`<div class="estimate-total"><span>Total de la compra</span><strong>${C.money(q.total)}</strong></div>`+(mode==='cod'?q.codAllowed?`<div class="estimate-split"><div><span>Depositás antes del envío</span><strong>${C.money(q.deposit)}</strong><small>${q.shipping?'Envío '+C.money(q.shipping)+' + comisión '+C.money(q.fee):'Comisión '+C.money(q.fee)+' · envío gratis'}</small></div><div><span>Pagás al recibir</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:`<p class="warning">${safe(q.reasons.join(' '))}</p>`:'<p class="estimate-note">Pago completo antes de despachar el pedido.</p>');
 }
 function deliveryData(){
  const data={};for(const key of ['name','phone','department','city','address'])data[key]=String($('delivery_'+key)?.value||'').trim().slice(0,key==='address'?350:120);
@@ -628,7 +629,7 @@ function binds(){
  const header=document.querySelector('.header');
  if(header){const measure=()=>document.documentElement.style.setProperty('--catalog-header-height',Math.ceil(header.getBoundingClientRect().height)+'px');measure();if(typeof ResizeObserver==='function')new ResizeObserver(measure).observe(header);else window.addEventListener('resize',measure);}
  shippingForm();deliveryOptionsForm();
- $('estimateSubtotal')?.addEventListener('input',renderShippingEstimate);$('estimateMethod')?.addEventListener('change',renderShippingEstimate);
+ $('estimateSubtotal')?.addEventListener('input',renderShippingEstimate);$('estimateMethod')?.addEventListener('change',renderShippingEstimate);$('estimateShippingFree')?.addEventListener('change',renderShippingEstimate);
  const refreshWhenVisible=()=>{if(document.visibilityState==='visible'&&Date.now()-lastOnlineCheck>30000)refreshOnlineCatalog();};
  document.addEventListener('visibilitychange',refreshWhenVisible);
  window.addEventListener('focus',refreshWhenVisible);
