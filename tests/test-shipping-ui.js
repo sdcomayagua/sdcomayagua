@@ -113,7 +113,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#estimateSubtotal').fill('370');
   await page.locator('#estimateMethod').selectOption('transfer');
   assert.match(await page.locator('#shippingEstimate').innerText(),/Envío con empaque/);
-  assert.match(await page.locator('#shippingEstimate').innerText(),/L 480/);
+  assert.match(await page.locator('#shippingEstimate').innerText(),/L 505/); // La prueba actualizó previamente el envío a L 135.
   await page.locator('#estimateShippingFree').check();
   assert.match(await page.locator('#shippingEstimate').innerText(),/Envío gratis incluido/);
   assert.match(await page.locator('#shippingEstimate').innerText(),/L 370/);
