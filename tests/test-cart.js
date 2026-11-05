@@ -67,7 +67,7 @@ for(const mode of ['transfer','tigo','cod'])assert.equal(C.quote([],mode).total,
 const fraction=C.quote(cart([P('Con fracción',264.5,2),1]),'transfer');
 assert.equal(fraction.total,376);assert.equal(fraction.deposit,376);
 const tigo=C.quote(yes,'tigo'),tigoMessage=C.waMessage(yes,tigo,'GC-PRUEBA');
-assert.equal(tigo.total,547);assert.equal(tigo.fee,37);assert.match(tigoMessage,/TOTAL: L 547/);
+assert.equal(tigo.total,561);assert.equal(tigo.fee,51);assert.match(tigoMessage,/TOTAL: L 561/);assert.match(tigoMessage,/Comisión de Tigo Money \(10%\): L 51/);
 assert.ok(!/redondeo|adicional|porcentaje|7%/i.test(tigoMessage),'El ajuste forma parte del total, sin una línea adicional');
 assert.equal(decimal.deposit+decimal.balance,decimal.total);
 console.log('PASS redondeo solicitado: siguiente entero más L 1 solo si hay fracción, mismo cálculo en cada modalidad y sin duplicar ajuste.');
@@ -108,12 +108,20 @@ assert.match(C.waMessage(order,C.quote(order,'cod',config,{mode:'pickup'}),'GC-R
 console.log('PASS entrega por cotización: nacional, Comayagua, retiro, gratis, costos inválidos, comisiones, anticipo, restricciones y WhatsApp.');
 
 // Nueva comisión de Pagar al recibir: 15 % declarado de forma transparente.
-const cod15=C.quote(order,'cod',{shipping:110,codMinimum:350,codRate:.15,tigoRate:.07});
+const cod15=C.quote(order,'cod',{shipping:110,codMinimum:350,codRate:.15,tigoRate:.10});
 assert.equal(cod15.rate,.15);
 assert.deepEqual([cod15.subtotal,cod15.shipping,cod15.fee,cod15.total,cod15.deposit,cod15.balance],[370,110,72,552,182,370]);
 assert.match(C.waMessage(order,cod15,'GC-15'),/Comisión por pagar al recibir \(15%\): L 72/);
 assert.equal(C.quote(order,'transfer',{shipping:110,codRate:.15}).total,480,'Transferencia sin comisión COD');
 assert.equal(C.quote(order,'tigo',{shipping:110,codRate:.15,tigoRate:.07}).total,C.quote(order,'tigo',{shipping:110,tigoRate:.07}).total,'Tigo Money sin cambios');
 console.log('PASS comisión COD 15% informada al cliente, total, anticipo y otras modalidades intactas.');
+const tigo10=C.quote(order,'tigo',{shipping:110,codMinimum:350,codRate:.15,tigoRate:.10});
+assert.equal(tigo10.rate,.1);
+assert.deepEqual([tigo10.subtotal,tigo10.shipping,tigo10.fee,tigo10.total],[370,110,48,528]);
+assert.match(C.waMessage(order,tigo10,'GC-TIGO-10'),/Comisión de Tigo Money \(10%\): L 48/);
+assert.equal(C.quote(order,'cod',{shipping:110,codRate:.15,tigoRate:.1}).total,552,'Pagar al recibir permanece al 15 %');
+assert.equal(C.quote(order,'transfer',{shipping:110,codRate:.15,tigoRate:.1}).total,480,'Transferencia permanece sin comisión');
+console.log('PASS Tigo Money 10% real informado en WhatsApp y demás modalidades sin cambios.');
+
 
 

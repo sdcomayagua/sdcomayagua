@@ -12,7 +12,7 @@ window.GC_CONFIG = {
   shipping: 110,
   codMinimum: 350,
   codRate: 0.15,
-  tigoRate: 0.07,
+  tigoRate: 0.10,
   watermarkEnabled: true,
   watermarkText: 'GAMER COMAYAGUA',
   watermarkOpacity: 0.16,
