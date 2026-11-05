@@ -2,7 +2,7 @@
    Solo presentación. No modifica precios, stock, pagos, datos ni eventos JS. */
 :root{--gc-navy:#112b49;--gc-navy-deep:#0c1e35;--gc-accent:#eb3045;--gc-sky:#ecf5ff;--gc-line:#dfe7f0}
 body.gc-home,body[data-page]{overflow-wrap:break-word}
-body.gc-home *,body[data-page] *{min-width:0}
+/* Evitar min-width global para no alterar controles del carrito. */
 body.gc-home :is(button,a,input,select):focus-visible,body[data-page] :is(button,a,input,select):focus-visible{outline:3px solid #2679d0!important;outline-offset:3px}
 
 /* Portada: cabecera limpia, panel principal más impactante y detalles de confianza */
