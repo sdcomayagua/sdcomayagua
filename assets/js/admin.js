@@ -290,6 +290,8 @@ function showProduct(id){
  f.dataset.originalCategory=p.category||'';f.dataset.originalCode=p.code||'';
  f.dataset.revision=p.revision??'';f.dataset.hasRevision=String(p.revision!==undefined);
  for(const [k,v] of Object.entries(p)){if(k!=='cost'&&k!=='promoPrice'&&f.elements.namedItem(k))formField(f,k).value=v??'';}
+ formField(f,'discounts').value=C.withoutShippingFlag(p.discounts);
+ formField(f,'freeShipping').checked=C.includesFreeShipping(p);
  formField(f,'promoPrice').value=p.promoPrice>0?p.promoPrice:'';
  formField(f,'cost').value='';
  const specs=C.cleanDetails(p.details);
@@ -512,7 +514,12 @@ async function save(e){
  if(f.dataset.hasRevision==='true')p.revision=f.dataset.revision;
  for(const k of ['id','code','name','category','price','promoPrice','promoText','colors','cost','stock','image','gallery','discounts','description'])p[k]=formField(f,k).value.trim();
  p.gallery=parseGallery(p.gallery).filter(u=>u!==p.image).slice(0,9).join(', ')||'[]';
- p.codAllowed=formField(f,'codAllowed').value==='SI';
+ const freeShipping=formField(f,'freeShipping').checked;
+  const discountRules=C.withoutShippingFlag(p.discounts);
+  const isKit=/\bmo[bv]ilador(?:es)?\b/i.test(p.name);
+  p.discounts=[discountRules,freeShipping?'ENVIOGRATIS':isKit?'ENVIOCOSTO':''].filter(Boolean).join(',');
+  if(p.discounts.length>250){$('formMessage').textContent='Reducí los descuentos por cantidad para guardar la marca de envío gratis.';return;}
+  p.codAllowed=formField(f,'codAllowed').value==='SI';
  p.active=formField(f,'active').value==='SI';
  const rawDetails={};
  for(const key of [...technicalFields,'weightUnit','measureUnit']){
