@@ -1,0 +1,35 @@
+name: Respaldo periódico de la tienda pública
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '31 13 * * 1'
+permissions:
+  contents: read
+jobs:
+  respaldo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar que el catálogo no contiene datos privados
+        run: python3 scripts/verify_public_backup.py
+      - name: Crear informe semanal de fichas y fotografías
+        run: |
+          mkdir -p snapshots
+          python3 scripts/report_catalog_quality.py --csv snapshots/revision-de-productos.csv --json snapshots/resumen-de-calidad.json
+      - name: Empaquetar código y catálogo público del commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p snapshots
+          output="snapshots/gamer-comayagua-publico-$(date -u +%Y%m%d)-${GITHUB_SHA:0:7}.tar.gz"
+          git archive --format=tar.gz --output "$output" HEAD
+          (cd snapshots && sha256sum *.tar.gz > SHA256SUMS.txt)
+          test -s "$output"
+      - name: Guardar archivo recuperable durante 30 días
+        uses: actions/upload-artifact@v4
+        with:
+          name: respaldo-publico-${{ github.run_id }}
+          path: snapshots/
+          if-no-files-found: error
+          retention-days: 30
