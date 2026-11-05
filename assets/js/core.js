@@ -71,7 +71,7 @@
   const codAllowed=violations.length===0;const base=subtotal+(qty?shipping:0);
   const rate=mode==='cod'?codRate:mode==='tigo'?tigoRate:0;
   const total=integerTotal(base*(1+rate));const fee=total-base;
-  return {valid,subtotal,units:qty,shipping:qty?shipping:0,delivery:option,base,fee,total,deposit:mode==='cod'?shipping+fee:total,balance:mode==='cod'?subtotal:0,mode,codAllowed,reasons:violations};
+  return {valid,subtotal,units:qty,shipping:qty?shipping:0,delivery:option,base,rate,fee,total,deposit:mode==='cod'?shipping+fee:total,balance:mode==='cod'?subtotal:0,mode,codAllowed,reasons:violations};
  }
  function number(){const d=new Date();const z=x=>String(x).padStart(2,'0');let s='';if(typeof crypto!=='undefined'&&crypto.getRandomValues){const a=new Uint32Array(1);crypto.getRandomValues(a);s=(a[0]%1000000).toString().padStart(6,'0')}else s=Math.floor(Math.random()*1000000).toString().padStart(6,'0');return `GC-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}-${s}`;}
  function waMessage(items,q,id,delivery={}){
@@ -81,7 +81,7 @@
   lines.push('',`Productos: ${money(q.subtotal)}`,`Entrega: ${q.delivery?.label||'Envío nacional'}`,`Envío: ${money(q.shipping)}`);
   if(q.delivery?.note)lines.push(`Motivo del envío gratis: ${q.delivery.note}`);
   lines.push(`Forma de pago: ${names[q.mode]||q.mode}`);
-  if(q.mode==='cod'||q.mode==='tigo')lines.push(`${q.mode==='tigo'?'Comisión de Tigo Money':'Comisión por pagar al recibir'}: ${money(q.fee)}`);
+  if(q.mode==='cod'||q.mode==='tigo')lines.push(`${q.mode==='tigo'?'Comisión de Tigo Money':'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)'}: ${money(q.fee)}`);
   lines.push(`*TOTAL: ${money(q.total)}*`);
   if(q.mode==='cod')lines.push(`*ANTICIPO A DEPOSITAR (${q.shipping?'envío + comisión':'comisión'}): ${money(q.deposit)}*`,`*SALDO EN EFECTIVO ${q.delivery?.mode==='pickup'?'AL RETIRAR':'AL RECIBIR'}: ${money(q.balance)}*`);
   const shippingFields=[['name','Nombre'],['phone','Celular'],['department','Departamento'],['city','Municipio / ciudad'],['address','Dirección y referencia']];
