@@ -13,6 +13,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verificar que el catálogo no contiene datos privados
         run: python3 scripts/verify_public_backup.py
+      - name: Crear informe semanal de fichas y fotografías
+        run: |
+          mkdir -p snapshots
+          python3 scripts/report_catalog_quality.py --csv snapshots/revision-de-productos.csv --json snapshots/resumen-de-calidad.json
       - name: Empaquetar código y catálogo público del commit
         shell: bash
         run: |
