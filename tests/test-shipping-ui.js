@@ -108,6 +108,20 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#cartOverlay [data-close]').click();await page.locator('[data-add="CARGADOR-001"]').click();await page.locator('#openCart').click();await total('385');assert.equal(await page.locator('[name=deliveryMethod][value=national]').isChecked(),true,'Un carrito nuevo vuelve a la tarifa nacional');
   await select('free');await page.locator('[name=payMethod][value=cod]').check();assert.equal(await page.locator('#sendQuote').isDisabled(),true,'Envío gratis conserva el mínimo de pago al recibir');
   await page.locator('[data-remove="CARGADOR-001"]').click();assert.equal(await page.evaluate(()=>sessionStorage.getItem('gc_delivery')),null,'Eliminar el último producto limpia la entrega anterior');
+  // Calculadora pública: envío incluido, transferencias y anticipo.
+  await page.goto(base+'/pagos.html');
+  await page.locator('#estimateSubtotal').fill('370');
+  await page.locator('#estimateMethod').selectOption('transfer');
+  assert.match(await page.locator('#shippingEstimate').innerText(),/Envío con empaque/);
+  assert.match(await page.locator('#shippingEstimate').innerText(),/L 480/);
+  await page.locator('#estimateShippingFree').check();
+  assert.match(await page.locator('#shippingEstimate').innerText(),/Envío gratis incluido/);
+  assert.match(await page.locator('#shippingEstimate').innerText(),/L 370/);
+  await page.locator('#estimateMethod').selectOption('cod');
+  assert.match(await page.locator('#shippingEstimate').innerText(),/Depositás antes del envío/);
+  assert.match(await page.locator('#shippingEstimate').innerText(),/Comisión/);
+  await page.locator('#estimateShippingFree').uncheck();
+  assert.match(await page.locator('#shippingEstimate').innerText(),/Envío con empaque/);
   assert.deepEqual(errors,[]);
   console.log('PASS envío en navegador: montos válidos, cero, retiro, gratis, WhatsApp, PDF, comisiones, catálogo actualizado, navegación, reinicio y móvil.');
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
