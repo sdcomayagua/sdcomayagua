@@ -867,7 +867,7 @@
     "codAllowed": false,
     "active": true,
     "colors": "",
-    "promoPrice": 950,
+    "promoPrice": 0,
     "promoText": "Oferta",
     "details": {
       "model": "Mobilador V1",
@@ -892,7 +892,7 @@
     "codAllowed": false,
     "active": true,
     "colors": "",
-    "promoPrice": 1010,
+    "promoPrice": 0,
     "promoText": "Oferta",
     "details": {
       "model": "Mobilador V2",
@@ -917,7 +917,7 @@
     "codAllowed": false,
     "active": true,
     "colors": "",
-    "promoPrice": 1010,
+    "promoPrice": 0,
     "promoText": "Oferta",
     "details": {
       "model": "Mobilador V3",
@@ -942,7 +942,7 @@
     "codAllowed": false,
     "active": true,
     "colors": "",
-    "promoPrice": 1100,
+    "promoPrice": 1135,
     "promoText": "Oferta",
     "details": {
       "model": "Mobilador V4",
@@ -967,7 +967,7 @@
     "codAllowed": false,
     "active": true,
     "colors": "",
-    "promoPrice": 1390,
+    "promoPrice": 1420,
     "promoText": "Oferta",
     "details": {
       "model": "Mobilador V5",
