@@ -13,7 +13,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  await page.clock.install();
  await page.goto(base+'/admin.html');await page.locator('#secret').fill('123456');await page.locator('#loginBtn').click();await page.locator('#adminRows [data-edit]').first().waitFor();
  // La edición rápida debe mantener características y costos privados.
- await page.locator('#adminRows [data-quick-edit]').first().click();
+ await page.locator('#adminRows [data-quick-edit="A"]').click();
  await page.locator('#gcQuickOverlay:not([hidden])').waitFor();
  assert.equal(await page.locator('#gcQuickSave').isDisabled(),true);
  await page.locator('#gcQuickForm [name=quickPrice]').fill('235');
