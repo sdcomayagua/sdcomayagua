@@ -254,7 +254,7 @@ function calc(){
  const summary=$('cartSummary');if(summary)summary.textContent=q.units?String(q.units)+' '+(q.units===1?'producto':'productos')+' · '+C.money(q.subtotal)+' en artículos':'Tu carrito está vacío';
  const n=$('deniedNotice');n.classList.toggle('hidden',!(selection==='cod'&&!q.codAllowed));n.textContent=q.reasons.join(' ');
  const showFee=q.mode==='cod'||q.mode==='tigo',pickup=q.delivery.mode==='pickup';
- $('checkoutTotals').innerHTML=q.delivery.valid?`<div class="totals"><div class="total-row"><span>Productos</span><strong>${C.money(q.subtotal)}</strong></div><div class="total-row"><span>${safe(q.delivery.label)}</span><strong>${C.money(q.shipping)}</strong></div>${showFee?`<div class="total-row"><span>${q.mode==='cod'?'Comisión por pagar al recibir':'Comisión de Tigo Money'}</span><strong>${C.money(q.fee)}</strong></div>`:''}<div class="total-row big"><span>Total</span><strong>${C.money(q.total)}</strong></div>${q.mode==='cod'?`<div class="payment-split"><div class="deposit-row"><span>Anticipo a depositar</span><strong>${C.money(q.deposit)}</strong><small>${q.shipping?'Envío + comisión':'Comisión'}</small></div><div class="cash-row"><span>${pickup?'Al retirar':'Al recibir'}</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:''}</div>`:'<p class="payment-helper">Completá el costo de envío para calcular el total de esta cotización.</p>';
+ $('checkoutTotals').innerHTML=q.delivery.valid?`<div class="totals"><div class="total-row"><span>Productos</span><strong>${C.money(q.subtotal)}</strong></div><div class="total-row"><span>${safe(q.delivery.label)}</span><strong>${C.money(q.shipping)}</strong></div>${showFee?`<div class="total-row"><span>${q.mode==='cod'?'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)':'Comisión de Tigo Money'}</span><strong>${C.money(q.fee)}</strong></div>`:''}<div class="total-row big"><span>Total</span><strong>${C.money(q.total)}</strong></div>${q.mode==='cod'?`<div class="payment-split"><div class="deposit-row"><span>Anticipo a depositar</span><strong>${C.money(q.deposit)}</strong><small>${q.shipping?'Envío + comisión':'Comisión'}</small></div><div class="cash-row"><span>${pickup?'Al retirar':'Al recibir'}</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:''}</div>`:'<p class="payment-helper">Completá el costo de envío para calcular el total de esta cotización.</p>';
  if($('codDepositHelp')){$('codDepositHelp').hidden=selection!=='cod';$('codDepositHelp').textContent=pickup?'Depositá el anticipo y pagá el saldo al retirar en tienda.':'Depositá el anticipo y pagá el saldo al recibir tu pedido.';}
  const disabled=!q.delivery.valid||(selection==='cod'&&!q.codAllowed);$('sendQuote').disabled=disabled;$('printQuote').disabled=disabled;
  renderPaymentDetails();renderCodAvailability(q);
@@ -286,6 +286,7 @@ function deliveryOptionsForm(){
 }
 function renderPaymentTerms(){
  if($('codMinimumNote'))$('codMinimumNote').textContent=`Mínimo ${C.money(settings.codMinimum??config.codMinimum)} en productos`;
+ document.querySelectorAll('[data-cod-rate]').forEach(el=>el.textContent=Math.round(Number(settings.codRate??config.codRate)*100)+' %');
  document.querySelectorAll('[data-shipping-price]').forEach(el=>el.textContent=C.money(settings.shipping??config.shipping));
  renderShippingEstimate();
 }
@@ -296,7 +297,7 @@ function renderShippingEstimate(){
  const mode=$('estimateMethod').value;
  const q=C.quote([{product:{name:'Productos del ejemplo',price:value,stock:1,active:true,codAllowed:true},qty:1}],mode,settings);
  const line=(label,amount)=>`<div class="estimate-row"><span>${label}</span><strong>${C.money(amount)}</strong></div>`;
- target.innerHTML=line('Productos',q.subtotal)+line('Envío con empaque',q.shipping)+((mode==='cod'||mode==='tigo')?line(mode==='tigo'?'Comisión Tigo Money':'Comisión por pagar al recibir',q.fee):'')+`<div class="estimate-total"><span>Total de la compra</span><strong>${C.money(q.total)}</strong></div>`+(mode==='cod'?q.codAllowed?`<div class="estimate-split"><div><span>Depositás antes del envío</span><strong>${C.money(q.deposit)}</strong><small>Envío + comisión</small></div><div><span>Pagás al recibir</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:`<p class="warning">${safe(q.reasons.join(' '))}</p>`:'<p class="estimate-note">Pago completo antes de despachar el pedido.</p>');
+ target.innerHTML=line('Productos',q.subtotal)+line('Envío con empaque',q.shipping)+((mode==='cod'||mode==='tigo')?line(mode==='tigo'?'Comisión Tigo Money':'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)',q.fee):'')+`<div class="estimate-total"><span>Total de la compra</span><strong>${C.money(q.total)}</strong></div>`+(mode==='cod'?q.codAllowed?`<div class="estimate-split"><div><span>Depositás antes del envío</span><strong>${C.money(q.deposit)}</strong><small>Envío + comisión</small></div><div><span>Pagás al recibir</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:`<p class="warning">${safe(q.reasons.join(' '))}</p>`:'<p class="estimate-note">Pago completo antes de despachar el pedido.</p>');
 }
 function deliveryData(){
  const data={};for(const key of ['name','phone','department','city','address'])data[key]=String($('delivery_'+key)?.value||'').trim().slice(0,key==='address'?350:120);
@@ -369,7 +370,7 @@ function printQuote(){
  const q=prepared.q,uid=prepared.id,entries=items(),labels={transfer:'Transferencia / depósito',tigo:'Tigo Money',cod:'Pagar al recibir'};
  const rows=entries.map(({product:p,qty},i)=>`<tr><td><span class="sku">${String(i+1).padStart(2,'0')}</span> ${safe(p.name)}</td><td>${qty}</td><td>${C.money(C.unitPrice(p,qty))}</td><td class="right">${C.money(qty*C.unitPrice(p,qty))}</td></tr>`).join('');
  const line=(name,val,highlight=false)=>`<div class="sumrow ${highlight?'highlight':''}"><span>${safe(name)}</span><b>${C.money(val)}</b></div>`;
- const fees=q.mode==='tigo'?line('Comisión Tigo Money',q.fee):q.mode==='cod'?line('Comisión pago al recibir',q.fee):'';
+ const fees=q.mode==='tigo'?line('Comisión Tigo Money',q.fee):q.mode==='cod'?line('Comisión pago al recibir ('+Math.round(q.rate*100)+'%)',q.fee):'';
  const balances=q.mode==='cod'?line('ANTICIPO A DEPOSITAR',q.deposit)+line(q.delivery.mode==='pickup'?'SALDO EN EFECTIVO AL RETIRAR':'SALDO EN EFECTIVO AL RECIBIR',q.balance):'';
  const destination=deliveryData(),deliveryRows=[['name','Nombre'],['phone','Celular'],['department','Departamento'],['city','Municipio / ciudad'],['address','Dirección']].filter(([key])=>destination[key]).map(([key,label])=>`<p><b>${label}:</b> ${safe(destination[key])}</p>`).join('');
  const deliverySection=`<section class="quote-delivery"><h3>Entrega del pedido</h3><p><b>Modalidad:</b> ${safe(q.delivery.label)}</p>${q.delivery.note?`<p><b>Motivo del envío gratis:</b> ${safe(q.delivery.note)}</p>`:''}${deliveryRows}</section>`;
