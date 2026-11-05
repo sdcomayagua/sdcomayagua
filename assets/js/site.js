@@ -210,13 +210,14 @@ function open(id,preserve=false){
  const arrow='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>';
  const navigation=images.length>1?`<button class="detail-gallery-arrow previous" type="button" data-gallery-step="-1" aria-label="Ver foto anterior">${arrow}</button><button class="detail-gallery-arrow next" type="button" data-gallery-step="1" aria-label="Ver foto siguiente">${arrow}</button>`:'';
  const thumbs=images.length>1?`<div class="detail-gallery-meta"><span>Fotos del producto</span><span id="detailPhotoCount" aria-live="polite" aria-atomic="true">1 de ${images.length}</span></div><div class="detail-thumbs" role="group" aria-label="Elegir foto del producto">${images.map((u,i)=>`<button type="button" class="detail-thumb ${i===0?'active':''}" data-photo-index="${i}" aria-pressed="${i===0}" aria-label="Ver foto ${i+1} de ${images.length}"><img loading="lazy" decoding="async" src="${escapeAttr(normalize(u))}" alt="" onerror="this.onerror=null;this.src='${imgFallback}'"></button>`).join('')}</div>`:'';
- const paymentNote=p.codAllowed?`<strong>Pago al recibir</strong><span>Disponible desde ${C.money(settings.codMinimum??config.codMinimum)} en productos elegibles.</span>`:'<strong>Pago anticipado</strong><span>Transferencia o Tigo Money para este producto.</span>';
+ const shippingNote=p.freeShipping?'<div class="gc-detail-shipping"><strong>✓ Envío nacional incluido</strong><span>Si combinás artículos sin este beneficio, el carrito calcula un solo envío.</span></div>':'';
+  const paymentNote=p.codAllowed?`<strong>Pago al recibir</strong><span>Disponible desde ${C.money(settings.codMinimum??config.codMinimum)} en productos elegibles.</span>`:'<strong>Pago anticipado</strong><span>Transferencia o Tigo Money para este producto.</span>';
  const extra=detailText||technical?`<div class="detail-extra ${detailText&&technical?'has-both':''}">${detailText}${technical}</div>`:'';
  const cartIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01M14 7v6M11 10h6"/></svg>';
  const expandIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M3 3l6 6m12-6-6 6M3 21l6-6m12 6-6-6"/></svg>';
  const chatIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.7 7.4L3 21l1.6-5.5A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 8c0 4 2 6 6 6l1-2-2-1-1 1-2-2 1-1-1-2-2 1Z"/></svg>';
  const shareIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m9 10 6-4M9 14l6 4"/></svg>';
- $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)} — Foto 1 de ${images.length}">${navigation}<a class="detail-open-photo" id="detailOpenPhoto" href="${escapeAttr(normalize(images[0]))}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar foto del producto" ${images[0]===imgFallback?'hidden':''}>${expandIcon}<span>Ampliar</span></a></div>${thumbs}</div><div class="detail-info"><div class="detail-topline"><div class="category">${safe(p.category)}</div><span class="detail-stock ${p.stock?'':'sold-out'}">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Agotado'}</span></div><h3 id="detailTitle">${safe(p.name)}</h3>${p.code?`<p class="detail-code">Código: <span>${safe(p.code)}</span></p>`:''}<div class="detail-price-block"><span class="detail-price-label">Precio por unidad</span>${amount}${promotion}</div><div class="detail-buttons"><div class="detail-secondary-actions"><button class="btn outline" id="detailWA" type="button" aria-label="Consultar por WhatsApp">${chatIcon}<span>Consultar</span></button><button class="btn outline" id="detailShare" type="button" aria-label="Compartir este producto">${shareIcon}<span>Compartir</span></button></div></div><div class="detail-payment-note"><span class="detail-payment-symbol" aria-hidden="true">${p.codAllowed?'✓':'i'}</span><div>${paymentNote}</div></div>${extra}</div></div>`;
+ $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)} — Foto 1 de ${images.length}">${navigation}<a class="detail-open-photo" id="detailOpenPhoto" href="${escapeAttr(normalize(images[0]))}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar foto del producto" ${images[0]===imgFallback?'hidden':''}>${expandIcon}<span>Ampliar</span></a></div>${thumbs}</div><div class="detail-info"><div class="detail-topline"><div class="category">${safe(p.category)}</div><span class="detail-stock ${p.stock?'':'sold-out'}">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Agotado'}</span></div><h3 id="detailTitle">${safe(p.name)}</h3>${p.code?`<p class="detail-code">Código: <span>${safe(p.code)}</span></p>`:''}<div class="detail-price-block"><span class="detail-price-label">Precio por unidad</span>${amount}${promotion}</div><div class="detail-buttons"><div class="detail-secondary-actions"><button class="btn outline" id="detailWA" type="button" aria-label="Consultar por WhatsApp">${chatIcon}<span>Consultar</span></button><button class="btn outline" id="detailShare" type="button" aria-label="Compartir este producto">${shareIcon}<span>Compartir</span></button></div></div><div class="detail-payment-note"><span class="detail-payment-symbol" aria-hidden="true">${p.codAllowed?'✓':'i'}</span><div>${paymentNote}</div></div>${shippingNote}${extra}</div></div>`;
  if(!$('detailPurchaseBar'))$('detailContent').insertAdjacentHTML('afterend','<div id="detailPurchaseBar" class="detail-purchase-bar"></div>');
  $('detailPurchaseBar').innerHTML=`<div class="detail-dock-price"><span>${reduced?'Precio de oferta':'Precio por unidad'}</span><strong>${C.money(unit)}</strong></div><button class="btn" id="detailAdd" type="button" ${p.stock?'':'disabled'}>${cartIcon}<span>${p.stock?'Agregar al carrito':'Sin existencias'}</span></button>`;
  const photo=$('detailPhoto'),photoLink=$('detailOpenPhoto'),media=$('detailContent').querySelector('.detail-media');window.GC_WATERMARK?.applyTo($('detailContent'));photoLink?.addEventListener('click',event=>{if(!window.GC_WATERMARK?.openLightbox)return;event.preventDefault();window.GC_WATERMARK.openLightbox(photo.src,photo.alt);});
@@ -254,7 +255,7 @@ function calc(){
  const summary=$('cartSummary');if(summary)summary.textContent=q.units?String(q.units)+' '+(q.units===1?'producto':'productos')+' · '+C.money(q.subtotal)+' en artículos':'Tu carrito está vacío';
  const n=$('deniedNotice');n.classList.toggle('hidden',!(selection==='cod'&&!q.codAllowed));n.textContent=q.reasons.join(' ');
  const showFee=q.mode==='cod'||q.mode==='tigo',pickup=q.delivery.mode==='pickup';
- $('checkoutTotals').innerHTML=q.delivery.valid?`<div class="totals"><div class="total-row"><span>Productos</span><strong>${C.money(q.subtotal)}</strong></div><div class="total-row"><span>${safe(q.delivery.label)}</span><strong>${C.money(q.shipping)}</strong></div>${showFee?`<div class="total-row"><span>${q.mode==='cod'?'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)':'Comisión de Tigo Money ('+Math.round(q.rate*100)+'%)'}</span><strong>${C.money(q.fee)}</strong></div>`:''}<div class="total-row big"><span>Total</span><strong>${C.money(q.total)}</strong></div>${q.mode==='cod'?`<div class="payment-split"><div class="deposit-row"><span>Anticipo a depositar</span><strong>${C.money(q.deposit)}</strong><small>${q.shipping?'Envío + comisión':'Comisión'}</small></div><div class="cash-row"><span>${pickup?'Al retirar':'Al recibir'}</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:''}</div>`:'<p class="payment-helper">Completá el costo de envío para calcular el total de esta cotización.</p>';
+ $('checkoutTotals').innerHTML=q.delivery.valid?`<div class="totals"><div class="total-row"><span>Productos</span><strong>${C.money(q.subtotal)}</strong></div><div class="total-row"><span>${safe(q.delivery.label)}</span><strong>${C.money(q.shipping)}</strong></div>${showFee?`<div class="total-row"><span>${q.mode==='cod'?'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)':'Comisión de Tigo Money ('+Math.round(q.rate*100)+'%)'}</span><strong>${C.money(q.fee)}</strong></div>`:''}<div class="total-row big"><span>Total</span><strong>${C.money(q.total)}</strong></div>${q.mode==='cod'?`<div class="payment-split"><div class="deposit-row"><span>Total a depositar</span><strong>${C.money(q.deposit)}</strong><small>${q.shipping?'Envío '+C.money(q.shipping)+' + comisión '+C.money(q.fee):'Comisión '+C.money(q.fee)+' · envío gratis'}</small></div><div class="cash-row"><span>${pickup?'Al retirar':'Al recibir'}</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:''}</div>`:'<p class="payment-helper">Completá el costo de envío para calcular el total de esta cotización.</p>';
  if($('codDepositHelp')){$('codDepositHelp').hidden=selection!=='cod';$('codDepositHelp').textContent=pickup?'Depositá el anticipo y pagá el saldo al retirar en tienda.':'Depositá el anticipo y pagá el saldo al recibir tu pedido.';}
  const disabled=!q.delivery.valid||(selection==='cod'&&!q.codAllowed);$('sendQuote').disabled=disabled;$('printQuote').disabled=disabled;
  renderPaymentDetails();renderCodAvailability(q);
@@ -274,7 +275,7 @@ function renderDeliveryChoice(option){
  if($('deliveryNote').value!==checkoutDelivery.note)$('deliveryNote').value=checkoutDelivery.note;
  $('deliveryLocalFields').hidden=checkoutDelivery.mode!=='local';$('deliveryAmount').disabled=checkoutDelivery.mode!=='local';
  $('deliveryFreeFields').hidden=checkoutDelivery.mode!=='free';$('deliveryNote').disabled=checkoutDelivery.mode!=='free';
- $('deliveryNationalPrice').textContent=C.money(settings.shipping??config.shipping);
+ $('deliveryNationalPrice').textContent=option.mode==='national'&&option.amount===0?'L 0 · incluido':C.money(settings.shipping??config.shipping);
  $('deliveryError').hidden=option.valid;$('deliveryError').textContent=option.error;
  $('deliveryAmount').setAttribute('aria-invalid',String(!option.valid&&checkoutDelivery.mode==='local'));
 }
@@ -296,9 +297,10 @@ function renderShippingEstimate(){
  const input=$('estimateSubtotal'),value=Number(input.value);
  if(!Number.isFinite(value)||value<=0||value>1000000){target.textContent='Ingresá un importe de productos mayor que cero.';return;}
  const mode=$('estimateMethod').value;
- const q=C.quote([{product:{name:'Productos del ejemplo',price:value,stock:1,active:true,codAllowed:true},qty:1}],mode,settings);
+ const free=!!$('estimateShippingFree')?.checked;
+ const q=C.quote([{product:{name:'Productos del ejemplo',price:value,stock:1,active:true,codAllowed:true,freeShipping:free},qty:1}],mode,settings);
  const line=(label,amount)=>`<div class="estimate-row"><span>${label}</span><strong>${C.money(amount)}</strong></div>`;
- target.innerHTML=line('Productos',q.subtotal)+line('Envío con empaque',q.shipping)+((mode==='cod'||mode==='tigo')?line(mode==='tigo'?'Comisión Tigo Money ('+Math.round(q.rate*100)+'%)':'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)',q.fee):'')+`<div class="estimate-total"><span>Total de la compra</span><strong>${C.money(q.total)}</strong></div>`+(mode==='cod'?q.codAllowed?`<div class="estimate-split"><div><span>Depositás antes del envío</span><strong>${C.money(q.deposit)}</strong><small>Envío + comisión</small></div><div><span>Pagás al recibir</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:`<p class="warning">${safe(q.reasons.join(' '))}</p>`:'<p class="estimate-note">Pago completo antes de despachar el pedido.</p>');
+ target.innerHTML=line('Productos',q.subtotal)+line(q.shipping===0?'Envío gratis incluido':'Envío con empaque',q.shipping)+((mode==='cod'||mode==='tigo')?line(mode==='tigo'?'Comisión Tigo Money ('+Math.round(q.rate*100)+'%)':'Comisión por pagar al recibir ('+Math.round(q.rate*100)+'%)',q.fee):'')+`<div class="estimate-total"><span>Total de la compra</span><strong>${C.money(q.total)}</strong></div>`+(mode==='cod'?q.codAllowed?`<div class="estimate-split"><div><span>Depositás antes del envío</span><strong>${C.money(q.deposit)}</strong><small>${q.shipping?'Envío '+C.money(q.shipping)+' + comisión '+C.money(q.fee):'Comisión '+C.money(q.fee)+' · envío gratis'}</small></div><div><span>Pagás al recibir</span><strong>${C.money(q.balance)}</strong><small>En efectivo</small></div></div>`:`<p class="warning">${safe(q.reasons.join(' '))}</p>`:'<p class="estimate-note">Pago completo antes de despachar el pedido.</p>');
 }
 function deliveryData(){
  const data={};for(const key of ['name','phone','department','city','address'])data[key]=String($('delivery_'+key)?.value||'').trim().slice(0,key==='address'?350:120);
@@ -452,20 +454,48 @@ function refreshOnlineCatalog(force=false){
  })().finally(()=>{onlineRequest=null;if(pendingOnlineRefresh){pendingOnlineRefresh=false;refreshOnlineCatalog();}});
  return onlineRequest;
 }
-function bankText(account){return [account.bank,account.owner&&'Titular: '+account.owner,account.identity&&'Identidad: '+account.identity,'Cuenta: '+account.account].filter(Boolean).join('\n');}
+function bankText(account){return [account.bank,account.owner&&'Titular: '+account.owner,account.identity&&'Identidad: '+account.identity,(/tigo\s*money/i.test(String(account.bank||''))?'Teléfono: ':'Cuenta: ')+account.account].filter(Boolean).join('\n');}
+function bankSort(a,b){
+ const priority=x=>/tigo\s*money/i.test(String(x.bank||''))?2:/\b(?:cash|kash)\b/i.test(String(x.bank||''))?1:0;
+ return priority(a)-priority(b)||String(a.bank||'').localeCompare(String(b.bank||''),'es',{sensitivity:'base',numeric:true});
+}
+function allBanksText(accounts){
+ const list=accounts.filter(x=>C.yes(x.visible)&&String(x.account||'').trim()).sort(bankSort);
+ if(!list.length)return '';
+ const owners=[...new Set(list.map(x=>String(x.owner||'').trim()).filter(Boolean))];
+ const identities=[...new Set(list.map(x=>String(x.identity||'').trim()).filter(Boolean))];
+ const sharedOwner=owners.length===1?owners[0]:'',sharedIdentity=identities.length===1?identities[0]:'';
+ const lines=['*GAMER COMAYAGUA*','*BANCOS Y MEDIOS DE PAGO DISPONIBLES*',''];
+ if(sharedOwner)lines.push('Titular: '+sharedOwner);
+ if(sharedIdentity)lines.push('DNI / Identidad: '+sharedIdentity);
+ if(sharedOwner||sharedIdentity)lines.push('');
+ lines.push('*Cuentas para depósito o transferencia*');
+ list.forEach(x=>{
+  const label=String(x.bank||'Banco').trim();
+  const isTigo=/tigo\s*money/i.test(label);
+  lines.push('', '*'+label+'*');
+  if(!sharedOwner&&x.owner)lines.push('Titular: '+String(x.owner).trim());
+  if(!sharedIdentity&&x.identity)lines.push('DNI / Identidad: '+String(x.identity).trim());
+  lines.push((isTigo?'Número de teléfono: ':'Número de cuenta: ')+String(x.account).trim());
+ });
+ lines.push('','Confirmá la cuenta y el monto antes de depositar.');
+ return lines.join('\n');
+}
 function renderBanks(){
  const target=$('bankAccounts');if(!target)return;
- const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim()),filter=$('bankFilter');
+ const published=banks.filter(x=>C.yes(x.visible)&&String(x.account||'').trim()).sort(bankSort),filter=$('bankFilter');
  if(filter){
   const selected=filter.value,names=[...new Set(published.map(x=>String(x.bank||'Banco')))];
   filter.innerHTML='<option value="">Todos los bancos y billeteras</option>'+names.map(name=>`<option value="${escapeAttr(name)}">${safe(name)}</option>`).join('');filter.value=names.includes(selected)?selected:'';filter.disabled=!published.length;
  }
  const shown=filter?.value?published.filter(x=>String(x.bank||'Banco')===filter.value):published;
+ const allButton=$('copyAllBanks');
+ if(allButton){allButton.hidden=!published.length;allButton.disabled=banksStatus==='loading';allButton.dataset.copy=allBanksText(published);}
  if($('bankStatus'))$('bankStatus').textContent=banksStatus==='loading'?'Consultando datos de pago…':banksStatus==='failed'?'No se pudo actualizar. Tocá Reintentar.':published.length?shown.length+' cuenta'+(shown.length===1?' disponible':'s disponibles'):'No hay cuentas publicadas.';
  if($('bankRetry')){$('bankRetry').disabled=banksStatus==='loading';$('bankRetry').textContent=banksStatus==='failed'?'Reintentar':'Actualizar';}
  target.setAttribute('aria-busy',String(banksStatus==='loading'));
  const copyRow=(label,value,important=false)=>!String(value||'').trim()?'':`<div class="bank-copy-row${important?' bank-account-primary':''}"><div><small>${safe(label)}</small><strong>${safe(value)}</strong></div><button type="button" class="copy-btn" data-copy="${escapeAttr(value)}" data-label="${escapeAttr(label)}" aria-label="Copiar ${escapeAttr(label)}">Copiar</button></div>`;
- target.innerHTML=shown.length?shown.map(x=>`<article class="bank-card"><div class="bank-card-head"><div class="bank-symbol" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m3 8 9-5 9 5H3m2 3v7m5-7v7m4-7v7m5-7v7M3 21h18"/></svg></div><div><div class="eyebrow">Datos para pagar</div><h3>${safe(x.bank||'Banco')}</h3></div></div>${copyRow('Nombre del titular',x.owner)}${copyRow('Número de identidad',x.identity)}${copyRow('Número de cuenta',x.account,true)}<button type="button" class="btn bank-copy-all" data-copy="${escapeAttr(bankText(x))}" data-label="Todos los datos" data-copy-caption="Copiar todos los datos">Copiar todos los datos</button></article>`).join(''):banksStatus==='loading'||banksStatus==='idle'?'<div class="bank-empty bank-loading" role="status"><span class="bank-loader" aria-hidden="true"></span><h3>Cargando tus opciones de pago</h3><p>Estamos consultando las cuentas publicadas.</p></div>':`<div class="bank-empty"><h3>${banksStatus==='failed'?'No pudimos consultar las cuentas':'No hay cuentas publicadas'}</h3><p>Podés reintentar la carga o solicitar los datos por WhatsApp.</p><a class="btn outline" href="https://wa.me/${String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito los datos para depositar mi pedido.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a></div>`;
+ target.innerHTML=shown.length?shown.map(x=>`<article class="bank-card"><div class="bank-card-head"><div class="bank-symbol" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m3 8 9-5 9 5H3m2 3v7m5-7v7m4-7v7m5-7v7M3 21h18"/></svg></div><div><div class="eyebrow">Datos para pagar</div><h3>${safe(x.bank||'Banco')}</h3></div></div>${copyRow('Nombre del titular',x.owner)}${copyRow('Número de identidad',x.identity)}${copyRow(/tigo\s*money/i.test(String(x.bank||''))?'Número de teléfono':'Número de cuenta',x.account,true)}<button type="button" class="btn bank-copy-all" data-copy="${escapeAttr(bankText(x))}" data-label="Todos los datos" data-copy-caption="Copiar todos los datos">Copiar todos los datos</button></article>`).join(''):banksStatus==='loading'||banksStatus==='idle'?'<div class="bank-empty bank-loading" role="status"><span class="bank-loader" aria-hidden="true"></span><h3>Cargando tus opciones de pago</h3><p>Estamos consultando las cuentas publicadas.</p></div>':`<div class="bank-empty"><h3>${banksStatus==='failed'?'No pudimos consultar las cuentas':'No hay cuentas publicadas'}</h3><p>Podés reintentar la carga o solicitar los datos por WhatsApp.</p><a class="btn outline" href="https://wa.me/${String(settings.whatsapp||config.whatsapp).replace(/\D/g,'')}?text=${encodeURIComponent('Hola Gamer Comayagua, necesito los datos para depositar mi pedido.')}" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a></div>`;
 }
 async function copyText(value){try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return true;}}catch{}const input=document.createElement('textarea');input.value=value;input.setAttribute('readonly','');input.style.cssText='position:fixed;top:-1000px;left:-1000px';document.body.append(input);input.select();let ok=false;try{ok=document.execCommand('copy')}catch{}input.remove();return ok;}
 
@@ -628,7 +658,7 @@ function binds(){
  const header=document.querySelector('.header');
  if(header){const measure=()=>document.documentElement.style.setProperty('--catalog-header-height',Math.ceil(header.getBoundingClientRect().height)+'px');measure();if(typeof ResizeObserver==='function')new ResizeObserver(measure).observe(header);else window.addEventListener('resize',measure);}
  shippingForm();deliveryOptionsForm();
- $('estimateSubtotal')?.addEventListener('input',renderShippingEstimate);$('estimateMethod')?.addEventListener('change',renderShippingEstimate);
+ $('estimateSubtotal')?.addEventListener('input',renderShippingEstimate);$('estimateMethod')?.addEventListener('change',renderShippingEstimate);$('estimateShippingFree')?.addEventListener('change',renderShippingEstimate);
  const refreshWhenVisible=()=>{if(document.visibilityState==='visible'&&Date.now()-lastOnlineCheck>30000)refreshOnlineCatalog();};
  document.addEventListener('visibilitychange',refreshWhenVisible);
  window.addEventListener('focus',refreshWhenVisible);
@@ -685,6 +715,7 @@ function binds(){
  $('bankRetry')?.addEventListener('click',()=>loadBanksFromSheet());
  const onBankCopy=async b=>{if(!b)return;const ok=await copyText(b.dataset.copy);toast(ok?b.dataset.label+' copiado al portapapeles':'No se pudo copiar. Mantené presionado el dato para copiarlo.');if(ok){const button=b.matches('button')?b:b.querySelector('button');if(button){button.textContent='✓ Copiado';setTimeout(()=>{if(button.isConnected)button.textContent=button.dataset.copyCaption||'Copiar'},2000)}}};
  $('bankAccounts')?.addEventListener('click',e=>onBankCopy(e.target.closest('[data-copy]')));
+ $('copyAllBanks')?.addEventListener('click',e=>onBankCopy(e.currentTarget));
  $('tigoPaymentDetails')?.addEventListener('click',e=>onBankCopy(e.target.closest('[data-copy]')));
  $('bankAccounts')?.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.bank-copy-row')){e.preventDefault();onBankCopy(e.target)}});
  try{cart=cartStorage?.read()||{}}catch{cart={}};

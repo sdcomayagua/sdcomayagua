@@ -33,8 +33,18 @@
   }
   return out;
  }
+ // Indicador persistente en Descuentos: compatible con el Apps Script publicado.
+ // ENVIOCOSTO permite desactivar la regla automática de los kits mobiladores.
+ function withoutShippingFlag(raw){return String(raw||'').split(/[,;|]/).map(x=>x.trim()).filter(x=>x&&!/^ENVIO(?:GRATIS|COSTO)$/i.test(x)).join(',');}
+ function includesFreeShipping(p){
+  const raw=String(p?.discounts??p?.Descuentos??'');
+  if(/(?:^|[,;|])\s*ENVIOCOSTO\s*(?=$|[,;|])/i.test(raw))return false;
+  if(/(?:^|[,;|])\s*ENVIOGRATIS\s*(?=$|[,;|])/i.test(raw))return true;
+  if(p?.freeShipping===true||p?.EnvioGratis===true)return true;
+  return /\bmo[bv]ilador(?:es)?\b/i.test(String(p?.name??p?.Nombre??''));
+ }
  function cleanProduct(p,index=0){
-  return {bestSeller:yes(p.bestSeller??p.MasPedidos??false),createdAt:String(p.createdAt??p.FechaCreacion??''),catalogOrder:Number.isFinite(Number(p.catalogOrder))?Number(p.catalogOrder):index,id:String(p.id||p.ID||p.Codigo||'').trim(),code:String(p.code||p.Codigo||'').trim(),name:String(p.name||p.Nombre||'').trim(),category:String(p.category||p.Categoria||'Otros').trim(),price:num(p.price??p.Precio),stock:Math.max(0,Math.floor(num(p.stock??p.Stock))),image:String(p.image||p.Imagen||'').trim(),gallery:p.gallery||p.Galeria||'',description:String(p.description||p.Descripcion||''),discounts:String(p.discounts||p.Descuentos||''),colors:String(p.colors||p.Colores||'').trim(),promoPrice:num(p.promoPrice??p.PrecioPromocion),promoText:String(p.promoText||p.PromocionTexto||'').trim(),details:cleanDetails(p.details??p.Detalles),codAllowed:yes(p.codAllowed??p.PagoAlRecibir??'SI'),active:yes(p.active??p.Activo??'SI')};
+  return {bestSeller:yes(p.bestSeller??p.MasPedidos??false),createdAt:String(p.createdAt??p.FechaCreacion??''),catalogOrder:Number.isFinite(Number(p.catalogOrder))?Number(p.catalogOrder):index,id:String(p.id||p.ID||p.Codigo||'').trim(),code:String(p.code||p.Codigo||'').trim(),name:String(p.name||p.Nombre||'').trim(),category:String(p.category||p.Categoria||'Otros').trim(),price:num(p.price??p.Precio),stock:Math.max(0,Math.floor(num(p.stock??p.Stock))),image:String(p.image||p.Imagen||'').trim(),gallery:p.gallery||p.Galeria||'',description:String(p.description||p.Descripcion||''),discounts:String(p.discounts||p.Descuentos||''),colors:String(p.colors||p.Colores||'').trim(),promoPrice:num(p.promoPrice??p.PrecioPromocion),promoText:String(p.promoText||p.PromocionTexto||'').trim(),details:cleanDetails(p.details??p.Detalles),codAllowed:yes(p.codAllowed??p.PagoAlRecibir??'SI'),freeShipping:includesFreeShipping(p),active:yes(p.active??p.Activo??'SI')};
  }
  function recentFirst(a,b){const date=value=>{const n=Date.parse(value||'');return Number.isFinite(n)?n:0;};return date(b.createdAt)-date(a.createdAt)||(Number(b.catalogOrder)||0)-(Number(a.catalogOrder)||0);}
  function researchPage(raw){try{const url=new URL(raw);return url.protocol==='https:'&&!/(?:^|\.)(?:tiktok\.com|youtube\.com|youtu\.be|facebook\.com|fb\.watch|instagram\.com|vimeo\.com|dailymotion\.com|pinterest\.com)$/.test(url.hostname)&&!/^\/(?:shorts|reels?|watch|videos?)(?:\/|$)/i.test(url.pathname);}catch{return false;}}
@@ -59,8 +69,12 @@
   return {mode,label:known?labels[mode]:labels.national,amount:shipping,valid,error:valid?'':known?'Ingresá un costo de envío entre L 0 y L 1,000,000, sin centavos.':'Elegí una opción de entrega válida.',note:mode==='free'?String(choice.note||'').trim().slice(0,120):''};
  }
  function quote(items,mode,config={},delivery={}){
-  const option=deliveryOption(config,delivery),shipping=option.amount,min=num(config.codMinimum??350),codRate=num(config.codRate??.1),tigoRate=num(config.tigoRate??.10);
+  let option=deliveryOption(config,delivery);
+  const min=num(config.codMinimum??350),codRate=num(config.codRate??.1),tigoRate=num(config.tigoRate??.10);
   const valid=items.filter(i=>i.product&&i.qty>0&&i.product.active&&i.product.stock>0);
+  const included=valid.length>0&&valid.every(i=>includesFreeShipping(i.product));
+  if(option.mode==='national'&&included)option={...option,amount:0,label:'Envío gratis incluido',note:'Incluido en los productos seleccionados'};
+  const shipping=option.amount;
   const subtotal=valid.reduce((v,i)=>v+unitPrice(i.product,i.qty)*i.qty,0);
   const qty=valid.reduce((v,i)=>v+i.qty,0),violations=[];
   if(subtotal<min)violations.push(`La compra mínima para pagar al recibir es ${money(min)} en productos.`);
@@ -71,7 +85,7 @@
   const codAllowed=violations.length===0;const base=subtotal+(qty?shipping:0);
   const rate=mode==='cod'?codRate:mode==='tigo'?tigoRate:0;
   const total=integerTotal(base*(1+rate));const fee=total-base;
-  return {valid,subtotal,units:qty,shipping:qty?shipping:0,delivery:option,base,rate,fee,total,deposit:mode==='cod'?shipping+fee:total,balance:mode==='cod'?subtotal:0,mode,codAllowed,reasons:violations};
+  return {valid,subtotal,units:qty,shipping:qty?shipping:0,delivery:option,freeShippingIncluded:option.mode==='national'&&included,base,rate,fee,total,deposit:mode==='cod'?shipping+fee:total,balance:mode==='cod'?subtotal:0,mode,codAllowed,reasons:violations};
  }
  function number(){const d=new Date();const z=x=>String(x).padStart(2,'0');let s='';if(typeof crypto!=='undefined'&&crypto.getRandomValues){const a=new Uint32Array(1);crypto.getRandomValues(a);s=(a[0]%1000000).toString().padStart(6,'0')}else s=Math.floor(Math.random()*1000000).toString().padStart(6,'0');return `GC-${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}-${s}`;}
  function waMessage(items,q,id,delivery={}){
@@ -90,6 +104,6 @@
   lines.push('','Solicito confirmar disponibilidad y datos de pago.');return lines.join('\n');
  }
  function productSearchText(p){const d=cleanDetails(p.details);return [p.name,p.category,p.code,p.colors,p.description,d.brand,d.model,d.compatibility,d.connection,d.size,d.material,d.power].filter(Boolean).join(' ');}
- return {productSearchText,recentFirst,researchPage,mergeCatalog,matchesSearch,num,yes,cleanProduct,cleanDetails,tiers,roundOfferPrice,unitPrice,integerTotal,deliveryOption,quote,money,number,waMessage};
+ return {productSearchText,recentFirst,researchPage,mergeCatalog,matchesSearch,num,yes,cleanProduct,cleanDetails,includesFreeShipping,withoutShippingFlag,tiers,roundOfferPrice,unitPrice,integerTotal,deliveryOption,quote,money,number,waMessage};
 });
 
