@@ -1,0 +1,143 @@
+/* Gamer Comayagua · ajustes de app móvil y compras · 2026-11-05
+   Mantiene intactas las fichas de productos: solo ajusta encabezados, filtros,
+   navegación, carrito y nuevas funciones de pago / bancos. */
+.gc-free-shipping-option{display:block;min-width:0;padding:15px 17px!important;border:1px solid #b9ddc7;border-radius:14px;background:#f1faf4;color:#173b2b}
+.gc-free-shipping-option .gc-free-shipping-title{display:flex;align-items:center;gap:11px;font-size:14px;line-height:1.4}
+.gc-free-shipping-option input[type=checkbox]{width:22px;height:22px;accent-color:#178249;flex:none}
+.gc-free-shipping-option small{display:block;margin:8px 0 0 33px;color:#456e54;font-size:12px;line-height:1.5}
+
+/* Menos tarjetas y mensajes repetidos en la portada. */
+body.gc-home .home-copy h1{max-width:20ch}
+body.gc-home .home-benefits{border-color:#ebeff5}
+body.gc-home .home-benefits-grid>div{padding:0}
+body.gc-home .home-category{min-height:102px;gap:9px;padding:16px;border-radius:14px}
+body.gc-home .home-category:before{width:3px}
+body.gc-home .home-category strong{font-size:15px}
+body.gc-home .home-category span{font-size:11px}
+body.gc-home .home-visual{box-shadow:0 14px 40px #06162a24}
+
+/* Barra de búsqueda forma parte de la página: al desplazar, NO oculta productos. */
+body[data-page="productos"] .catalog-page .filters{
+ position:static!important;top:auto!important;inset:auto!important;
+ z-index:auto!important;backdrop-filter:none!important;
+ margin-bottom:8px!important;
+ box-shadow:0 3px 12px #16314b0b!important;
+}
+
+/* Banco: presentación sencilla, sin el bloque azul gigante. */
+body[data-page="cuentas"] .bank-page .page-banner{
+ background:#fff!important;border:0!important;box-shadow:none!important;
+ color:#182e46!important;padding:15px 4px 10px!important;
+ margin-top:10px!important;margin-bottom:6px!important;border-radius:0!important;
+}
+body[data-page="cuentas"] .bank-page .page-banner h1{color:#132f4b!important;font-size:clamp(27px,4vw,37px)!important;line-height:1.16!important;margin:5px 0 8px!important}
+body[data-page="cuentas"] .bank-page .page-banner p{color:#61758b!important;line-height:1.55!important;max-width:700px}
+body[data-page="cuentas"] .bank-page .page-banner .eyebrow{color:#276aa3!important;font-size:10px!important;letter-spacing:1.4px!important}
+body[data-page="cuentas"] .bank-page .bank-grid{margin-bottom:14px}
+.gc-copy-banks-bar{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:18px 20px;border:1px solid #cbddeb;background:#f3f8fd;border-radius:17px;margin:16px 0 19px}
+.gc-copy-banks-bar>div{min-width:0;flex:1 1 200px}
+.gc-copy-banks-bar strong{display:block;font-size:16px;color:#152f49;margin-bottom:4px}
+.gc-copy-banks-bar small{display:block;font-size:12px;color:#5d7388;line-height:1.45}
+.gc-copy-banks-bar button{min-height:48px;border-radius:11px;white-space:normal;background:#163f6b;color:#fff}
+.gc-copy-banks-bar button[hidden]{display:none!important}
+
+/* Calculadora con envío ya incluido, sin modificar los importes del carrito. */
+body[data-page="pagos"] .estimate-free-toggle{
+ display:flex!important;align-items:center;gap:12px;
+ padding:14px!important;border:1px solid #9ed9be!important;border-radius:13px;
+ background:#eefaf3!important;color:#183e2c!important;cursor:pointer;margin:12px 0!important
+}
+body[data-page="pagos"] .estimate-free-toggle input{
+ display:block;flex:none;width:23px;height:23px;accent-color:#18844f
+}
+body[data-page="pagos"] .estimate-free-toggle span{display:flex;flex-direction:column;gap:4px;min-width:0}
+body[data-page="pagos"] .estimate-free-toggle strong{color:#143d2c!important;font-size:14px;line-height:1.35}
+body[data-page="pagos"] .estimate-free-toggle small{color:#3e7255!important;font-size:12px;line-height:1.4}
+body[data-page="pagos"] .shipping-calc-result .estimate-split small{line-height:1.35;overflow-wrap:anywhere}
+
+/* Carrito: controles a la derecha y mejor jerarquía del anticipo. */
+body[data-page] #cartOverlay .cart-line .actions{justify-content:flex-end!important}
+body[data-page] #cartOverlay .deposit-row{border:1px solid #b7d1e7!important;border-radius:12px!important}
+body[data-page] #cartOverlay .deposit-row small{line-height:1.45!important;overflow-wrap:anywhere}
+@media(min-width:761px){
+ body[data-page] #cartOverlay .cart-line .actions{margin-left:auto!important}
+ body.gc-home .home-hero-grid{min-height:0}
+}
+@media(max-width:760px){
+ /* Portada menos alta y más útil, sin bloque de tres accesos enormes. */
+ body.gc-home .home-hero-grid{padding-block:24px!important;gap:18px!important}
+ body.gc-home .home-copy h1{font-size:clamp(31px,8.4vw,40px)!important;line-height:1.12!important;letter-spacing:-1.25px!important;margin:12px 0!important}
+ body.gc-home .home-copy>p{font-size:13px!important;line-height:1.55!important}
+ body.gc-home .home-kicker{font-size:10px!important;padding:7px 10px!important}
+ body.gc-home .home-hero-actions{margin-top:18px!important;gap:8px!important}
+ body.gc-home .home-hero-actions .home-btn{min-height:43px!important;font-size:11px!important}
+ body.gc-home .home-hero-actions .home-btn-primary{min-height:48px!important;font-size:13px!important}
+ body.gc-home .home-visual{padding:10px!important;border-radius:16px!important;max-width:440px}
+ body.gc-home .home-visual-grid{gap:7px!important}
+ body.gc-home .home-visual-grid img{padding:5px!important;aspect-ratio:1.5!important}
+ body.gc-home .home-visual-label{margin-bottom:9px!important}
+ body.gc-home .home-visual-foot{margin-top:9px!important}
+ body.gc-home .home-trust-row{flex-wrap:nowrap!important;gap:6px!important;overflow-x:auto;scrollbar-width:none;margin-top:12px!important;padding-bottom:2px}
+ body.gc-home .home-trust-row span{white-space:nowrap!important;font-size:10px!important}
+ body.gc-home .home-trust-row::-webkit-scrollbar{display:none}
+ body.gc-home .home-benefits-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;padding-block:13px!important}
+ body.gc-home .home-benefits-grid>div{flex-direction:column;align-items:center;text-align:center;gap:6px!important}
+ body.gc-home .home-benefit-icon{width:32px!important;height:32px!important;font-size:11px!important}
+ body.gc-home .home-benefits-grid strong{font-size:10px!important;line-height:1.25!important}
+ body.gc-home .home-benefits-grid small{display:none!important}
+ body.gc-home .home-category{min-height:100px!important;padding:12px!important;gap:12px!important;border-radius:12px!important}
+ body.gc-home .home-category strong{font-size:12px!important}
+ body.gc-home .home-category span{font-size:10px!important}
+ body.gc-home .home-section{padding-block:34px!important}
+ body.gc-home .home-section-heading{margin-bottom:15px!important}
+ body.gc-home .home-section-heading h2{font-size:24px!important}
+ body.gc-home .home-product-copy{padding:10px!important}
+ body.gc-home .home-header-cta{min-height:42px}
+ /* Nunca dejar una barra flotando sobre los artículos durante el scroll. */
+ body[data-page="productos"] .catalog-page .filters{
+   position:static!important;top:auto!important;z-index:auto!important;
+   border-radius:13px!important;box-shadow:0 3px 13px #17314b09!important
+ }
+ body[data-page="productos"] .catalog-page .catalog{padding-top:10px!important;padding-bottom:72px!important}
+ body[data-page="productos"] .catalog-page .filters #search{min-height:45px!important}
+ body[data-page="productos"] .catalog-page .filters select.field{min-height:43px!important}
+ /* Barra inferior compacta y pegada al borde visible de la app. */
+ body.gc-home .home-mobile-nav,body[data-page] .mobile-nav{
+   position:fixed!important;bottom:0!important;left:0!important;right:0!important;
+   padding:2px 6px max(1px,env(safe-area-inset-bottom))!important;
+   border-radius:0!important;box-shadow:0 -3px 12px #17314b12!important;
+   background:#fff!important;min-height:0!important;align-items:center!important;
+ }
+ body.gc-home .home-mobile-nav a,body[data-page] .mobile-nav a,body[data-page] .mobile-nav button{
+   min-height:48px!important;padding:4px 1px!important;gap:2px!important;
+   font-size:10px!important;line-height:1.15!important
+ }
+ body.gc-home .home-mobile-nav svg,body[data-page] .mobile-nav .ui-icon{width:20px!important;height:20px!important}
+ body.gc-home{padding-bottom:calc(58px + env(safe-area-inset-bottom))!important}
+ body[data-page="cuentas"] .bank-page .page-banner{padding:12px 0 10px!important;margin-block:7px 4px!important}
+ body[data-page="cuentas"] .bank-page .page-banner p{font-size:13px!important;margin:0!important}
+ body[data-page="cuentas"] .bank-page .page-banner h1{font-size:27px!important}
+ .gc-copy-banks-bar{padding:13px;gap:10px;border-radius:13px}
+ .gc-copy-banks-bar strong{font-size:14px}
+ .gc-copy-banks-bar button{width:100%;min-height:47px}
+ body[data-page="pagos"] .estimate-free-toggle{padding:12px!important}
+ body[data-page] #cartOverlay .cart-line .actions{
+   grid-column:2!important;grid-row:2!important;
+   justify-content:flex-end!important;gap:5px!important;
+ }
+ body[data-page] #cartOverlay .cart-line .actions button[data-qty]{
+   width:41px!important;min-width:41px!important;height:43px!important;min-height:43px!important;flex-basis:41px!important
+ }
+ body[data-page] #cartOverlay .cart-line .actions b{min-width:23px!important;flex-basis:23px!important}
+ body[data-page] #cartOverlay .cart-line .actions button[data-remove]{
+   min-width:38px!important;min-height:43px!important
+ }
+}
+@media(max-width:370px){
+ body.gc-home .home-mobile-nav a,body[data-page] .mobile-nav a,body[data-page] .mobile-nav button{font-size:9px!important}
+ body[data-page] #cartOverlay .cart-line{grid-template-columns:48px minmax(0,1fr)!important;padding:10px!important;column-gap:8px!important}
+ body[data-page] #cartOverlay .cart-line>img{width:48px!important;height:48px!important}
+ body[data-page] #cartOverlay .cart-line .actions button[data-qty]{width:36px!important;min-width:36px!important;height:42px!important;min-height:42px!important;flex-basis:36px!important}
+ body[data-page] #cartOverlay .cart-line .actions button[data-remove]{min-width:36px!important}
+}
+@media(prefers-reduced-motion:reduce){body.gc-home *,body[data-page] *{scroll-behavior:auto!important}}
