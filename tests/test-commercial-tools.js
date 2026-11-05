@@ -32,4 +32,14 @@ assert.equal(P.photoFor({...item,image:'https://otro.invalid'},manifest),null);
 assert.equal(P.photoFor({...item,image:'assets/products/imagen.webp'},{}),'assets/products/imagen.webp');
 assert.equal(P.filename(item,'story'),'Gamer-Comayagua-CTRL-001-story.png');
 assert.equal(P.variants.story.height,1920);assert.equal(P.variants.feed.height,1350);
+const drawn=[];const ctx={
+ fillText:(value,x,y)=>drawn.push(String(value)),drawImage:()=>drawn.push('PHOTO'),
+ measureText:value=>({width:String(value).length*25}),beginPath(){},roundRect(){},fill(){},fillRect(){},
+ save(){},restore(){},translate(){},rotate(){},clip(){},set fillStyle(v){},set font(v){}
+};
+const canvas={width:0,height:0,getContext:()=>ctx},photo={naturalWidth:800,naturalHeight:800};
+const output=P.render(canvas,item,photo,{format:'feed',price:'L 300'});
+assert.deepEqual(output,{width:1080,height:1350});
+assert.ok(drawn.includes('PHOTO'),'Incluye fotografía original');
+assert.ok(drawn.some(text=>text.includes('GAMER COMAYAGUA')),'Mantiene marca de agua visible');
 console.log('PASS herramientas comerciales: guardado seguro, métricas locales y foto promocional verificada.');
