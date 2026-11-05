@@ -1,0 +1,37 @@
+/* Instrumentos comerciales de Gamer Comayagua */
+.gc-quick-trigger{border-color:#bfd8e9!important;background:#e9f4ff!important;color:#145482!important}
+.gc-quick-dialog{max-width:540px!important;width:min(540px,calc(100vw - 24px));padding:clamp(18px,3vw,30px)!important}
+.gc-quick-dialog .dialog-head{margin-bottom:14px}
+.gc-quick-product{font-size:15px;font-weight:750;line-height:1.5;color:#213f5b;overflow-wrap:anywhere}
+.gc-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
+.gc-quick-grid label{font-size:13px;font-weight:750;color:#35536f;display:grid;gap:7px}
+.gc-quick-grid label:last-child{grid-column:1/-1}
+.gc-quick-grid input{min-height:46px;min-width:0}
+.gc-quick-help{font-size:12px;color:#506b83;line-height:1.65;background:#f1f6fb;border-radius:10px;padding:11px 13px}
+.gc-quick-note{min-height:22px;font-size:13px;color:#9b3e33;line-height:1.5}
+.gc-quick-actions{display:flex;gap:10px;justify-content:flex-end}
+.gc-quick-actions .btn{min-height:46px}
+.gc-local-panel{margin:20px 0;padding:24px}
+.gc-local-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.gc-local-head h2{margin:3px 0 7px;color:#163c60}
+.gc-local-head p{max-width:750px;font-size:13px;line-height:1.6;color:#516b83}
+.gc-local-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:20px 0}
+.gc-local-stats article{background:#eef5fc;border:1px solid #d4e3f2;border-radius:13px;padding:15px}
+.gc-local-stats strong{font-size:27px;display:block;color:#16426a}
+.gc-local-stats span{font-size:12px;color:#3f6383}
+.gc-local-panel h3{font-size:16px;margin:20px 0 9px}
+.gc-local-ranking{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.gc-local-ranking>div{display:grid;gap:3px;border:1px solid #e0eaf3;border-radius:11px;padding:11px 14px}
+.gc-local-ranking span{font-weight:750;overflow-wrap:anywhere}
+.gc-local-ranking small,.gc-local-empty{color:#637c94;font-size:12px}
+.mg-promo-image{margin-top:24px;padding:20px;border:1px solid #d9e6f2;border-radius:15px;background:#f7fafd}
+.mg-promo-image h3{font-size:17px;color:#183d60;margin:0 0 6px}
+.mg-promo-image p{font-size:13px;line-height:1.6;color:#55718d}
+.mg-promo-image-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.mg-promo-image-actions button{min-height:45px}
+.mg-promo-status{font-weight:650;min-height:25px}
+@media(max-width:760px){
+ .gc-quick-grid{grid-template-columns:1fr}.gc-quick-actions .btn{flex:1}.gc-quick-dialog{max-height:calc(100dvh - 24px);overflow:auto}
+ .gc-local-panel{padding:16px}.gc-local-head{flex-direction:column}.gc-local-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .gc-local-ranking{grid-template-columns:1fr}.mg-promo-image-actions button{width:100%}
+}

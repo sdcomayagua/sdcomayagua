@@ -1,0 +1,14 @@
+/* Gamer Comayagua · Edición comercial rápida */
+.gc-quick-trigger{border-color:#b9d7ea!important;background:#eaf4fd!important;color:#13518a!important}
+.gc-quick-dialog{max-width:540px!important;width:min(540px,calc(100vw - 24px));padding:clamp(18px,3vw,30px)!important}
+.gc-quick-dialog .dialog-head{margin-bottom:14px}
+.gc-quick-product{font-size:15px;font-weight:750;line-height:1.5;color:#213f5b;overflow-wrap:anywhere}
+.gc-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
+.gc-quick-grid label{font-size:13px;font-weight:750;color:#35536f;display:grid;gap:7px}
+.gc-quick-grid label:last-child{grid-column:1/-1}
+.gc-quick-grid input{min-height:46px;min-width:0}
+.gc-quick-help{font-size:12px;color:#506b83;line-height:1.65;background:#f1f6fb;border-radius:10px;padding:11px 13px}
+.gc-quick-note{min-height:22px;font-size:13px;color:#9b3e33;line-height:1.5}
+.gc-quick-actions{display:flex;gap:10px;justify-content:flex-end}
+.gc-quick-actions .btn{min-height:46px}
+@media(max-width:560px){.gc-quick-grid{grid-template-columns:1fr}.gc-quick-actions .btn{flex:1}.gc-quick-dialog{max-height:calc(100dvh - 24px);overflow:auto}}

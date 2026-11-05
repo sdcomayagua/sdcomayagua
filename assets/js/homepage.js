@@ -46,6 +46,7 @@
   if(count&&$('homeResumeCartCount'))$('homeResumeCartCount').textContent='('+count+')';
  }
  async function init(){
+  window.GC_LOCAL_INSIGHTS?.record('visit');
   resumeCart();
   if($('homeYear'))$('homeYear').textContent=String(new Date().getFullYear());
   display(root.GC_CATALOGO_INICIAL||[]);
