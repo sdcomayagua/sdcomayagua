@@ -24,7 +24,7 @@ body[data-page="productos"] #productGrid .product:hover{transform:translateY(-3p
 body[data-page="productos"] #productGrid .product .product-name{overflow-wrap:anywhere}
 body[data-page="productos"] #productGrid .product img{max-width:100%}
 @media(min-width:1200px){
- .gc-home .home-wrap{max-width:1480px}
+ .gc-home .home-wrap{max-width:1760px}
  .gc-home .home-hero-grid{gap:clamp(35px,5vw,90px);padding-block:76px}
  .gc-home .home-copy h1{font-size:clamp(48px,4.4vw,68px)}
  .gc-home .home-section{padding-block:75px}
