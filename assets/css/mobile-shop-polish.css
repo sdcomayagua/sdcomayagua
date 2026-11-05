@@ -171,3 +171,14 @@ body[data-page="cuentas"] .bank-copy-row.bank-account-primary strong{
   padding:5px 2px!important;font-size:10px!important
  }
 }
+
+/* Guardarraíl de accesibilidad: en tablets el botón de compra debe ser táctil. */
+@media(min-width:761px) and (max-width:1024px){
+ body[data-page="productos"] .catalog-page #productGrid .product .product-actions .btn{
+  min-height:44px!important;
+  padding-block:10px!important;
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+ }
+}
