@@ -5,7 +5,7 @@ if(!I||!A||!document.getElementById('adminPanel'))return;
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const container=document.createElement('section');container.className='box gc-local-panel';container.setAttribute('aria-label','Actividad local');
 container.innerHTML='<div class="gc-local-head"><div><span class="eyebrow">Estadísticas · privacidad</span><h2>Actividad de este navegador</h2><p>Contadores de los últimos 30 días registrados únicamente en este dispositivo. No representan las visitas ni las ventas totales de la tienda; no se envían a Google ni a terceros.</p></div><button class="btn outline small" type="button" id="gcLocalClear">Borrar datos de este navegador</button></div><div class="gc-local-stats" id="gcLocalStats"></div><h3>Artículos consultados en este dispositivo</h3><div class="gc-local-ranking" id="gcLocalRanking"></div>';
-const anchor=document.getElementById('mgViewInventory');anchor.parentNode.insertBefore(container,anchor);
+const anchor=document.getElementById('mgViewInventory');if(!anchor)return;anchor.appendChild(container);
 const $=id=>document.getElementById(id);
 function render(){
  const summary=I.summary();
