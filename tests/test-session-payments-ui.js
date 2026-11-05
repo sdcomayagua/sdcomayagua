@@ -19,7 +19,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  await page.locator('#gcQuickForm [name=quickPrice]').fill('235');
  await page.locator('#gcQuickForm [name=quickStock]').fill('6');
  await page.locator('#gcQuickSave').click();
- await page.locator('#gcQuickOverlay[hidden]').waitFor();
+ await page.locator('#gcQuickOverlay').waitFor({state:'hidden'});
  assert.equal(Number(env.get('A','Precio')),235,'Precio confirmado por Google de prueba');
  assert.equal(Number(env.get('A','Stock')),6,'Existencias confirmadas');
  assert.equal(env.get('A','Costo'),73,'Costo privado intacto');
