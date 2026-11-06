@@ -33,6 +33,14 @@ function titleRows(ctx,name,maxWidth=952,maxLines=2){
  }
  return rows;
 }
+async function loadBrandLogo(){
+ return new Promise((resolve,reject)=>{
+  const image=new Image();
+  image.onload=()=>resolve(image);
+  image.onerror=()=>reject(Error('No se pudo cargar el logo oficial.'));
+  image.src='assets/img/logo-rojo.webp';
+ });
+}
 async function loadPhoto(product,source){
  const photos=root.GC_PHOTO_DOWNLOAD;
  if(!photos?.photoBlob)throw Error('No está disponible la descarga protegida de fotos.');
@@ -67,11 +75,18 @@ async function render(product,source,settings={}){
  if(!ctx)throw Error('Este navegador no permite crear la cotización.');
  rect(ctx,0,0,width,height,COLORS.white);
  rect(ctx,0,0,width,13,COLORS.red);
- text(ctx,'GAMER',64,93,45,COLORS.navy,900);
- text(ctx,'COMAYAGUA',256,93,45,COLORS.red,900);
- text(ctx,'COTIZACIÓN DE PRODUCTO',66,139,21,COLORS.muted,700);
- text(ctx,'1 UNIDAD',1014,137,21,COLORS.muted,700,'right');
- line(ctx,64,166,1016,166);
+ // Encabezado oficial, igual que la marca del sitio: guacamaya + wordmark.
+ try{
+  const logo=await loadBrandLogo();
+  const w=logo.naturalWidth||logo.width,h=logo.naturalHeight||logo.height;
+  const scale=Math.min(104/w,104/h);
+  ctx.drawImage(logo,55+(104-w*scale)/2,31+(104-h*scale)/2,w*scale,h*scale);
+ }catch(error){ /* El archivo sigue siendo descargable si el logo no se puede cargar. */ }
+ text(ctx,'GAMER',182,91,41,COLORS.navy,900);
+ text(ctx,'COMAYAGUA',361,91,41,COLORS.red,900);
+ text(ctx,'COTIZACIÓN DE PRODUCTO',184,128,20,COLORS.muted,700);
+ text(ctx,'1 UNIDAD',1014,128,20,COLORS.muted,700,'right');
+ line(ctx,64,159,1016,159);
  // Fondo blanco sobre un panel tenue; las fotos mantienen sus colores originales.
  rect(ctx,63,191,954,590,COLORS.pale,18);
  try{
