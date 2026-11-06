@@ -1,0 +1,38 @@
+/* Gamer Comayagua — Parche 1: tienda clara y catálogo sin acciones extras. */
+/* El tema predeterminado siempre será claro, aun cuando el sistema solicite oscuro. */
+:root{color-scheme:only light!important}
+html{color-scheme:only light!important;background:#fff!important}
+body[data-page="productos"],body[data-page="pagos"],body[data-page="cuentas"]{color-scheme:only light!important;background:#fff!important;color:#172d45!important}
+body[data-page="productos"] .header,body[data-page="productos"] .catalog-page,
+body[data-page="productos"] .catalog-page .catalog,body[data-page="productos"] .mobile-nav{background:#fff!important;color:#172d45!important}
+body[data-page="productos"] .catalog-page .filters{background:#fff!important;border:1px solid #dce6f0!important;box-shadow:0 3px 12px rgba(19,47,75,.06)!important}
+body[data-page="productos"] .catalog-page .field{background:#fff!important;color:#172f48!important;border-color:#dbe5ee!important;color-scheme:light!important}
+body[data-page="productos"] .catalog-page .field::placeholder{color:#6b8196!important;opacity:1}
+body[data-page="productos"] .catalog-page #productGrid .product,
+body[data-page="productos"] .catalog-page #productGrid .product .product-body{background:#fff!important;color:#1c334d!important;border-color:#e0e8f0!important}
+body[data-page="productos"] .catalog-page #productGrid .product .photo{background:#f8fafc!important}
+body[data-page="productos"] .catalog-page #productGrid .product .product-name{color:#162f4a!important}
+body[data-page="productos"] .catalog-page #productGrid .product .category{color:#6a7e92!important}
+body[data-page="productos"] .catalog-page #productGrid .product .price-current{color:#e02c43!important}
+body[data-page="productos"] .catalog-page #productGrid .product .stock{color:#64798d!important}
+body[data-page="productos"] .catalog-page .section-top,
+body[data-page="productos"] .catalog-page .section-top h2,
+body[data-page="productos"] .catalog-page .catalog-meta{color:#18324f!important}
+body[data-page="productos"] .catalog-page #productGrid .product .product-actions{display:flex!important;flex-direction:column!important}
+body[data-page="productos"] #productGrid .gc-download-row,
+body[data-page="productos"] #productGrid .gc-quote-card{display:none!important}
+body[data-page="productos"] #detailOverlay .dialog,
+body[data-page="productos"] #detailOverlay .detail,
+body[data-page="productos"] #detailOverlay .detail-info,
+body[data-page="productos"] #detailOverlay .detail-buttons{background:#fff!important;color:#172f49!important}
+body[data-page="productos"] #detailOverlay .detail-price-block{background:#f5f8fc!important;color:#173451!important}
+body[data-page="productos"] #detailOverlay .detail-main{background:#f6f8fb!important}
+body[data-page="productos"] #detailOverlay .detail-main img{background:#fff!important}
+body[data-page="productos"] .mobile-nav a[aria-current="page"]{background:#eaf3ff!important;color:#174f8a!important}
+body[data-page="productos"] .mobile-nav a,body[data-page="productos"] .mobile-nav button{color:#64788c!important}
+body[data-page="productos"] .catalog-page .catalog-filter-actions button{color:#215274}
+body[data-page="productos"] .catalog-page .catalog-filter-actions button:focus-visible{outline:3px solid #2677c5}
+@media(prefers-color-scheme:dark){
+ :root,html,body[data-page="productos"],body[data-page="pagos"],body[data-page="cuentas"]{color-scheme:only light!important}
+ body[data-page="productos"] .header,body[data-page="productos"] .catalog-page{background:#fff!important}
+}
