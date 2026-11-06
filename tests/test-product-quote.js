@@ -3,8 +3,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const C=require('../assets/js/core');
 const source=fs.readFileSync(path.join(__dirname,'../assets/js/product-quote.js'),'utf8');
 function fixture(){
- const labels=[],ctx={
-  beginPath(){},roundRect(){},fill(){},fillRect(){},stroke(){},moveTo(){},lineTo(){},drawImage(){},
+ const labels=[],images=[],ctx={
+  beginPath(){},roundRect(){},fill(){},fillRect(){},stroke(){},moveTo(){},lineTo(){},drawImage(...args){images.push(args);},
   measureText:s=>({width:String(s).length*24}),
   fillText:s=>labels.push(String(s)),
   textAlign:'left',textBaseline:'alphabetic'
@@ -12,9 +12,13 @@ function fixture(){
  const canvas={width:0,height:0,getContext:()=>ctx};
  const window={GC:C,GC_PHOTO_DOWNLOAD:{photoBlob:async()=>({})},GC_WATERMARK:{get:()=>({})},createImageBitmap:async()=>({width:600,height:500,close(){}})};
  const document={createElement:name=>{assert.equal(name,'canvas');return canvas;}};
- const context={window,document,console,Image:class{}};
+ class BrandLogoMock{
+ constructor(){this.width=256;this.height=256;this.naturalWidth=256;this.naturalHeight=256;}
+ set src(value){this.source=value;queueMicrotask(()=>this.onload?.());}
+}
+ const context={window,document,console,Image:BrandLogoMock};
  vm.runInNewContext(source,context);
- return {api:window.GC_PRODUCT_QUOTE,labels};
+ return {api:window.GC_PRODUCT_QUOTE,labels,images};
 }
 async function main(){
  const normal={id:'MOUSE',name:'Mouse Gaming K90',price:300,stock:2,active:true,codAllowed:false,discounts:''};
@@ -28,6 +32,7 @@ async function main(){
   };
   for(const method of Object.keys(expected))assert.equal(computed[method].total,expected[method].total);
   await f.api.render(p,'foto.jpg',settings);
+  assert.ok(f.images.some(args=>args[0]?.source==='assets/img/logo-rojo.webp'),'Debe dibujar el logo oficial dentro de la cotización');
   const content=f.labels.join(' | ');
   assert.match(content,/GAMER/);assert.match(content,/COMAYAGUA/);
   assert.match(content,/Depósito \/ transferencia/);
