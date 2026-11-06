@@ -90,7 +90,7 @@ async function render(product,source,settings={}){
  const priceY=nameBase+58;
  text(ctx,'PRECIO DEL PRODUCTO',66,priceY,21,COLORS.muted,700);
  text(ctx,C.money(C.unitPrice(product,1)),66,priceY+65,58,COLORS.red,900);
- const free=q.transfer.shipping===0;
+ const free=q.transfer.freeShippingIncluded===true;
  text(ctx,free?'✓ Envío nacional gratis incluido':'Envío nacional con empaque: '+C.money(q.transfer.shipping),1014,priceY+59,22,free?COLORS.green:COLORS.blue,700,'right');
  const sepY=priceY+100;
  line(ctx,65,sepY,1015,sepY,COLORS.line,2);
