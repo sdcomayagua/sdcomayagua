@@ -1152,7 +1152,7 @@
     "code": "Mouse-001",
     "name": "Mouse Stars Wars Darth Vader",
     "category": "Mouse",
-    "price": 700,
+    "price": 850,
     "stock": 2,
     "image": "https://drive.google.com/thumbnail?id=1x2vw-6qZ5IdetfxOY0IIMNjAMyHFw0Da&sz=w1200",
     "gallery": "https://drive.google.com/thumbnail?id=1rndUq2qVrQwZMmjdU11vzeqHBxG3Tbsp&sz=w1200, https://drive.google.com/thumbnail?id=1cNwShj6aGLhTnWOByLYfJa6LwbcRpZ0O&sz=w1200",
@@ -1161,7 +1161,7 @@
     "codAllowed": true,
     "active": true,
     "colors": "",
-    "promoPrice": 600,
+    "promoPrice": 700,
     "promoText": "Oferta · 16% en todos los productos",
     "details": {
       "weight": 130.0,
