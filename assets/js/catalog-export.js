@@ -10,7 +10,7 @@ try{const saved=JSON.parse(localStorage.getItem(noteStorage)||'null');if(saved){
 function saveText(){try{localStorage.setItem(noteStorage,JSON.stringify({mode:extraText.mode,layouts:extraText.layouts,notes:Object.fromEntries(extraText.notes)}));}catch{}}
 function layoutTextMode(density){return extraText.layouts[density]||(density===2?'description':extraText.mode==='description'?'none':extraText.mode);}
 function changeDensity(){
- if(state)extraText.layouts[$('catalogExportDensity').value]=$('catalogExportText').value;
+ if(state)extraText.layouts[state.layoutKey||String(state.density||6)]=$('catalogExportText').value;
  $('catalogExportText').value=layoutTextMode($('catalogExportDensity').value==='auto'?'auto':Number($('catalogExportDensity').value));
  saveText();textEditor();build();
 }
@@ -348,7 +348,7 @@ async function build(){
  const size=auto?12:[2,4,6,9,12,16].includes(Number($('catalogExportDensity').value))?Number($('catalogExportDensity').value):6;
  const selected=context.products.filter(p=>!hiddenIds.has(p.id)&&($('catalogExportOut').checked||p.stock>0));
  if($('catalogExportGroup').checked&&context.multipleCategories)selected.sort((a,b)=>a.category.localeCompare(b.category,'es'));
- context.count=selected.length;context.density=size;context.autoLayout=auto;
+ context.count=selected.length;context.density=size;context.autoLayout=auto;context.layoutKey=$('catalogExportDensity').value;
  const plan=auto?window.GC_CATALOG_LAYOUT.pages(selected):paginate(selected,size);context.textMode=$('catalogExportText').value;context.notes=new Map(extraText.notes);context.omittedText=0;
  $('catalogExportCount').textContent=selected.length+' producto'+(selected.length===1?'':'s')+' · '+plan.length+' página'+(plan.length>1?'s':'');
  $('catalogExportPreview').hidden=true;$('catalogExportEmpty').hidden=false;$('catalogExportEmpty').textContent=selected.length?'Preparando fotos y páginas…':'No hay productos con esta selección.';
