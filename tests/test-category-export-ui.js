@@ -21,6 +21,20 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#adminFilter').selectOption('');await page.locator('[data-delete-product="A"]').waitFor();
   for(const width of [390,360]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.ok((await page.locator('[data-delete-product="A"]').boundingBox()).height>=44);}
   await page.locator('[data-delete-product="B"]').click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:path.join(artifacts,'delete-mobile.png')});await page.locator('#productDeleteCancel').click();
+  await page.locator('#gcKitOpen').click();
+  await page.locator('[data-kit-add="A"]').click();await page.locator('[data-kit-add="B"]').click();
+  await page.locator('#gcKitName').fill('Kit de dos controles');
+  await page.locator('#gcKitSelected input[data-kit-price="A"]').fill('180');
+  await page.locator('#gcKitSelected input[data-kit-price="A"]').press('Tab');
+  await page.locator('#gcKitFinal').fill('350');
+  await page.locator('#gcKitShipping').check();
+  assert.match(await page.locator('#gcKitSum').innerText(),/400/);
+  assert.match(await page.locator('#gcKitTotal').innerText(),/350/);
+  await page.locator('#gcKitSave').click();
+  await page.locator('#gcKitMessage').filter({hasText:'Kit creado'}).waitFor({timeout:15000});
+  assert.ok(calls.some(r=>r.action==='saveProduct'&&r.product?.name==='Kit de dos controles'&&r.product?.discounts==='ENVIOGRATIS'));
+  assert.equal(fx.get('A','Stock'),10);assert.equal(fx.get('B','Stock'),4);
+  await page.locator('#gcKitClose').click();
   await page.close();
 
   const names=['Dedales V1 - Fibra de Carbón','Dedales V2 - Hilo de Plata','Dedales Gamer Pro de doble capa para pantalla táctil','Dedales de tejido transpirable','Dedales V5','Dedales MEMO para celular','Dedales edición azul','Dedales agotados'];
