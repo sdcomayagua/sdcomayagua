@@ -1,0 +1,8 @@
+/* Opciones de catálogo automático y selección por artículo */
+.catalog-export-selection{margin:10px 0 16px;border:1px solid #dce6ef;padding:11px 12px;border-radius:11px;background:#f9fbfe;color:#233e59}
+.catalog-export-selection summary{cursor:pointer;font-weight:750;font-size:13px}
+.catalog-export-selection-list{max-height:230px;overflow-y:auto;display:grid;gap:7px;margin:11px 0}
+.catalog-export-selection-list label{display:flex;align-items:center;gap:9px;padding:6px 8px;cursor:pointer;border:1px solid #edf0f3;border-radius:8px;background:white;line-height:1.4;font-size:12px}
+.catalog-export-selection-list label input{flex:none;width:17px;height:17px;accent-color:#286bb2}
+.catalog-export-selection button{min-height:42px}
+.catalog-export-controls .catalog-export-help{line-height:1.5;overflow-wrap:anywhere}

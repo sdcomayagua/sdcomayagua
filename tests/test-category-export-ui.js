@@ -47,9 +47,12 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   for(const width of [390,360,320]){await catalog.setViewportSize({width,height:844});assert.equal(await catalog.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await catalog.locator('#detailContent').evaluate(el=>el.scrollWidth>el.clientWidth),false);await catalog.locator('#detailContent').evaluate(el=>{el.scrollTop=el.scrollHeight;});const buy=await catalog.locator('#detailAdd').boundingBox();assert.ok(buy.y>=0&&buy.y+buy.height<=844&&buy.height>=44,'Agregar queda visible al recorrer toda la ficha en '+width);await catalog.locator('#detailContent').evaluate(el=>{el.scrollTop=0;});}
   await catalog.screenshot({path:path.join(artifacts,'detail-mobile.png')});await catalog.locator('#detailOverlay [data-close]').click();await catalog.setViewportSize({width:1440,height:1050});
   await catalog.locator('#exportCategory').click();await ready();assert.equal(await catalog.locator('#catalogExportCategory').innerText(),'Dedales');assert.match(await catalog.locator('#catalogExportCount').innerText(),/^8 productos/);assert.equal(await catalog.locator('#catalogExportRetry').isVisible(),false);
+  assert.equal(await catalog.locator('#catalogExportDensity').inputValue(),'auto','Automática debe ser la primera opción');
+  assert.match(await catalog.locator('#catalogExportPage').innerText(),/Página 1 de 1/);
+  const auto8=await catalog.evaluate(()=>window.__catalogScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')));
+  assert.equal(auto8.length,8);assert.equal(new Set(auto8.map(x=>x.x)).size,4);assert.equal(new Set(auto8.map(x=>x.y)).size,2);
+  await catalog.locator('#catalogExportDensity').selectOption('6');await ready();
   assert.match(await catalog.locator('#catalogExportPage').innerText(),/Página 1 de 2/);
-  assert.equal(await catalog.locator('#catalogExportDensity').inputValue(),'6','El formato predeterminado usa 6 productos');
-  assert.match(await catalog.locator('#catalogExportDensity option:checked').innerText(),/Recomendado/);
   const png=await download('catalogo.png');assert.equal(png.readUInt32BE(16),3060);assert.equal(png.readUInt32BE(20),3960);
   const scenes=await catalog.evaluate(()=>window.__catalogScenes),cards=scenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto='));
   assert.equal(cards.length,6);assert.equal(cards[0].y,cards[1].y);assert.equal(cards[2].y,cards[3].y);assert.equal(cards[4].y,cards[5].y);
@@ -104,11 +107,28 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   const premiumProducts=gridProducts.map((p,i)=>({...p,category:i<9?'Dedales':'Artículos Gamer'}));
   await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products,title:'Vitrina de productos',url:location.href,settings:{watermarkEnabled:false}}),premiumProducts);
   await ready();
-  assert.equal(await catalog.locator('#catalogExportDensity').inputValue(),'9','Con más de 16 artículos el catálogo completo usa Premium 3 × 3');
+  assert.equal(await catalog.locator('#catalogExportDensity').inputValue(),'auto','La distribución automática también es inicial para catálogos grandes');
   assert.match(await catalog.locator('#catalogExportCount').innerText(),/2 páginas/);
   const premiumScenes=await catalog.evaluate(()=>window.__catalogScenes);
   assert.deepEqual(premiumScenes.map(scene=>scene.filter(op=>op.kind==='link'&&op.url.includes('producto=')).length),[9,8],'Premium distribuye 17 productos en 9 y 8');
-  assert.ok(premiumScenes[1].some(op=>op.kind==='text'&&op.value==='ESCRIBINOS'),'El último hueco invita a conversar por WhatsApp');
+  const finalEight=premiumScenes[1].filter(op=>op.kind==='link'&&op.url.includes('producto='));
+  assert.equal(new Set(finalEight.map(op=>op.x)).size,4);
+  assert.equal(new Set(finalEight.map(op=>op.y)).size,2);
+  assert.ok(!premiumScenes[1].some(op=>op.kind==='text'&&op.value==='ESCRIBINOS'),'Sin tarjetas de relleno en automático');
+  await catalog.locator('#catalogExportClose').click();
+  for(const n of [3,4]){
+   await catalog.evaluate(({products,n})=>window.GC_CATALOG_EXPORT.open({products:products.slice(0,n),title:'Auto',url:location.href,settings:{watermarkEnabled:false}}),{products:gridProducts,n});
+   await ready();
+   const scene=await catalog.evaluate(()=>window.__catalogScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')));
+   assert.equal(scene.length,n);assert.equal(new Set(scene.map(op=>op.y)).size,1,'Todos en una sola fila');
+   await catalog.locator('#catalogExportClose').click();
+  }
+  await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products:products.slice(0,4),title:'Selección',url:location.href,settings:{watermarkEnabled:false}}),gridProducts);
+  await ready();await catalog.locator('#catalogExportSelection summary').click();
+  await catalog.locator('#catalogExportSelectionList input').first().uncheck();await ready();
+  assert.match(await catalog.locator('#catalogExportCount').innerText(),/^3 productos/);
+  await catalog.locator('#catalogExportSelectAll').click();await ready();
+  assert.match(await catalog.locator('#catalogExportCount').innerText(),/^4 productos/);
   await catalog.locator('#catalogExportClose').click();
   await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products,title:'Cuadrícula',url:location.href,settings:{watermarkEnabled:false}}),gridProducts);await ready();await catalog.locator('#catalogExportDensity').selectOption('16');await ready();
   const denseScenes=await catalog.evaluate(()=>window.__catalogScenes),denseCards=denseScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')),lastCard=denseScenes[1].find(op=>op.kind==='link'&&op.url.includes('producto='));
