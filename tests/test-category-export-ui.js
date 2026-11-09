@@ -21,6 +21,21 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#adminFilter').selectOption('');await page.locator('[data-delete-product="A"]').waitFor();
   for(const width of [390,360]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.ok((await page.locator('[data-delete-product="A"]').boundingBox()).height>=44);}
   await page.locator('[data-delete-product="B"]').click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:path.join(artifacts,'delete-mobile.png')});await page.locator('#productDeleteCancel').click();
+  await page.locator('#gcKitOpen').click();
+  await page.locator('[data-kit-add="A"]').click();await page.locator('[data-kit-add="B"]').click();
+  await page.locator('#gcKitName').fill('Kit de dos controles');
+  await page.locator('#gcKitSelected input[data-kit-price="A"]').fill('180');
+  await page.locator('#gcKitSelected input[data-kit-price="A"]').press('Tab');
+  await page.locator('#gcKitFinal').fill('350');
+  await page.locator('#gcKitShipping').check();
+  assert.match(await page.locator('#gcKitSum').innerText(),/400/);
+  assert.match(await page.locator('#gcKitTotal').innerText(),/350/);
+  await page.locator('#gcKitSave').click();
+  try{await page.locator('#gcKitMessage').filter({hasText:'Kit creado'}).waitFor({timeout:8000});}
+  catch(error){console.error('KIT SAVE DIAGNÓSTICO:',await page.locator('#gcKitMessage').innerText(),JSON.stringify(calls.slice(-5)));throw error;}
+  assert.ok(calls.some(r=>r.action==='saveProduct'&&r.product?.name==='Kit de dos controles'&&r.product?.discounts==='ENVIOGRATIS'));
+  assert.equal(fx.get('A','Stock'),10);assert.equal(fx.get('B','Stock'),4);
+  await page.locator('#gcKitClose').click();
   await page.close();
 
   const names=['Dedales V1 - Fibra de Carbón','Dedales V2 - Hilo de Plata','Dedales Gamer Pro de doble capa para pantalla táctil','Dedales de tejido transpirable','Dedales V5','Dedales MEMO para celular','Dedales edición azul','Dedales agotados'];
@@ -47,9 +62,12 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   for(const width of [390,360,320]){await catalog.setViewportSize({width,height:844});assert.equal(await catalog.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await catalog.locator('#detailContent').evaluate(el=>el.scrollWidth>el.clientWidth),false);await catalog.locator('#detailContent').evaluate(el=>{el.scrollTop=el.scrollHeight;});const buy=await catalog.locator('#detailAdd').boundingBox();assert.ok(buy.y>=0&&buy.y+buy.height<=844&&buy.height>=44,'Agregar queda visible al recorrer toda la ficha en '+width);await catalog.locator('#detailContent').evaluate(el=>{el.scrollTop=0;});}
   await catalog.screenshot({path:path.join(artifacts,'detail-mobile.png')});await catalog.locator('#detailOverlay [data-close]').click();await catalog.setViewportSize({width:1440,height:1050});
   await catalog.locator('#exportCategory').click();await ready();assert.equal(await catalog.locator('#catalogExportCategory').innerText(),'Dedales');assert.match(await catalog.locator('#catalogExportCount').innerText(),/^8 productos/);assert.equal(await catalog.locator('#catalogExportRetry').isVisible(),false);
+  assert.equal(await catalog.locator('#catalogExportDensity').inputValue(),'auto','Automática debe ser la primera opción');
+  assert.match(await catalog.locator('#catalogExportPage').innerText(),/Página 1 de 1/);
+  const auto8=await catalog.evaluate(()=>window.__catalogScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')));
+  assert.equal(auto8.length,8);assert.equal(new Set(auto8.map(x=>x.x)).size,4);assert.equal(new Set(auto8.map(x=>x.y)).size,2);
+  await catalog.locator('#catalogExportDensity').selectOption('6');await ready();
   assert.match(await catalog.locator('#catalogExportPage').innerText(),/Página 1 de 2/);
-  assert.equal(await catalog.locator('#catalogExportDensity').inputValue(),'6','El formato predeterminado usa 6 productos');
-  assert.match(await catalog.locator('#catalogExportDensity option:checked').innerText(),/Recomendado/);
   const png=await download('catalogo.png');assert.equal(png.readUInt32BE(16),3060);assert.equal(png.readUInt32BE(20),3960);
   const scenes=await catalog.evaluate(()=>window.__catalogScenes),cards=scenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto='));
   assert.equal(cards.length,6);assert.equal(cards[0].y,cards[1].y);assert.equal(cards[2].y,cards[3].y);assert.equal(cards[4].y,cards[5].y);
@@ -67,7 +85,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await catalog.locator('#catalogExportText').selectOption('custom');await ready();await catalog.locator('#catalogExportTextProduct').selectOption('DEDAL-0');
   const note='Compatible con pantallas táctiles. Ideal para Free Fire y COD Mobile.';
   await catalog.locator('#catalogExportCustomText').fill(note);await ready();assert.ok((await exportedText()).includes(note));
-  await catalog.locator('#catalogExportClose').click();await catalog.locator('#exportCategory').click();await ready();await catalog.locator('#catalogExportTextProduct').selectOption('DEDAL-0');assert.equal(await catalog.locator('#catalogExportCustomText').inputValue(),note);
+  await catalog.locator('#catalogExportClose').click();await catalog.locator('#exportCategory').click();await ready();await catalog.locator('#catalogExportDensity').selectOption('6');await ready();await catalog.locator('#catalogExportTextProduct').selectOption('DEDAL-0');assert.equal(await catalog.locator('#catalogExportCustomText').inputValue(),note);
   await catalog.setViewportSize({width:360,height:844});assert.equal(await catalog.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await catalog.screenshot({path:path.join(artifacts,'catalogo-texto-mobile.png')});await catalog.setViewportSize({width:1440,height:1050});
   await catalog.locator('#catalogExportText').selectOption('none');await ready();assert.ok(!(await exportedText()).includes(note));assert.equal(await catalog.locator('#catalogExportCustom').isVisible(),false);
   await catalog.locator('#catalogExportNext').click();assert.match(await catalog.locator('#catalogExportPreview').getAttribute('alt'),/Página 2 de 2/);assert.match(await catalog.locator('#catalogExportDownload').getAttribute('download'),/_02\.png$/);await download('catalogo-pagina-2.png');
@@ -97,18 +115,35 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await catalog.locator('#catalogExportClose').click();await catalog.locator('#search').fill('no existe este producto');await catalog.locator('#exportCategory').click();await catalog.locator('#catalogExportEmpty').filter({hasText:'No hay productos'}).waitFor();assert.equal(await catalog.locator('#catalogExportDownload').getAttribute('href'),null);await catalog.locator('#catalogExportClose').click();
   await catalog.locator('#search').fill('');await catalog.locator('#exportCategory').click();await ready();await catalog.locator('#catalogExportOverlay').press('Escape');assert.equal(await catalog.locator('#catalogExportOverlay').isVisible(),false);
   await catalog.locator('#search').fill('edición azul');await catalog.locator('#exportCategory').click();await ready();assert.match(await catalog.locator('#catalogExportCount').innerText(),/^1 producto/);await download('catalogo-un-producto.png');await catalog.locator('#catalogExportClose').click();
-  await catalog.locator('#search').fill('');await catalog.locator('#category').selectOption('');await catalog.locator('#exportCategory').click();await ready();assert.equal(await catalog.locator('#catalogExportGroupLabel').isVisible(),true);await catalog.locator('#catalogExportFormat').selectOption('pdf');
+  await catalog.locator('#search').fill('');await catalog.locator('#category').selectOption('');await catalog.locator('#exportCategory').click();await ready();assert.equal(await catalog.locator('#catalogExportGroupLabel').isVisible(),true);await catalog.locator('#catalogExportDensity').selectOption('6');await ready();await catalog.locator('#catalogExportFormat').selectOption('pdf');
   const grouped=(await download('catalogo-ordenado.pdf')).toString('latin1');assert.ok(grouped.indexOf('producto=OTHER')>grouped.indexOf('producto=DEDAL-'));assert.equal((grouped.match(/\/Type \/Page \/Parent/g)||[]).length,2);assert.match(grouped,/\/Type \/Outlines/);const groupedPages=[...grouped.matchAll(/(\d+) 0 obj\n<< \/Type \/Page \/Parent/g)].map(m=>Number(m[1])),destinations=[...grouped.matchAll(/\/Dest \[(\d+) 0 R \/Fit\]/g)].map(m=>Number(m[1]));assert.deepEqual(destinations,[groupedPages[0],groupedPages[1]]);
   await catalog.locator('#catalogExportGroup').uncheck();await ready();const recent=(await download('catalogo-recientes.pdf')).toString('latin1');assert.ok(recent.indexOf('producto=OTHER')<recent.indexOf('producto=DEDAL-'));assert.ok(!recent.includes('/Type /Outlines'));await catalog.locator('#catalogExportClose').click();
   const gridProducts=Array.from({length:17},(_,index)=>({...products[index%8],id:'GRID-'+index,code:'Catálogo-'+String(index+1).padStart(3,'0'),name:index===0?'Accesorio gamer de alta precisión para pantallas táctiles de teléfonos Android y iPhone':products[index%8].name,image:'assets/products/kouvolsen-x36-usb-c.webp'}));
   const premiumProducts=gridProducts.map((p,i)=>({...p,category:i<9?'Dedales':'Artículos Gamer'}));
   await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products,title:'Vitrina de productos',url:location.href,settings:{watermarkEnabled:false}}),premiumProducts);
   await ready();
-  assert.equal(await catalog.locator('#catalogExportDensity').inputValue(),'9','Con más de 16 artículos el catálogo completo usa Premium 3 × 3');
+  assert.equal(await catalog.locator('#catalogExportDensity').inputValue(),'auto','La distribución automática también es inicial para catálogos grandes');
   assert.match(await catalog.locator('#catalogExportCount').innerText(),/2 páginas/);
   const premiumScenes=await catalog.evaluate(()=>window.__catalogScenes);
   assert.deepEqual(premiumScenes.map(scene=>scene.filter(op=>op.kind==='link'&&op.url.includes('producto=')).length),[9,8],'Premium distribuye 17 productos en 9 y 8');
-  assert.ok(premiumScenes[1].some(op=>op.kind==='text'&&op.value==='ESCRIBINOS'),'El último hueco invita a conversar por WhatsApp');
+  const finalEight=premiumScenes[1].filter(op=>op.kind==='link'&&op.url.includes('producto='));
+  assert.equal(new Set(finalEight.map(op=>op.x)).size,4);
+  assert.equal(new Set(finalEight.map(op=>op.y)).size,2);
+  assert.ok(!premiumScenes[1].some(op=>op.kind==='text'&&op.value==='ESCRIBINOS'),'Sin tarjetas de relleno en automático');
+  await catalog.locator('#catalogExportClose').click();
+  for(const n of [3,4]){
+   await catalog.evaluate(({products,n})=>window.GC_CATALOG_EXPORT.open({products:products.slice(0,n),title:'Auto',url:location.href,settings:{watermarkEnabled:false}}),{products:gridProducts,n});
+   await ready();
+   const scene=await catalog.evaluate(()=>window.__catalogScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')));
+   assert.equal(scene.length,n);assert.equal(new Set(scene.map(op=>op.y)).size,1,'Todos en una sola fila');
+   await catalog.locator('#catalogExportClose').click();
+  }
+  await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products:products.slice(0,4),title:'Selección',url:location.href,settings:{watermarkEnabled:false}}),gridProducts);
+  await ready();await catalog.locator('#catalogExportSelection summary').click();
+  await catalog.locator('#catalogExportSelectionList input').first().uncheck();await ready();
+  assert.match(await catalog.locator('#catalogExportCount').innerText(),/^3 productos/);
+  await catalog.locator('#catalogExportSelectAll').click();await ready();
+  assert.match(await catalog.locator('#catalogExportCount').innerText(),/^4 productos/);
   await catalog.locator('#catalogExportClose').click();
   await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products,title:'Cuadrícula',url:location.href,settings:{watermarkEnabled:false}}),gridProducts);await ready();await catalog.locator('#catalogExportDensity').selectOption('16');await ready();
   const denseScenes=await catalog.evaluate(()=>window.__catalogScenes),denseCards=denseScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')),lastCard=denseScenes[1].find(op=>op.kind==='link'&&op.url.includes('producto='));

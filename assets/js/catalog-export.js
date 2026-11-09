@@ -2,15 +2,16 @@
 (function(){'use strict';
 const C=window.GC,$=id=>document.getElementById(id),W=1530,H=1980,SCALE=2;
 let state=null,epoch=0,trigger=null,fontReady=null,noteTimer=null;
+let hiddenIds=new Set();
 const buildInputs=['catalogExportPrices','catalogExportOut','catalogExportGroup','catalogExportDensity','catalogExportText'];
 const textModes=['none','description','details','custom'],noteStorage='gcCatalogTextV1';
 let extraText={mode:'none',layouts:{},notes:new Map()};
-try{const saved=JSON.parse(localStorage.getItem(noteStorage)||'null');if(saved){extraText.mode=textModes.includes(saved.mode)?saved.mode:'none';extraText.layouts=Object.fromEntries(Object.entries(saved.layouts||{}).filter(([density,mode])=>['2','4','6','9','12','16'].includes(density)&&textModes.includes(mode)));extraText.notes=new Map(Object.entries(saved.notes||{}).filter(([id,text])=>id&&typeof text==='string').map(([id,text])=>[id,text.slice(0,120)]));}}catch{}
+try{const saved=JSON.parse(localStorage.getItem(noteStorage)||'null');if(saved){extraText.mode=textModes.includes(saved.mode)?saved.mode:'none';extraText.layouts=Object.fromEntries(Object.entries(saved.layouts||{}).filter(([density,mode])=>['auto','2','4','6','9','12','16'].includes(density)&&textModes.includes(mode)));extraText.notes=new Map(Object.entries(saved.notes||{}).filter(([id,text])=>id&&typeof text==='string').map(([id,text])=>[id,text.slice(0,120)]));}}catch{}
 function saveText(){try{localStorage.setItem(noteStorage,JSON.stringify({mode:extraText.mode,layouts:extraText.layouts,notes:Object.fromEntries(extraText.notes)}));}catch{}}
 function layoutTextMode(density){return extraText.layouts[density]||(density===2?'description':extraText.mode==='description'?'none':extraText.mode);}
 function changeDensity(){
- if(state)extraText.layouts[state.density||6]=$('catalogExportText').value;
- $('catalogExportText').value=layoutTextMode(Number($('catalogExportDensity').value));
+ if(state)extraText.layouts[state.layoutKey||String(state.density||6)]=$('catalogExportText').value;
+ $('catalogExportText').value=layoutTextMode($('catalogExportDensity').value==='auto'?'auto':Number($('catalogExportDensity').value));
  saveText();textEditor();build();
 }
 function textEditor(refresh=false){
@@ -46,11 +47,13 @@ function fonts(){
 const slug=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,65)||'Productos';
 function setup(){
  if($('catalogExportOverlay'))return;
- document.body.insertAdjacentHTML('beforeend',`<div class="overlay catalog-export-overlay" id="catalogExportOverlay" hidden><section class="dialog catalog-export-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogExportTitle"><div class="dialog-head"><div><p class="catalog-export-eyebrow">PARA TUS CLIENTES</p><h2 id="catalogExportTitle">Compartir categoría</h2></div><button type="button" class="icon" id="catalogExportClose" aria-label="Cerrar catálogo">×</button></div><div class="catalog-export-layout"><section class="catalog-export-controls"><h3 id="catalogExportCategory"></h3><p id="catalogExportCount"></p><div class="catalog-export-options"><label><input type="checkbox" id="catalogExportPrices" checked>Mostrar precios</label><label><input type="checkbox" id="catalogExportOut" checked>Incluir agotados</label><label id="catalogExportGroupLabel" hidden><input type="checkbox" id="catalogExportGroup" checked>Ordenar por categoría</label></div><p class="catalog-export-help" id="catalogExportPricesHelp" hidden>Los precios escritos dentro de las fotos seguirán visibles; forman parte de la imagen original.</p><label class="catalog-export-label" for="catalogExportDensity">Distribución</label><select class="field" id="catalogExportDensity"><option value="9">Premium · 9 productos (3 × 3) — catálogo completo</option><option value="6">Recomendado · 6 productos (2 × 3)</option><option value="12">Equilibrado · 12 productos (3 × 4)</option><option value="4">Estándar · 4 productos (2 × 2)</option><option value="2">Promocional · 2 fotos grandes</option><option value="16">Muy compacto · 16 productos (4 × 4) — letras pequeñas</option></select><p class="catalog-export-quality">Tamaño carta · Alta resolución · 3060 × 3960 px</p><label class="catalog-export-label" for="catalogExportText">Información debajo del nombre</label><select class="field" id="catalogExportText"><option value="none">Sin texto adicional</option><option value="description">Contenido del producto</option><option value="details">Datos breves del producto</option><option value="custom">Texto personalizado</option></select><div class="catalog-export-custom" id="catalogExportCustom" hidden><label class="catalog-export-label" for="catalogExportTextProduct">Elegí el producto</label><select class="field" id="catalogExportTextProduct"></select><label class="catalog-export-label" for="catalogExportCustomText">Texto para este producto</label><textarea class="field" id="catalogExportCustomText" rows="3" maxlength="120" placeholder="Ej.: Ideal para Free Fire y COD Mobile."></textarea><p class="catalog-export-help"><span id="catalogExportTextCount">0 / 120</span> · Solo aparece en el catálogo.</p></div><p class="catalog-export-help" id="catalogExportTextHelp">Elegí una frase corta para que se lea completa.</p><label class="catalog-export-label" for="catalogExportFormat">Formato</label><select class="field" id="catalogExportFormat"><option value="image">Imagen PNG · página actual</option><option value="pdf">PDF · catálogo completo</option></select><p class="catalog-export-status" id="catalogExportStatus" role="status" aria-live="polite"></p><button type="button" class="btn outline" id="catalogExportRetry" hidden>Reintentar fotos</button><a class="btn" id="catalogExportDownload" aria-disabled="true">Descargar imagen</a><button type="button" class="btn outline" id="catalogExportShare" disabled>Compartir imagen</button><p class="catalog-export-help" id="catalogExportShareHelp"></p><p class="catalog-export-help">La imagen incluye la página que estás viendo. El PDF reúne todas las páginas. Las fotos se muestran completas. El PDF conserva el texto nítido y permite tocar cada producto para abrir su ficha.</p></section><section class="catalog-export-preview" aria-label="Vista previa del catálogo"><div class="catalog-export-preview-empty" id="catalogExportEmpty">Preparando tu catálogo…</div><img id="catalogExportPreview" alt="Vista previa del catálogo" hidden><nav class="catalog-export-pages" aria-label="Páginas del catálogo" hidden><button type="button" class="btn outline" id="catalogExportPrevious" aria-label="Página anterior">←</button><span id="catalogExportPage" role="status"></span><button type="button" class="btn outline" id="catalogExportNext" aria-label="Página siguiente">→</button></nav></section></div></section></div>`);
+ document.body.insertAdjacentHTML('beforeend',`<div class="overlay catalog-export-overlay" id="catalogExportOverlay" hidden><section class="dialog catalog-export-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogExportTitle"><div class="dialog-head"><div><p class="catalog-export-eyebrow">PARA TUS CLIENTES</p><h2 id="catalogExportTitle">Compartir categoría</h2></div><button type="button" class="icon" id="catalogExportClose" aria-label="Cerrar catálogo">×</button></div><div class="catalog-export-layout"><section class="catalog-export-controls"><h3 id="catalogExportCategory"></h3><p id="catalogExportCount"></p><div class="catalog-export-options"><label><input type="checkbox" id="catalogExportPrices" checked>Mostrar precios</label><label><input type="checkbox" id="catalogExportOut" checked>Incluir agotados</label><label id="catalogExportGroupLabel" hidden><input type="checkbox" id="catalogExportGroup" checked>Ordenar por categoría</label></div><p class="catalog-export-help" id="catalogExportPricesHelp" hidden>Los precios escritos dentro de las fotos seguirán visibles; forman parte de la imagen original.</p><label class="catalog-export-label" for="catalogExportDensity">Distribución</label><select class="field" id="catalogExportDensity"><option value="auto">Automática · ordenar y ajustar sin espacios vacíos</option><option value="9">Premium · 9 productos (3 × 3) — catálogo completo</option><option value="6">Recomendado · 6 productos (2 × 3)</option><option value="12">Equilibrado · 12 productos (3 × 4)</option><option value="4">Estándar · 4 productos (2 × 2)</option><option value="2">Promocional · 2 fotos grandes</option><option value="16">Muy compacto · 16 productos (4 × 4) — letras pequeñas</option></select><p class="catalog-export-help">Automática es la opción inicial: elige columnas y filas según la cantidad. Puede dejar 3 o 4 productos en una sola fila, y 8 en dos filas de 4.</p><details class="catalog-export-selection" id="catalogExportSelection"><summary>Elegir qué productos incluir (opcional)</summary><p class="catalog-export-help">Los productos seleccionados aparecerán en el catálogo. Podés ocultar cualquiera solo de esta descarga.</p><div class="catalog-export-selection-list" id="catalogExportSelectionList"></div><button type="button" class="btn outline small" id="catalogExportSelectAll">Seleccionar todos</button></details><p class="catalog-export-quality">Tamaño carta · Alta resolución · 3060 × 3960 px</p><label class="catalog-export-label" for="catalogExportText">Información debajo del nombre</label><select class="field" id="catalogExportText"><option value="none">Sin texto adicional</option><option value="description">Contenido del producto</option><option value="details">Datos breves del producto</option><option value="custom">Texto personalizado</option></select><div class="catalog-export-custom" id="catalogExportCustom" hidden><label class="catalog-export-label" for="catalogExportTextProduct">Elegí el producto</label><select class="field" id="catalogExportTextProduct"></select><label class="catalog-export-label" for="catalogExportCustomText">Texto para este producto</label><textarea class="field" id="catalogExportCustomText" rows="3" maxlength="120" placeholder="Ej.: Ideal para Free Fire y COD Mobile."></textarea><p class="catalog-export-help"><span id="catalogExportTextCount">0 / 120</span> · Solo aparece en el catálogo.</p></div><p class="catalog-export-help" id="catalogExportTextHelp">Elegí una frase corta para que se lea completa.</p><label class="catalog-export-label" for="catalogExportFormat">Formato</label><select class="field" id="catalogExportFormat"><option value="image">Imagen PNG · página actual</option><option value="pdf">PDF · catálogo completo</option></select><p class="catalog-export-status" id="catalogExportStatus" role="status" aria-live="polite"></p><button type="button" class="btn outline" id="catalogExportRetry" hidden>Reintentar fotos</button><a class="btn" id="catalogExportDownload" aria-disabled="true">Descargar imagen</a><button type="button" class="btn outline" id="catalogExportShare" disabled>Compartir imagen</button><p class="catalog-export-help" id="catalogExportShareHelp"></p><p class="catalog-export-help">La imagen incluye la página que estás viendo. El PDF reúne todas las páginas. Las fotos se muestran completas. El PDF conserva el texto nítido y permite tocar cada producto para abrir su ficha.</p></section><section class="catalog-export-preview" aria-label="Vista previa del catálogo"><div class="catalog-export-preview-empty" id="catalogExportEmpty">Preparando tu catálogo…</div><img id="catalogExportPreview" alt="Vista previa del catálogo" hidden><nav class="catalog-export-pages" aria-label="Páginas del catálogo" hidden><button type="button" class="btn outline" id="catalogExportPrevious" aria-label="Página anterior">←</button><span id="catalogExportPage" role="status"></span><button type="button" class="btn outline" id="catalogExportNext" aria-label="Página siguiente">→</button></nav></section></div></section></div>`);
  $('catalogExportClose').onclick=close;
  $('catalogExportOverlay').onclick=event=>{if(event.target===$('catalogExportOverlay'))close();};
  for(const id of buildInputs)$(id).onchange=build;
  $('catalogExportDensity').onchange=changeDensity;
+ $('catalogExportSelectionList').onchange=event=>{const input=event.target.closest('input[data-export-id]');if(!input)return;if(input.checked)hiddenIds.delete(input.dataset.exportId);else hiddenIds.add(input.dataset.exportId);build();};
+ $('catalogExportSelectAll').onclick=()=>{hiddenIds.clear();$('catalogExportSelectionList').querySelectorAll('input[data-export-id]').forEach(input=>input.checked=true);build();};
  $('catalogExportText').onchange=()=>{extraText.mode=$('catalogExportText').value;extraText.layouts[$('catalogExportDensity').value]=extraText.mode;saveText();textEditor();build();};
  $('catalogExportTextProduct').onchange=()=>textEditor();
  $('catalogExportCustomText').oninput=scheduleText;
@@ -65,6 +68,15 @@ function setup(){
   const controls=[...$('catalogExportOverlay').querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),a[href]')].filter(el=>el.getClientRects().length),first=controls[0],last=controls.at(-1);
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
  });
+}
+function refreshSelection(){
+ const list=$('catalogExportSelectionList');
+ list.replaceChildren(...(state?.products||[]).map(product=>{
+  const label=document.createElement('label'),checkbox=document.createElement('input'),span=document.createElement('span');
+  checkbox.type='checkbox';checkbox.checked=!hiddenIds.has(product.id);checkbox.dataset.exportId=product.id;
+  span.textContent=product.name+(product.code?' · '+product.code:'');
+  label.append(checkbox,span);return label;
+ }));
 }
 function release(context){if(!context)return;for(const url of context.urls||[])URL.revokeObjectURL(url);context.urls=[];}
 function close(){clearTimeout(noteTimer);noteTimer=null;epoch++;release(state);state=null;$('catalogExportOverlay').hidden=true;document.body.style.overflow=document.querySelector('.overlay:not([hidden])')?'hidden':'';if(trigger?.isConnected)trigger.focus();}
@@ -199,22 +211,32 @@ function draw(context,products,loaded,index,count,logo){
  label('CATÁLOGO / '+context.year,W-48,61,{size:21,bold:true,color:'#ffffff',width:295,align:'right',fit:true});
  label(context.date,W-48,95,{size:19,color:'#dae5f0',width:295,align:'right'});
  box(48,152,7,42,red,'',3);
- label(context.title,72,174,{size:48,bold:true,color:'#ffffff',width:1290,fit:true});
+ label(context.title,184,170,{size:33,bold:true,color:'#ffffff',width:1090,fit:true});
  const categories=[...new Set(products.map(p=>p.category).filter(Boolean))];
  const subtitle=context.multipleCategories
   ?categories.slice(0,4).join(' · ')+(categories.length>4?' · +'+(categories.length-4)+' categorías':'')
   :context.count+' producto'+(context.count===1?'':'s')+' · '+(context.prices?'Precios en lempiras':'Consultar disponibilidad');
- label(subtitle,74,198,{size:17,color:'#c9d9e9',width:1350,fit:true});
+ label(subtitle,186,199,{size:16,color:'#c9d9e9',width:1090,fit:true});
  // Cada cuadrícula conserva el tamaño de sus tarjetas también en la última página.
- const dense=density>=9,feature=density===9,compact=density===6,wide=density===2,hasExtra=context.textMode!=='none';
- const columns=density===16?4:(density===9||density===12?3:wide?1:2),rows=density===16||density===12?4:feature||compact?3:2;
- const bodyTop=225,bodyBottom=1818,gap=dense?19:20,w=(inner-(columns-1)*gap)/columns,h=(bodyBottom-bodyTop-(rows-1)*gap)/rows;
+ const auto=context.autoLayout===true,layout=window.GC_CATALOG_LAYOUT;
+ const rowCounts=auto?layout.rows(products.length):[];
+ const columns=auto?Math.max(...rowCounts):density===16?4:(density===9||density===12?3:density===2?1:2);
+ const rows=auto?rowCounts.length:density===16||density===12?4:density===9||density===6?3:2;
+ const dense=auto?columns>=3:density>=9,feature=!auto&&density===9,compact=!auto&&density===6,wide=density===2||(auto&&products.length===1),hasExtra=context.textMode!=='none';
+ const gap=dense?19:20,bodyBottom=1818;
+ const maxWidth=(inner-(columns-1)*gap)/columns;
+ const singleHeight=auto&&rows===1?Math.min(1140,Math.max(730,maxWidth*1.35)):0;
+ const bodyTop=auto&&rows===1?Math.max(225,(225+bodyBottom-singleHeight)/2):225;
+ const h=auto&&rows===1?singleHeight:(bodyBottom-bodyTop-(rows-1)*gap)/rows;
+ const manualWidth=(inner-(columns-1)*gap)/columns;
  products.forEach((product,i)=>{
-  const x=margin+(i%columns)*(w+gap),y=bodyTop+Math.floor(i/columns)*(h+gap),pad=dense?14:compact?22:28;
+  const position=auto?layout.position(i,rowCounts):{row:Math.floor(i/columns),column:i%columns,columns};
+  const w=auto?(inner-(position.columns-1)*gap)/position.columns:manualWidth;
+  const x=margin+position.column*(w+gap),y=bodyTop+position.row*(h+gap),pad=dense?14:compact?22:28;
   const available=Number(product.stock)>0;
   box(x,y+3,w,h,'#e7ecf2','',dense?10:16);box(x,y,w,h,available?'#ffffff':'#f5f6f8','#dce4ed',dense?10:16);
   const infoReserve=(feature?177:dense?166:compact?192:230)+(hasExtra?(dense?56:compact?62:68):0);
-  const photoH=wide?h-32:h-infoReserve,photoW=wide?photoH:w-4;
+  const photoH=wide?h-32:h-infoReserve,photoW=wide?(auto?Math.min(photoH,(w-52)*.63):photoH):w-4;
   const photoX=x+(wide?16:2),photoY=y+(wide?16:2);
   box(photoX,photoY,photoW,photoH,available?'#f3f6f9':'#e9edf1','',dense?8:12);
   const img=loaded.get(product.id);
@@ -262,7 +284,7 @@ function draw(context,products,loaded,index,count,logo){
   link(x,img?y:photoY+photoH,w,img?h:y+h-photoY-photoH,productUrl(context,product));
  });
  // En páginas Premium con ocho productos, la novena tarjeta invita a consultar.
- if(feature&&products.length===8&&count>1){
+ if(!auto&&feature&&products.length===8&&count>1){
   const x=margin+2*(w+gap),y=bodyTop+2*(h+gap);
   box(x,y,w,h,'#f3f7fb','#dce5ef',15);
   box(x+25,y+25,w-50,65,navy,'',10);
@@ -322,7 +344,12 @@ function paginate(items,size){
 }
 async function build(){
  const context=state;if(!context)return;const ticket=++epoch;context.busy=true;release(context);context.pages=[];context.index=0;context.prices=$('catalogExportPrices').checked;$('catalogExportPricesHelp').hidden=context.prices;
- const size=[2,4,6,9,12,16].includes(Number($('catalogExportDensity').value))?Number($('catalogExportDensity').value):6,selected=context.products.filter(p=>$('catalogExportOut').checked||p.stock>0);if($('catalogExportGroup').checked&&context.multipleCategories)selected.sort((a,b)=>a.category.localeCompare(b.category,'es'));context.count=selected.length;context.density=size;const plan=paginate(selected,size);context.textMode=$('catalogExportText').value;context.notes=new Map(extraText.notes);context.omittedText=0;
+ const auto=$('catalogExportDensity').value==='auto';
+ const size=auto?12:[2,4,6,9,12,16].includes(Number($('catalogExportDensity').value))?Number($('catalogExportDensity').value):6;
+ const selected=context.products.filter(p=>!hiddenIds.has(p.id)&&($('catalogExportOut').checked||p.stock>0));
+ if($('catalogExportGroup').checked&&context.multipleCategories)selected.sort((a,b)=>a.category.localeCompare(b.category,'es'));
+ context.count=selected.length;context.density=size;context.autoLayout=auto;context.layoutKey=$('catalogExportDensity').value;
+ const plan=auto?window.GC_CATALOG_LAYOUT.pages(selected):paginate(selected,size);context.textMode=$('catalogExportText').value;context.notes=new Map(extraText.notes);context.omittedText=0;
  $('catalogExportCount').textContent=selected.length+' producto'+(selected.length===1?'':'s')+' · '+plan.length+' página'+(plan.length>1?'s':'');
  $('catalogExportPreview').hidden=true;$('catalogExportEmpty').hidden=false;$('catalogExportEmpty').textContent=selected.length?'Preparando fotos y páginas…':'No hay productos con esta selección.';
  $('catalogExportRetry').hidden=true;$('catalogExportStatus').textContent='Preparando catálogo…';document.querySelector('.catalog-export-pages').hidden=true;
@@ -359,11 +386,11 @@ async function build(){
  finally{if(ticket===epoch){context.busy=false;for(const id of buildInputs)$(id).disabled=false;updateDownloads();}}
 }
 function open(options){
- clearTimeout(noteTimer);noteTimer=null;setup();release(state);trigger=document.activeElement;
+ clearTimeout(noteTimer);noteTimer=null;setup();release(state);hiddenIds=new Set();trigger=document.activeElement;
  const products=(options.products||[]).map(C.cleanProduct).filter(p=>p.active&&p.id&&p.name);
  const now=new Date(),parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Tegucigalpa',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now),part=type=>parts.find(p=>p.type===type).value;
  state={...options,products,multipleCategories:new Set(products.map(p=>p.category)).size>1,year:part('year'),title:String(options.title||'Catálogo').slice(0,120),date:new Intl.DateTimeFormat('es-HN',{timeZone:'America/Tegucigalpa',dateStyle:'medium'}).format(now),filename:'GC_Catalogo_'+slug(options.title)+'_'+part('year')+part('month')+part('day'),pages:[],urls:[],index:0,busy:true,settings:options.settings||{},mirrors:null};
- $('catalogExportTitle').textContent=state.multipleCategories?'Compartir catálogo':'Compartir categoría';$('catalogExportCategory').textContent=state.title;$('catalogExportOut').checked=options.includeOut!==false;$('catalogExportPrices').checked=true;$('catalogExportFormat').value='image';$('catalogExportDensity').value=state.multipleCategories&&state.products.length>16?'9':'6';$('catalogExportText').value=layoutTextMode(Number($('catalogExportDensity').value));textEditor(true);$('catalogExportGroup').checked=true;$('catalogExportGroupLabel').hidden=!state.multipleCategories;$('catalogExportOverlay').hidden=false;document.body.style.overflow='hidden';$('catalogExportClose').focus();build();
+ $('catalogExportTitle').textContent=state.multipleCategories?'Compartir catálogo':'Compartir categoría';$('catalogExportCategory').textContent=state.title;$('catalogExportOut').checked=options.includeOut!==false;$('catalogExportPrices').checked=true;$('catalogExportFormat').value='image';$('catalogExportDensity').value='auto';$('catalogExportText').value=layoutTextMode('auto');refreshSelection();textEditor(true);$('catalogExportGroup').checked=true;$('catalogExportGroupLabel').hidden=!state.multipleCategories;$('catalogExportOverlay').hidden=false;document.body.style.overflow='hidden';$('catalogExportClose').focus();build();
 }
 window.GC_CATALOG_EXPORT={open};
 })();
