@@ -8,6 +8,12 @@
   const base=Math.floor(n/r),remainder=n%r;
   return Array.from({length:r},(_,i)=>base+(i<remainder?1:0));
  }
+ // La hoja automática cambia de proporción: 1 fila = horizontal;
+ // 2 filas = casi cuadrada; 3 filas = carta vertical.
+ function pageHeight(count){
+  const n=Math.max(0,Math.floor(Number(count)||0));
+  return n<=4?1160:n<=8?1550:1980;
+ }
  function pages(items){
   const count=items.length;if(!count)return [];
   const pageCount=Math.ceil(count/12),base=Math.floor(count/pageCount),extra=count%pageCount;
@@ -22,5 +28,5 @@
   }
   return null;
  }
- return {rows,pages,position};
+ return {rows,pages,position,pageHeight};
 });

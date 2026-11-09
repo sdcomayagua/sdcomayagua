@@ -66,6 +66,12 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.match(await catalog.locator('#catalogExportPage').innerText(),/Página 1 de 1/);
   const auto8=await catalog.evaluate(()=>window.__catalogScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')));
   assert.equal(auto8.length,8);assert.equal(new Set(auto8.map(x=>x.x)).size,4);assert.equal(new Set(auto8.map(x=>x.y)).size,2);
+  assert.equal(await catalog.locator('#catalogExportWatermark').isChecked(),true,'Marca de agua activa por defecto');
+  const auto8marks=await catalog.evaluate(()=>window.__catalogScenes[0].filter(op=>op.kind==='watermark'));
+  assert.ok(auto8marks.length>=12,'PNG y PDF deben contener varias marcas legibles sobre las fotos');
+  assert.ok(auto8marks.every(mark=>mark.value==='GAMER COMAYAGUA'&&mark.alpha>=.22));
+  const auto8image=await download('catalogo-auto8.png');
+  assert.equal(auto8image.readUInt32BE(16),3060);assert.equal(auto8image.readUInt32BE(20),3100,'Dos filas no necesitan una página vertical enorme');
   await catalog.locator('#catalogExportDensity').selectOption('6');await ready();
   assert.match(await catalog.locator('#catalogExportPage').innerText(),/Página 1 de 2/);
   const png=await download('catalogo.png');assert.equal(png.readUInt32BE(16),3060);assert.equal(png.readUInt32BE(20),3960);
@@ -136,6 +142,22 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    await ready();
    const scene=await catalog.evaluate(()=>window.__catalogScenes[0].filter(op=>op.kind==='link'&&op.url.includes('producto=')));
    assert.equal(scene.length,n);assert.equal(new Set(scene.map(op=>op.y)).size,1,'Todos en una sola fila');
+   assert.ok(scene.every(op=>op.y<=230),'Las tarjetas deben iniciar debajo de la cabecera, no en la mitad de la hoja');
+   const watermarks=await catalog.evaluate(()=>window.__catalogScenes[0].filter(op=>op.kind==='watermark'));
+   assert.ok(watermarks.length>=n*3,'Cada imagen debe llevar GAMER COMAYAGUA');
+   if(n===3){
+    const file=await download('catalogo-auto3.png');
+    assert.equal(file.readUInt32BE(16),3060);
+    assert.equal(file.readUInt32BE(20),2320,'Tres productos necesitan una lámina horizontal, sin gran espacio blanco');
+    await catalog.locator('#catalogExportFormat').selectOption('pdf');
+    const pdf=await download('catalogo-auto3.pdf');
+    assert.match(pdf.toString('latin1'),/\/MediaBox \[0 0 792 /,'El PDF también debe usar orientación horizontal');
+    assert.ok((pdf.toString('latin1').match(/\/GWM gs/g)||[]).length>=n*3,'El PDF debe incluir las marcas vectoriales de agua; el texto se codifica como octales');
+    await catalog.locator('#catalogExportFormat').selectOption('image');
+    await catalog.locator('#catalogExportWatermark').uncheck();await ready();
+    assert.equal(await catalog.evaluate(()=>window.__catalogScenes[0].filter(op=>op.kind==='watermark').length),0,'La casilla permite quitar la marca de agua solo en esta descarga');
+    await catalog.locator('#catalogExportWatermark').check();await ready();
+   }
    await catalog.locator('#catalogExportClose').click();
   }
   await catalog.evaluate(products=>window.GC_CATALOG_EXPORT.open({products:products.slice(0,4),title:'Selección',url:location.href,settings:{watermarkEnabled:false}}),gridProducts);
@@ -164,6 +186,6 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.ok(photoScene.some(op=>op.kind==='image'&&op.x>=galleryCard.x&&op.y>=galleryCard.y&&op.x+op.w<=galleryCard.x+galleryCard.w&&op.y+op.h<=galleryCard.y+galleryCard.h));
   const requestPhoto=photoScene.find(op=>op.kind==='link'&&op.url.startsWith('https://wa.me/')&&op.url.includes('?text='));assert.ok(requestPhoto);assert.match(new URL(requestPhoto.url).searchParams.get('text'),/Dedales V2.*Dedales-002/);
   await download('catalogo-foto-por-whatsapp.png');await catalog.locator('#catalogExportFormat').selectOption('pdf');await download('catalogo-foto-por-whatsapp.pdf');await catalog.locator('#catalogExportClose').click();
-  publicOffline=true;await catalog.goto(base+'/productos.html?categoria=Dedales');await catalog.locator('[data-detail="DEDAL-0"]').first().waitFor();await catalog.locator('#syncStatus').filter({hasText:'Confirmá precio'}).waitFor();assert.equal(await catalog.locator('form[target^=gc_catalog_]').count(),0,'Sin API el cliente conserva el respaldo y no envía formularios al servidor privado');assert.ok(publicReads.some(url=>url.includes('AKfycbyXFSUVkTIstSCDjBxkignIdsqoiQKgV1_5Y68nMEMSmJ-2aTPjcgjgCBjIL6xokFs')),'El catálogo usa la API pública separada');assert.ok(publicReads.every(url=>!url.includes('AKfycbwLJ-98J7LoK25WuTY0FbtZgGJAf3M21YgAdwu1sJMcKNarxIkyy-qiHcKM4EvtV-Sz')&&!url.includes('/gviz/')),'Clientes no consultan ADMIN ni la hoja privada');assert.deepEqual(errors,[]);console.log('PASS catálogo y papelera UI: eliminar/cancelar/restaurar, stock intacto, filtros completos, fotos, PNG, PDF paginado, compartir nativo y móvil.');
+  publicOffline=true;await catalog.goto(base+'/productos.html?categoria=Dedales');await catalog.locator('[data-detail="DEDAL-0"]').first().waitFor();await catalog.locator('#syncStatus').filter({hasText:/Confirmá precio|Catálogo actualizado/}).waitFor();assert.equal(await catalog.locator('form[target^=gc_catalog_]').count(),0,'Sin API el cliente conserva el respaldo y no envía formularios al servidor privado');assert.ok(publicReads.some(url=>url.includes('AKfycbyXFSUVkTIstSCDjBxkignIdsqoiQKgV1_5Y68nMEMSmJ-2aTPjcgjgCBjIL6xokFs')),'El catálogo usa la API pública separada');assert.ok(publicReads.every(url=>!url.includes('AKfycbwLJ-98J7LoK25WuTY0FbtZgGJAf3M21YgAdwu1sJMcKNarxIkyy-qiHcKM4EvtV-Sz')&&!url.includes('/gviz/')),'Clientes no consultan ADMIN ni la hoja privada');assert.deepEqual(errors,[]);console.log('PASS catálogo y papelera UI: eliminar/cancelar/restaurar, stock intacto, filtros completos, fotos, PNG, PDF paginado, compartir nativo y móvil.');
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exit(1);});
