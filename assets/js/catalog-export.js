@@ -3,7 +3,7 @@
 const C=window.GC,$=id=>document.getElementById(id),W=1530,H=1980,SCALE=2;
 let state=null,epoch=0,trigger=null,fontReady=null,noteTimer=null;
 let hiddenIds=new Set();
-const buildInputs=['catalogExportPrices','catalogExportOut','catalogExportGroup','catalogExportDensity','catalogExportText'];
+const buildInputs=['catalogExportPrices','catalogExportOut','catalogExportGroup','catalogExportDensity','catalogExportText','catalogExportWatermark'];
 const textModes=['none','description','details','custom'],noteStorage='gcCatalogTextV1';
 let extraText={mode:'none',layouts:{},notes:new Map()};
 try{const saved=JSON.parse(localStorage.getItem(noteStorage)||'null');if(saved){extraText.mode=textModes.includes(saved.mode)?saved.mode:'none';extraText.layouts=Object.fromEntries(Object.entries(saved.layouts||{}).filter(([density,mode])=>['auto','2','4','6','9','12','16'].includes(density)&&textModes.includes(mode)));extraText.notes=new Map(Object.entries(saved.notes||{}).filter(([id,text])=>id&&typeof text==='string').map(([id,text])=>[id,text.slice(0,120)]));}}catch{}
@@ -47,7 +47,7 @@ function fonts(){
 const slug=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,65)||'Productos';
 function setup(){
  if($('catalogExportOverlay'))return;
- document.body.insertAdjacentHTML('beforeend',`<div class="overlay catalog-export-overlay" id="catalogExportOverlay" hidden><section class="dialog catalog-export-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogExportTitle"><div class="dialog-head"><div><p class="catalog-export-eyebrow">PARA TUS CLIENTES</p><h2 id="catalogExportTitle">Compartir categoría</h2></div><button type="button" class="icon" id="catalogExportClose" aria-label="Cerrar catálogo">×</button></div><div class="catalog-export-layout"><section class="catalog-export-controls"><h3 id="catalogExportCategory"></h3><p id="catalogExportCount"></p><div class="catalog-export-options"><label><input type="checkbox" id="catalogExportPrices" checked>Mostrar precios</label><label><input type="checkbox" id="catalogExportOut" checked>Incluir agotados</label><label id="catalogExportGroupLabel" hidden><input type="checkbox" id="catalogExportGroup" checked>Ordenar por categoría</label></div><p class="catalog-export-help" id="catalogExportPricesHelp" hidden>Los precios escritos dentro de las fotos seguirán visibles; forman parte de la imagen original.</p><label class="catalog-export-label" for="catalogExportDensity">Distribución</label><select class="field" id="catalogExportDensity"><option value="auto">Automática · ordenar y ajustar sin espacios vacíos</option><option value="9">Premium · 9 productos (3 × 3) — catálogo completo</option><option value="6">Recomendado · 6 productos (2 × 3)</option><option value="12">Equilibrado · 12 productos (3 × 4)</option><option value="4">Estándar · 4 productos (2 × 2)</option><option value="2">Promocional · 2 fotos grandes</option><option value="16">Muy compacto · 16 productos (4 × 4) — letras pequeñas</option></select><p class="catalog-export-help">Automática es la opción inicial: elige columnas y filas según la cantidad. Puede dejar 3 o 4 productos en una sola fila, y 8 en dos filas de 4.</p><details class="catalog-export-selection" id="catalogExportSelection"><summary>Elegir qué productos incluir (opcional)</summary><p class="catalog-export-help">Los productos seleccionados aparecerán en el catálogo. Podés ocultar cualquiera solo de esta descarga.</p><div class="catalog-export-selection-list" id="catalogExportSelectionList"></div><button type="button" class="btn outline small" id="catalogExportSelectAll">Seleccionar todos</button></details><p class="catalog-export-quality">Tamaño carta · Alta resolución · 3060 × 3960 px</p><label class="catalog-export-label" for="catalogExportText">Información debajo del nombre</label><select class="field" id="catalogExportText"><option value="none">Sin texto adicional</option><option value="description">Contenido del producto</option><option value="details">Datos breves del producto</option><option value="custom">Texto personalizado</option></select><div class="catalog-export-custom" id="catalogExportCustom" hidden><label class="catalog-export-label" for="catalogExportTextProduct">Elegí el producto</label><select class="field" id="catalogExportTextProduct"></select><label class="catalog-export-label" for="catalogExportCustomText">Texto para este producto</label><textarea class="field" id="catalogExportCustomText" rows="3" maxlength="120" placeholder="Ej.: Ideal para Free Fire y COD Mobile."></textarea><p class="catalog-export-help"><span id="catalogExportTextCount">0 / 120</span> · Solo aparece en el catálogo.</p></div><p class="catalog-export-help" id="catalogExportTextHelp">Elegí una frase corta para que se lea completa.</p><label class="catalog-export-label" for="catalogExportFormat">Formato</label><select class="field" id="catalogExportFormat"><option value="image">Imagen PNG · página actual</option><option value="pdf">PDF · catálogo completo</option></select><p class="catalog-export-status" id="catalogExportStatus" role="status" aria-live="polite"></p><button type="button" class="btn outline" id="catalogExportRetry" hidden>Reintentar fotos</button><a class="btn" id="catalogExportDownload" aria-disabled="true">Descargar imagen</a><button type="button" class="btn outline" id="catalogExportShare" disabled>Compartir imagen</button><p class="catalog-export-help" id="catalogExportShareHelp"></p><p class="catalog-export-help">La imagen incluye la página que estás viendo. El PDF reúne todas las páginas. Las fotos se muestran completas. El PDF conserva el texto nítido y permite tocar cada producto para abrir su ficha.</p></section><section class="catalog-export-preview" aria-label="Vista previa del catálogo"><div class="catalog-export-preview-empty" id="catalogExportEmpty">Preparando tu catálogo…</div><img id="catalogExportPreview" alt="Vista previa del catálogo" hidden><nav class="catalog-export-pages" aria-label="Páginas del catálogo" hidden><button type="button" class="btn outline" id="catalogExportPrevious" aria-label="Página anterior">←</button><span id="catalogExportPage" role="status"></span><button type="button" class="btn outline" id="catalogExportNext" aria-label="Página siguiente">→</button></nav></section></div></section></div>`);
+ document.body.insertAdjacentHTML('beforeend',`<div class="overlay catalog-export-overlay" id="catalogExportOverlay" hidden><section class="dialog catalog-export-dialog" role="dialog" aria-modal="true" aria-labelledby="catalogExportTitle"><div class="dialog-head"><div><p class="catalog-export-eyebrow">PARA TUS CLIENTES</p><h2 id="catalogExportTitle">Compartir categoría</h2></div><button type="button" class="icon" id="catalogExportClose" aria-label="Cerrar catálogo">×</button></div><div class="catalog-export-layout"><section class="catalog-export-controls"><h3 id="catalogExportCategory"></h3><p id="catalogExportCount"></p><div class="catalog-export-options"><label><input type="checkbox" id="catalogExportPrices" checked>Mostrar precios</label><label><input type="checkbox" id="catalogExportOut" checked>Incluir agotados</label><label><input type="checkbox" id="catalogExportWatermark" checked>Marca de agua GAMER COMAYAGUA</label><label id="catalogExportGroupLabel" hidden><input type="checkbox" id="catalogExportGroup" checked>Ordenar por categoría</label></div><p class="catalog-export-help" id="catalogExportPricesHelp" hidden>Los precios escritos dentro de las fotos seguirán visibles; forman parte de la imagen original.</p><label class="catalog-export-label" for="catalogExportDensity">Distribución</label><select class="field" id="catalogExportDensity"><option value="auto">Automática · ordenar y ajustar sin espacios vacíos</option><option value="9">Premium · 9 productos (3 × 3) — catálogo completo</option><option value="6">Recomendado · 6 productos (2 × 3)</option><option value="12">Equilibrado · 12 productos (3 × 4)</option><option value="4">Estándar · 4 productos (2 × 2)</option><option value="2">Promocional · 2 fotos grandes</option><option value="16">Muy compacto · 16 productos (4 × 4) — letras pequeñas</option></select><p class="catalog-export-help">Automática es la opción inicial: elige columnas y filas según la cantidad. Puede dejar 3 o 4 productos en una sola fila, y 8 en dos filas de 4.</p><details class="catalog-export-selection" id="catalogExportSelection"><summary>Elegir qué productos incluir (opcional)</summary><p class="catalog-export-help">Los productos seleccionados aparecerán en el catálogo. Podés ocultar cualquiera solo de esta descarga.</p><div class="catalog-export-selection-list" id="catalogExportSelectionList"></div><button type="button" class="btn outline small" id="catalogExportSelectAll">Seleccionar todos</button></details><p class="catalog-export-quality">Alta resolución · Tamaño adaptable al número de artículos</p><label class="catalog-export-label" for="catalogExportText">Información debajo del nombre</label><select class="field" id="catalogExportText"><option value="none">Sin texto adicional</option><option value="description">Contenido del producto</option><option value="details">Datos breves del producto</option><option value="custom">Texto personalizado</option></select><div class="catalog-export-custom" id="catalogExportCustom" hidden><label class="catalog-export-label" for="catalogExportTextProduct">Elegí el producto</label><select class="field" id="catalogExportTextProduct"></select><label class="catalog-export-label" for="catalogExportCustomText">Texto para este producto</label><textarea class="field" id="catalogExportCustomText" rows="3" maxlength="120" placeholder="Ej.: Ideal para Free Fire y COD Mobile."></textarea><p class="catalog-export-help"><span id="catalogExportTextCount">0 / 120</span> · Solo aparece en el catálogo.</p></div><p class="catalog-export-help" id="catalogExportTextHelp">Elegí una frase corta para que se lea completa.</p><label class="catalog-export-label" for="catalogExportFormat">Formato</label><select class="field" id="catalogExportFormat"><option value="image">Imagen PNG · página actual</option><option value="pdf">PDF · catálogo completo</option></select><p class="catalog-export-status" id="catalogExportStatus" role="status" aria-live="polite"></p><button type="button" class="btn outline" id="catalogExportRetry" hidden>Reintentar fotos</button><a class="btn" id="catalogExportDownload" aria-disabled="true">Descargar imagen</a><button type="button" class="btn outline" id="catalogExportShare" disabled>Compartir imagen</button><p class="catalog-export-help" id="catalogExportShareHelp"></p><p class="catalog-export-help">La imagen incluye la página que estás viendo. El PDF reúne todas las páginas. Las fotos se muestran completas. El PDF conserva el texto nítido y permite tocar cada producto para abrir su ficha.</p></section><section class="catalog-export-preview" aria-label="Vista previa del catálogo"><div class="catalog-export-preview-empty" id="catalogExportEmpty">Preparando tu catálogo…</div><img id="catalogExportPreview" alt="Vista previa del catálogo" hidden><nav class="catalog-export-pages" aria-label="Páginas del catálogo" hidden><button type="button" class="btn outline" id="catalogExportPrevious" aria-label="Página anterior">←</button><span id="catalogExportPage" role="status"></span><button type="button" class="btn outline" id="catalogExportNext" aria-label="Página siguiente">→</button></nav></section></div></section></div>`);
  $('catalogExportClose').onclick=close;
  $('catalogExportOverlay').onclick=event=>{if(event.target===$('catalogExportOverlay'))close();};
  for(const id of buildInputs)$(id).onchange=build;
@@ -118,8 +118,8 @@ async function photos(context,products){
  return loaded;
 }
 // Una sola composición dibuja el PNG y describe los elementos vectoriales del PDF.
-function artist(){
- const canvas=document.createElement('canvas');canvas.width=W*SCALE;canvas.height=H*SCALE;
+function artist(height=H){
+ const canvas=document.createElement('canvas');canvas.width=W*SCALE;canvas.height=height*SCALE;
  const ctx=canvas.getContext('2d',{alpha:false});ctx.scale(SCALE,SCALE);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';const ops=[];
  const box=(x,y,w,h,fill,stroke='',r=0)=>{ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1.5;ctx.stroke();}ops.push({kind:'box',x,y,w,h,r,fill,stroke});};
  const label=(value,x,y,{size=24,bold=false,color='#1b2636',width=W,lines=1,lineHeight=size*1.28,align='left',fit=false}={})=>{
@@ -169,23 +169,33 @@ function artist(){
  };
  const link=(x,y,w,h,url)=>ops.push({kind:'link',x,y,w,h,url});
  const watermark=(x,y,w,h,settings)=>{
-  const helper=window.GC_WATERMARK,o=helper?.options(settings);
-  if(!o?.watermarkEnabled||!o.watermarkText||o.watermarkOpacity<=0)return;
-  const value=String(o.watermarkText).slice(0,45),face=helper.fonts[o.watermarkFont]||helper.fonts.arial;
-  let size=Math.min(o.watermarkFontSize*w/1000,Math.min(w*.16,h*.14));
-  size=Math.max(9,size);
-  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
-  ctx.font=face.weight+' '+size+'px '+(o.watermarkFont==='arial'?'"GC Catalog", Arial':face.css);
-  const width=ctx.measureText(value).width;
-  if(width>w*.72&&width>0)size*=w*.72/width;
-  ctx.font=face.weight+' '+size+'px '+(o.watermarkFont==='arial'?'"GC Catalog", Arial':face.css);
-  const measured=ctx.measureText(value).width,cx=x+w*.5,cy=y+h*.52,alpha=Math.min(.18,Math.max(.08,o.watermarkOpacity));
-  ctx.translate(cx,cy);ctx.rotate(-19*Math.PI/180);ctx.globalAlpha=alpha;
-  ctx.globalCompositeOperation='source-over';ctx.fillStyle='#17436c';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText(value,0,0);ctx.restore();
-  ops.push({kind:'watermark',x:cx,y:cy,value,size,angle:-19,alpha,font:o.watermarkFont,textWidth:measured,clip:{x,y,w,h}});
+  if(!settings?.watermarkEnabled)return;
+  const value='GAMER COMAYAGUA';
+  const helper=window.GC_WATERMARK;
+  const font=helper?.fonts?.arial||{weight:'700',css:'Arial',pdf:'F2'};
+  let size=Math.max(20,Math.min(39,w*.068,h*.095));
+  ctx.save();ctx.font=font.weight+' '+size+'px "GC Catalog", Arial';
+  const firstWidth=ctx.measureText(value).width;
+  if(firstWidth>w*.66&&firstWidth>0)size*=w*.66/firstWidth;
+  const drawnFont=font.weight+' '+size+'px "GC Catalog", Arial';
+  ctx.font=drawnFont;
+  const measured=ctx.measureText(value).width;
+  ctx.restore();
+  const places=w>=390?[[.29,.29],[.71,.29],[.29,.72],[.71,.72]]:[[.5,.22],[.5,.51],[.5,.8]];
+  const alpha=.27;
+  for(const [px,py] of places){
+   const cx=x+w*px,cy=y+h*py;
+   ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+   ctx.translate(cx,cy);ctx.rotate(-19*Math.PI/180);
+   ctx.globalAlpha=alpha;ctx.globalCompositeOperation='source-over';
+   ctx.font=drawnFont;ctx.textAlign='center';ctx.textBaseline='middle';
+   ctx.lineWidth=2.6;ctx.strokeStyle='#ffffff';ctx.strokeText(value,0,0);
+   ctx.fillStyle='#17436c';ctx.fillText(value,0,0);ctx.restore();
+   ops.push({kind:'watermark',x:cx,y:cy,value,size,angle:-19,alpha,font:'arial',textWidth:measured,clip:{x,y,w,h}});
+  }
+
  };
- return {canvas,ops,box,label,block,path,photo,link,watermark};
+ return {canvas,ops,height,box,label,block,path,photo,link,watermark};
 }
 function productUrl(context,product){try{const url=new URL('productos.html',context.url||document.baseURI);url.searchParams.set('producto',product.id);return url.href;}catch{return '';}}
 function productInfo(context,product){
@@ -197,12 +207,13 @@ function productInfo(context,product){
  return facts.join(' · ');
 }
 function draw(context,products,loaded,index,count,logo){
- const page=artist(),{box,label,block,path,photo,link,watermark}=page;
+ const pageHeight=context.autoLayout?window.GC_CATALOG_LAYOUT.pageHeight(products.length):H;
+ const page=artist(pageHeight),{box,label,block,path,photo,link,watermark}=page;
  const margin=34,inner=W-2*margin,ink='#101b2b',muted='#526780',red='#ec0631',navy='#071727';
  const settings=context.settings||{},density=context.density||6;
  const polygon=(points,fill,stroke='')=>path(points.map(([x,y],i)=>[i?'L':'M',x,y]).concat([['Z']]),fill,stroke);
  const circle=(x,y,r,fill,stroke='')=>box(x-r,y-r,2*r,2*r,fill,stroke,r);
- box(0,0,W,H,'#ffffff');
+ box(0,0,W,pageHeight,'#ffffff');
  // Cabecera compacta: prioridad a las fotos y precios, sin decoración innecesaria.
  box(0,0,W,206,navy);box(0,0,W,8,red);
  box(46,30,116,112,'#ffffff','',15);if(logo)photo(logo,52,34,104,104);
@@ -223,11 +234,9 @@ function draw(context,products,loaded,index,count,logo){
  const columns=auto?Math.max(...rowCounts):density===16?4:(density===9||density===12?3:density===2?1:2);
  const rows=auto?rowCounts.length:density===16||density===12?4:density===9||density===6?3:2;
  const dense=auto?columns>=3:density>=9,feature=!auto&&density===9,compact=!auto&&density===6,wide=density===2||(auto&&products.length===1),hasExtra=context.textMode!=='none';
- const gap=dense?19:20,bodyBottom=1818;
- const maxWidth=(inner-(columns-1)*gap)/columns;
- const singleHeight=auto&&rows===1?Math.min(1140,Math.max(730,maxWidth*1.35)):0;
- const bodyTop=auto&&rows===1?Math.max(225,(225+bodyBottom-singleHeight)/2):225;
- const h=auto&&rows===1?singleHeight:(bodyBottom-bodyTop-(rows-1)*gap)/rows;
+ const gap=dense?19:20,bodyBottom=pageHeight-162;
+ const bodyTop=225;
+ const h=(bodyBottom-bodyTop-(rows-1)*gap)/rows;
  const manualWidth=(inner-(columns-1)*gap)/columns;
  products.forEach((product,i)=>{
   const position=auto?layout.position(i,rowCounts):{row:Math.floor(i/columns),column:i%columns,columns};
@@ -240,7 +249,7 @@ function draw(context,products,loaded,index,count,logo){
   const photoX=x+(wide?16:2),photoY=y+(wide?16:2);
   box(photoX,photoY,photoW,photoH,available?'#f3f6f9':'#e9edf1','',dense?8:12);
   const img=loaded.get(product.id);
-  if(img){const rect=photo(img,photoX+2,photoY+2,photoW-4,photoH-4,!available);watermark(rect.x,rect.y,rect.w,rect.h,settings);}
+  if(img){const rect=photo(img,photoX+2,photoY+2,photoW-4,photoH-4,!available);watermark(rect.x,rect.y,rect.w,rect.h,{watermarkEnabled:context.watermarkEnabled});}
   else{
    const cx=photoX+photoW/2,cy=photoY+photoH*.28,iconSize=Math.min(104,photoH*.2),buttonW=Math.min(300,photoW-36),buttonY=photoY+photoH*.72,buttonH=Math.min(48,photoH*.18);
    box(cx-iconSize*.5,cy-iconSize*.25,iconSize,iconSize*.65,'','#a1b5c7',iconSize*.1);
@@ -296,22 +305,22 @@ function draw(context,products,loaded,index,count,logo){
   const phone=String(settings.whatsapp||'50431517755').replace(/\D/g,'');
   link(x,y,w,h,'https://wa.me/'+phone);
  }
- const footerY=1850,phone=String(settings.whatsapp||'50431517755').replace(/\D/g,''),formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
- label('Precios y existencias sujetos a confirmación.',margin,1839,{size:15,color:muted,width:inner-210});
- label(String(index+1).padStart(2,'0')+' / '+String(count).padStart(2,'0'),W-margin,1839,{size:17,bold:true,color:muted,width:180,align:'right'});
- box(0,footerY,W,H-footerY,navy);polygon([[0,footerY],[65,footerY],[0,footerY+65]],'#44182b');
+ const footerY=pageHeight-130,phone=String(settings.whatsapp||'50431517755').replace(/\D/g,''),formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
+ label('Precios y existencias sujetos a confirmación.',margin,footerY-11,{size:15,color:muted,width:inner-210});
+ label(String(index+1).padStart(2,'0')+' / '+String(count).padStart(2,'0'),W-margin,footerY-11,{size:17,bold:true,color:muted,width:180,align:'right'});
+ box(0,footerY,W,pageHeight-footerY,navy);polygon([[0,footerY],[65,footerY],[0,footerY+65]],'#44182b');
  box(72,footerY+23,84,84,red,'',14);
  const wx=114,wy=footerY+65;
  circle(wx,wy-2,24,'','#ffffff');polygon([[wx-20,wy+11],[wx-26,wy+29],[wx-7,wy+23]],'#ffffff');
  path([['M',wx-11,wy-14],['C',wx-20,wy-8,wx-1,wy+18,wx+11,wy+11],['L',wx+15,wy+4],['L',wx+5,wy],['L',wx+1,wy+5],['C',wx-5,wy+2,wx-9,wy-3,wx-9,wy-7],['L',wx-5,wy-10],['Z']],'#ffffff');
- box(188,footerY+28,1,H-footerY-56,'#c6d3df');
+ box(188,footerY+28,1,pageHeight-footerY-56,'#c6d3df');
  label('HABLEMOS POR WHATSAPP',220,footerY+46,{size:18,bold:true,color:'#d6e0eb',width:680});
  label(formatted,220,footerY+96,{size:43,bold:true,color:'#ffffff',width:680,fit:true});
  box(968,footerY+28,1,H-footerY-56,'#c6d3df');circle(1038,footerY+66,34,red);
  path([['M',1038,footerY+87],['C',1026,footerY+70,1024,footerY+66,1024,footerY+59],['C',1024,footerY+41,1052,footerY+41,1052,footerY+59],['C',1052,footerY+66,1050,footerY+70,1038,footerY+87],['Z']],'#ffffff');circle(1038,footerY+59,5,red);
  label('Comayagua, Honduras',1092,footerY+55,{size:23,bold:true,color:'#ffffff',width:W-1126,fit:true});
  label('Envíos a toda Honduras',1092,footerY+89,{size:20,color:'#d6e0eb',width:W-1126,fit:true});
- link(72,footerY+15,W-144,H-footerY-30,'https://wa.me/'+phone);
+ link(72,footerY+15,W-144,pageHeight-footerY-30,'https://wa.me/'+phone);
  return page;
 }
 const blob=canvas=>new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(Error('El navegador no pudo crear el archivo.')),'image/png'));
@@ -348,7 +357,7 @@ async function build(){
  const size=auto?12:[2,4,6,9,12,16].includes(Number($('catalogExportDensity').value))?Number($('catalogExportDensity').value):6;
  const selected=context.products.filter(p=>!hiddenIds.has(p.id)&&($('catalogExportOut').checked||p.stock>0));
  if($('catalogExportGroup').checked&&context.multipleCategories)selected.sort((a,b)=>a.category.localeCompare(b.category,'es'));
- context.count=selected.length;context.density=size;context.autoLayout=auto;context.layoutKey=$('catalogExportDensity').value;
+ context.count=selected.length;context.density=size;context.autoLayout=auto;context.layoutKey=$('catalogExportDensity').value;context.watermarkEnabled=$('catalogExportWatermark').checked;
  const plan=auto?window.GC_CATALOG_LAYOUT.pages(selected):paginate(selected,size);context.textMode=$('catalogExportText').value;context.notes=new Map(extraText.notes);context.omittedText=0;
  $('catalogExportCount').textContent=selected.length+' producto'+(selected.length===1?'':'s')+' · '+plan.length+' página'+(plan.length>1?'s':'');
  $('catalogExportPreview').hidden=true;$('catalogExportEmpty').hidden=false;$('catalogExportEmpty').textContent=selected.length?'Preparando fotos y páginas…':'No hay productos con esta selección.';
@@ -370,7 +379,7 @@ async function build(){
    const page=draw(context,entries,loaded,index,count,logo),png=await blob(page.canvas);page.canvas.width=1;page.canvas.height=1;
    await window.GC_CATALOG_PDF.prepare(page,pdfImages);
    if(ticket!==epoch)return;
-   const url=URL.createObjectURL(png);context.urls.push(url);context.pages.push({url,file:new File([png],context.filename+'_'+String(index+1).padStart(2,'0')+'.png',{type:'image/png'}),ops:page.ops});
+   const url=URL.createObjectURL(png);context.urls.push(url);context.pages.push({url,file:new File([png],context.filename+'_'+String(index+1).padStart(2,'0')+'.png',{type:'image/png'}),ops:page.ops,height:page.height});
    if(index===0)preview();
   }
   if(ticket!==epoch)return;
@@ -390,7 +399,7 @@ function open(options){
  const products=(options.products||[]).map(C.cleanProduct).filter(p=>p.active&&p.id&&p.name);
  const now=new Date(),parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Tegucigalpa',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now),part=type=>parts.find(p=>p.type===type).value;
  state={...options,products,multipleCategories:new Set(products.map(p=>p.category)).size>1,year:part('year'),title:String(options.title||'Catálogo').slice(0,120),date:new Intl.DateTimeFormat('es-HN',{timeZone:'America/Tegucigalpa',dateStyle:'medium'}).format(now),filename:'GC_Catalogo_'+slug(options.title)+'_'+part('year')+part('month')+part('day'),pages:[],urls:[],index:0,busy:true,settings:options.settings||{},mirrors:null};
- $('catalogExportTitle').textContent=state.multipleCategories?'Compartir catálogo':'Compartir categoría';$('catalogExportCategory').textContent=state.title;$('catalogExportOut').checked=options.includeOut!==false;$('catalogExportPrices').checked=true;$('catalogExportFormat').value='image';$('catalogExportDensity').value='auto';$('catalogExportText').value=layoutTextMode('auto');refreshSelection();textEditor(true);$('catalogExportGroup').checked=true;$('catalogExportGroupLabel').hidden=!state.multipleCategories;$('catalogExportOverlay').hidden=false;document.body.style.overflow='hidden';$('catalogExportClose').focus();build();
+ $('catalogExportTitle').textContent=state.multipleCategories?'Compartir catálogo':'Compartir categoría';$('catalogExportCategory').textContent=state.title;$('catalogExportOut').checked=options.includeOut!==false;$('catalogExportPrices').checked=true;$('catalogExportFormat').value='image';$('catalogExportDensity').value='auto';$('catalogExportWatermark').checked=true;$('catalogExportText').value=layoutTextMode('auto');refreshSelection();textEditor(true);$('catalogExportGroup').checked=true;$('catalogExportGroupLabel').hidden=!state.multipleCategories;$('catalogExportOverlay').hidden=false;document.body.style.overflow='hidden';$('catalogExportClose').focus();build();
 }
 window.GC_CATALOG_EXPORT={open};
 })();

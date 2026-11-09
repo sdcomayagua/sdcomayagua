@@ -52,7 +52,7 @@ async function create(pages,options){
  objects[info]=`<< /Title ${literal('Gamer Comayagua - '+options.title)} /Author ${literal('Gamer Comayagua')} /Creator ${literal('Catalogo Gamer Comayagua')} >>`;
  for(const record of images.values()){const d=record.data;objects[record.id]={header:`/Type /XObject /Subtype /Image /Width ${d.width} /Height ${d.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode`,bytes:d.bytes};}
  pages.forEach((page,index)=>{
-  const ids=pageIds[index],scale=612/options.width,height=options.height,commands=[`q ${num(scale)} 0 0 ${num(scale)} 0 0 cm`],used=new Set();
+  const ids=pageIds[index],height=page.height||options.height,pageWidth=height<1400?792:height<1800?700:612,scale=pageWidth/options.width,commands=[`q ${num(scale)} 0 0 ${num(scale)} 0 0 cm`],used=new Set();
   for(const op of page.ops){
    if(op.kind==='box'){
     commands.push('q');if(op.fill)commands.push(color(op.fill)+' rg');if(op.stroke)commands.push(color(op.stroke)+' RG',num(op.lineWidth||1.5)+' w');
@@ -73,7 +73,7 @@ async function create(pages,options){
     const angle=-op.angle*Math.PI/180,co=Math.cos(angle),si=Math.sin(angle),key=window.GC_WATERMARK?.fonts?.[op.font]?.pdf||'F2';
     const width=op.textWidth||op.size*String(op.value).length*.55,xx=op.x-width*co/2,yy=height-op.y-width*si/2-op.size*.32;
     const clip=op.clip,cy=height-clip.y-clip.h;
-    commands.push('q',`${num(clip.x)} ${num(cy)} ${num(clip.w)} ${num(clip.h)} re W n`,'/GWM gs','BT',`/${key} ${num(op.size)} Tf`,'0.09 0.26 0.42 rg',`${num(co)} ${num(si)} ${num(-si)} ${num(co)} ${num(xx)} ${num(yy)} Tm`,literal(op.value)+' Tj','ET','Q');
+    commands.push('q',`${num(clip.x)} ${num(cy)} ${num(clip.w)} ${num(clip.h)} re W n`,'/GWM gs','0.9 0.95 1 RG','0.09 0.26 0.42 rg','0.85 w','BT',`/${key} ${num(op.size)} Tf`,'2 Tr',`${num(co)} ${num(si)} ${num(-si)} ${num(co)} ${num(xx)} ${num(yy)} Tm`,literal(op.value)+' Tj','ET','Q');
    }else if(op.kind==='link'){
     const url=uri(op.url);if(!url)continue;const id=reserve();ids.links.push(id);
     objects[id]=`<< /Type /Annot /Subtype /Link /Rect [${num(op.x*scale)} ${num((height-op.y-op.h)*scale)} ${num((op.x+op.w)*scale)} ${num((height-op.y)*scale)}] /Border [0 0 0] /A << /S /URI /URI (${url}) >> >>`;
@@ -81,7 +81,7 @@ async function create(pages,options){
   }
   commands.push('Q');objects[ids.content]={bytes:encoder.encode(commands.join('\n')+'\n')};
   const mark=page.ops.find(op=>op.kind==='watermark'),extras=mark?` /ExtGState << /GWM << /Type /ExtGState /ca ${num(mark.alpha)} /BM /Normal >> >>`:'';
-  objects[ids.page]=`<< /Type /Page /Parent ${tree} 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R ${Object.entries(fontIds).map(([name,id])=>'/'+name+' '+id+' 0 R').join(' ')} >> /XObject << ${[...used].map(id=>`/Im${id} ${id} 0 R`).join(' ')} >>${extras} >> /Contents ${ids.content} 0 R /Annots [${ids.links.map(id=>id+' 0 R').join(' ')}] >>`;
+  objects[ids.page]=`<< /Type /Page /Parent ${tree} 0 R /MediaBox [0 0 ${num(pageWidth)} ${num(height*scale)}] /Resources << /Font << /F1 ${regular} 0 R /F2 ${bold} 0 R ${Object.entries(fontIds).map(([name,id])=>'/'+name+' '+id+' 0 R').join(' ')} >> /XObject << ${[...used].map(id=>`/Im${id} ${id} 0 R`).join(' ')} >>${extras} >> /Contents ${ids.content} 0 R /Annots [${ids.links.map(id=>id+' 0 R').join(' ')}] >>`;
  });
  const parts=[],offsets=[0];let length=0;const append=value=>{const bytes=typeof value==='string'?encoder.encode(value):value;parts.push(bytes);length+=bytes.byteLength;};
  append('%PDF-1.4\n');append(new Uint8Array([37,226,227,207,211,10]));
