@@ -31,7 +31,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.match(await page.locator('#gcKitSum').innerText(),/400/);
   assert.match(await page.locator('#gcKitTotal').innerText(),/350/);
   await page.locator('#gcKitSave').click();
-  await page.locator('#gcKitMessage').filter({hasText:'Kit creado'}).waitFor({timeout:15000});
+  try{await page.locator('#gcKitMessage').filter({hasText:'Kit creado'}).waitFor({timeout:8000});}
+  catch(error){console.error('KIT SAVE DIAGNÓSTICO:',await page.locator('#gcKitMessage').innerText(),JSON.stringify(calls.slice(-5)));throw error;}
   assert.ok(calls.some(r=>r.action==='saveProduct'&&r.product?.name==='Kit de dos controles'&&r.product?.discounts==='ENVIOGRATIS'));
   assert.equal(fx.get('A','Stock'),10);assert.equal(fx.get('B','Stock'),4);
   await page.locator('#gcKitClose').click();
