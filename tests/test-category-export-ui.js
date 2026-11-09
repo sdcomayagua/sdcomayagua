@@ -152,7 +152,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
     await catalog.locator('#catalogExportFormat').selectOption('pdf');
     const pdf=await download('catalogo-auto3.pdf');
     assert.match(pdf.toString('latin1'),/\/MediaBox \[0 0 792 /,'El PDF también debe usar orientación horizontal');
-    assert.ok((pdf.toString('latin1').match(/GAMER COMAYAGUA/g)||[]).length>=n*3);
+    assert.ok((pdf.toString('latin1').match(/\/GWM gs/g)||[]).length>=n*3,'El PDF debe incluir las marcas vectoriales de agua; el texto se codifica como octales');
     await catalog.locator('#catalogExportFormat').selectOption('image');
     await catalog.locator('#catalogExportWatermark').uncheck();await ready();
     assert.equal(await catalog.evaluate(()=>window.__catalogScenes[0].filter(op=>op.kind==='watermark').length),0,'La casilla permite quitar la marca de agua solo en esta descarga');
