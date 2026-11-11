@@ -538,6 +538,20 @@
       "path": "assets/catalog/7f7f4dbc3c0fed90a522c806.webp",
       "checked": "2026-11-11",
       "size": 1600
+    },
+    "6cf0ea5c-d0b6-428c-92da-0eb51e033e86": {
+      "source": "https://drive.google.com/thumbnail?id=1Oq_FT_Yjtgm6Tmpj_UeP65_bFVtn2lNF&sz=w1200",
+      "path": "assets/catalog/fd80917082c6d7e6c105d691.jpg",
+      "checked": "2026-11-11",
+      "size": 1600,
+      "gallery": [
+        {
+          "source": "https://drive.google.com/thumbnail?id=1cqzd9EvXCu66ZifrNHuiXtnxDc9QYsrZ&sz=w1200",
+          "path": "assets/catalog/4e9d8b2f9d19620c4951d021.jpg",
+          "checked": "2026-11-11",
+          "size": 1600
+        }
+      ]
     }
   }
 }
