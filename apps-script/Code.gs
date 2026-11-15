@@ -106,7 +106,7 @@ function gcHandleRequest_(req){
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{sessionTokens:gcSessionSupported_(),finance:true,offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        result={ok:true,message:'Acceso autorizado',features:{sessionTokens:gcSessionSupported_(),finance:true,offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,photoVision:typeof gcAnalyzeNewProductPhoto_==='function'&&!!String(p.getProperty('GC_FREE_GEMINI_API_KEY')||'').trim(),referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
         if(gcSessionSupported_())result.sessionToken=gcSessionValid_(req.token)?String(req.token):gcSessionOpen_();
       }
       else if (req.action === 'sessionPing') result={ok:true,message:'Sesión vigente'};
@@ -124,6 +124,7 @@ function gcHandleRequest_(req){
       else if (req.action === 'financeCatalog') result = gcFinanceCatalog_();
       else if (req.action === 'saveFinance') result = gcSaveFinance_(req);
       else if (req.action === 'saveOffers') result = gcSaveOffers_(req);
+      else if (req.action === 'recognizeProductPhoto') result = gcAnalyzeNewProductPhoto_(req.file||{});
       else if (req.action === 'researchCandidates') result = gcFreeCandidates_(req.name,req.category);
       else if (req.action === 'researchProduct') result = researchProduct_(req.name,req.category,req.selection);
       else if (req.action === 'researchImages') result = gcFreeImages_(req.selection);
