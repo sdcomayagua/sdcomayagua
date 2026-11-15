@@ -1,0 +1,69 @@
+/* Admin App 2026 · captura móvil primero, controles de 44px y lectura supervisada */
+.gc-admin-app .app-overview{border:1px solid #dfe8f2;background:linear-gradient(150deg,#fff 0%,#f8fbff 100%);border-radius:20px;padding:20px 22px;box-shadow:0 12px 30px #1539580a}
+.gc-admin-app .app-overline{font-weight:900;color:#24689e}
+.gc-admin-app .app-overview h1{color:#122f4b;font-weight:870;letter-spacing:-.8px}
+.gc-admin-app .app-overview-actions .btn{border-radius:12px;font-weight:800}
+.gc-admin-app .app-main-nav{border-radius:15px;border-color:#dbe6f0}
+.gc-admin-app .app-main-nav .app-nav-button.active{background:#e7f2fe;border-color:#d0e4f7;color:#1b5e9c}
+.gc-admin-app #mgViewInventory .box{box-shadow:0 10px 30px #14345409}
+.gc-admin-app #adminRows>tr{border-radius:18px;box-shadow:0 9px 26px #1439570e}
+.gc-admin-app #adminRows .admin-product-identity img{border-radius:13px;background:#fff}
+.gc-admin-app #adminRows .app-share-quote{background:#e52f4b!important;border-color:#e52f4b!important;color:white!important}
+.gc-admin-app #adminRows .app-product-price-line strong{font-weight:900}
+.gc-admin-app .app-photo-start{background:linear-gradient(145deg,#f1f7ff,#fff);border:1px solid #cfdfef;border-radius:17px;padding:17px;display:grid;gap:10px}
+.gc-admin-app .app-photo-kicker{color:#1765a4;font-size:10px;letter-spacing:1.3px;font-weight:900}
+.gc-admin-app .app-photo-start h3{font-size:19px;color:#183851;letter-spacing:-.5px;line-height:1.3;margin:0}
+.gc-admin-app .app-photo-start>p{color:#59738a;font-size:13px;line-height:1.6;margin:0}
+.gc-admin-app .app-photo-start .app-photo-note{color:#72889d;font-size:11px}
+.gc-admin-app .app-photo-start-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:6px 0}
+.gc-admin-app .app-photo-start-buttons button{font-family:inherit;font-size:13px;font-weight:780;min-height:48px;padding:9px 10px;line-height:1.4;background:white;border-radius:11px;border:1px solid #ccdbeb;color:#225c8d;cursor:pointer;white-space:normal}
+.gc-admin-app .app-photo-start-buttons #appPhotoGallery{background:#195fa6;color:white;border-color:#195fa6}
+.gc-admin-app .app-photo-start-buttons #appPhotoRead{background:#fff1f3;color:#c22447;border-color:#f2cbd2}
+.gc-admin-app #productForm .editor-jump button{font-weight:800}
+.gc-admin-app #productForm .editor-jump button[aria-pressed=true]{background:#185e9e;border-color:#185e9e;color:white}
+.gc-admin-app #productForm #productEditorBody .form-grid>label{min-width:0}
+.gc-admin-app #productForm #productEditorBody .form-grid .field{min-width:0;width:100%}
+.gc-admin-app #formOverlay .dialog-head h2{font-weight:860;color:#143451}
+.gc-admin-app .app-next{background:#175e9f!important;color:white!important}
+.gc-admin-app #saveBtn{background:#14764e!important;color:white!important}
+.gc-admin-app #productPhotoDrop{border-radius:17px;background:#fafcff;border:1px dashed #bdd2e7}
+.gc-admin-app #productPhotoDrop .upload-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gc-admin-app #productPhotoDrop .upload-actions .btn{min-width:0;padding:9px 8px;font-size:12px;white-space:normal}
+.gc-admin-app .pi-dialog{border-radius:21px;background:#fff}
+.gc-admin-app .pi-chooser{background:#f8fbff;border:2px dashed #bdcfe1;border-radius:16px}
+.gc-admin-app .pi-chooser h3{font-weight:850;color:#1e405b}
+.gc-admin-app .pi-card{border:1px solid #dce7f1;border-radius:17px;box-shadow:0 7px 25px #13395708;padding:16px}
+.gc-admin-app .pi-card .pi-name{grid-column:1/-1}
+.gc-admin-app .pi-card .pi-name input{border:1px solid #b6d2e8;background:#f5faff;font-weight:800;color:#163b5d}
+.gc-admin-app .pi-card .pi-state{background:#fff8ea;border:1px solid #f3e4bd;border-radius:10px;padding:10px 12px;color:#775c21;font-size:12px;line-height:1.55}
+.gc-admin-app .pi-card .pi-state.pi-error{background:#fff1f1;border-color:#f4c9c9;color:#ad2f3a}
+.gc-admin-app .pi-actions [data-pi-focus]{background:#edf5ff;color:#195b95;border:1px solid #cce0f4;font-weight:800}
+.gc-admin-app .pi-dialog .pi-footer{background:#fff;border-top:1px solid #e1eaf3;box-shadow:0 -4px 16px #183e5a0a}
+.gc-admin-app .pi-dialog .pi-footer .btn{border-radius:11px}
+.gc-admin-app .pi-focus-stage{background:#f0f6fc;border:1px solid #d7e5f1;border-radius:14px}
+.gc-admin-app .pi-focus-dialog{border-radius:19px}
+.gc-admin-app #gcQuoteOverlay{z-index:3000}
+@media(max-width:760px){
+ .gc-admin-app .app-overview{padding:15px 14px;margin-bottom:12px;border-radius:16px}
+ .gc-admin-app .app-overview h1{font-size:26px;margin:5px 0}
+ .gc-admin-app .app-bottom-nav{padding:6px 4px calc(7px + env(safe-area-inset-bottom));border-top:1px solid #d6e4f0}
+ .gc-admin-app .app-bottom-nav .app-nav-button.active{background:#e7f1ff;color:#155b9b}
+ .gc-admin-app #adminPanel .app-overview-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .gc-admin-app #adminPanel .app-overview-actions .btn{font-size:12px;min-height:45px;white-space:normal}
+ .gc-admin-app #productEditorBody{padding:12px!important}
+ .gc-admin-app .app-photo-start{padding:14px;gap:9px;border-radius:15px}
+ .gc-admin-app .app-photo-start-buttons button{min-height:50px;font-size:12px}
+ .gc-admin-app #productForm #productSaveActions{gap:8px}
+ .gc-admin-app #productForm #productSaveActions .app-next{flex:1}
+ .gc-admin-app #formOverlay .dialog-head{padding:12px 14px}
+ .gc-admin-app .pi-dialog{width:100vw;max-width:none;height:100dvh;max-height:100dvh;border-radius:0}
+ .gc-admin-app .pi-dialog .pi-body{padding:12px}
+ .gc-admin-app .pi-card{padding:13px;border-radius:15px}
+ .gc-admin-app .pi-card .pi-fields{grid-template-columns:1fr 1fr;gap:10px}
+ .gc-admin-app .pi-card .pi-fields .pi-name,.gc-admin-app .pi-card .pi-fields .full{grid-column:1/-1}
+ .gc-admin-app .pi-card .pi-fields .field{font-size:16px;min-height:46px}
+ .gc-admin-app .pi-card .pi-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .gc-admin-app .pi-card .pi-actions button{font-size:12px;min-height:47px;white-space:normal}
+ .gc-admin-app .pi-card .pi-actions .pi-field-hint{grid-column:1/-1}
+ .gc-admin-app .pi-focus-dialog{border-radius:0;width:100vw;max-width:none;height:100dvh;max-height:100dvh}
+}

@@ -39,7 +39,11 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#piClose').click();
   await page.locator('#appCreate').click();
   await page.locator('#formOverlay').waitFor({state:'visible'});
-  assert.equal(await page.locator('#productForm').getAttribute('data-app-current-step'),'data');
+  assert.equal(await page.locator('#productForm').getAttribute('data-app-current-step'),'photos','Nuevo producto comienza por la foto');
+  assert.equal(await page.locator('#productPhotoDrop').isVisible(),true,'La galería se muestra primero');
+  assert.equal(await page.locator('#appPhotoGallery').isVisible(),true);
+  assert.equal(await page.locator('#appPhotoRead').isVisible(),true);
+  await page.locator('[data-editor-section="data"]').click();
   assert.equal(await page.locator('#productPhotoDrop').isVisible(),false);
   await page.locator('#appEditorNext').click();
   assert.equal(await page.locator('#productPhotoDrop').isVisible(),true,'Fotos es pantalla propia');

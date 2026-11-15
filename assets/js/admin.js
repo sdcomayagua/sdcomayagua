@@ -564,8 +564,8 @@ async function save(e){
  }catch(err){$('formMessage').textContent='⚠ '+err.message;toast(err.message)}finally{setBusy(false)}
 }
 function mergeSelectedFiles(list){
- const offered=Array.from(list||[]).filter(Boolean),incoming=offered.filter(file=>/^image\/(jpeg|png|webp|gif)$/i.test(file.type)&&file.size<=(file.type==='image/gif'?2:30)*1024*1024);
- if(incoming.length!==offered.length){toast('Usá JPG, PNG o WEBP de hasta 30 MB; GIF de hasta 2 MB.');$('formMessage').textContent='Algunas fotos no se agregaron. Revisá el formato y el tamaño.';}
+ const offered=Array.from(list||[]).filter(Boolean),incoming=offered.filter(file=>/^image\/(jpeg|png|webp|heic|heif|gif)$/i.test(file.type)&&file.size<=(file.type==='image/gif'?2:30)*1024*1024);
+ if(incoming.length!==offered.length){toast('Usá JPG, PNG, WEBP o HEIC de hasta 30 MB; GIF de hasta 2 MB.');$('formMessage').textContent='Algunas fotos no se agregaron. Revisá el formato y el tamaño.';}
  if(!incoming.length)return;
  const merged=[...selectedFiles];
  incoming.forEach(file=>{if(!merged.some(x=>x.name===file.name&&x.size===file.size&&x.lastModified===file.lastModified))merged.push(file)});

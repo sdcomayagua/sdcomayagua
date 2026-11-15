@@ -6,6 +6,10 @@
   const name=String(filename||'').replace(/\.[^.]+$/,'').replace(/\s*\(\d+\)$/,'').replace(/[_]+/g,' ').trim();
   return /^(?:IMG[- _]?\d|WhatsApp[- _]?Image|image[ (]?\d|\d{8,}|DSC[- _]?\d|photo[- _]?\d)/i.test(name)?'':name.slice(0,180);
  }
+ function safeProductName(value){
+  const name=clean(value);
+  return name.length>=3&&name.length<=180&&/[A-Za-zÀ-ÿ]{3,}/.test(name)&&!/^\s*(?:\d+[\s./-]*)+$/i.test(name)&&!/^(?:IMG|DSC|PHOTO|IMAGE)[-_ ]?\d+/i.test(name);
+ }
  function amount(raw){
   let s=String(raw).replace(/\s/g,'');
   if(/^[\d,]+\.\d{1,2}$/.test(s))s=s.replace(/,/g,'');
@@ -65,6 +69,10 @@
   }else if(/DEDALES|FINGER\s+SLEEVE/i.test(n)){category='Dedales';type='dedales';name='Dedales'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'');}
   else if(/PHONE\s*COOLER|ENFRIADOR|\bCOOLER\b/i.test(n)){category='Coolers';type='enfriador';name='Enfriador'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'');}
   else if(/\bHUB\b/i.test(n)){category='Adaptador';type='hub';name='Hub USB'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'');const ports=n.match(/\b([2-9]|1[0-2])\s*[- ]?\s*[PRB]ORT(?:S)?\b/i)||n.match(/\b(?:OUTPUT\s*)?USB\s*X\s*([2-9]|1[0-2])\b/i);if(ports)details.size=ports[1]+' puertos';}
+  else if(/\b(?:PANEL\s+SOLAR|SOLAR\s+PANELS?|PANELES?\s+FOTOVOLTAIC[OA]S?|PHOTOVOLTAIC\s+PANELS?)\b/i.test(n)){
+   category='Paneles solares';type='solar';name='Panel solar'+(details.brand?' '+details.brand:'')+(details.model&&/[A-Z]/i.test(details.model)?' '+details.model:'')+(details.power?' '+details.power:'');
+   notes.push('Confirmá la potencia y el modelo de la caja antes de publicar.');
+  }
   else if(/AIR\s*PODS/i.test(n)){category='Audio';type='audio';name='Audífonos tipo AirPods'+(/\bPRO\b/i.test(n)?' Pro':'')+(/2ND\s*GEN|2\.?\s*GEN/i.test(n)?' · 2.ª generación':'')+(details.connection?' · '+details.connection:'');notes.push('Confirmá la marca y originalidad antes de publicar.');}
   else if(/DATA\s*CABLE|\bCABLE\b/i.test(n)){category='Cables USB-C';type='cable';name='Cable'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'')+(details.connection?' '+details.connection:'')+(details.power?' '+details.power:'');}
   else if(/CHARGER|CARGADOR/i.test(n)){category='Cargador para Celular';type='cargador';name='Cargador'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'')+(details.power?' '+details.power:'');}
@@ -72,11 +80,11 @@
   else if(/\bMOUSE\b/i.test(n)){category='Mouse';type='mouse';name='Mouse'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'');}
   else if(/GAME\s*PAD|CONTROL\s*(?:GAMER|INALAMBRICO)/i.test(n)){category='Gamepad';type='control';name='Control'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'');}
   const fromFile=filenameName(filename);
-  if(!name&&fromFile)name=fromFile;
   if(!name){
    const title=text.split(/\n/).map(clean).find(line=>line.length>=8&&line.length<=90&&line.split(/\s+/).filter(word=>/^[A-Za-zÀ-ÿ]{3,}$/.test(word)).length>=2&&line.replace(/[^A-Za-zÀ-ÿ\s]/g,'').length/line.length>.85&&!/(?:ENVIO|COMAYAGUA|WHATSAPP|LLAMANOS|TALLAS|QUALITY|CHARGING|LENGTH|MODELO?\s*:)/i.test(normalized(line)));
    if(title)name=title;
   }
+  if(!name&&fromFile&&safeProductName(fromFile))name=fromFile;
   const prices=[...n.matchAll(/(?:\bLPS\.?|\bHNL|\bL\.|\bPRECIO\s*[:=])\s*(\d[\d.,]*(?:\s*\d{3})?)/gi)].map(m=>amount(m[1])).filter(v=>v!==null);
   const unique=[...new Set(prices)];const price=unique.length===1?unique[0]:null;
   if(unique.length>1)notes.push('Se detectaron varios precios: elegí el de venta.');
@@ -85,6 +93,8 @@
   const freeShipping=/ENVIO\s*GRATIS|ENVIO\s+INCLUIDO/i.test(n);
   if(freeShipping)notes.push('La imagen anuncia envío gratis. Confirmá esa condición en la ficha antes de activarla.');
   notes.push('Existencias pendientes de confirmar.');
+  if(!safeProductName(name))name='';
+  if(!name)notes.push('No se pudo identificar un nombre comercial fiable: confirmalo mirando la caja.');
   const draft={name:clean(name).slice(0,180),category:categoryName(category,categories),price,stock:null,codAllowed:!depositOnly,freeShipping,details,notes,text,type};draft.description=descriptionFor(draft);
   draft.confidence=assessment(draft).confidence;return draft;
  }
@@ -105,5 +115,5 @@
   draft.description=descriptionFor(draft);
   draft.notes=[...new Set(draft.notes)];draft.confidence=assessment(draft).confidence;return draft;
  }
- return {parse,combine,assessment,filenameName,amount};
+ return {parse,combine,assessment,filenameName,amount,safeProductName};
 });

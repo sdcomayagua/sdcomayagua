@@ -96,7 +96,7 @@ async function render(product,source,settings={}){
   ctx.drawImage(img,91+(898-w*k)/2,216+(538-h*k)/2,w*k,h*k);
   img.close?.();
  }catch(error){
-  text(ctx,'Fotografía no disponible',540,475,30,COLORS.muted,600,'center');
+  throw Error('La fotografía principal no está disponible para generar esta cotización. '+String(error?.message||''));
  }
  ctx.font='800 43px Arial, sans-serif';
  const names=titleRows(ctx,product.name);

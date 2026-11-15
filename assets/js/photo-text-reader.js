@@ -30,13 +30,14 @@
   };
   const finish=()=>({data:{text:draft?.text||'',confidence:Math.max(0,...readings.map(r=>r.confidence))},draft:draft||model.parse('',file.name,categories),readings,warning});
   image=await loadImage(file);check();
-  if(!region&&!rotation){const normalized=Math.max(image.width,image.height)>2400?canvasFor(image):null;try{await attempt(normalized||file,'Leyendo foto completa…');}finally{if(normalized)normalized.width=normalized.height=1;}if(!detailed&&model.assessment(draft).complete)return finish();}
+  if(!region&&!rotation){const normalized=Math.max(image.width,image.height)>2400||/image\/(?:heic|heif)/i.test(file.type)?canvasFor(image):null;try{await attempt(normalized||file,'Leyendo foto completa…');}finally{if(normalized)normalized.width=normalized.height=1;}if(!detailed&&model.assessment(draft).complete)return finish();}
   const passes=region?[
    {label:'Ampliando la zona seleccionada…',box:region,style:'color'},
    {label:'Leyendo las líneas de la etiqueta…',box:region,style:'color',mode:'6'},
    {label:'Mejorando contraste de la etiqueta…',box:region,style:'label',mode:'6'}
   ]:[
-   {label:'Leyendo marca y encabezado…',box:{x:0,y:.08,width:.66,height:.24},style:'label'},
+   {label:'Leyendo nombre y modelo en toda la parte superior…',box:{x:0,y:0,width:1,height:.34},style:'color'},
+   {label:'Ampliando letras del nombre y la marca…',box:{x:.06,y:.05,width:.88,height:.37},style:'label',when:()=>!model.safeProductName(draft?.name)},
    {label:'Buscando modelo y especificaciones…',box:{x:0,y:.54,width:1,height:.22},style:'color'},
    {label:'Leyendo la parte inferior de la caja…',box:{x:0,y:.78,width:1,height:.22},style:'color'},
    {label:'Ampliando medidas y conexiones…',box:{x:.5,y:.72,width:.5,height:.28},style:'gray',when:()=>!draft.details.length},
