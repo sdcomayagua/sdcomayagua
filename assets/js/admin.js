@@ -139,16 +139,20 @@ function normalizePreview(url){
 }
 function renderGalleryPreview(){
  const main=$('productImage').value.trim();
- const gallery=parseGallery($('galleryInput').value);
- const all=[main,...gallery].filter(Boolean).slice(0,10);
- $('imagePreview').src=normalizePreview(all[0]);
+ const gallery=parseGallery($('galleryInput').value),all=[main,...gallery].filter(Boolean).slice(0,10);
  previewUrls.forEach(URL.revokeObjectURL);previewUrls=[];
- const files=selectedFiles.slice(0,10);
- $('selectedFilesText').textContent=files.length?files.map(f=>f.name).join(', '):'No hay archivos seleccionados.';
+ const files=selectedFiles.slice(0,10),pendingFirst=files.length?URL.createObjectURL(files[0]):'';
+ if(pendingFirst)previewUrls.push(pendingFirst);
+ // La primera foto local se ve INMEDIATAMENTE como principal, sin subirla aún.
+ $('imagePreview').src=all.length?normalizePreview(all[0]):pendingFirst||fallback;
+ $('selectedFilesText').textContent=files.length?files.length+' foto'+(files.length===1?'':'s')+' por guardar · '+files.map(f=>f.name).join(', '):'Elegí una foto de la galería o cámara.';
  $('galleryPreview').innerHTML=all.length
-   ? all.map((url,i)=>`<div class="gallery-thumb" data-photo-position="${i}"><img draggable="false" src="${esc(normalizePreview(url))}" onerror="this.onerror=null;this.src='${fallback}'" alt="Foto ${i+1}"><span>${i===0?'Principal':'Foto '+(i+1)}</span><button type="button" class="photo-grip" draggable="true" data-photo-grip="${i}" aria-label="Mover foto ${i+1}. Usá las flechas izquierda y derecha">↔ Arrastrar</button><div class="photo-step"><button type="button" data-photo-step="${i}" data-step="-1" aria-label="Mover foto ${i+1} antes" ${i===0?'disabled':''}>←</button><button type="button" data-photo-step="${i}" data-step="1" aria-label="Mover foto ${i+1} después" ${i===all.length-1?'disabled':''}>→</button></div><button type="button" data-main="${i}" aria-label="Usar foto ${i+1} como principal">Principal</button><button type="button" data-remove-photo="${i}" aria-label="Quitar foto ${i+1}">Quitar</button></div>`).join('')
-   : '<div class="gallery-help">Acá verás la imagen principal y la galería.</div>';
- $('pendingPreview').innerHTML=files.map((file,i)=>{const url=URL.createObjectURL(file);previewUrls.push(url);return `<div class="gallery-thumb pending"><img src="${url}" alt="Foto pendiente ${i+1}"><span>Pendiente</span><button type="button" data-remove-file="${i}" aria-label="Quitar archivo ${i+1}">Quitar</button></div>`}).join('');
+  ? all.map((url,i)=>`<div class="gallery-thumb" data-photo-position="${i}"><img draggable="false" src="${esc(normalizePreview(url))}" onerror="this.onerror=null;this.src='${fallback}'" alt="Foto ${i+1}"><span>${i===0?'Principal':'Foto '+(i+1)}</span><button type="button" class="photo-grip" draggable="true" data-photo-grip="${i}" aria-label="Mover foto ${i+1}. Usá las flechas izquierda y derecha">↔ Arrastrar</button><div class="photo-step"><button type="button" data-photo-step="${i}" data-step="-1" aria-label="Mover foto ${i+1} antes" ${i===0?'disabled':''}>←</button><button type="button" data-photo-step="${i}" data-step="1" aria-label="Mover foto ${i+1} después" ${i===all.length-1?'disabled':''}>→</button></div><button type="button" data-main="${i}" aria-label="Usar foto ${i+1} como principal">Principal</button><button type="button" data-remove-photo="${i}" aria-label="Quitar foto ${i+1}">Quitar</button></div>`).join('')
+  : files.length?'':'<div class="gallery-help">La fotografía del artículo aparecerá aquí apenas la elijás.</div>';
+ $('pendingPreview').innerHTML=files.map((file,i)=>{
+  const url=i===0?pendingFirst:URL.createObjectURL(file);if(i>0)previewUrls.push(url);
+  return `<div class="gallery-thumb pending"><img src="${esc(url)}" alt="Foto elegida ${i+1}"><span>Foto ${i+1} · por guardar</span><button type="button" data-remove-file="${i}" aria-label="Quitar foto ${i+1}">Quitar</button></div>`;
+ }).join('');
  $('imagePreview').onerror=function(){this.onerror=null;this.src=fallback};
  editorEvent('change');
 }

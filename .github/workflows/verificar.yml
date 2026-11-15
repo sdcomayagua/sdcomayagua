@@ -48,6 +48,7 @@ jobs:
           node tests/test-photo-download.js
           node tests/test-category-codes.js
           node tests/test-photo-recognition.js
+          node tests/test-photo-vision.js
           node tests/test-product-search.js
           python3 tests/test-sync.py
           python3 tests/test-catalog-photos.py

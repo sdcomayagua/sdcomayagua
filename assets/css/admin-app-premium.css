@@ -67,3 +67,44 @@
  .gc-admin-app .pi-card .pi-actions .pi-field-hint{grid-column:1/-1}
  .gc-admin-app .pi-focus-dialog{border-radius:0;width:100vw;max-width:none;height:100dvh;max-height:100dvh}
 }
+
+/* Captura de fotos renovada: la imagen elegida aparece como vista principal. */
+.gc-admin-app #productEditorBody .form-grid > [data-app-step][hidden],
+.gc-admin-app #editorReview[hidden],
+.gc-admin-app #productSaveActions button[hidden]{display:none!important}
+.gc-admin-app #productForm[data-app-new-product="true"] .editor-jump [data-editor-section="photos"]{order:0}
+.gc-admin-app #productForm[data-app-new-product="true"] .editor-jump [data-editor-section="data"]{order:1}
+.gc-admin-app #productForm[data-app-new-product="true"] .editor-jump [data-editor-section="details"]{order:2}
+.gc-admin-app #productForm[data-app-new-product="true"] .editor-jump [data-editor-section="review"]{order:3}
+.gc-admin-app #productPhotoDrop{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:12px!important;text-align:left!important;background:white!important;padding:12px!important;border:1px solid #d6e5f2!important;border-radius:16px!important}
+.gc-admin-app #productPhotoDrop > img.imgpreview{display:block;width:100%!important;max-width:100%!important;height:clamp(180px,32dvh,285px)!important;object-fit:contain!important;background:#f2f6fb!important;border:1px solid #d7e3ee;border-radius:13px;padding:8px!important}
+.gc-admin-app #productPhotoDrop > div{min-width:0!important;width:100%!important}
+.gc-admin-app #productPhotoDrop .gallery-help,
+.gc-admin-app #productPhotoDrop .admin-hint,
+.gc-admin-app #productPhotoDrop #selectedFilesText,
+.gc-admin-app #productPhotoDrop #packageReadStatus,
+.gc-admin-app #productEditorBody .app-photo-start p{word-spacing:normal!important;letter-spacing:normal!important;text-align:left!important;hyphens:none!important;text-wrap:pretty;line-height:1.55!important}
+.gc-admin-app #packageReadStatus{padding:12px!important;border:1px solid #e3ebf3!important;border-left:4px solid #2f7eb6!important;background:#f5f9ff!important;border-radius:10px!important;margin:10px 0!important;color:#31536c!important;font-size:12px!important}
+.gc-admin-app #packageReadStatus.gc-photo-result{border-left-color:#18946b!important;background:#f0fbf6!important;color:#236448!important}
+.gc-admin-app #productPhotoDrop #selectedFilesText{color:#526f87;font-size:11px;margin-top:8px}
+.gc-admin-app #productPhotoDrop #pendingPreview{display:flex!important;gap:8px;overflow-x:auto;flex-wrap:nowrap;padding:6px 0 11px;scroll-snap-type:x proximity}
+.gc-admin-app #productPhotoDrop #pendingPreview .gallery-thumb{display:flex!important;flex-direction:column;flex:0 0 106px;min-width:106px;max-width:106px;border:1px solid #dce8f2;border-radius:11px;padding:6px!important;overflow:hidden;text-align:center;scroll-snap-align:start;background:#fff}
+.gc-admin-app #productPhotoDrop #pendingPreview .gallery-thumb img{width:100%;height:72px;object-fit:contain;border-radius:7px}
+.gc-admin-app #productPhotoDrop #pendingPreview .gallery-thumb span{font-size:10px;font-weight:750;line-height:1.35;word-break:normal}
+.gc-admin-app #productPhotoDrop #pendingPreview .gallery-thumb button{min-height:39px;margin-top:auto;border-radius:8px}
+.gc-admin-app #productPhotoDrop .upload-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+.gc-admin-app #productPhotoDrop .upload-actions button{font-size:12px;min-width:0;min-height:44px;white-space:normal}
+.gc-admin-app #productPhotoDrop .gallery-help:first-of-type{color:#6b8296}
+.gc-admin-app .app-photo-start .app-photo-note{padding:8px 10px;border-radius:9px;background:#fff;border:1px solid #e0eaf3;color:#4b6d85}
+.gc-admin-app .app-photo-start-buttons button{font-size:12px;min-height:48px}
+@media(max-width:760px){
+ .gc-admin-app #productEditorBody{padding:10px 12px!important}
+ .gc-admin-app .app-photo-start{padding:13px}
+ .gc-admin-app #productPhotoDrop > img.imgpreview{height:min(35dvh,260px)!important}
+ .gc-admin-app #productPhotoDrop .upload-actions{gap:7px}
+ .gc-admin-app #productPhotoDrop .upload-actions button{font-size:11px}
+ .gc-admin-app #productPhotoDrop .admin-hint{font-size:10px!important}
+ .gc-admin-app #productForm .editor-jump{gap:4px;padding:8px 10px}
+ .gc-admin-app #productForm .editor-jump button{padding:8px 4px;min-width:0;font-size:11px}
+ .gc-admin-app #productSaveActions #appEditorNext{min-width:0!important;flex:1;font-size:13px}
+}

@@ -95,6 +95,32 @@ function recognize(file,onProgress,options={}){
   try{return await Promise.race([R.read(file,{model:M,categories:categories(),...options,stopped:()=>generation!==ocrGeneration,onProgress:message=>{progressLabel=message;onProgress(message);},recognize:async(input,mode)=>{await w.setParameters({tessedit_pageseg_mode:mode,user_defined_dpi:'300'});return w.recognize(input);}}),interruption]);}finally{clearTimeout(timer);if(activeReadCancel===cancel)activeReadCancel=null;progress=()=>{};progressLabel='';}
  });ocrChain=task;return task;
 }
+/** Usa reconocimiento visual privado solamente cuando Apps Script lo anuncie. */
+async function visualRead(file,onProgress=()=>{}){
+ if(A.features?.().photoVision!==true)return null;
+ onProgress('Identificando el producto y las etiquetas mediante Gemini…');
+ const image=await A.preparePhoto(file);
+ if(image.type==='image/gif')throw Error('Para identificación visual elegí una foto JPG, PNG o WEBP.');
+ const data=await filePayload(image),answer=await A.request('recognizeProductPhoto',{file:data});
+ if(!answer?.photo||typeof answer.photo!=='object')throw Error('El reconocimiento visual no devolvió una ficha.');
+ return answer.photo;
+}
+function setAutoField(field,value){
+ if(!field||!('value' in field)||!String(value||'').trim())return false;
+ const text=String(value).trim(),old=String(field.value||'').trim();
+ if(old&&field.dataset.gcPhotoAuto!==old)return false;
+ field.value=text;field.dataset.gcPhotoAuto=text;field.dispatchEvent(new Event('input',{bubbles:true}));
+ return true;
+}
+function proposeVisualForRow(row,photo){
+ if(!photo?.name||photo.confidence==='low')return false;
+ if(!row.manuallyChanged.has('name'))row.name=photo.name;
+ if(!row.manuallyChanged.has('category')&&photo.category)row.category=photo.category;
+ if(!row.manuallyChanged.has('description')&&photo.description)row.description=photo.description;
+ for(const key of ['brand','model'])if(!row.manuallyChanged.has('spec:'+key)&&photo[key])row.details[key]=photo[key];
+ row.notes=[...new Set([...row.notes,photo.warning||'Revisá marca y modelo de la foto.'])];
+ return true;
+}
 function stopReading(){
  state.epoch++;ocrGeneration++;state.reading=false;if(activeReadCancel)activeReadCancel();else if(workerHandle){workerHandle.terminate();workerHandle=null;worker=null;}
  for(const row of state.rows)if(!row.saved&&/Leyendo|Preparando|En cola/.test(row.status))setStatus(row,'Lectura omitida. Podés completar los campos manualmente.');updateSummary();
@@ -116,8 +142,16 @@ async function readRow(row,epoch,options={}){
   if(!row.manuallyChanged.has('codAllowed'))row.codAllowed=draft.codAllowed;
   for(const key of Object.keys(specLabels))if(!row.manuallyChanged.has('spec:'+key))row.details[key]=draft.details[key]??'';
   if(draft.freeShipping)row.active=false;
+  let visuallyIdentified=false;
+  if(!M.safeProductName(draft.name)&&A.features?.().photoVision===true){
+   try{
+    const photo=await visualRead(row.files[0],message=>{if(epoch===state.epoch)setStatus(row,message);});
+    if(epoch!==state.epoch||!state.rows.includes(row))return;
+    visuallyIdentified=proposeVisualForRow(row,photo);
+   }catch(error){row.notes.push('Lectura visual: '+String(error.message||error).slice(0,160));}
+  }
   const fields=M.assessment(draft).fields;
-  row.status=!M.safeProductName(draft.name)?'Nombre no identificado. No guardaré números aislados como título. Enfocá el nombre o modelo de la caja.':draft.confidence==='empty'?'Lectura insuficiente. Enfocá la etiqueta con el nombre.':draft.confidence==='partial'?'Lectura parcial: verificá nombre, marca y modelo.':'Se identificaron '+fields+' datos del empaque. Revisá la ficha antes de guardar.';row.error=draft.confidence==='empty';render();
+  row.status=visuallyIdentified?'Identificado mediante la imagen. Revisá marca y modelo antes de publicar.':!M.safeProductName(draft.name)?'Nombre no identificado. No guardaré números aislados como título. Enfocá el nombre o modelo de la caja.':draft.confidence==='empty'?'Lectura insuficiente. Enfocá la etiqueta con el nombre.':draft.confidence==='partial'?'Lectura parcial: verificá nombre, marca y modelo.':'Se identificaron '+fields+' datos del empaque. Revisá la ficha antes de guardar.';row.error=draft.confidence==='empty';render();
  }catch(error){if(epoch===state.epoch&&state.rows.includes(row))setStatus(row,error.message,true);}
 }
 function validFiles(list){
@@ -177,6 +211,25 @@ async function readEditor(auto=false){
  const f=$('productForm'),files=A.selectedPhotos(),file=files[0];if(!file){A.toast('Elegí primero una foto de la caja desde tu galería o cámara.');return;}
  if(A.editorPhotos().busy)return;const epoch=++editorEpoch,id=f.elements.namedItem('id').value,button=$('readPackageBtn'),status=$('packageReadStatus');button.disabled=true;
  try{
+  let visionProblem='';
+  if(!id&&A.features?.().photoVision===true){
+   try{
+    const photo=await visualRead(file,message=>{if(epoch===editorEpoch)status.textContent=message;});
+    if(epoch!==editorEpoch||$('formOverlay').hidden||A.editorPhotos().busy||!A.selectedPhotos().includes(file))return;
+    if(photo?.name&&photo.confidence!=='low'){
+     let count=0;
+     for(const [key,value] of Object.entries({name:photo.name,category:photo.category,description:photo.description,brand:photo.brand,model:photo.model})){
+      if(setAutoField(f.elements.namedItem(key),value))count++;
+     }
+     A.updateEditorCode();
+     status.textContent=count?'Producto identificado por la fotografía: '+photo.name+'. '+(photo.warning||'Revisá el nombre antes de guardar.'):'Imagen analizada. Revisá los campos que ya estaban escritos.';
+     status.classList.add('gc-photo-result');
+     $('productEditorBody').scrollTop=0;
+     return;
+    }
+    visionProblem=photo?.warning||'La imagen no permitió identificar el producto.';
+   }catch(error){visionProblem=String(error.message||error).slice(0,200);}
+  }
   const readings=[];
   for(let i=0;i<files.length;i++){
    if(epoch!==editorEpoch||$('formOverlay').hidden||f.elements.namedItem('id').value!==id)return;
@@ -191,7 +244,10 @@ async function readEditor(auto=false){
   if(!id&&!draft.codAllowed)f.elements.namedItem('codAllowed').value='NO';
   if(!id)f.elements.namedItem('active').value='NO';
   if(Object.keys(draft.details).length)$('technicalEditor').open=true;
-  A.updateEditorCode();status.textContent=!M.safeProductName(draft.name)?'No pude verificar el nombre de la caja. No usaré números aislados: tomá una foto más clara o elegí «Desde fotos → Enfocar nombre».':count?count+' datos encontrados en la foto. Confirmá nombre, modelo, precio y especificaciones antes de guardar.':'La ficha ya tiene esos datos. Confirmá que coincidan con la caja.';
+  A.updateEditorCode();
+  status.textContent=!M.safeProductName(draft.name)?'No pude identificar el producto con seguridad. '+(visionProblem?visionProblem+' ':'')+'No se usará texto confuso como nombre.':'Datos legibles detectados en la caja. Confirmá nombre, modelo, precio y categoría.';
+  status.classList.remove('gc-photo-result');
+  if(epoch===editorEpoch)$('productEditorBody').scrollTop=0;
  }catch(error){if(epoch===editorEpoch)status.textContent=error.message;}
  finally{if(epoch===editorEpoch)button.disabled=false;}
 }

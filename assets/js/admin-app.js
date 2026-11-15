@@ -111,7 +111,7 @@ async function openQuote(id){
 function setupEditor(){
  const form=$('productForm'),grid=form.querySelector('.form-grid');
  const startPanel=create('section','app-photo-start');startPanel.id='appPhotoStart';
- startPanel.innerHTML='<span class="app-photo-kicker">PASO 1 · FOTOGRAFÍA DEL PRODUCTO</span><h3>Empezá con una foto de la caja</h3><p>Buscá en tu galería o usá la cámara del iPhone. Después tocá Leer nombre y modelo. Si el texto no es claro, te pediré revisarlo en vez de inventar datos.</p><div class="app-photo-start-buttons"><button type="button" id="appPhotoGallery">▧ Mi galería</button><button type="button" id="appPhotoCamera">◎ Tomar foto</button><button type="button" id="appPhotoRead">⌕ Leer nombre y modelo</button><button type="button" id="appPhotoFind">↗ Buscar con mi foto</button></div><p class="app-photo-note">El precio, stock y disponibilidad los confirmás vos antes de publicar.</p>';
+ startPanel.innerHTML='<span class="app-photo-kicker">PASO 1 · FOTOGRAFÍA DEL PRODUCTO</span><h3>Empezá con una foto de la caja</h3><p>Buscá en tu galería o usá la cámara del iPhone. Elegí una foto del artículo. Si el análisis reconoce el producto, vas a ver un nombre propuesto para revisar; no se inventarán marcas ni modelos.</p><div class="app-photo-start-buttons"><button type="button" id="appPhotoGallery">▧ Mi galería</button><button type="button" id="appPhotoCamera">◎ Tomar foto</button><button type="button" id="appPhotoRead">⌕ Leer nombre y modelo</button><button type="button" id="appPhotoFind">↗ Buscar con mi foto</button></div><p class="app-photo-note">El precio, stock y disponibilidad los confirmás vos antes de publicar.</p>';
  grid.insertBefore(startPanel,grid.querySelector('[name=image]').closest('label'));
  const direct=Array.from(grid.children);
  const photoKeys=new Set(['image','gallery']);
@@ -135,21 +135,31 @@ function setupEditor(){
  $('appPhotoRead').onclick=()=>$('readPackageBtn').click();
  $('appPhotoFind').onclick=()=>$('findReferencePhotosBtn').click();
  const steps=['data','photos','details','review'];
+ const wizard=()=>form.elements.namedItem('id').value?steps:['photos','data','details','review'];
  function show(step,doFocus=false){
-  editorStep=steps.includes(step)?step:'data';
+  editorStep=steps.includes(step)?step:wizard()[0];
+  const order=wizard();
+  form.dataset.appNewProduct=form.elements.namedItem('id').value?'false':'true';
   form.dataset.appCurrentStep=editorStep;
   grid.querySelectorAll('[data-app-step]').forEach(e=>{e.hidden=e.dataset.appStep!==editorStep});
   $('editorReview').hidden=editorStep!=='review';if(editorStep==='review')$('editorReview').open=true;
   nav.querySelectorAll('[data-editor-section]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.editorSection===editorStep));b.setAttribute('aria-current',b.dataset.editorSection===editorStep?'step':'false')});
-  prev.hidden=editorStep==='data';next.hidden=editorStep==='review';
+  prev.hidden=editorStep===order[0];next.hidden=editorStep==='review';
+  next.textContent=editorStep==='photos'&&!form.elements.namedItem('id').value?'Continuar con datos →':'Siguiente →';
   $('saveBtn').hidden=editorStep!=='review';
   if(doFocus){const body=$('productEditorBody');body.scrollTop=0;const focus=grid.querySelector('[data-app-step="'+editorStep+'"] input:not([type=hidden]),[data-app-step="'+editorStep+'"] textarea');focus?.focus({preventScroll:true});}
  }
  nav.addEventListener('click',e=>{const b=e.target.closest('[data-editor-section]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();show(b.dataset.editorSection,true)},true);
- next.onclick=()=>show(steps[Math.min(3,steps.indexOf(editorStep)+1)],true);
- prev.onclick=()=>show(steps[Math.max(0,steps.indexOf(editorStep)-1)],true);
+ next.onclick=()=>{const order=wizard();show(order[Math.min(3,order.indexOf(editorStep)+1)],true);};
+ prev.onclick=()=>{const order=wizard();show(order[Math.max(0,order.indexOf(editorStep)-1)],true);};
  form.addEventListener('invalid',e=>{const step=e.target.closest('[data-app-step]')?.dataset.appStep||'data';show(step);},true);
- document.addEventListener('gc:editor-opened',()=>show(form.elements.namedItem('id').value?'data':'photos'));
+ document.addEventListener('gc:editor-opened',()=>{
+  const features=A()?.features?.()||{},note=$('appPhotoStart').querySelector('.app-photo-note');
+  note.textContent=features.photoVision===true
+   ?'Reconocimiento visual disponible: la foto se analiza con Gemini desde tu conexión privada. Confirmá siempre el resultado antes de guardar.'
+   :'Lectura de letras disponible. El reconocimiento visual del artículo requiere la versión actualizada de Apps Script y la conexión privada de Gemini.';
+  show(form.elements.namedItem('id').value?'data':'photos');
+ });
  const obs=new MutationObserver(()=>{if(!$('formOverlay').hidden&&!form.dataset.appShown){form.dataset.appShown='1';show(form.elements.namedItem('id').value?'data':'photos')}else if($('formOverlay').hidden){delete form.dataset.appShown}});
  obs.observe($('formOverlay'),{attributes:true,attributeFilter:['hidden']});
  show('data');

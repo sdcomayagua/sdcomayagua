@@ -73,18 +73,21 @@
    category='Paneles solares';type='solar';name='Panel solar'+(details.brand?' '+details.brand:'')+(details.model&&/[A-Z]/i.test(details.model)?' '+details.model:'')+(details.power?' '+details.power:'');
    notes.push('Confirmá la potencia y el modelo de la caja antes de publicar.');
   }
+  else if(/\b(?:WIRELESS\s+HEADPHONES?|HEADPHONES?|HEADSET|BLUETOOTH\s+EARPHONES?|AURICULARES?|AUD[IÍ]FONOS?|CASCO[S]?\s+INAL[AÁ]MBRICOS?)\b/i.test(n)){
+   category='Audio';type='headphones';
+   const wireless=/\b(?:WIRELESS|BLUETOOTH|INAL[AÁ]MBRIC[OA]S?)\b/i.test(n);
+   name='Audífonos'+(wireless?' inalámbricos':'')+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'');
+  }
   else if(/AIR\s*PODS/i.test(n)){category='Audio';type='audio';name='Audífonos tipo AirPods'+(/\bPRO\b/i.test(n)?' Pro':'')+(/2ND\s*GEN|2\.?\s*GEN/i.test(n)?' · 2.ª generación':'')+(details.connection?' · '+details.connection:'');notes.push('Confirmá la marca y originalidad antes de publicar.');}
   else if(/DATA\s*CABLE|\bCABLE\b/i.test(n)){category='Cables USB-C';type='cable';name='Cable'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'')+(details.connection?' '+details.connection:'')+(details.power?' '+details.power:'');}
   else if(/CHARGER|CARGADOR/i.test(n)){category='Cargador para Celular';type='cargador';name='Cargador'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'')+(details.power?' '+details.power:'');}
   else if(/MOUSE\s*PAD/i.test(n)){category='Mousepad';type='mousepad';name='Mousepad'+(details.brand?' '+details.brand:'');}
   else if(/\bMOUSE\b/i.test(n)){category='Mouse';type='mouse';name='Mouse'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'');}
   else if(/GAME\s*PAD|CONTROL\s*(?:GAMER|INALAMBRICO)/i.test(n)){category='Gamepad';type='control';name='Control'+(details.brand?' '+details.brand:'')+(details.model?' '+details.model:'');}
-  const fromFile=filenameName(filename);
-  if(!name){
-   const title=text.split(/\n/).map(clean).find(line=>line.length>=8&&line.length<=90&&line.split(/\s+/).filter(word=>/^[A-Za-zÀ-ÿ]{3,}$/.test(word)).length>=2&&line.replace(/[^A-Za-zÀ-ÿ\s]/g,'').length/line.length>.85&&!/(?:ENVIO|COMAYAGUA|WHATSAPP|LLAMANOS|TALLAS|QUALITY|CHARGING|LENGTH|MODELO?\s*:)/i.test(normalized(line)));
-   if(title)name=title;
-  }
-  if(!name&&fromFile&&safeProductName(fromFile))name=fromFile;
+  // Nunca tomar una frase arbitraria ni el nombre JPG como título de venta.
+  // Un OCR puede convertir un logo, la duración de batería o fondo en "roo swil".
+  // Solamente las categorías detectadas con un término de producto dan un nombre propuesto.
+  if(!type)notes.push('El OCR no identificó qué artículo aparece en la imagen. No se propuso un nombre.');
   const prices=[...n.matchAll(/(?:\bLPS\.?|\bHNL|\bL\.|\bPRECIO\s*[:=])\s*(\d[\d.,]*(?:\s*\d{3})?)/gi)].map(m=>amount(m[1])).filter(v=>v!==null);
   const unique=[...new Set(prices)];const price=unique.length===1?unique[0]:null;
   if(unique.length>1)notes.push('Se detectaron varios precios: elegí el de venta.');
@@ -93,7 +96,7 @@
   const freeShipping=/ENVIO\s*GRATIS|ENVIO\s+INCLUIDO/i.test(n);
   if(freeShipping)notes.push('La imagen anuncia envío gratis. Confirmá esa condición en la ficha antes de activarla.');
   notes.push('Existencias pendientes de confirmar.');
-  if(!safeProductName(name))name='';
+  if(!type||!safeProductName(name))name='';
   if(!name)notes.push('No se pudo identificar un nombre comercial fiable: confirmalo mirando la caja.');
   const draft={name:clean(name).slice(0,180),category:categoryName(category,categories),price,stock:null,codAllowed:!depositOnly,freeShipping,details,notes,text,type};draft.description=descriptionFor(draft);
   draft.confidence=assessment(draft).confidence;return draft;
