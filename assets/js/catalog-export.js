@@ -100,19 +100,20 @@ function photoSources(product){
 async function photos(context,products){
  const loaded=new Map(),missing=[];
  await Promise.all(products.map(async product=>{
-  const raw=primary(product),mirror=context.mirrors?.[product.id],sources=photoSources(product);
+  const raw=primary(product),mirror=context.mirrors?.[product.id];
+  // La portada manda. Una foto vieja de la galería nunca reemplaza la imagen actual.
+  const urls=raw&&validSource(raw)?[raw]:[];
   const local=[mirror,...(Array.isArray(mirror?.gallery)?mirror.gallery:[])];
-  for(const entry of local){
-   if(entry?.source&&sources.includes(entry.source)&&/^assets\/catalog\/[a-f0-9]{24}\.(?:jpg|png|webp|gif)$/.test(entry.path||''))sources.unshift(entry.path);
-  }
-  for(const src of [...new Set(sources)]){const img=await image(src);if(img){loaded.set(product.id,img);return;}}
+  const matching=local.find(entry=>entry?.source===raw&&/^assets\/catalog\/[a-f0-9]{24}\.(?:jpg|png|webp|gif)$/.test(entry.path||''));
+  if(matching)urls.unshift(matching.path);
+  for(const src of urls){const img=await image(src);if(img){loaded.set(product.id,img);return;}}
   // El respaldo de Apps Script solo puede resolver fotos de Google Drive.
   if(/^https:\/\/drive\.google\.com\/(?:thumbnail\?id=|file\/d\/)/i.test(raw))missing.push(product);
  }));
  if(missing.length&&context.photoLoader){
   try{
    const results=await context.photoLoader(missing.map(p=>p.id));
-   await Promise.all(results.filter(item=>missing.some(p=>p.id===item.id)&&/^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(item.data||'')&&item.data.length<=900000).map(async item=>{const img=await image(item.data);if(img)loaded.set(item.id,img);}));
+   await Promise.all(results.filter(item=>missing.some(p=>p.id===item.id)&&/^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(item.data||'')&&item.data.length<=1950000).map(async item=>{const img=await image(item.data);if(img)loaded.set(item.id,img);}));
   }catch(error){}
  }
  return loaded;

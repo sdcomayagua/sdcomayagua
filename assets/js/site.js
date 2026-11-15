@@ -92,6 +92,22 @@ function resetFilters(){
  if($('onlyAvailable'))$('onlyAvailable').checked=false;
  filtersChanged();$('search').focus({preventScroll:true});
 }
+function methodTotals(p){
+ if(!p.stock||!p.active)return '';
+ const items=[{product:p,qty:1}],rows=[];
+ const options=[['transfer','Depósito / transferencia'],['tigo','Tigo Money'],['cod','Pagar al recibir']];
+ for(const [method,title] of options){
+  try{
+   const q=C.quote(items,method,settings);
+   if(method==='cod'&&!q.codAllowed){rows.push('<div class="gc-method-row"><span>'+title+'</span><strong>No disponible</strong></div>');continue;}
+   const fee=method==='tigo'||method==='cod'?'<small>Comisión '+C.money(q.fee)+'</small>':'';
+   const shipping='<small>Envío '+C.money(q.shipping)+'</small>';
+   const deposit=method==='cod'?'<small>Anticipo '+C.money(q.deposit)+'</small>':'';
+   rows.push('<div class="gc-method-row"><span>'+title+'</span><strong>'+C.money(q.total)+'</strong><div>'+shipping+fee+deposit+'</div></div>');
+  }catch{rows.push('<div class="gc-method-row"><span>'+title+'</span><strong>Consultar</strong></div>');}
+ }
+ return '<details class="gc-method-breakdown"><summary>Ver totales con envío y comisión</summary><div class="gc-method-breakdown-list">'+rows.join('')+'</div></details>';
+}
 function card(p){
  const offer=C.unitPrice(p,1),reduced=offer<p.price;
  const price=value=>`<span class="price-currency">L</span> ${safe(C.money(value).slice(2))}`;
@@ -103,7 +119,7 @@ function card(p){
  const cartIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01M14 7v6M11 10h6"/></svg>';
  return `<article class="product ${p.stock?'':'out'}">
   <div class="photo"><button type="button" class="photo-open" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}"><img loading="lazy" decoding="async" src="${escapeAttr(pic(p))}" onerror="this.onerror=null;this.src='${imgFallback}';this.closest('.photo').classList.add('missing-photo')" alt="${safe(p.name)}">${zoom}</button><span class="tag ${p.stock?'':'out'}">${p.stock?'En stock':'Agotado'}</span>${saleFlag}<button class="compare-toggle" type="button" data-compare="${escapeAttr(p.id)}" aria-label="${compareIds.includes(p.id)?'Quitar de comparación':'Comparar producto'}: ${escapeAttr(p.name)}" aria-pressed="${compareIds.includes(p.id)}" title="${compareIds.includes(p.id)?'Quitar de comparación':'Agregar para comparar'}"><span aria-hidden="true">⇄</span></button></div>
-  <div class="product-body"><div class="category">${safe(p.category)}</div><h3><button type="button" class="product-name" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}">${safe(p.name)}</button></h3>${amount}${p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:''}<div class="stock">${stockText}</div><div class="product-actions"><button type="button" class="btn" data-add="${escapeAttr(p.id)}" aria-label="${p.stock?'Agregar':'Agotado'}: ${escapeAttr(p.name)}" ${!p.stock?'disabled':''}>${p.stock?cartIcon+'<span>Agregar</span>':'Agotado'}</button></div></div>
+  <div class="product-body"><div class="category">${safe(p.category)}</div><h3><button type="button" class="product-name" data-detail="${escapeAttr(p.id)}" aria-label="Ver detalles de ${escapeAttr(p.name)}">${safe(p.name)}</button></h3>${amount}${methodTotals(p)}${p.promoText?`<div class="promo-note">${safe(p.promoText)}</div>`:''}<div class="stock">${stockText}</div><div class="product-actions"><button type="button" class="btn" data-add="${escapeAttr(p.id)}" aria-label="${p.stock?'Agregar':'Agotado'}: ${escapeAttr(p.name)}" ${!p.stock?'disabled':''}>${p.stock?cartIcon+'<span>Agregar</span>':'Agotado'}</button></div></div>
  </article>`;
 }
 function syncCompare(){
@@ -217,7 +233,7 @@ function open(id,preserve=false){
  const expandIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M3 3l6 6m12-6-6 6M3 21l6-6m12 6-6-6"/></svg>';
  const chatIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.7 7.4L3 21l1.6-5.5A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 8c0 4 2 6 6 6l1-2-2-1-1 1-2-2 1-1-1-2-2 1Z"/></svg>';
  const shareIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m9 10 6-4M9 14l6 4"/></svg>';
- $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)} — Foto 1 de ${images.length}">${navigation}<a class="detail-open-photo" id="detailOpenPhoto" href="${escapeAttr(normalize(images[0]))}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar foto del producto" ${images[0]===imgFallback?'hidden':''}>${expandIcon}<span>Ampliar</span></a></div>${thumbs}</div><div class="detail-info"><div class="detail-topline"><div class="category">${safe(p.category)}</div><span class="detail-stock ${p.stock?'':'sold-out'}">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Agotado'}</span></div><h3 id="detailTitle">${safe(p.name)}</h3>${p.code?`<p class="detail-code">Código: <span>${safe(p.code)}</span></p>`:''}<div class="detail-price-block"><span class="detail-price-label">Precio por unidad</span>${amount}${promotion}${shippingNote}</div><div class="detail-buttons"><div class="detail-secondary-actions"><button class="btn outline" id="detailWA" type="button" aria-label="Consultar por WhatsApp">${chatIcon}<span>Consultar</span></button><button class="btn outline" id="detailShare" type="button" aria-label="Compartir este producto">${shareIcon}<span>Compartir</span></button><button class="btn outline gc-quote-download" id="detailQuote" type="button">↓ Descargar cotización</button></div></div><div class="detail-payment-note"><span class="detail-payment-symbol" aria-hidden="true">${p.codAllowed?'✓':'i'}</span><div>${paymentNote}</div></div>${extra}</div></div>`;
+ $('detailContent').innerHTML=`<div class="detail"><div class="detail-media"><div class="detail-main"><img id="detailPhoto" src="${escapeAttr(normalize(images[0]))}" alt="${safe(p.name)} — Foto 1 de ${images.length}">${navigation}<a class="detail-open-photo" id="detailOpenPhoto" href="${escapeAttr(normalize(images[0]))}" target="_blank" rel="noopener noreferrer" aria-label="Ampliar foto del producto" ${images[0]===imgFallback?'hidden':''}>${expandIcon}<span>Ampliar</span></a></div>${thumbs}</div><div class="detail-info"><div class="detail-topline"><div class="category">${safe(p.category)}</div><span class="detail-stock ${p.stock?'':'sold-out'}">${p.stock?`${p.stock} disponible${p.stock===1?'':'s'}`:'Agotado'}</span></div><h3 id="detailTitle">${safe(p.name)}</h3>${p.code?`<p class="detail-code">Código: <span>${safe(p.code)}</span></p>`:''}<div class="detail-price-block"><span class="detail-price-label">Precio por unidad</span>${amount}${promotion}${shippingNote}</div><div class="detail-buttons"><div class="detail-secondary-actions"><button class="btn outline" id="detailWA" type="button" aria-label="Consultar por WhatsApp">${chatIcon}<span>Consultar</span></button><button class="btn outline" id="detailShare" type="button" aria-label="Compartir este producto">${shareIcon}<span>Compartir</span></button><button class="btn outline gc-quote-download" id="detailQuote" type="button">↓ Descargar cotización</button></div></div><div class="detail-payment-note"><span class="detail-payment-symbol" aria-hidden="true">${p.codAllowed?'✓':'i'}</span><div>${paymentNote}</div></div>${methodTotals(p)}${extra}</div></div>`;
  if(!$('detailPurchaseBar'))$('detailContent').insertAdjacentHTML('afterend','<div id="detailPurchaseBar" class="detail-purchase-bar"></div>');
  $('detailPurchaseBar').innerHTML=`<div class="detail-dock-price"><span>${reduced?'Precio de oferta':'Precio por unidad'}</span><strong>${C.money(unit)}</strong></div><button class="btn" id="detailAdd" type="button" ${p.stock?'':'disabled'}>${cartIcon}<span>${p.stock?'Agregar al carrito':'Sin existencias'}</span></button>`;
  const photo=$('detailPhoto'),photoLink=$('detailOpenPhoto'),media=$('detailContent').querySelector('.detail-media');window.GC_WATERMARK?.applyTo($('detailContent'));photoLink?.addEventListener('click',event=>{if(!window.GC_WATERMARK?.openLightbox)return;event.preventDefault();window.GC_WATERMARK.openLightbox(photo.src,photo.alt);});
@@ -676,7 +692,16 @@ function binds(){
  $('exportCategory')?.addEventListener('click',()=>{
   if(!window.GC_CATALOG_EXPORT)return toast('No se pudo abrir el catálogo. Recargá la página.');
   const category=$('category')?.value||'';
-  window.GC_CATALOG_EXPORT.open({products:filteredProducts(true),title:category===bestSellersCategory?'Más pedidos':category||'Catálogo de productos',url:filteredCatalogUrl(),includeOut:!$('onlyAvailable')?.checked,settings:{...settings},logo:config.logo,photoLoader:async ids=>{const url=config.publicApiUrl||config.apiUrl;let data;try{data=await jsonp(url,'catalogPhotos',{ids:ids.join(',')});if(!Array.isArray(data.images))throw Error('Fotos no disponibles');}catch(error){if(config.publicApiUrl)throw error;data=await catalogByPost(url,'catalogPhotos',{ids});}return data.images||[];}});
+  window.GC_CATALOG_EXPORT.open({products:filteredProducts(true),title:category===bestSellersCategory?'Más pedidos':category||'Catálogo de productos',url:filteredCatalogUrl(),includeOut:!$('onlyAvailable')?.checked,settings:{...settings},logo:config.logo,photoLoader:async ids=>{
+   const url=config.publicApiUrl||config.apiUrl,photos=[];
+   for(let i=0;i<ids.length;i+=6){
+    const batch=ids.slice(i,i+6);let data;
+    try{data=await jsonp(url,'catalogPhotos',{ids:batch.join(',')});if(!Array.isArray(data.images))throw Error('Fotos no disponibles');}
+    catch(error){if(config.publicApiUrl)throw error;data=await catalogByPost(url,'catalogPhotos',{ids:batch});}
+    photos.push(...(data.images||[]));
+   }
+   return photos;
+  }});
  });
  $('onlyAvailable')?.addEventListener('change',filtersChanged);
  $('category')?.addEventListener('change',filtersChanged);

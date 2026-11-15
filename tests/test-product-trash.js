@@ -28,8 +28,8 @@ assert.equal(broken.post('adminCatalog').trash.length,1);
 // Las fotos públicas solo aceptan IDs existentes y no publican datos privados.
 const photo=fixture(),calls=[];photo.tables.Productos[1][photo.headers.indexOf('Imagen')]='https://drive.google.com/thumbnail?id=PUBLIC_DRIVE_PHOTO&sz=w1200';
 photo.context.Utilities={base64Encode:bytes=>Buffer.from(bytes).toString('base64')};
-photo.context.UrlFetchApp={fetchAll:requests=>{calls.push(...requests);return requests.map(()=>({getResponseCode:()=>200,getBlob:()=>({getContentType:()=> 'image/jpeg',getBytes:()=>[255,216,255,1,2]})}));}};
-assert.equal(photo.post('catalogPhotos',{ids:['A']},'').ok,true);assert.equal(calls.length,1);assert.match(calls[0].url,/^https:\/\/drive\.google\.com\/thumbnail\?id=PUBLIC_DRIVE_PHOTO&sz=w600$/);
+photo.context.DriveApp.getFileById=id=>{calls.push(id);return {getBlob:()=>({getContentType:()=> 'image/jpeg',getBytes:()=>[255,216,255,1,2]})};};
+assert.equal(photo.post('catalogPhotos',{ids:['A']},'').ok,true);assert.equal(calls.length,1);assert.equal(calls[0],'PUBLIC_DRIVE_PHOTO','La API utiliza el archivo original de Drive, nunca una foto de galería');
 assert.equal(photo.post('catalogPhotos',{ids:['NO-EXISTE'],url:'https://private.example'},'').images.length,0);assert.equal(calls.length,1);
 assert.equal(photo.post('catalogPhotos',{ids:Array(7).fill('A')},'').ok,false);
 assert.equal(photo.post('catalogPhotos',{ids:'A'},'').ok,false);

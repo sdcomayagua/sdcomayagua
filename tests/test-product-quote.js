@@ -18,7 +18,7 @@ function fixture(){
 }
  const context={window,document,console,Image:BrandLogoMock};
  vm.runInNewContext(source,context);
- return {api:window.GC_PRODUCT_QUOTE,labels,images};
+ return {api:window.GC_PRODUCT_QUOTE,labels,images,window};
 }
 async function main(){
  const normal={id:'MOUSE',name:'Mouse Gaming K90',price:300,stock:2,active:true,codAllowed:false,discounts:''};
@@ -49,6 +49,8 @@ async function main(){
   }else assert.match(content,/No disponible/);
   assert.equal(content.includes('gratis incluido'),computed.transfer.shipping===0);
  }
+ const unavailable=fixture();unavailable.window.GC_PHOTO_DOWNLOAD.photoBlob=async()=>{throw Error('foto bloqueada')};
+ await assert.rejects(unavailable.api.render(normal,'foto.jpg',settings),/cotización no se generó sin imagen/i,'Nunca entregar una cotización con imagen vacía');
  console.log('PASS cotización PNG: diseño sin tarjetas, importes Tigo/COD, anticipo, envíos y producto restringido.');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

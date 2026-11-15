@@ -775,29 +775,30 @@ function gcProductState_(req,operation){
 /** Solo fotos ya publicadas de productos activos; nunca acepta una URL del solicitante. */
 function gcCatalogPhotos_(req){
   if(!Array.isArray(req.ids)||!req.ids.length||req.ids.length>6||req.ids.some(id=>typeof id!=='string'||id.length>180))throw Error('Elegí entre 1 y 6 productos del catálogo.');
-  const ids=[...new Set(req.ids)],catalog=publicPayload_().products,cache=CacheService.getScriptCache(),images=[],pending=[];
+  const ids=[...new Set(req.ids)],catalog=publicPayload_().products,cache=CacheService.getScriptCache(),images=[];
   for(const id of ids){
     const product=catalog.find(p=>p.id===id);if(!product)continue;
-    const raw=String(product.image||''),match=raw.match(/^https:\/\/drive\.google\.com\/(?:thumbnail\?id=|file\/d\/)([A-Za-z0-9_-]+)/i);
+    const raw=String(product.image||'').trim(),match=raw.match(/^https:\/\/drive\.google\.com\/(?:thumbnail\?id=|file\/d\/)([A-Za-z0-9_-]+)/i);
     if(!match)continue;
-    const key='gc_catalog_photo_v1_'+match[1],cached=cache.get(key);
+    const driveId=match[1],key='gc_catalog_photo_v2_'+driveId,cached=cache.get(key);
     if(cached){images.push({id,data:cached});continue;}
-    pending.push({id,key,url:'https://drive.google.com/thumbnail?id='+encodeURIComponent(match[1])+'&sz=w600'});
-  }
-  if(pending.length){
     try{
-      const responses=UrlFetchApp.fetchAll(pending.map(item=>({url:item.url,followRedirects:true,muteHttpExceptions:true})));
-      responses.forEach((response,index)=>{
-        try{
-          if(response.getResponseCode()!==200)return;
-          const blob=response.getBlob(),mime=String(blob.getContentType()).split(';')[0].toLowerCase(),bytes=blob.getBytes();
-          if(!/^image\/(jpeg|png|webp|gif)$/.test(mime)||!bytes.length||bytes.length>650000)return;
-          const data='data:'+mime+';base64,'+Utilities.base64Encode(bytes),item=pending[index];
-          if(data.length<90000)cache.put(item.key,data,21600);
-          images.push({id:item.id,data});
-        }catch(error){}
-      });
-    }catch(error){}
+      // Solo la portada publicada; nunca sustituirla por una foto vieja.
+      const blob=DriveApp.getFileById(driveId).getBlob();
+      let mime=String(blob.getContentType()).split(';')[0].toLowerCase(),bytes=blob.getBytes();
+      if(!/^image\/(?:jpeg|png|webp|gif)$/.test(mime)||!bytes.length||bytes.length>1350000){
+        const response=UrlFetchApp.fetch('https://drive.google.com/thumbnail?id='+encodeURIComponent(driveId)+'&sz=w750',{followRedirects:true,muteHttpExceptions:true});
+        if(response.getResponseCode()!==200)continue;
+        const reduced=response.getBlob();
+        mime=String(reduced.getContentType()).split(';')[0].toLowerCase();bytes=reduced.getBytes();
+      }
+      if(!/^image\/(?:jpeg|png|webp|gif)$/.test(mime)||!bytes.length||bytes.length>1350000)continue;
+      const data='data:'+mime+';base64,'+Utilities.base64Encode(bytes);
+      if(data.length<90000)cache.put(key,data,21600);
+      images.push({id,data});
+    }catch(error){
+      // Si falla la foto principal, se informa sin enviar una diferente.
+    }
   }
   return {ok:true,images};
 }
