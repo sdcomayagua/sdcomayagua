@@ -13,7 +13,7 @@ function navButton([key,name,icon],place){
 }
 function setupNavigation(){
  const panel=$('adminPanel'),top=create('section','app-overview');top.id='appOverview';
- top.innerHTML='<div><span class="app-overline">GAMER COMAYAGUA / ADMIN APP</span><h1 id="appPageHeading">Inventario</h1><p id="appPageHint">Buscá, editá y compartí tus artículos sin recorrer todo el panel.</p></div><div class="app-overview-actions"><button type="button" id="appRefresh" class="btn outline">↻ Actualizar</button><button type="button" id="appCreate" class="btn">+ Producto</button></div>';
+ top.innerHTML='<div><span class="app-overline">GAMER COMAYAGUA / ADMIN APP</span><h1 id="appPageHeading">Inventario</h1><p id="appPageHint">Buscá, editá y compartí tus artículos sin recorrer todo el panel.</p></div><div class="app-overview-actions"><button type="button" id="appRefresh" class="btn outline">↻ Actualizar</button><button type="button" id="appCreate" class="btn">+ Producto</button><button type="button" id="appKit" class="btn outline">+ Armar kit</button><button type="button" id="appPhotos" class="btn outline">▧ Desde fotos</button></div>';
  panel.prepend(top);
  const nav=create('nav','app-main-nav');nav.id='appMainNav';nav.setAttribute('aria-label','Módulos de administración');
  sections.forEach(s=>navButton(s,nav));top.after(nav);
@@ -25,7 +25,7 @@ function setupNavigation(){
  panel.append(bottom,drawer);
  const onNav=e=>{const b=e.target.closest('[data-app-section]');if(b)go(b.dataset.appSection);};
  nav.addEventListener('click',onNav);bottom.addEventListener('click',onNav);drawer.addEventListener('click',onNav);
- $('appRefresh').onclick=()=>$('refresh').click();$('appCreate').onclick=()=>$('createNew').click();
+ $('appRefresh').onclick=()=>$('refresh').click();$('appCreate').onclick=()=>$('createNew').click();$('appKit').onclick=()=>$('gcKitOpen').click();$('appPhotos').onclick=()=>$('photoIntakeOpen').click();
  more.onclick=()=>{drawer.hidden=!drawer.hidden;more.setAttribute('aria-expanded',String(!drawer.hidden))};
  $('appMoreClose').onclick=()=>{drawer.hidden=true;more.setAttribute('aria-expanded','false')};
  document.addEventListener('keydown',e=>{if(e.key==='Escape')drawer.hidden=true});
