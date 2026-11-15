@@ -61,6 +61,7 @@ jobs:
       - name: Verificar edición, búsqueda y fotos en computadora y celular
         run: |
           node tests/test-editor-tools-ui.js
+          node tests/test-admin-app-ui.js
           node tests/test-product-search-ui.js
           node tests/test-shipping-ui.js
           node tests/test-category-export-ui.js

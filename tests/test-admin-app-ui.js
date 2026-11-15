@@ -1,0 +1,53 @@
+/* Admin App 2: navegación independiente y editor móvil por pantallas; inventario simulado. */
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),http=require('node:http'),{chromium}=require('playwright'),inventory=require('./helpers/inventory-fixture');
+(async()=>{
+ const root=path.resolve(__dirname,'..'),fixture=inventory(),artifacts=process.env.GC_TEST_ARTIFACTS||fs.mkdtempSync(path.join(os.tmpdir(),'gc-admin-app-'));
+ fs.mkdirSync(artifacts,{recursive:true});
+ const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname);if(!file.startsWith(root+path.sep))return res.writeHead(403).end();fs.readFile(file,(err,b)=>{if(err)return res.writeHead(404).end();res.setHeader('Content-Type',({'.js':'application/javascript','.css':'text/css','.webp':'image/webp','.json':'application/json','.svg':'image/svg+xml'})[path.extname(file)]||'text/html; charset=utf-8');res.end(b);});});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ const browser=await chromium.launch({headless:true,...(process.env.GC_TEST_BROWSER?{executablePath:process.env.GC_TEST_BROWSER,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});
+ try{
+  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
+  page.on('pageerror',err=>errors.push(err.message));
+  await page.route(/^https?:\/\/(?!127\.0\.1|127\.0\.0\.1)/,route=>route.abort());
+  await page.exposeFunction('__adminAppApi',req=>{const {action,token,...data}=req;return fixture.post(action,data,token);});
+  await page.addInitScript(()=>{window.GC_GOOGLE_PANEL={request:request=>window.__adminAppApi(request)}});
+  await page.goto('http://127.0.0.1:'+server.address().port+'/admin-app.html');
+  await page.locator('#secret').fill('123456');await page.locator('#loginBtn').click();
+  await page.locator('#adminRows [data-edit="A"]').waitFor();
+  assert.equal(await page.locator('.app-bottom-nav').isVisible(),true,'La barra inferior aparece en el nuevo Admin');
+  assert.equal(await page.locator('#mgViewInventory').isVisible(),true);
+  await page.locator('.app-bottom-nav [data-app-section="offers"]').click();
+  assert.equal(await page.locator('#mgViewOffers').isVisible(),true,'Ofertas es pantalla independiente');
+  assert.equal(await page.locator('#mgViewInventory').isVisible(),false);
+  await page.locator('.app-bottom-nav [data-app-section="inventory"]').click();
+  assert.equal(await page.locator('#mgViewInventory').isVisible(),true);
+  assert.ok(await page.locator('#adminRows .app-product-prices').count()>0,'Cada ficha ofrece precios de depósito, Tigo y contraentrega');
+  assert.ok((await page.locator('#adminRows .app-product-prices').first().innerText()).includes('Tigo Money'));
+  assert.ok((await page.locator('#adminRows .app-share-quote').count())>0);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Sin desbordamiento horizontal en móvil');
+  await page.screenshot({path:path.join(artifacts,'admin-app-mobile.png')});
+  await page.locator('#appCreate').click();
+  await page.locator('#formOverlay').waitFor({state:'visible'});
+  assert.equal(await page.locator('#productForm').getAttribute('data-app-current-step'),'data');
+  assert.equal(await page.locator('#productPhotoDrop').isVisible(),false);
+  await page.locator('#appEditorNext').click();
+  assert.equal(await page.locator('#productPhotoDrop').isVisible(),true,'Fotos es pantalla propia');
+  assert.equal(await page.locator('#productForm [name="price"]').isVisible(),false);
+  await page.locator('[data-editor-section="details"]').click();
+  assert.equal(await page.locator('#technicalEditor').isVisible(),true,'Detalles es pantalla propia');
+  assert.equal(await page.locator('#productPhotoDrop').isVisible(),false);
+  await page.locator('[data-editor-section="review"]').click();
+  assert.equal(await page.locator('#editorReview').isVisible(),true,'Revisión es pantalla propia');
+  assert.equal(await page.locator('#saveBtn').isVisible(),true);
+  await page.screenshot({path:path.join(artifacts,'admin-editor-review-mobile.png')});
+  await page.locator('#closeForm').click();
+  await page.setViewportSize({width:1440,height:900});
+  assert.equal(await page.locator('#appMainNav').isVisible(),true);
+  assert.equal(await page.locator('#appBottomNav').isVisible(),false);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.screenshot({path:path.join(artifacts,'admin-app-desktop.png')});
+  assert.deepEqual(errors,[]);
+  console.log('PASS Admin App 2 móvil y PC: sesión existente, secciones, tarjetas con tarifas, editor por pasos, navegación y WhatsApp.');
+ }finally{await browser.close();await new Promise(r=>server.close(r));}
+})().catch(e=>{console.error(e);process.exitCode=1});
