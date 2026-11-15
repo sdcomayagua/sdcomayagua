@@ -1,0 +1,19 @@
+GAMER COMAYAGUA — APPS SCRIPT PARA RECONOCIMIENTO VISUAL
+Fecha: 15 de noviembre de 2026
+
+ARCHIVOS:
+  Code.gs
+  FichaGratis.gs
+
+IMPORTANTE:
+- Los dos archivos provienen del repositorio sdcomayagua/sdcomayagua, commit a6b730565d8e4f64335256c3f03e8718e84b458e.
+- NO crees otro proyecto de Apps Script. Abrí el mismo proyecto conectado al inventario de Gamer Comayagua.
+- Primero conservá una copia de respaldo de los scripts actuales.
+- Reemplazá únicamente el contenido de Code.gs y FichaGratis.gs con los dos archivos del ZIP.
+- Conservá el resto de archivos de Apps Script, así como el PIN, las propiedades existentes y el inventario.
+- Guardá todo. Luego: Implementar > Administrar implementaciones > Editar (lápiz) > Nueva versión > Implementar.
+- El reconocimiento visual requiere GC_FREE_GEMINI_API_KEY en las propiedades privadas del proyecto. No pegues claves en el sitio, GitHub ni en mensajes.
+- La característica necesita que la implementación renovada responda con photoVision=true. Si no hay clave o despliegue, se usa OCR local estricto; no se inventarán nombres de productos.
+- En el Admin App: Nuevo producto > Fotos > Galería/Cámara > Leer nombre y modelo.
+- Confirmá manualmente la marca y el modelo antes de guardar. No se inventan precios, existencias ni tarifas.
+Sitio: https://sdcomayagua.github.io/sdcomayagua/admin-app.html
