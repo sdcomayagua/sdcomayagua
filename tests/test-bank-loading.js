@@ -14,7 +14,13 @@ function fixture(){
  const same=f.api.loadBanksFromSheet();assert.equal(same,loading);const catalog=f.api.publicCatalogRequest(f.context.window.GC_CONFIG.publicApiUrl);assert.equal(f.pending.length,1,'Cuentas y catálogo comparten una sola petición');
  f.respond({ok:true,products:[],banks:[{bank:'Banco de prueba',owner:'Gabriel de prueba',account:'0012',identity:'0000',visible:true},{bank:'OCULTA',account:'1234',visible:false}]});await Promise.all([loading,catalog]);
  const html=f.elements.get('bankAccounts').innerHTML;assert.match(html,/Gabriel de prueba/);assert.match(html,/Copiar todos los datos/);assert.equal(html.includes('OCULTA'),false);assert.equal(f.elements.get('bankRetry').disabled,false);assert.equal(f.elements.get('bankFilter').disabled,false);
- assert.equal(f.api.bankText({bank:'Banco',owner:'Gabriel',account:'0001',identity:'0010'}),'Banco\nTitular: Gabriel\nIdentidad: 0010\nCuenta: 0001');
+ const single=f.api.bankText({bank:'Banco',owner:'Gabriel',account:'0001',identity:'0010'});
+ assert.match(single,/\*GAMER COMAYAGUA\*/);
+ assert.match(single,/Titular: Gabriel/);
+ assert.match(single,/Identidad: 0010/);
+ assert.match(single,/Número de cuenta: 0001/);
+ assert.match(single,/Enviá el comprobante/);
+
  const bulk=f.api.allBanksText([
   {bank:'Tigo Money',owner:'Persona de prueba',identity:'0801000000000',account:'99999999',visible:true},
   {bank:'Banco de Occidente',owner:'Persona de prueba',identity:'0801000000000',account:'0003',visible:true},

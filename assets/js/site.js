@@ -457,7 +457,7 @@ function refreshOnlineCatalog(force=false){
 }
 function bankText(account){
  const bank=String(account.bank||'Banco').trim(),mobile=/tigo\s*money/i.test(bank);
- return ['*GAMER COMAYAGUA*','*DATOS PARA TU PAGO*','','*'+bank+'*',account.owner&&'Titular: '+String(account.owner).trim(),account.identity&&'Identidad: '+String(account.identity).trim(),(mobile?'Número Tigo Money: ':'Número de cuenta: ')+String(account.account||'').trim(),'','Por favor verificá el monto de tu pedido antes de depositar.','Enviá el comprobante por este chat para confirmar tu pago.'].filter(Boolean).join('\n');
+ return ['*GAMER COMAYAGUA*','*DATOS PARA TU PAGO*','','*'+bank+'*',account.owner&&'Titular: '+String(account.owner).trim(),account.identity&&'Identidad: '+String(account.identity).trim(),(mobile?'Número Tigo Money: ':'Número de cuenta: ')+String(account.account||'').trim(),'','Por favor verificá el monto de tu pedido antes de depositar.','Enviá el comprobante por este chat para confirmar tu pago.'].filter(line=>line!==false&&line!==null&&line!==undefined).join('\n');
 }
 function bankSort(a,b){
  const priority=x=>/tigo\s*money/i.test(String(x.bank||''))?2:/\b(?:cash|kash)\b/i.test(String(x.bank||''))?1:0;
