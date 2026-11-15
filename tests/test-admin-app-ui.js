@@ -27,6 +27,16 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.ok((await page.locator('#adminRows .app-share-quote').count())>0);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Sin desbordamiento horizontal en móvil');
   await page.screenshot({path:path.join(artifacts,'admin-app-mobile.png')});
+  assert.equal(await page.locator('#appKit').isVisible(),true);
+  assert.equal(await page.locator('#appPhotos').isVisible(),true);
+  await page.locator('#appKit').click();
+  await page.locator('#gcKitOverlay').waitFor({state:'visible'});
+  assert.equal(await page.locator('.app-bottom-nav').isVisible(),false,'El editor de kits no queda tapado');
+  await page.locator('#gcKitClose').click();
+  await page.locator('#appPhotos').click();
+  await page.locator('#photoIntakeOverlay').waitFor({state:'visible'});
+  assert.equal(await page.locator('.app-bottom-nav').isVisible(),false,'El asistente de fotos no queda tapado');
+  await page.locator('#piClose').click();
   await page.locator('#appCreate').click();
   await page.locator('#formOverlay').waitFor({state:'visible'});
   assert.equal(await page.locator('#productForm').getAttribute('data-app-current-step'),'data');
