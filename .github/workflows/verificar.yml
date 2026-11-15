@@ -64,6 +64,7 @@ jobs:
         run: |
           node tests/test-iphone-quote-ui.js
           node tests/test-photo-reader-ui.js
+          node tests/test-photo-intake-ui.js
           node tests/test-editor-tools-ui.js
           node tests/test-admin-app-ui.js
           node tests/test-product-search-ui.js
