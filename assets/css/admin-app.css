@@ -137,3 +137,9 @@
 .gc-admin-app .app-share-dialog{border-radius:18px 18px 0 0;max-height:95dvh;width:100%;padding-bottom:env(safe-area-inset-bottom)}
 }
 @media(prefers-reduced-motion:reduce){.gc-admin-app .app-nav-button{transition:none}}
+
+/* Los diálogos deben quedar delante de la navegación fija; nunca tapar Guardar/Siguiente. */
+.gc-admin-app #formOverlay{z-index:250}
+.gc-admin-app:has(#formOverlay:not([hidden])) .app-bottom-nav,.gc-admin-app:has(#formOverlay:not([hidden])) .app-more-drawer{display:none!important}
+.gc-admin-app:has(#gcKitOverlay:not([hidden])) .app-bottom-nav,.gc-admin-app:has(#gcKitOverlay:not([hidden])) .app-more-drawer{display:none!important}
+.gc-admin-app:has(.app-share-overlay:not([hidden])) .app-bottom-nav{display:none!important}
