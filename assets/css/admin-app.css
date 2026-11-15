@@ -148,3 +148,7 @@
 .gc-admin-app .app-overview-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .gc-admin-app .app-overview-actions .btn{flex:0 0 auto}
 @media(max-width:800px){.gc-admin-app .app-overview-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.gc-admin-app .app-overview-actions .btn{min-width:0;width:100%;font-size:12px}}
+
+/* Creación desde fotos: la navegación no puede tapar acciones ni subir imágenes. */
+.gc-admin-app #photoIntakeOverlay{z-index:260}
+.gc-admin-app:has(#photoIntakeOverlay:not([hidden])) .app-bottom-nav,.gc-admin-app:has(#photoIntakeOverlay:not([hidden])) .app-more-drawer{display:none!important}
