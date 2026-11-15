@@ -145,7 +145,7 @@ function renderGalleryPreview(){
  if(pendingFirst)previewUrls.push(pendingFirst);
  // La primera foto local se ve INMEDIATAMENTE como principal, sin subirla aún.
  $('imagePreview').src=all.length?normalizePreview(all[0]):pendingFirst||fallback;
- $('selectedFilesText').textContent=files.length?files.length+' foto'+(files.length===1?'':'s')+' por guardar':'Elegí una foto de la galería o cámara.';
+ $('selectedFilesText').textContent=files.length?files.length+' foto'+(files.length===1?'':'s')+' por guardar · '+files.map(f=>f.name).join(', '):'Elegí una foto de la galería o cámara.';
  $('galleryPreview').innerHTML=all.length
   ? all.map((url,i)=>`<div class="gallery-thumb" data-photo-position="${i}"><img draggable="false" src="${esc(normalizePreview(url))}" onerror="this.onerror=null;this.src='${fallback}'" alt="Foto ${i+1}"><span>${i===0?'Principal':'Foto '+(i+1)}</span><button type="button" class="photo-grip" draggable="true" data-photo-grip="${i}" aria-label="Mover foto ${i+1}. Usá las flechas izquierda y derecha">↔ Arrastrar</button><div class="photo-step"><button type="button" data-photo-step="${i}" data-step="-1" aria-label="Mover foto ${i+1} antes" ${i===0?'disabled':''}>←</button><button type="button" data-photo-step="${i}" data-step="1" aria-label="Mover foto ${i+1} después" ${i===all.length-1?'disabled':''}>→</button></div><button type="button" data-main="${i}" aria-label="Usar foto ${i+1} como principal">Principal</button><button type="button" data-remove-photo="${i}" aria-label="Quitar foto ${i+1}">Quitar</button></div>`).join('')
   : files.length?'':'<div class="gallery-help">La fotografía del artículo aparecerá aquí apenas la elijás.</div>';

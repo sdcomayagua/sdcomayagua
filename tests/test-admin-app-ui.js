@@ -48,9 +48,11 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.equal(await page.locator('#productForm [name="name"]').isVisible(),true);
   await page.locator('[data-editor-section="data"]').click();
   assert.equal(await page.locator('#productPhotoDrop').isVisible(),false);
-  await page.locator('#appEditorNext').click();
+  await page.locator('[data-editor-section="photos"]').click();
   assert.equal(await page.locator('#productPhotoDrop').isVisible(),true,'Fotos es pantalla propia');
   assert.equal(await page.locator('#productForm [name="price"]').isVisible(),false);
+  await page.locator('#appEditorNext').click();
+  assert.equal(await page.locator('#productForm').getAttribute('data-app-current-step'),'data','Desde Fotos, Siguiente regresa a Datos');
   await page.locator('[data-editor-section="details"]').click();
   assert.equal(await page.locator('#technicalEditor').isVisible(),true,'Detalles es pantalla propia');
   assert.equal(await page.locator('#productPhotoDrop').isVisible(),false);
