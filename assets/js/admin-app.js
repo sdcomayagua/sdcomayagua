@@ -91,6 +91,7 @@ function setupShareDialog(){
 async function openQuote(id){
  const p=A()?.products().find(x=>x.id===id);
  if(!p)return;
+ if(window.GC_QUOTE_PRESENT?.open){window.GC_QUOTE_PRESENT.open({product:p,source:photoSource(p),settings:A().settings()});return;}
  clearBlob();$('appQuoteOverlay').hidden=false;$('appQuoteTitle').textContent=p.name;$('appQuoteImage').hidden=true;
  $('appQuoteDownload').disabled=true;$('appQuoteShare').disabled=true;
  setShareStatus('Comprobando fotografía y preparando la cotización…');
@@ -109,13 +110,16 @@ async function openQuote(id){
 }
 function setupEditor(){
  const form=$('productForm'),grid=form.querySelector('.form-grid');
+ const startPanel=create('section','app-photo-start');startPanel.id='appPhotoStart';
+ startPanel.innerHTML='<span class="app-photo-kicker">PASO 1 · FOTOGRAFÍA DEL PRODUCTO</span><h3>Empezá con una foto de la caja</h3><p>Buscá en tu galería o usá la cámara del iPhone. Después tocá Leer nombre y modelo. Si el texto no es claro, te pediré revisarlo en vez de inventar datos.</p><div class="app-photo-start-buttons"><button type="button" id="appPhotoGallery">▧ Mi galería</button><button type="button" id="appPhotoCamera">◎ Tomar foto</button><button type="button" id="appPhotoRead">⌕ Leer nombre y modelo</button><button type="button" id="appPhotoFind">↗ Buscar con mi foto</button></div><p class="app-photo-note">El precio, stock y disponibilidad los confirmás vos antes de publicar.</p>';
+ grid.insertBefore(startPanel,grid.querySelector('[name=image]').closest('label'));
  const direct=Array.from(grid.children);
  const photoKeys=new Set(['image','gallery']);
  const detailsKeys=new Set(['discounts','colors','promoText','description']);
  const reviewKeys=new Set(['active']);
  for(const node of direct){
   const key=node.matches('label')?node.querySelector('[name]')?.name:'';
-  let step=photoKeys.has(key)||node.id==='productPhotoDrop'?'photos':
+  let step=photoKeys.has(key)||node.id==='productPhotoDrop'||node.id==='appPhotoStart'?'photos':
     detailsKeys.has(key)||node.id==='technicalEditor'||node.classList.contains('gc-research')?'details':
     reviewKeys.has(key)?'review':'data';
   node.dataset.appStep=step;
@@ -126,6 +130,10 @@ function setupEditor(){
  const next=create('button','btn app-next','Siguiente →');next.type='button';next.id='appEditorNext';
  const prev=create('button','btn outline app-prev','← Atrás');prev.type='button';prev.id='appEditorPrev';
  footer.prepend(prev,next);
+ $('appPhotoGallery').onclick=()=>$('pickGalleryBtn').click();
+ $('appPhotoCamera').onclick=()=>$('pickCameraBtn').click();
+ $('appPhotoRead').onclick=()=>$('readPackageBtn').click();
+ $('appPhotoFind').onclick=()=>$('findReferencePhotosBtn').click();
  const steps=['data','photos','details','review'];
  function show(step,doFocus=false){
   editorStep=steps.includes(step)?step:'data';
@@ -141,8 +149,8 @@ function setupEditor(){
  next.onclick=()=>show(steps[Math.min(3,steps.indexOf(editorStep)+1)],true);
  prev.onclick=()=>show(steps[Math.max(0,steps.indexOf(editorStep)-1)],true);
  form.addEventListener('invalid',e=>{const step=e.target.closest('[data-app-step]')?.dataset.appStep||'data';show(step);},true);
- document.addEventListener('gc:editor-opened',()=>show('data'));
- const obs=new MutationObserver(()=>{if(!$('formOverlay').hidden&&!form.dataset.appShown){form.dataset.appShown='1';show('data')}else if($('formOverlay').hidden){delete form.dataset.appShown}});
+ document.addEventListener('gc:editor-opened',()=>show(form.elements.namedItem('id').value?'data':'photos'));
+ const obs=new MutationObserver(()=>{if(!$('formOverlay').hidden&&!form.dataset.appShown){form.dataset.appShown='1';show(form.elements.namedItem('id').value?'data':'photos')}else if($('formOverlay').hidden){delete form.dataset.appShown}});
  obs.observe($('formOverlay'),{attributes:true,attributeFilter:['hidden']});
  show('data');
 }

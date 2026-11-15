@@ -1,0 +1,133 @@
+/* Gamer Comayagua · experiencia premium para iPhone. Solo presentación, sin cambiar inventario. */
+:root{--gc-prem-ink:#17334d;--gc-prem-red:#e92c48;--gc-prem-blue:#195fa3;--gc-prem-line:#dce7f1}
+.gc-q-open{overflow:hidden!important}
+.gc-q-overlay[hidden],.gc-q-overlay [hidden]{display:none!important}
+.gc-q-overlay{position:fixed;inset:0;z-index:1700;display:grid;place-items:center;padding:18px;background:#08182bc2;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.gc-q-dialog{width:min(560px,100%);max-height:min(94dvh,1000px);background:white;display:flex;flex-direction:column;overflow:hidden;border-radius:23px;box-shadow:0 28px 95px #020e2060;color:var(--gc-prem-ink);border:1px solid #e4ebf2}
+.gc-q-head{padding:18px 19px 15px;display:flex;justify-content:space-between;align-items:center;gap:13px;background:white;border-bottom:1px solid var(--gc-prem-line)}
+.gc-q-eyebrow{font-size:10px;font-weight:900;letter-spacing:1.35px;color:#477aa4}
+.gc-q-head h2{margin:5px 0 0;font-size:21px;line-height:1.25;letter-spacing:-.55px;overflow-wrap:anywhere}
+.gc-q-head button{width:43px;height:43px;border:1px solid #dfe9f3;border-radius:12px;background:#f3f7fc;color:#315573;font-size:26px;cursor:pointer;flex:none}
+.gc-q-main{min-height:0;overflow-y:auto;padding:15px 18px;background:linear-gradient(180deg,#f7faff,#fff)}
+#gcQuoteStatus{margin:0 0 12px;min-height:20px;color:#25704d;font-size:12px;font-weight:730;line-height:1.55}
+#gcQuoteStatus.is-error{color:#bb334d}
+.gc-q-photo{border:1px solid #dce5ee;border-radius:15px;background:#eef3f8;min-height:160px;display:grid;place-items:center;overflow:hidden;padding:8px}
+.gc-q-photo>img{display:block;width:100%;max-height:46dvh;object-fit:contain;background:white;border-radius:8px;-webkit-touch-callout:default;touch-action:manipulation}
+.gc-q-placeholder{min-height:190px;display:grid;place-content:center;justify-items:center;text-align:center;gap:9px;color:#40617b;padding:18px}
+.gc-q-placeholder strong{font-size:14px}.gc-q-placeholder small{font-size:12px;color:#738aa0;line-height:1.5}
+.gc-q-spinner{width:32px;height:32px;border:3px solid #cddfea;border-top-color:#16619c;border-radius:50%;animation:gcQSpin 1s linear infinite}
+@keyframes gcQSpin{to{transform:rotate(360deg)}}
+.gc-q-help{margin-top:13px;border:1px solid #dce8f3;border-radius:14px;background:#f5f9fd;padding:12px 14px}
+.gc-q-help strong{font-size:13px;color:#214562}.gc-q-help p{font-size:12px;line-height:1.6;margin:5px 0 0;color:#607d95}
+#gcQuoteOriginal{display:inline-flex;font-size:12px;font-weight:800;color:#1765a3;text-decoration:none;padding:10px 1px}
+.gc-q-actions{padding:12px 18px calc(14px + env(safe-area-inset-bottom));border-top:1px solid #e1eaf3;background:white;display:grid;gap:9px}
+.gc-q-actions button{font:750 13px/1.35 system-ui,sans-serif;min-width:0;min-height:47px;padding:10px 11px;border-radius:12px;border:1px solid #d5e2ee;background:#f6f9fc;color:#254b6a;cursor:pointer}
+.gc-q-actions button:disabled{opacity:.45;cursor:wait}
+.gc-q-actions .gc-q-primary{background:#e92d48;border-color:#e92d48;color:white;font-size:14px;min-height:52px}
+.gc-q-secondary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gc-q-actions>small{font-size:10px;color:#71879d;line-height:1.5;text-align:center}
+body[data-page=productos] .catalog-page .product{border:1px solid #dce6f0;border-radius:18px;box-shadow:0 7px 25px #14385609}
+body[data-page=productos] .catalog-page .product .photo{background:#f8fafc}
+body[data-page=productos] .catalog-page .product-actions .btn{background:#e92d48;border-color:#e92d48;border-radius:12px;font-weight:780;box-shadow:none}
+body[data-page=productos] .catalog-page .product-name{color:#183650;font-weight:790;letter-spacing:-.3px}
+#detailOverlay .dialog{border:1px solid #dce7f0}
+#detailOverlay .dialog-head{border-bottom:1px solid #e8eef5;background:white}
+#detailOverlay .dialog-head .eyebrow{color:#416d92;font-weight:800;letter-spacing:.5px}
+#detailOverlay .detail-info{color:#193955}
+#detailOverlay #detailTitle{font-size:clamp(23px,3vw,31px);font-weight:840;line-height:1.22;letter-spacing:-.75px;color:#142f48}
+#detailOverlay .detail-main{background:#f6f9fc;border:1px solid #dce8f2;border-radius:19px}
+#detailOverlay .detail-main img{background:white;object-fit:contain;border-radius:15px}
+#detailOverlay .detail-price-block{border:1px solid #dfe9f4;border-radius:17px;background:#f5f9fd!important;padding:17px 18px}
+#detailOverlay .detail-price .price-current{color:#e62d48!important;font-size:clamp(33px,4vw,42px);font-weight:900}
+#detailOverlay .detail-stock{border-radius:30px;font-weight:800}
+#detailOverlay .detail-buttons .btn{border-radius:12px;min-height:48px;font-weight:760}
+#detailOverlay #detailQuote{background:#fff2f4;border:1px solid #f4c5cd;color:#bd2644}
+#detailOverlay #detailShare{background:#edf6ff;border:1px solid #d3e6fa;color:#145d9e}
+#detailOverlay .detail-payment-note{background:white;border:1px solid #e0eaf2;border-radius:13px}
+#detailOverlay .detail-purchase-bar{background:#fff;box-shadow:0 -7px 24px #142d490d}
+#detailOverlay #detailAdd{background:#e72d49!important;border-color:#e72d49!important;box-shadow:none;font-weight:850}
+.catalog-export-dialog{border:1px solid #e0eaf3;border-radius:22px;box-shadow:0 24px 80px #081e3940;background:#fff;overflow:hidden}
+.catalog-export-dialog .dialog-head{padding:14px 18px;margin:0;border-bottom:1px solid #e7eef4;align-items:center;background:white}
+.catalog-export-dialog .dialog-head h2{font-weight:840;color:#143451;letter-spacing:-.4px}
+.catalog-export-layout{min-height:0;overflow-y:auto;flex:1}
+.catalog-export-preview{background:#f1f5f9;border:1px solid #e0e8f0;border-radius:14px}
+.catalog-export-preview>img{box-shadow:0 14px 34px #19395318;border:1px solid #dfe8f1;border-radius:5px}
+.gc-cat-dock{display:flex;gap:9px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #dfe8f1;flex-shrink:0;align-items:center}
+.gc-cat-dock #catalogExportDownload,.gc-cat-dock #catalogExportShare{flex:1;min-width:0;min-height:47px;margin:0!important;border-radius:11px;font-size:12px;padding:9px 11px;font-weight:800;display:flex;justify-content:center;align-items:center;text-align:center}
+.gc-cat-dock #catalogExportShare{background:#e92d48;color:white;border-color:#e92d48}
+.gc-cat-dock #catalogExportDownload{background:#edf4fc;color:#1b5d95;border:1px solid #cee1f2}
+#gcCatalogSavePhoto[hidden]{display:none!important}
+#gcCatalogSavePhoto{display:flex;justify-content:center;align-items:center;text-align:center;gap:8px;margin:12px 0 0;padding:11px;border:1px solid #ccdfef;border-radius:10px;background:#fff;color:#175c99;font-size:12px;font-weight:800;text-decoration:none}
+.gc-cat-help{margin:9px 0 0;color:#647d94;font-size:11px;line-height:1.5;text-align:center}
+@media(max-width:760px){
+ body[data-page=productos] .header{box-shadow:0 3px 14px #112d4b0a}
+ body[data-page=productos] .catalog-page{background:#f6f9fc}
+ body[data-page=productos] .catalog-page .catalog{padding-inline:13px}
+ body[data-page=productos] .catalog-page .filters{border-radius:12px}
+ body[data-page=productos] .catalog-page .product{border-radius:16px}
+ #detailOverlay{padding:0!important;background:#06172dc2;z-index:180!important}
+ #detailOverlay .dialog{width:100%!important;max-width:none!important;max-height:100dvh!important;height:100dvh!important;border-radius:0!important;border:0!important;display:flex;flex-direction:column}
+ #detailOverlay .dialog-head{padding:12px 16px;border-bottom:1px solid #e5edf5;flex-shrink:0}
+ #detailOverlay #detailContent{padding:13px 15px 20px!important;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+ #detailOverlay .detail{display:grid;grid-template-columns:minmax(0,1fr);gap:19px}
+ #detailOverlay .detail-main{height:clamp(245px,38dvh,370px);border-radius:16px}
+ #detailOverlay .detail-main img{padding:8px}
+ #detailOverlay .detail-thumb{width:56px;height:56px;min-width:56px;border-radius:10px}
+ #detailOverlay .detail-topline{margin:0 0 10px}
+ #detailOverlay #detailTitle{font-size:25px;line-height:1.25;margin-bottom:7px}
+ #detailOverlay .detail-code{font-size:11px;margin:0 0 14px}
+ #detailOverlay .detail-price-block{padding:14px 16px;margin:0 0 15px}
+ #detailOverlay .detail-price .price-current{font-size:36px!important}
+ #detailOverlay .detail-secondary-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+ #detailOverlay #detailQuote{grid-column:1/-1;min-height:52px;font-size:13px}
+ #detailOverlay .detail-buttons .btn{font-size:13px;min-height:49px;padding:10px}
+ #detailOverlay .detail-payment-note{padding:14px;border-radius:13px}
+ #detailOverlay .detail-extra>section{border:1px solid #e6edf4;border-radius:14px;padding:13px;background:#fff}
+ #detailOverlay .detail-extra h4{font-size:13px;font-weight:850}
+ #detailOverlay .gc-product-specifications dl{grid-template-columns:1fr 1fr}
+ #detailOverlay .detail-purchase-bar{position:relative;bottom:auto;flex:0 0 auto;padding:10px 13px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.23fr);gap:11px;align-items:center;z-index:5}
+ #detailOverlay .detail-dock-price{display:grid;gap:2px}
+ #detailOverlay .detail-dock-price>span{font-size:10px}
+ #detailOverlay .detail-dock-price>strong{font-size:25px}
+ #detailOverlay #detailAdd{min-width:0;max-width:none;width:100%;min-height:52px;border-radius:13px;font-size:13px}
+ .gc-q-overlay{padding:0;align-items:end;z-index:2000}
+ .gc-q-dialog{width:100%;max-height:98dvh;border-radius:22px 22px 0 0;border-bottom:0}
+ .gc-q-head{padding:14px 17px}
+ .gc-q-main{padding:12px 14px}
+ .gc-q-photo>img{max-height:43dvh}
+ .gc-q-actions{padding:11px 14px calc(12px + env(safe-area-inset-bottom))}
+ .catalog-export-overlay{padding:0!important;z-index:1900}
+ .catalog-export-dialog{width:100%!important;max-width:none!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important;padding:0!important;display:flex;flex-direction:column;overflow:hidden}
+ .catalog-export-dialog .dialog-head{flex-shrink:0;padding:11px 14px}
+ .catalog-export-layout{display:flex;flex-direction:column;gap:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+ .catalog-export-preview{order:-1;margin:14px 13px;padding:11px;border-radius:15px;flex:0 0 auto}
+ .catalog-export-preview-empty{min-height:190px}
+ .catalog-export-preview>img{max-height:42dvh;object-fit:contain;width:100%;background:#fff}
+ .catalog-export-controls{order:1;min-width:0;padding:4px 16px 24px}
+ .catalog-export-controls h3{font-size:17px;margin:0 0 4px}
+ #catalogExportCount{margin:0 0 12px}
+ .catalog-export-options{padding:12px;border-radius:12px}
+ .catalog-export-label{margin-top:13px}
+ .gc-cat-dock{padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+}
+@media(max-width:360px){#detailOverlay .detail-purchase-bar{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}.gc-q-head h2{font-size:18px}}
+@media(prefers-reduced-motion:reduce){.gc-q-spinner{animation:none}}
+
+/* Información bancaria: legible y lista para copiar desde el celular. */
+body[data-page=cuentas] .bank-card{border:1px solid #dce8f2;border-radius:17px;background:white;box-shadow:0 10px 27px #1639580b;overflow:hidden}
+body[data-page=cuentas] .bank-card-head{padding-bottom:10px;border-bottom:1px solid #e9f0f6}
+body[data-page=cuentas] .bank-card h3{font-weight:850;letter-spacing:-.35px;color:#183956}
+body[data-page=cuentas] .bank-copy-row{gap:8px;min-width:0;align-items:center}
+body[data-page=cuentas] .bank-copy-row strong{overflow-wrap:anywhere;user-select:text;-webkit-user-select:text}
+body[data-page=cuentas] .bank-copy-row .copy-btn{min-height:45px;min-width:73px;border-radius:11px;background:#edf5fd;border:1px solid #cfe0f0;color:#1a5e98;font-weight:800}
+body[data-page=cuentas] .bank-copy-all{min-height:48px;border-radius:11px;background:#195e9e;color:#fff;font-weight:820}
+body[data-page=pagos] .shipping-calculator{border:1px solid #deebf4;border-radius:18px;box-shadow:0 10px 28px #1638550b}
+body[data-page=pagos] .shipping-calc-result{border-radius:13px}
+.gc-cat-dock #gcCatalogOpenPdf{flex:0 0 auto;min-height:47px;margin:0;border:1px solid #d6e5f3;border-radius:11px;font-size:12px;font-weight:800;padding:10px}
+.gc-cat-dock #gcCatalogOpenPdf[hidden],#gcCatalogPhotoTip[hidden]{display:none!important}
+@media(max-width:760px){
+ body[data-page=cuentas] .bank-card{padding:16px;border-radius:16px}
+ body[data-page=cuentas] .bank-copy-row .copy-btn{min-width:68px}
+ body[data-page=pagos] .shipping-calculator{border-radius:15px}
+ .gc-cat-dock #gcCatalogOpenPdf{font-size:11px;padding:10px 7px}
+}

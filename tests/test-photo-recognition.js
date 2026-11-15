@@ -20,4 +20,13 @@ assert.equal(contradictory.details.power,undefined);assert.equal(contradictory.d
 const boundary=M.combine(['DATA CABLE\n100','CM\n60','W']);assert.equal(boundary.details.power,undefined);assert.equal(boundary.details.length,undefined,'Separate OCR regions must not join into a fabricated measurement');
 const same=M.combine(['DATA CABLE\n60W','DATA CABLE\n60 W']);assert.equal(same.details.power,'60 W');
 assert.equal(M.parse('AIRPODS\nUSB-C').name,'Audífonos tipo AirPods · USB-C','Do not invent a Pro variant');
+const numbers=M.parse('28 93 7\n2026','28 93 7.jpg');
+assert.equal(numbers.name,'','Una secuencia de números aislados no puede ser el nombre del artículo.');
+assert.equal(M.safeProductName('28 93 7'),false);
+const solar=M.parse('SOLAR PANEL\nPANEL SOLAR\n100W\nMODELO: PV-100','IMG_28937.jpg');
+assert.match(solar.name,/^Panel solar/,'Debe reconocer paneles solares');
+assert.equal(solar.category,'Paneles solares');
+assert.match(solar.name,/100 W/,'Solo menciona potencia si aparece explícita en la caja.');
+assert.equal(solar.price,null,'No inventar precio si no figura en la caja.');
+assert.equal(solar.stock,null,'No inventar existencias.');
 console.log('PASS reconocimiento: fragmentos reales, marca mal leída, modelo, unidades partidas, puertos, texto ilegible y atributos ambiguos.');
