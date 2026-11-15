@@ -38,7 +38,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  assert.equal(await page.locator('.mobile-nav a[href="index.html"]').isVisible(),true,'Inicio disponible en navegación móvil de Cuentas');
  await page.setViewportSize({width:1280,height:900});
 
- await page.getByRole('button',{name:'Copiar todos los datos',exact:true}).click();assert.equal(await page.evaluate(()=>window.__copied),'Banco de prueba\nTitular: Gabriel de prueba\nIdentidad: 0000\nCuenta: 0012');
+ await page.getByRole('button',{name:'Copiar todos los datos',exact:true}).click();const copiedBank=await page.evaluate(()=>window.__copied);assert.match(copiedBank,/\*GAMER COMAYAGUA\*/);assert.match(copiedBank,/\*Banco de prueba\*/);assert.match(copiedBank,/Titular: Gabriel de prueba/);assert.match(copiedBank,/Identidad: 0000/);assert.match(copiedBank,/Número de cuenta: 0012/);assert.match(copiedBank,/Enviá el comprobante/);
  for(const width of [320,390,1280]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Cuentas sin desborde en '+width);const box=await page.locator('.bank-copy-all').boundingBox();assert.ok(box.height>=44);}
 
  // Contraste bancario y ancho responsivo. Datos ficticios; no hay PIN ni cuentas reales en las pruebas.
