@@ -41,7 +41,7 @@
     const quote=detail.querySelector('#detailQuote');
     if(quote){
       quote.setAttribute('aria-label','Ver y compartir cotización');
-      quote.innerHTML='<span class="gc-action-glyph" aria-hidden="true">▧</span><span>Cotización</span>';
+      quote.innerHTML='<span class="gc-action-glyph" aria-hidden="true">▧</span><span>cotización</span>';
     }
   }
   function enhanceCart(){
