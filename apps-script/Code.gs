@@ -106,8 +106,8 @@ function gcHandleRequest_(req){
         const selectionReady=typeof gcFreeCandidates_==='function'&&typeof gcFreeResearchConfigured_==='function'&&gcFreeResearchConfigured_();
         const ready=provider==='OPENAI'?!!String(p.getProperty('PRODUCT_RESEARCH_API_KEY')||'').trim():selectionReady;
         let metadataReady=false;try{metadataReady=ensurePublicMetadata_();}catch(error){}
-        result={ok:true,message:'Acceso autorizado',features:{sessionTokens:gcSessionSupported_(),finance:true,offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,photoVision:typeof gcAnalyzeNewProductPhoto_==='function'&&!!String(p.getProperty('GC_FREE_GEMINI_API_KEY')||'').trim(),referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
-        if(gcSessionSupported_())result.sessionToken=gcSessionValid_(req.token)?String(req.token):gcSessionOpen_();
+        result={ok:true,message:'Acceso autorizado',features:{sessionTokens:gcSessionSupported_(),rememberDevice:gcSessionSupported_(),finance:true,offers:true,productTrash:true,catalogPhotos:true,categoryCodes:true,photoIntake:true,details:true,extendedDetails:true,management:true,managementVersion:2,inventoryMovements:true,duplicateReview:true,productResearchVersion:9,exactProductSearch:true,photoHtmlFallback:true,photoVision:typeof gcAnalyzeNewProductPhoto_==='function'&&!!String(p.getProperty('GC_FREE_GEMINI_API_KEY')||'').trim(),referencePhotoSearch:typeof gcReferencePhotos_==='function',bulkResearch:typeof gcBulkResearch_==='function',bestSellers:true,watermarkSettings:true,watermarkExtendedSettings:true,publicCatalogMetadata:metadataReady,researchImageImport:typeof gcFreeImportImage_==='function',researchPhotos:typeof gcFreeImages_==='function',productResearch:ready||selectionReady,productResearchSelection:selectionReady,productResearchMode:provider==='OPENAI'?'openai':'gratis'}};
+        if(gcSessionSupported_())result.sessionToken=gcSessionValid_(req.token)?String(req.token):gcSessionOpen_(req.rememberDevice===true);
       }
       else if (req.action === 'sessionPing') result={ok:true,message:'Sesión vigente'};
       else if (req.action === 'sessionLogout') result=gcSessionClose_(req.token);
@@ -213,31 +213,58 @@ function gcSessionPinStamp_(){
  const bytes=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,'GC-PIN-V1:'+pin);
  return Utilities.base64EncodeWebSafe(bytes);
 }
-function gcSessionOpen_(){
- // Dos UUID aleatorios aportan un identificador que no puede adivinarse.
- const token='gc_'+Utilities.getUuid().replace(/-/g,'')+Utilities.getUuid().replace(/-/g,'');
- CacheService.getScriptCache().put(gcSessionKey_(token),gcSessionPinStamp_(),600);
- return token;
+/** Acceso recordado por navegador: token opaco, revocable, nunca se guarda el PIN.
+ * ScriptProperties solo almacena el hash del token y la fecha de vencimiento.
+ * Se renueva al utilizar el Admin; tras 90 días sin uso, pedirá PIN de nuevo.
+ * Esta versión debe desplegarse en la implementación PRIVADA de Apps Script.
+ */
+const GC_REMEMBER_TTL_MS = 90*24*60*60*1000;
+function gcSessionOpen_(rememberDevice){
+  const token='gc_'+Utilities.getUuid().replace(/-/g,'')+Utilities.getUuid().replace(/-/g,'');
+  const key=gcSessionKey_(token),stamp=gcSessionPinStamp_();
+  if(rememberDevice===true){
+    const props=PropertiesService.getScriptProperties(),now=Date.now();
+    props.setProperty(key,JSON.stringify({stamp,expiresAt:now+GC_REMEMBER_TTL_MS,lastCheck:now}));
+  }else{
+    CacheService.getScriptCache().put(key,stamp,600);
+  }
+  return token;
 }
 function gcSessionAuthorize_(candidate,action){
- const token=String(candidate==null?'':candidate).trim();
- if(!gcSessionValid_(token)){
-  const restricted=String(PropertiesService.getScriptProperties().getProperty('GC_REQUIRE_SESSION')||'').toUpperCase()==='SI';
-  if(restricted&&action!=='verify')throw Error('La sesión debe iniciarse nuevamente con el PIN.');
-  assertAdmin_(token);return false;
- }
- const cache=CacheService.getScriptCache(),key=gcSessionKey_(token);
- const stamp=cache.get(key);
- if(!stamp||stamp!==gcSessionPinStamp_()){
+  const token=String(candidate==null?'':candidate).trim();
+  if(!gcSessionValid_(token)){
+    const restricted=String(PropertiesService.getScriptProperties().getProperty('GC_REQUIRE_SESSION')||'').toUpperCase()==='SI';
+    if(restricted&&action!=='verify')throw Error('La sesión debe iniciarse nuevamente con el PIN.');
+    assertAdmin_(token);return false;
+  }
+  const key=gcSessionKey_(token),stamp=gcSessionPinStamp_(),cache=CacheService.getScriptCache();
+  const cached=cache.get(key);
+  if(cached===stamp){cache.put(key,stamp,600);return true;}
+  const props=PropertiesService.getScriptProperties(),raw=props.getProperty(key);
+  if(raw){
+    let record=null;
+    try{record=JSON.parse(raw);}catch(error){}
+    const now=Date.now();
+    if(!record||record.stamp!==stamp||!Number.isFinite(record.expiresAt)||record.expiresAt<=now||record.expiresAt>now+GC_REMEMBER_TTL_MS){
+      props.deleteProperty(key);cache.remove(key);
+      throw Error('El acceso recordado venció o se revocó. Ingresá tu PIN para continuar.');
+    }
+    // Evitar escrituras constantes; renovar la vigencia como máximo una vez al día.
+    if(!Number.isFinite(record.lastCheck)||now-record.lastCheck>24*60*60*1000){
+      props.setProperty(key,JSON.stringify({stamp,expiresAt:now+GC_REMEMBER_TTL_MS,lastCheck:now}));
+    }
+    return true;
+  }
   cache.remove(key);
   throw Error('Tu sesión venció o se cerró. Ingresá nuevamente tu PIN.');
- }
- cache.put(key,stamp,600);
- return true;
 }
 function gcSessionClose_(candidate){
- if(gcSessionValid_(candidate))CacheService.getScriptCache().remove(gcSessionKey_(candidate));
- return {ok:true,message:'Sesión cerrada'};
+  if(gcSessionValid_(candidate)){
+    const key=gcSessionKey_(candidate);
+    CacheService.getScriptCache().remove(key);
+    PropertiesService.getScriptProperties().deleteProperty(key);
+  }
+  return {ok:true,message:'Sesión cerrada y acceso revocado'};
 }
 
 function assertAdmin_(candidate){
