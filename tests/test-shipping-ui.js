@@ -76,13 +76,15 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    const controls=await page.locator('#cartOverlay .cart-line').first().evaluate(row=>{
     const get=el=>el.getBoundingClientRect(),image=row.querySelector('img'),actions=row.querySelector('.actions'),buttons=[...actions.querySelectorAll('button')];
     const box=get(row),pic=get(image),bar=get(actions),taps=buttons.map(get);
-    const payment=document.querySelector('#checkoutControls').getBoundingClientRect(),order=document.querySelector('.order-products').getBoundingClientRect();
+    const orderNode=document.querySelector('.order-products'),style=getComputedStyle(orderNode);
+     const horizontalPadding=parseFloat(style.paddingLeft)+parseFloat(style.paddingRight);
+     const payment=document.querySelector('#checkoutControls').getBoundingClientRect(),order=orderNode.getBoundingClientRect();
     return {barBelowImage:bar.top>=pic.bottom-2,barInsideCard:bar.left>=box.left-2&&bar.right<=box.right+2,
      barBesideThumbnail:bar.left>=pic.right-2,
      tapsInsideCard:taps.every(t=>t.left>=box.left-2&&t.right<=box.right+2&&t.height>=44),
      inlineButtons:Math.max(...taps.map(t=>t.top))-Math.min(...taps.map(t=>t.top))<3,
      rowsWithinCard:row.scrollWidth<=row.clientWidth+1,
-     fullWidth:order.width>=payment.width*.96&&box.width>=order.width-2,
+     fullWidth:order.width>=payment.width*.96&&box.width>=order.width-horizontalPadding-2,
      compactHeight:box.height<=165,
      removeLabelHidden:getComputedStyle(actions.querySelector('.remove-text')).display==='none'};
    });
