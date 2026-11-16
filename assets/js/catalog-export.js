@@ -180,7 +180,7 @@ function artist(height=H){
   const value='GAMER COMAYAGUA';
   const helper=window.GC_WATERMARK;
   const font=helper?.fonts?.arial||{weight:'700',css:'Arial',pdf:'F2'};
-  let size=Math.max(20,Math.min(39,w*.068,h*.095));
+  let size=Math.max(18,Math.min(30,w*.060,h*.073));
   ctx.save();ctx.font=font.weight+' '+size+'px "GC Catalog", Arial';
   const firstWidth=ctx.measureText(value).width;
   if(firstWidth>w*.66&&firstWidth>0)size*=w*.66/firstWidth;
@@ -189,7 +189,7 @@ function artist(height=H){
   const measured=ctx.measureText(value).width;
   ctx.restore();
   const places=w>=390?[[.29,.29],[.71,.29],[.29,.72],[.71,.72]]:[[.5,.22],[.5,.51],[.5,.8]];
-  const alpha=.27;
+  const alpha=.23;
   for(const [px,py] of places){
    const cx=x+w*px,cy=y+h*py;
    ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
@@ -239,8 +239,8 @@ function draw(context,products,loaded,index,count,logo){
  const columns=auto?Math.max(...rowCounts):density===16?4:(density===9||density===12?3:density===2?1:2);
  const rows=auto?rowCounts.length:density===16||density===12?4:density===9||density===6?3:2;
  const dense=auto?columns>=3:density>=9,feature=!auto&&density===9,compact=!auto&&density===6,wide=density===2||(auto&&products.length===1),hasExtra=context.textMode!=='none';
- const gap=dense?19:20,bodyBottom=pageHeight-162;
- const bodyTop=225;
+ const gap=dense?16:18,bodyBottom=pageHeight-108;
+ const bodyTop=185;
  const h=(bodyBottom-bodyTop-(rows-1)*gap)/rows;
  const manualWidth=(inner-(columns-1)*gap)/columns;
  products.forEach((product,i)=>{
@@ -249,10 +249,10 @@ function draw(context,products,loaded,index,count,logo){
   const x=margin+position.column*(w+gap),y=bodyTop+position.row*(h+gap),pad=dense?14:compact?22:28;
   const available=Number(product.stock)>0;
   box(x,y+3,w,h,'#e7ecf2','',dense?10:16);box(x,y,w,h,available?'#ffffff':'#f5f6f8','#dce4ed',dense?10:16);
-  const infoReserve=(feature?177:dense?166:compact?192:230)+(hasExtra?(dense?56:compact?62:68):0);
-  const photoH=wide?h-32:h-infoReserve,photoW=wide?(auto?Math.min(photoH,(w-52)*.63):photoH):w-4;
-  const photoX=x+(wide?16:2),photoY=y+(wide?16:2);
-  box(photoX,photoY,photoW,photoH,available?'#f3f6f9':'#e9edf1','',dense?8:12);
+  const infoReserve=(feature?224:dense?225:compact?248:267)+(hasExtra?(dense?65:compact?69:78):0);
+  const photoH=wide?h-32:h-infoReserve,photoW=wide?(auto?Math.min(photoH,(w-52)*.63):photoH):w-24;
+  const photoX=x+(wide?16:12),photoY=y+(wide?16:12);
+  box(photoX,photoY,photoW,photoH,available?'#f4f7fa':'#e9edf1','',dense?10:12);
   const img=loaded.get(product.id);
   if(img){const rect=photo(img,photoX+2,photoY+2,photoW-4,photoH-4,!available);watermark(rect.x,rect.y,rect.w,rect.h,{watermarkEnabled:context.watermarkEnabled});}
   else{
@@ -277,9 +277,9 @@ function draw(context,products,loaded,index,count,logo){
   const tx=wide?photoX+photoW+34:x+pad,tw=x+w-pad-tx;
   const panelH=hasExtra?420:310,infoTop=wide?y+(h-panelH)/2:photoY+photoH;
   label(String(product.category||'PRODUCTO').toLocaleUpperCase('es'),tx,infoTop+(dense?19:26),{size:feature?15:dense?12:compact?16:18,bold:true,color:red,width:tw,fit:true});
-  const bandY=wide?infoTop+panelH-87:y+h-(dense?64:compact?76:92);
-  const titleTop=infoTop+(dense?27:wide?43:compact?34:39),titleH=Math.min(dense?62:wide?128:compact?85:95,bandY-titleTop-(dense?8:12));
-  const titleOptions={width:tw,height:titleH,size:feature?27:dense?20:wide?36:compact?28:34,minSize:feature?20:dense?15:compact?23:27,bold:true,color:available?ink:'#687587'};
+  const bandY=wide?infoTop+panelH-87:y+h-(dense?112:compact?126:138);
+  const titleTop=infoTop+(dense?28:wide?43:compact?35:39),titleH=Math.max(28,Math.min(dense?88:wide?128:compact?94:112,bandY-titleTop-(dense?8:12)));
+  const titleOptions={width:tw,height:titleH,size:feature?27:dense?23:wide?36:compact?29:34,minSize:feature?18:dense?16:compact?20:23,bold:true,color:available?ink:'#687587'};
   let name=block(product.name,tx,titleTop,titleOptions);
   if(!name.drawn)name=block(product.name,tx,titleTop,{...titleOptions,minSize:10});
   const extra=productInfo(context,product),extraTop=name.bottom+(dense?12:compact?14:18),extraHeight=bandY-extraTop-(dense?7:10);
