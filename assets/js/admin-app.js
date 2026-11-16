@@ -28,8 +28,9 @@ function setupNavigation(){
  panel.append(bottom,drawer);
  const onNav=e=>{const b=e.target.closest('[data-app-section]');if(b)go(b.dataset.appSection);};
  nav.addEventListener('click',onNav);advanced.addEventListener('click',onNav);bottom.addEventListener('click',onNav);drawer.addEventListener('click',onNav);
- $('appRefresh').onclick=()=>$('refresh').click();$('appCreate').onclick=()=>$('createNew').click();$('appKit').onclick=()=>$('gcKitOpen').click();$('appPhotos').onclick=()=>$('photoIntakeOpen').click();
+ $('appRefresh').onclick=()=>$('refresh').click();$('appCreate').onclick=()=>$('createNew').click();$('appKit').onclick=()=>{$('appQuickExtras').open=false;$('gcKitOpen').click()};$('appPhotos').onclick=()=>{$('appQuickExtras').open=false;$('photoIntakeOpen').click()};
  more.onclick=()=>{drawer.hidden=!drawer.hidden;more.setAttribute('aria-expanded',String(!drawer.hidden))};
+ document.addEventListener('pointerdown',event=>{if($('appQuickExtras')?.open&&!event.target.closest('#appQuickExtras'))$('appQuickExtras').open=false},{capture:true});
  $('appMoreClose').onclick=()=>{drawer.hidden=true;more.setAttribute('aria-expanded','false')};
  document.addEventListener('keydown',e=>{if(e.key==='Escape')drawer.hidden=true});
  const saved=new URLSearchParams(location.search).get('seccion');go(sections.some(s=>s[0]===saved)?saved:'inventory',false);
