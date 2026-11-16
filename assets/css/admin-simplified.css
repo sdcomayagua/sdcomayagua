@@ -93,3 +93,5 @@
  .gc-admin-app .app-quick-extras>div{left:0;right:0}
  .gc-admin-app .app-bottom-nav .app-nav-button{font-size:9.5px}
 }
+
+.gc-admin-app #appSessionNote.is-warning{color:#9a6117;background:#fff7e8;border:1px solid #f1dcaf;border-radius:8px;padding:7px 9px;max-width:60ch}
