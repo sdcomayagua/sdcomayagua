@@ -148,7 +148,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    if(n===3){
     const file=await download('catalogo-auto3.png');
     assert.equal(file.readUInt32BE(16),3060);
-    assert.equal(file.readUInt32BE(20),2320,'Tres productos necesitan una lámina horizontal, sin gran espacio blanco');
+    assert.equal(file.readUInt32BE(20),1900,'Tres productos necesitan una lámina horizontal compacta');
     await catalog.locator('#catalogExportFormat').selectOption('pdf');
     const pdf=await download('catalogo-auto3.pdf');
     assert.match(pdf.toString('latin1'),/\/MediaBox \[0 0 792 /,'El PDF también debe usar orientación horizontal');
