@@ -2,6 +2,7 @@
 (function(){'use strict';
 const $=id=>document.getElementById(id), A=()=>window.GC_ADMIN,C=()=>window.GC;
 const sections=[['inventory','Inventario','▦'],['offers','Ofertas','%'],['sales','Ventas','▤'],['orders','Pedidos','◇'],['finance','Finanzas','◫'],['receipts','Entradas','↧'],['stock','Stock','◷'],['pending','Pendientes','!'],['duplicates','Duplicados','⊞'],['waitlist','Interesados','♡'],['publish','Publicaciones','✎']];
+const quickSections=sections.slice(0,4),extraSections=sections.slice(4);
 let current='inventory',editorStep='data',prepared=null,preparedUrl=null;
 function clearBlob(){if(preparedUrl)URL.revokeObjectURL(preparedUrl);prepared=null;preparedUrl=null}
 const money=n=>C().money(n);
@@ -13,18 +14,20 @@ function navButton([key,name,icon],place){
 }
 function setupNavigation(){
  const panel=$('adminPanel'),top=create('section','app-overview');top.id='appOverview';
- top.innerHTML='<div><span class="app-overline">GAMER COMAYAGUA / ADMIN APP</span><h1 id="appPageHeading">Inventario</h1><p id="appPageHint">Buscá, editá y compartí tus artículos sin recorrer todo el panel.</p></div><div class="app-overview-actions"><button type="button" id="appRefresh" class="btn outline">↻ Actualizar</button><button type="button" id="appCreate" class="btn">+ Producto</button><button type="button" id="appKit" class="btn outline">+ Armar kit</button><button type="button" id="appPhotos" class="btn outline">▧ Desde fotos</button></div>';
+ top.innerHTML='<div class="app-welcome"><span class="app-overline">TU TIENDA · ADMINISTRACIÓN</span><h1 id="appPageHeading">Mis productos</h1><p id="appPageHint">Buscá, cambiá precios y administrá tus productos fácilmente.</p><p class="app-session-note" id="appSessionNote" aria-live="polite"></p></div><div class="app-overview-actions"><button type="button" id="appCreate" class="btn">+ Agregar producto</button><button type="button" id="appRefresh" class="btn outline">↻ Actualizar</button><details class="app-quick-extras" id="appQuickExtras"><summary>Más acciones</summary><div><button type="button" id="appPhotos" class="btn outline">▧ Agregar desde fotos</button><button type="button" id="appKit" class="btn outline">+ Armar kit</button></div></details></div>';
  panel.prepend(top);
  const nav=create('nav','app-main-nav');nav.id='appMainNav';nav.setAttribute('aria-label','Módulos de administración');
- sections.forEach(s=>navButton(s,nav));top.after(nav);
+ quickSections.forEach(s=>navButton(s,nav));const advancedToggle=create('button','app-nav-button app-advanced-toggle','☷ Más herramientas');advancedToggle.id='appAdvancedToggle';advancedToggle.type='button';advancedToggle.setAttribute('aria-expanded','false');nav.append(advancedToggle);top.after(nav);
+ const advanced=create('nav','app-advanced-nav');advanced.id='appAdvancedNav';advanced.hidden=true;advanced.setAttribute('aria-label','Herramientas avanzadas');extraSections.forEach(s=>navButton(s,advanced));nav.after(advanced);
+ advancedToggle.onclick=()=>{advanced.hidden=!advanced.hidden;advancedToggle.setAttribute('aria-expanded',String(!advanced.hidden))};
  const bottom=create('nav','app-bottom-nav');bottom.id='appBottomNav';bottom.setAttribute('aria-label','Navegación del administrador');
- sections.slice(0,5).forEach(s=>navButton(s,bottom));
+ quickSections.forEach(s=>navButton(s,bottom));
  const more=create('button','app-nav-button');more.type='button';more.id='appMoreToggle';more.innerHTML='<span class="app-nav-icon" aria-hidden="true">☷</span><span class="app-nav-text">Más</span>';bottom.append(more);
  const drawer=create('aside','app-more-drawer');drawer.id='appMoreDrawer';drawer.hidden=true;drawer.innerHTML='<div class="app-more-head"><strong>Otras funciones</strong><button id="appMoreClose" type="button" aria-label="Cerrar menú">×</button></div><div class="app-more-list"></div>';
- sections.slice(5).forEach(s=>navButton(s,drawer.querySelector('.app-more-list')));
+ extraSections.forEach(s=>navButton(s,drawer.querySelector('.app-more-list')));
  panel.append(bottom,drawer);
  const onNav=e=>{const b=e.target.closest('[data-app-section]');if(b)go(b.dataset.appSection);};
- nav.addEventListener('click',onNav);bottom.addEventListener('click',onNav);drawer.addEventListener('click',onNav);
+ nav.addEventListener('click',onNav);advanced.addEventListener('click',onNav);bottom.addEventListener('click',onNav);drawer.addEventListener('click',onNav);
  $('appRefresh').onclick=()=>$('refresh').click();$('appCreate').onclick=()=>$('createNew').click();$('appKit').onclick=()=>$('gcKitOpen').click();$('appPhotos').onclick=()=>$('photoIntakeOpen').click();
  more.onclick=()=>{drawer.hidden=!drawer.hidden;more.setAttribute('aria-expanded',String(!drawer.hidden))};
  $('appMoreClose').onclick=()=>{drawer.hidden=true;more.setAttribute('aria-expanded','false')};
@@ -35,8 +38,10 @@ function go(key,scroll=true){
  if(!sections.some(s=>s[0]===key))return;
  current=key;
  const btn=$('mgTabs')?.querySelector('[data-mg-tab="'+key+'"]');btn?.click();
- const name=sections.find(s=>s[0]===key)[1];$('appPageHeading').textContent=name;
- $('appPageHint').textContent=key==='inventory'?'Buscá productos, revisá sus precios y compartí su cotización.':'Módulo independiente de '+name.toLowerCase()+'.';
+ const name=sections.find(s=>s[0]===key)[1];$('appPageHeading').textContent=key==='inventory'?'Mis productos':name;
+ const help={inventory:'Buscá tus artículos, cambiá precios o compartí una cotización.',offers:'Prepará promociones sin modificar otras partes de la tienda.',sales:'Registrá lo que vendiste.',orders:'Revisá los pedidos y su entrega.',finance:'Tus costos y ganancias, solo para vos.',receipts:'Anotá la mercancía que recibiste.',stock:'Revisá lo que hace falta reponer.',pending:'Completá los productos pendientes.',duplicates:'Revisá artículos repetidos.',waitlist:'Consultá clientes interesados.',publish:'Prepará una publicación para redes sociales.'};
+ $('appPageHint').textContent=help[key]||'Herramientas de tu negocio.';
+ if(extraSections.some(s=>s[0]===key)){$('appAdvancedNav').hidden=false;$('appAdvancedToggle').setAttribute('aria-expanded','true')}else{$('appAdvancedNav').hidden=true;$('appAdvancedToggle').setAttribute('aria-expanded','false')}
  document.querySelectorAll('[data-app-section]').forEach(b=>{b.classList.toggle('active',b.dataset.appSection===key);b.setAttribute('aria-current',b.dataset.appSection===key?'page':'false')});
  $('appMoreDrawer').hidden=true;
  if(scroll)window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
@@ -64,7 +69,7 @@ function enhanceRows(){
   const id=edit.dataset.edit,p=A()?.products().find(x=>x.id===id);if(!p)continue;
   row.dataset.appEnhanced='true';
   const actions=row.querySelector('.admin-row-actions');if(!actions)continue;
-  const pay=paymentSummary(p);const priceTd=row.querySelector('td[data-label="Precio"]');priceTd?.append(pay);
+  const priceTd=row.querySelector('td[data-label="Precio"]');const paymentDetails=create('details','app-payment-details');paymentDetails.innerHTML='<summary>Ver precios con envío y comisiones</summary>';paymentDetails.append(paymentSummary(p));priceTd?.append(paymentDetails);
   const share=create('button','btn app-share-quote','▧ Cotizar / WhatsApp');share.type='button';share.dataset.appQuote=id;share.disabled=!p.active||p.stock<=0;actions.prepend(share);
   const more=create('button','btn outline app-row-more','⋯ Más opciones');more.type='button';more.setAttribute('aria-expanded','false');
   more.onclick=()=>{const val=row.classList.toggle('app-actions-open');more.setAttribute('aria-expanded',String(val))};
@@ -167,6 +172,9 @@ function setupEditor(){
 function setup(){
  if(!$('adminPanel')||!A())return;
  setupNavigation();setupShareDialog();setupEditor();
+ const sessionNote=$('appSessionNote');
+ document.addEventListener('gc:admin-session',e=>{if(sessionNote)sessionNote.textContent=e.detail?.remembered?'✓ Acceso recordado en este navegador':'Acceso protegido por PIN'});
+ if(sessionNote)sessionNote.textContent='Acceso protegido por PIN';
  const rows=$('adminRows'),observer=new MutationObserver(enhanceRows);observer.observe(rows,{childList:true});enhanceRows();
  rows.addEventListener('click',e=>{const b=e.target.closest('[data-app-quote]');if(b){e.preventDefault();openQuote(b.dataset.appQuote)}});
  document.addEventListener('gc:catalog',enhanceRows);
