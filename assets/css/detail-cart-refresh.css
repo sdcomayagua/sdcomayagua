@@ -184,4 +184,3 @@
 @media(prefers-reduced-motion:reduce){
   #cartOverlay #checkoutControls .method{transition:none!important}
 }
-#detailOverlay #detailQuote>span:last-child{text-transform:capitalize}
