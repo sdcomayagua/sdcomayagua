@@ -174,7 +174,7 @@ function setup(){
  if(!$('adminPanel')||!A())return;
  setupNavigation();setupShareDialog();setupEditor();
  const sessionNote=$('appSessionNote');
- document.addEventListener('gc:admin-session',e=>{if(sessionNote)sessionNote.textContent=e.detail?.remembered?'✓ Acceso recordado en este navegador':'Acceso protegido por PIN'});
+ document.addEventListener('gc:admin-session',e=>{if(!sessionNote)return;const detail=e.detail||{};sessionNote.textContent=detail.remembered?'✓ Acceso recordado en este navegador':detail.rememberRequested&&!detail.rememberAvailable?'⚠ Acceso recordado pendiente de activar en Google. Por ahora dura 10 minutos.':'Acceso protegido por PIN';sessionNote.classList.toggle('is-warning',detail.rememberRequested&&!detail.rememberAvailable)});
  if(sessionNote)sessionNote.textContent='Acceso protegido por PIN';
  const rows=$('adminRows'),observer=new MutationObserver(enhanceRows);observer.observe(rows,{childList:true});enhanceRows();
  rows.addEventListener('click',e=>{const b=e.target.closest('[data-app-quote]');if(b){e.preventDefault();openQuote(b.dataset.appQuote)}});

@@ -272,7 +272,7 @@ async function logIn(e,restore=false){
   const remembered=restore?stored?.remember===true:rememberRequested&&canRemember;
   if(!session.start(token,{remember:remembered}))throw Error('Google devolvió una sesión inválida.');
   if($('rememberStatus'))$('rememberStatus').textContent=remembered?'Acceso recordado en este navegador. Se revoca al cerrar sesión.':rememberRequested&&!canRemember?'Para activar el acceso recordado falta publicar la nueva versión privada de Apps Script. Por ahora se mantiene la sesión de 10 minutos.':'Acceso temporal. Se cerrará tras 10 minutos de inactividad.';
-  document.dispatchEvent(new CustomEvent('gc:admin-session',{detail:{remembered}}));
+  document.dispatchEvent(new CustomEvent('gc:admin-session',{detail:{remembered,rememberRequested,rememberAvailable:canRemember}}));
   lastSessionPing=Date.now();armSession();$('secret').value='';
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');
   if(!session.persisted())console.warn('No fue posible guardar la sesión entre visitas: almacenamiento del navegador bloqueado.');
