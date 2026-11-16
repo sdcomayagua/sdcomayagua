@@ -82,6 +82,71 @@ const {chromium}=require('playwright');
   assert.equal(await restricted.locator('#gcDirectPdf').isVisible(),true);
   const screenshot=process.env.GC_TEST_ARTIFACTS&&path.join(root,process.env.GC_TEST_ARTIFACTS,'quote-comparison-print.png');
   if(screenshot){fs.mkdirSync(path.dirname(screenshot),{recursive:true});await restricted.screenshot({path:screenshot,fullPage:true});}
+  // Regresión: el pedido REAL de diez artículos debe ocupar una sola hoja carta
+  // en PDF y PNG, igual que la impresión en navegador.
+  const sampleItems=[
+   ['Adaptador OTG USB a TYPE C',220],
+   ['Teclado y Mouse Gamer WB-550C',540],
+   ['Teclado y Mouse Wire Keyboard (AOAS)',300],
+   ['Teclado Wire Keyboard (AOAS)',250],
+   ['Gatillos F6 Sarafox',600],
+   ['Gamer 1',1100],
+   ['OTG con Capturadora 4K',570],
+   ['Kit Mobilador V9',1150],
+   ['Mouse Redragon Griffin 7200 DPI M607W',590],
+   ['Dedales V2 - Fibra de Carbono',35]
+  ].map(([name,price])=>({name,qty:1,unit:price,subtotal:price}));
+  const sampleData={
+   id:'GC-TEST-DIEZ',date:'16 de noviembre de 2026',logo:'',
+   compareAll:true,items:sampleItems,delivery:{label:'Envío nacional'},
+   base:{subtotal:5355,shipping:110,total:5465,fee:0,rate:0,mode:'transfer',deposit:5465,balance:0},
+   payments:{
+    transfer:{total:5465,subtotal:5355,shipping:110,fee:0,rate:0,allowed:true,reasons:[]},
+    tigo:{total:6013,subtotal:5355,shipping:110,fee:548,rate:.1,allowed:true,reasons:[]},
+    cod:{total:6286,subtotal:5355,shipping:110,fee:821,rate:.15,allowed:false,
+      reasons:['Estos productos no permiten pago al recibir: Adaptador OTG USB a TYPE C, Teclado y Mouse Gamer WB-550C, Teclado y Mouse Wire Keyboard (AOAS), Teclado Wire Keyboard (AOAS), Gamer 1, OTG con Capturadora 4K, Kit Mobilador V9.']}
+   }
+  };
+  const layoutPage=await context.newPage();
+  await layoutPage.goto(base+'/productos.html');
+  await layoutPage.evaluate(value=>{
+   const json=document.createElement('script');json.id='gcQuoteDownloadData';json.type='application/json';
+   json.textContent=JSON.stringify(value);document.body.appendChild(json);
+   for(const id of ['gcDirectPdf','gcDirectPng']){
+    const button=document.createElement('button');button.id=id;button.textContent=id;
+    document.body.appendChild(button);
+   }
+   const output=document.createElement('output');output.id='gcQuoteDownloadStatus';document.body.appendChild(output);
+   window.GC_CART_QUOTE_DOWNLOAD_SETUP(window);
+  },sampleData);
+  const onePage=await layoutPage.evaluate(async()=>{
+   const pages=await window.GC_CART_QUOTE_DOWNLOAD.renderPages();
+   const count=pages.length;
+   pages.forEach(canvas=>{canvas.width=1;canvas.height=1;});
+   return count;
+  });
+  assert.equal(onePage,1,'Los diez artículos y tres formas de pago deben caber en una sola hoja');
+  const [samplePdf]=await Promise.all([layoutPage.waitForEvent('download'),layoutPage.locator('#gcDirectPdf').click()]);
+  const samplePdfBytes=fs.readFileSync(await samplePdf.path());
+  assert.equal((samplePdfBytes.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length,1,'PDF directo de diez productos: una sola página');
+  const [samplePng]=await Promise.all([layoutPage.waitForEvent('download'),layoutPage.locator('#gcDirectPng').click()]);
+  const samplePngBytes=fs.readFileSync(await samplePng.path());
+  assert.equal(samplePngBytes.readUInt32BE(16),1600,'PNG ancho de hoja carta');
+  assert.equal(samplePngBytes.readUInt32BE(20),2070,'PNG de diez productos sin segunda hoja');
+  const moreItems=sampleItems.concat(sampleItems.slice(0,8).map(item=>({...item,name:item.name+' adicional'})));
+  const extraPages=await layoutPage.evaluate(async items=>{
+   const doc=document.getElementById('gcQuoteDownloadData');
+   const data=JSON.parse(doc.textContent);data.items=items;
+   data.base.subtotal=items.reduce((sum,item)=>sum+item.subtotal,0);
+   doc.textContent=JSON.stringify(data);
+   window.GC_CART_QUOTE_DOWNLOAD_SETUP(window);
+   const pages=await window.GC_CART_QUOTE_DOWNLOAD.renderPages();
+   const count=pages.length;
+   pages.forEach(canvas=>{canvas.width=1;canvas.height=1;});
+   return count;
+  },moreItems);
+  assert.equal(extraPages,2,'Dieciocho productos: dos hojas equilibradas, no una primera casi vacía');
+  await layoutPage.close();
   assert.deepEqual(errors,[]);
   console.log('PASS cotizaciones: precio de una unidad, bloqueo COD, PDF carta de una página y descargas PNG/PDF.');
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
