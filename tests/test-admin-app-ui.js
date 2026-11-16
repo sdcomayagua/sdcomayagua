@@ -37,6 +37,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#gcKitOverlay').waitFor({state:'visible'});
   assert.equal(await page.locator('.app-bottom-nav').isVisible(),false,'El editor de kits no queda tapado');
   await page.locator('#gcKitClose').click();
+  await page.locator('#appQuickExtras summary').click();
   await page.locator('#appPhotos').click();
   await page.locator('#photoIntakeOverlay').waitFor({state:'visible'});
   assert.equal(await page.locator('.app-bottom-nav').isVisible(),false,'El asistente de fotos no queda tapado');
