@@ -12,7 +12,7 @@
  // 2 filas = casi cuadrada; 3 filas = carta vertical.
  function pageHeight(count){
   const n=Math.max(0,Math.floor(Number(count)||0));
-  return n<=4?1160:n<=8?1550:1980;
+  return n<=1?1020:n===2?950:n===3?950:n===4?880:n<=8?1550:1980;
  }
  function pages(items){
   const count=items.length;if(!count)return [];
