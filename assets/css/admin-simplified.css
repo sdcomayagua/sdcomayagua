@@ -1,0 +1,95 @@
+/* Gamer Comayagua · Admin sencillo 2026.
+   Se ocultan herramientas secundarias, sin borrar módulos ni modificar datos. */
+.gc-admin-app{--easy-ink:#1c3855;--easy-blue:#1766aa;--easy-line:#dae6f2;--easy-soft:#f4f8fd}
+.gc-admin-app .admin-area{max-width:1440px;padding-top:19px}
+.gc-admin-app .app-overview{
+ padding:20px 22px;background:#fff;border:1px solid #e0e9f3;
+ border-radius:18px;align-items:center;box-shadow:0 6px 24px #193b5e09;
+}
+.gc-admin-app .app-overline{letter-spacing:1px;font-size:10px;color:#497a9f}
+.gc-admin-app .app-overview h1{font-size:clamp(24px,2.6vw,32px);letter-spacing:-.65px;margin:5px 0}
+.gc-admin-app .app-overview p{max-width:50ch;line-height:1.5}
+.gc-admin-app #appSessionNote{font-size:11px;color:#39795e;margin-top:7px}
+.gc-admin-app #appSessionNote:empty{display:none}
+.gc-admin-app .app-overview-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gc-admin-app #appCreate{background:#1465aa;color:#fff;border-color:#1465aa}
+.gc-admin-app #appRefresh{background:#f2f7fd;color:#296089;border-color:#dce8f3}
+.gc-admin-app #appCreate,.gc-admin-app #appRefresh{min-height:47px;white-space:normal}
+.gc-admin-app .app-quick-extras{position:relative;z-index:4;min-width:135px}
+.gc-admin-app .app-quick-extras summary{
+ cursor:pointer;list-style:none;display:flex;justify-content:center;align-items:center;
+ padding:12px 14px;min-height:46px;background:#fff;border:1px solid #d7e5f0;border-radius:12px;
+ color:#496983;font-size:12px;font-weight:800;white-space:nowrap
+}
+.gc-admin-app .app-quick-extras summary::-webkit-details-marker{display:none}
+.gc-admin-app .app-quick-extras summary::after{content:"⌄";margin-left:8px;font-size:15px}
+.gc-admin-app .app-quick-extras[open] summary{background:#eaf4fd;border-color:#b7d6ec;color:#165d91}
+.gc-admin-app .app-quick-extras>div{
+ position:absolute;top:calc(100% + 7px);right:0;z-index:15;min-width:210px;
+ background:#fff;padding:9px;display:grid;gap:7px;border:1px solid #d8e5f0;
+ border-radius:13px;box-shadow:0 18px 40px #16364a24
+}
+.gc-admin-app .app-quick-extras>div button{font-size:12px;min-height:46px;white-space:normal}
+.gc-admin-app .app-main-nav{padding:8px;gap:5px;margin-bottom:12px}
+.gc-admin-app .app-main-nav .app-nav-button{min-height:45px;font-size:13px;padding:10px 15px}
+.gc-admin-app .app-main-nav .app-nav-icon{font-size:18px}
+.gc-admin-app .app-main-nav .app-advanced-toggle{margin-left:auto;color:#376483;border:1px solid #e3ebf3;background:#f5f9fc}
+.gc-admin-app #appAdvancedNav[hidden],.gc-admin-app .app-more-drawer[hidden]{display:none!important}
+.gc-admin-app .app-advanced-nav{
+ display:flex;flex-wrap:wrap;gap:6px;border:1px solid #dae7f2;background:#f9fbfd;
+ padding:10px;border-radius:14px;margin-bottom:15px
+}
+.gc-admin-app .app-advanced-nav .app-nav-button{
+ display:inline-flex;align-items:center;gap:7px;min-height:41px;padding:7px 11px;
+ border:1px solid transparent;border-radius:10px;background:#fff;color:#516f88;
+ font-weight:750;font-size:12px;cursor:pointer
+}
+.gc-admin-app .app-advanced-nav .app-nav-button.active{background:#e6f2fe;color:#165c9b;border-color:#c9dff3}
+.gc-admin-app .app-advanced-nav .app-nav-icon{font-size:16px}
+.gc-admin-app #mgViewInventory .box:has(#adminRows){padding:18px}
+.gc-admin-app #adminPanel .admin-product-filters{gap:7px;grid-template-columns:minmax(220px,1fr) 165px 150px}
+.gc-admin-app #adminRows{gap:11px;grid-template-columns:repeat(auto-fill,minmax(285px,1fr))}
+.gc-admin-app #adminRows>tr{border-radius:15px;padding:13px;border-color:#e0e9f1;box-shadow:0 5px 16px #17375c09}
+.gc-admin-app #adminRows .admin-product-identity img{width:70px;height:76px;border-radius:11px}
+.gc-admin-app #adminRows .admin-product-identity strong{font-size:14px}
+.gc-admin-app #adminRows td[data-label=Precio]{font-weight:900;color:#1e527c}
+.gc-admin-app .app-product-prices{margin-top:8px;padding-top:8px}
+.gc-admin-app .app-payment-details{margin:9px 0 3px;border-top:1px solid #edf1f5;padding-top:8px}
+.gc-admin-app .app-payment-details summary{
+ display:flex;align-items:center;gap:6px;color:#3976a8;cursor:pointer;
+ font-size:11px;font-weight:750;min-height:34px
+}
+.gc-admin-app .app-payment-details summary::before{content:"＋";color:#1769a7;font-size:15px;font-weight:900}
+.gc-admin-app .app-payment-details[open] summary::before{content:"−"}
+.gc-admin-app #adminRows .admin-row-actions{margin-top:8px}
+.gc-admin-app #adminRows .app-share-quote{background:#185f9e!important;border-color:#185f9e!important;color:#fff!important}
+.gc-admin-app #loginPanel{border:1px solid #deebf5;border-radius:22px!important;box-shadow:0 16px 50px #1b41621a}
+.gc-admin-app #loginPanel h1{font-size:clamp(25px,3vw,32px);margin:10px 0}
+.gc-admin-app #loginPanel>.muted{font-size:13px;line-height:1.5}
+.gc-admin-app .gc-remember-choice{padding:12px!important;background:#f4f9fe;border-radius:12px}
+@media(max-width:800px){
+ .gc-admin-app .admin-area{padding:12px 11px calc(100px + env(safe-area-inset-bottom))!important}
+ .gc-admin-app .app-overview{display:block;padding:14px;margin-bottom:11px}
+ .gc-admin-app .app-overview h1{font-size:25px}
+ .gc-admin-app .app-overview p{font-size:12px}
+ .gc-admin-app #adminPanel .app-overview-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:13px}
+ .gc-admin-app #appCreate,.gc-admin-app #appRefresh{padding:11px 7px;font-size:12px!important;min-height:46px}
+ .gc-admin-app .app-quick-extras{grid-column:1/-1}
+ .gc-admin-app .app-quick-extras summary{width:100%;min-height:42px}
+ .gc-admin-app .app-quick-extras>div{left:0;right:0;min-width:0}
+ .gc-admin-app .app-advanced-nav{display:none!important}
+ .gc-admin-app .app-bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+ .gc-admin-app .app-bottom-nav .app-nav-button{font-size:10px;min-height:56px}
+ .gc-admin-app .app-more-drawer{z-index:150}
+ .gc-admin-app #mgViewInventory .box:has(#adminRows){padding:12px}
+ .gc-admin-app #adminPanel .admin-product-filters{grid-template-columns:1fr 1fr;gap:7px}
+ .gc-admin-app #adminPanel .admin-product-filters [type=search]{grid-column:1/-1}
+ .gc-admin-app #adminRows{grid-template-columns:minmax(0,1fr);gap:9px}
+ .gc-admin-app #adminRows>tr{padding:12px;box-shadow:0 3px 14px #17436a0a}
+ .gc-admin-app .admin-results-bar{font-size:11px}
+ .gc-admin-app #adminRows .admin-product-identity img{height:68px;width:67px}
+}
+@media(max-width:380px){
+ .gc-admin-app .app-quick-extras>div{left:0;right:0}
+ .gc-admin-app .app-bottom-nav .app-nav-button{font-size:9.5px}
+}
