@@ -1,5 +1,5 @@
 /* Gamer Comayagua · offline público. Nunca se guardan sesiones, Admin ni API de Sheets. */
-const CACHE='gc-public-shell-20261104-v1',PREFIX='gc-public-shell-';
+const CACHE='gc-public-shell-20261116-v2',PREFIX='gc-public-shell-';
 const SHELL=['offline.html','assets/img/pwa-icon.svg','assets/img/logo-rojo.webp'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));

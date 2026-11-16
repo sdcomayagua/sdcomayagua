@@ -6,7 +6,7 @@ const {chromium}=require('playwright'),fixture=require('./helpers/inventory-fixt
 const root=path.resolve(__dirname,'..'),output=path.resolve(process.env.GC_VISUAL_ARTIFACTS||'artifacts/visual');
 const viewports=[360,768,1280,1840];
 const pages=[
- {name:'inicio',url:'/index.html',ready:'.home-product'},
+ {name:'inicio',url:'/index.html',ready:'#productGrid .product'},
  {name:'productos',url:'/productos.html',ready:'#productGrid .product'},
  {name:'pagos',url:'/pagos.html',ready:'.shipping-calculator'},
  {name:'cuentas',url:'/cuentas.html',ready:'.bank-card'}
@@ -66,7 +66,7 @@ async function main(){
       const result={page:pageName,viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,
        noHorizontalOverflow:document.documentElement.scrollWidth<=innerWidth+1};
       if(pageName==='inicio'){
-       const products=document.querySelector('#homeProducts'),categories=document.querySelector('#homeCategories');
+       const products=document.querySelector('#productGrid'),categories=document.querySelector('#categoryShortcuts');
        result.productsVisible=good(products);result.categoriesVisible=good(categories);
        result.contentWidth=Math.round(bounds(products).width);
       }else if(pageName==='productos'){
@@ -109,6 +109,6 @@ async function main(){
  }
  assert.equal(failures.length,0,failures.join('\n'));
  assert.deepEqual(errors,[],'Sin excepciones de JavaScript en la tienda');
- console.log('PASS diseño: '+report.length+' capturas verificadas (Inicio, Productos, Pagos, Cuentas) en '+viewports.length+' anchuras.');
+ console.log('PASS diseño: '+report.length+' capturas verificadas (Portada Productos, Catálogo, Pagos, Cuentas) en '+viewports.length+' anchuras.');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
