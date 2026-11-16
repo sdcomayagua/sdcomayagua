@@ -3,7 +3,7 @@
   "short_name": "Gamer Comayagua",
   "description": "Accesorios gamer y tecnología en Comayagua, Honduras.",
   "id": "./",
-  "start_url": "./index.html",
+  "start_url": "./productos.html",
   "scope": "./",
   "display": "standalone",
   "display_override": [
@@ -11,7 +11,7 @@
     "minimal-ui"
   ],
   "background_color": "#ffffff",
-  "theme_color": "#12243a",
+  "theme_color": "#ffffff",
   "lang": "es-HN",
   "orientation": "any",
   "categories": [
