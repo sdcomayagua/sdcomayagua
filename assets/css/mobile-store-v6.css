@@ -247,3 +247,6 @@ body[data-page] :is(button,a,input,select,textarea):focus-visible{outline:3px so
 
 /* Teclado móvil visible: más espacio para buscar, sin barra sobre el campo. */
 @media(max-width:760px){body[data-page=productos].gc-typing .mobile-nav{display:none!important}body[data-page=productos].gc-typing #toast{bottom:12px!important}}
+
+/* El renglón del carrito utiliza todo el ancho de su bloque, sin perder los 15px interiores. */
+@media(max-width:760px){body[data-page] #cartOverlay .order-products .cart-line{width:calc(100% + 30px)!important;max-width:none!important;margin-inline:-15px!important;padding-inline:15px!important;box-sizing:border-box!important}}
