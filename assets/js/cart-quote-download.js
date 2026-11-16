@@ -2,6 +2,8 @@
    No usa servidores externos: produce PNG de alta resolución y PDF tamaño carta. */
 (function(){
  'use strict';
+ function setup(targetWindow){
+ const document=targetWindow.document;
  const raw=document.getElementById('gcQuoteDownloadData');
  const pdfButton=document.getElementById('gcDirectPdf');
  const pngButton=document.getElementById('gcDirectPng');
@@ -263,5 +265,8 @@
  }
  pdfButton.addEventListener('click',()=>onExport('pdf'));
  pngButton.addEventListener('click',()=>onExport('png'));
- window.GC_CART_QUOTE_DOWNLOAD={renderPages,exportPdf,exportImage};
+ targetWindow.GC_CART_QUOTE_DOWNLOAD={renderPages,exportPdf,exportImage};
+ }
+ window.GC_CART_QUOTE_DOWNLOAD_SETUP=setup;
+ if(document.getElementById('gcQuoteDownloadData'))setup(window);
 })();
