@@ -6,6 +6,7 @@ const yes=cart([P('Mouse',200,5),2]);
 assert.equal(C.quote(yes,'cod',{codMinimum:350,codRate:.1}).codAllowed,true);
 assert.equal(C.quote(yes,'cod',{codMinimum:350,codRate:.1}).total,561); // 400+110+51 =561
 assert.equal(C.quote(cart([P('Mouse',390,3),1]),'cod').codAllowed,true);
+assert.equal(C.quote(cart([P('Producto único de L 500',500,1),1]),'cod',{codMinimum:350}).codAllowed,true,'Una unidad de L 500 supera el mínimo sin comprar otra');
 assert.equal(C.quote(cart([P('Mouse',100,3),3]),'cod').codAllowed,false); // menos L350
 assert.equal(C.quote(cart([P('Mouse',200,4),2],[P('Excluido',100,4,false),1]),'cod').codAllowed,false);
 assert.equal(C.quote(cart([P('Mouse',200,4),2]),'transfer').total,510);

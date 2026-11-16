@@ -29,7 +29,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.goto(base+'/productos.html');await page.locator('#syncStatus').filter({hasText:'Catálogo actualizado'}).waitFor();
   for(const p of products)await page.locator(`[data-add="${p.id}"]`).click();
   await page.locator('#openCart').click();await total('480');assert.equal(await page.locator('#cartSummary').innerText(),'2 productos · L 370 en artículos');assert.equal(await page.locator('#deliveryOptions legend').innerText(),'Entrega y envío');
-  assert.equal(await page.locator('.gc-quote-download-grid button').count(),2,'Dos tarjetas rojas de cotización');
+  assert.equal(await page.locator('.gc-quote-download-grid button').count(),2,'Dos tarjetas de cotización');
   await page.locator('#printQuoteAll').click();
   const triple=await page.evaluate(()=>window.__opened.at(-1));
   assert.equal(triple.url,'','Comparativo abre una cotización imprimible');
@@ -123,8 +123,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.equal(await page.locator('#printQuoteAll').isEnabled(),true,'Comparativo disponible aunque COD esté restringido');
   await page.locator('#printQuoteAll').click();
   const restricted=await page.evaluate(()=>window.__opened.at(-1).html);
-  assert.match(restricted,/NO DISPONIBLE PARA ESTE PEDIDO/);
-  assert.match(restricted,/Importe solamente de referencia/);
+  assert.match(restricted,/<strong class="payment-not-available">NO DISPONIBLE<\/strong>/);
+  assert.doesNotMatch(restricted,/Importe solamente de referencia|BASE SIN COMISIÓN|payment-amount">L 385/);
 
   await page.locator('[data-remove="CARGADOR-001"]').click();assert.equal(await page.evaluate(()=>sessionStorage.getItem('gc_delivery')),null,'Eliminar el último producto limpia la entrega anterior');
   // Calculadora pública: envío incluido, transferencias y anticipo.
