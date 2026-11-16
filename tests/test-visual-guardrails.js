@@ -66,7 +66,7 @@ async function main(){
       const result={page:pageName,viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,
        noHorizontalOverflow:document.documentElement.scrollWidth<=innerWidth+1};
       if(pageName==='inicio'){
-       const products=document.querySelector('#productGrid'),categories=document.querySelector('#categoryShortcuts');
+       const products=document.querySelector('#productGrid'),categories=document.querySelector('.filters');
        result.productsVisible=good(products);result.categoriesVisible=good(categories);
        result.contentWidth=Math.round(bounds(products).width);
       }else if(pageName==='productos'){
@@ -92,7 +92,7 @@ async function main(){
      report.push(metrics);
      await tab.screenshot({path:path.join(output,id+'.png'),animations:'disabled'});
      if(!metrics.noHorizontalOverflow)failures.push(id+': desplazamiento horizontal');
-     if(entry.name==='inicio'&&(!metrics.productsVisible||!metrics.categoriesVisible))failures.push(id+': secciones desaparecidas');
+     if(entry.name==='inicio'&&(!metrics.productsVisible||!metrics.categoriesVisible))failures.push(id+': productos o buscador no visibles');
      if(entry.name==='productos'&&(!metrics.cardVisible||width<=768&&metrics.cartButtonHeight<42))failures.push(id+': ficha o botón demasiado pequeño');
      if(entry.name==='cuentas'&&(!metrics.bankVisible||metrics.accountContrast<7||metrics.accountCopyHeight<42||!metrics.accountNotCut))failures.push(id+': cuenta invisible, bajo contraste o recortada');
      if(entry.name==='pagos'&&(!metrics.calculatorVisible||!metrics.amountVisible||metrics.labelContrast<4.5||metrics.amountContrast<7||!metrics.totalNotCut))failures.push(id+': importe, etiquetas o calculadora ilegibles');
