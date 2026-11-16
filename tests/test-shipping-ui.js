@@ -29,8 +29,17 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.goto(base+'/productos.html');await page.locator('#syncStatus').filter({hasText:'Catálogo actualizado'}).waitFor();
   for(const p of products)await page.locator(`[data-add="${p.id}"]`).click();
   await page.locator('#openCart').click();await total('480');assert.equal(await page.locator('#cartSummary').innerText(),'2 productos · L 370 en artículos');assert.equal(await page.locator('#deliveryOptions legend').innerText(),'Entrega y envío');
+  assert.equal(await page.locator('.gc-quote-download-grid button').count(),2,'Dos tarjetas rojas de cotización');
+  await page.locator('#printQuoteAll').click();
+  const triple=await page.evaluate(()=>window.__opened.at(-1));
+  assert.equal(triple.url,'','Comparativo abre una cotización imprimible');
+  assert.match(triple.html,/Comparativo de las 3 formas de pago/);
+  for(const amount of ['L 480','L 515','L 528','Anticipo: L 158'])assert.ok(triple.html.includes(amount),'Importe presente: '+amount);
+  assert.equal((triple.html.match(/class="payment-card/g)||[]).length,3,'Tres tarjetas en el documento');
+
   assert.ok((await page.locator('#deliveryOptions').boundingBox()).y<(await page.locator('.method-grid').boundingBox()).y,'Entrega aparece antes del pago');
   await select('local');assert.equal(await page.locator('#sendQuote').isDisabled(),true);assert.equal(await page.locator('#printQuote').isDisabled(),true);assert.equal(await page.locator('#deliveryError').isVisible(),true);
+  assert.equal(await page.locator('#printQuoteAll').isDisabled(),true,'Comparativo bloqueado cuando falta costo local');
   for(const bad of ['-1','2.5','1000001']){await page.locator('#deliveryAmount').fill(bad);assert.equal(await page.locator('#sendQuote').isDisabled(),true);}
   await page.locator('#deliveryAmount').fill('50');await total('420');assert.equal(await page.locator('#deliveryError').isVisible(),false);
   await page.locator('#deliveryFields summary').click();
@@ -104,11 +113,19 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#cartOverlay [data-close]').click();await page.locator('#openCart').click();await total('370');assert.equal(await page.locator('#deliveryNote').inputValue(),'Entrega en mi ruta');
   for(const name of ['pagos.html','cuentas.html','productos.html']){
    await page.goto(base+'/'+name);await page.locator('#openCart').click();await total('370');assert.equal(await page.locator('[name=deliveryMethod][value=free]').isChecked(),true);assert.equal(await page.locator('#deliveryNote').inputValue(),'Entrega en mi ruta');
+   assert.equal(await page.locator('.gc-quote-download-grid button').count(),2,'Comparador visible en '+name);
   }
   await page.reload();await page.locator('#openCart').click();await total('370');
   await select('pickup');await page.locator('#clearCart').click();assert.equal(await page.evaluate(()=>sessionStorage.getItem('gc_delivery')),null);
   await page.locator('#cartOverlay [data-close]').click();await page.locator('[data-add="CARGADOR-001"]').click();await page.locator('#openCart').click();await total('385');assert.equal(await page.locator('[name=deliveryMethod][value=national]').isChecked(),true,'Un carrito nuevo vuelve a la tarifa nacional');
   await select('free');await page.locator('[name=payMethod][value=cod]').check();assert.equal(await page.locator('#sendQuote').isDisabled(),true,'Envío gratis conserva el mínimo de pago al recibir');
+  assert.equal(await page.locator('#printQuote').isDisabled(),true,'Cotización normal respeta COD no permitido');
+  assert.equal(await page.locator('#printQuoteAll').isEnabled(),true,'Comparativo disponible aunque COD esté restringido');
+  await page.locator('#printQuoteAll').click();
+  const restricted=await page.evaluate(()=>window.__opened.at(-1).html);
+  assert.match(restricted,/NO DISPONIBLE PARA ESTE PEDIDO/);
+  assert.match(restricted,/Importe solamente de referencia/);
+
   await page.locator('[data-remove="CARGADOR-001"]').click();assert.equal(await page.evaluate(()=>sessionStorage.getItem('gc_delivery')),null,'Eliminar el último producto limpia la entrega anterior');
   // Calculadora pública: envío incluido, transferencias y anticipo.
   await page.goto(base+'/pagos.html');
