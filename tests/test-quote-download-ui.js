@@ -46,7 +46,8 @@ const {chromium}=require('playwright');
   await page.locator('#printQuoteAll').click();
   const popup=await popupPromise;
   await popup.waitForLoadState('load');
-  await popup.waitForFunction(()=>!!window.GC_CART_QUOTE_DOWNLOAD,null,{timeout:15000});
+  try{await popup.waitForFunction(()=>!!window.GC_CART_QUOTE_DOWNLOAD,null,{timeout:5000});}
+  catch(error){const info=await popup.evaluate(()=>({ready:document.readyState,url:location.href,scripts:[...document.scripts].map(el=>({src:el.src,type:el.type})),bodyEnd:document.body?.innerHTML.slice(-700),hasButtons:!!document.getElementById('gcDirectPdf')}));throw new Error('Popup download debug: '+JSON.stringify(info)+'; errors='+errors.join(' | ')+'; '+error.message);}
   const raw=JSON.parse(await popup.locator('#gcQuoteDownloadData').textContent());
   assert.equal(raw.payments.cod.allowed,true,'La comparación permite COD para producto único de L 500');
   assert.equal(raw.payments.transfer.total,610);
