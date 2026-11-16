@@ -63,3 +63,26 @@ body[data-page=admin] .admin-area{max-width:1480px;padding-top:24px;padding-bott
 /* Ocultar la recuperación salvo si Google falló durante una sesión aún vigente. */
 #restoreSessionBtn[hidden]{display:none!important}
 #restoreSessionBtn:not([hidden]){display:inline-flex;align-items:center;justify-content:center;min-height:44px}
+
+/* Acceso por navegador recordado, sin conservar el PIN. */
+body[data-page="admin"] #loginPanel .gc-remember-choice{
+ display:flex;align-items:flex-start;gap:11px;padding:13px 14px;
+ border:1px solid #cfe1f0;background:#f3f8ff;border-radius:13px;cursor:pointer;
+ font-weight:500;line-height:1.45;color:#23415e;
+}
+body[data-page="admin"] #loginPanel .gc-remember-choice input{
+ flex:0 0 20px;width:20px;height:20px;min-height:20px;margin:2px 0 0;
+ accent-color:#1768ae;cursor:pointer;
+}
+body[data-page="admin"] #loginPanel .gc-remember-choice span{display:block;min-width:0}
+body[data-page="admin"] #loginPanel .gc-remember-choice strong{display:block;font-size:13px;color:#173f61;font-weight:850}
+body[data-page="admin"] #loginPanel .gc-remember-choice small{display:block;font-size:11px;line-height:1.55;color:#667f95;margin-top:3px}
+body[data-page="admin"] #rememberStatus{font-size:12px;line-height:1.5;color:#276c54;margin:9px 0}
+body[data-page="admin"] #rememberStatus:empty{display:none}
+body[data-page="admin"] .gc-easy-switch{
+ display:flex;align-items:center;justify-content:center;min-height:43px;
+ text-decoration:none;border:1px solid #bbd8ed;border-radius:11px;
+ background:#edf6ff;color:#1e6093;font-size:12px;font-weight:850;
+ padding:9px 12px;margin-bottom:16px;
+}
+body[data-page="admin"] #loginPanel #loginBtn{min-height:48px;border-radius:11px;font-size:14px;font-weight:850}
