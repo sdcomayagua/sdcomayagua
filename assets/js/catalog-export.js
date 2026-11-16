@@ -221,20 +221,18 @@ function draw(context,products,loaded,index,count,logo){
  const polygon=(points,fill,stroke='')=>path(points.map(([x,y],i)=>[i?'L':'M',x,y]).concat([['Z']]),fill,stroke);
  const circle=(x,y,r,fill,stroke='')=>box(x-r,y-r,2*r,2*r,fill,stroke,r);
  box(0,0,W,pageHeight,'#ffffff');
- // Cabecera compacta: prioridad a las fotos y precios, sin decoración innecesaria.
- box(0,0,W,206,navy);box(0,0,W,8,red);
- box(46,30,116,112,'#ffffff','',15);if(logo)photo(logo,52,34,104,104);
- label('GAMER COMAYAGUA',182,78,{size:45,bold:true,color:'#ffffff',width:970,fit:true});
- label('GAMING · TECNOLOGÍA · ACCESORIOS',184,113,{size:19,bold:true,color:'#dae5f0',width:850});
- label('CATÁLOGO / '+context.year,W-48,61,{size:21,bold:true,color:'#ffffff',width:295,align:'right',fit:true});
- label(context.date,W-48,95,{size:19,color:'#dae5f0',width:295,align:'right'});
- box(48,152,7,42,red,'',3);
- label(context.title,184,170,{size:33,bold:true,color:'#ffffff',width:1090,fit:true});
+ // Cabecera ligera: el producto y su precio tienen la prioridad.
+ box(0,0,W,170,'#ffffff');box(0,0,W,8,red);
+ box(37,25,84,84,'#f5f8fb','#e2eaf2',12);if(logo)photo(logo,44,31,70,72);
+ label('GAMER COMAYAGUA',140,67,{size:39,bold:true,color:navy,width:920,fit:true});
+ label('GAMING · TECNOLOGÍA · ACCESORIOS',142,100,{size:17,bold:true,color:muted,width:850});
+ label('CATÁLOGO '+context.year,W-40,64,{size:21,bold:true,color:navy,width:310,align:'right',fit:true});
+ label(context.date,W-40,96,{size:16,color:muted,width:310,align:'right',fit:true});
+ box(margin,122,inner,1,'#e0e8f0');box(margin,138,5,25,red,'',2);
+ label(context.title,margin+18,160,{size:31,bold:true,color:navy,width:900,fit:true});
  const categories=[...new Set(products.map(p=>p.category).filter(Boolean))];
- const subtitle=context.multipleCategories
-  ?categories.slice(0,4).join(' · ')+(categories.length>4?' · +'+(categories.length-4)+' categorías':'')
-  :context.count+' producto'+(context.count===1?'':'s')+' · '+(context.prices?'Precios en lempiras':'Consultar disponibilidad');
- label(subtitle,186,199,{size:16,color:'#c9d9e9',width:1090,fit:true});
+ const subtitle=context.multipleCategories?categories.slice(0,4).join(' · ')+(categories.length>4?' · +'+(categories.length-4)+' categorías':''):context.count+' producto'+(context.count===1?'':'s')+' · '+(context.prices?'Precios en lempiras':'Consultar disponibilidad');
+ label(subtitle,W-margin,159,{size:16,color:muted,width:460,align:'right',fit:true});
  // Cada cuadrícula conserva el tamaño de sus tarjetas también en la última página.
  const auto=context.autoLayout===true,layout=window.GC_CATALOG_LAYOUT;
  const rowCounts=auto?layout.rows(products.length):[];
@@ -312,22 +310,15 @@ function draw(context,products,loaded,index,count,logo){
   const phone=String(settings.whatsapp||'50431517755').replace(/\D/g,'');
   link(x,y,w,h,'https://wa.me/'+phone);
  }
- const footerY=pageHeight-130,phone=String(settings.whatsapp||'50431517755').replace(/\D/g,''),formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
- label('Precios y existencias sujetos a confirmación.',margin,footerY-11,{size:15,color:muted,width:inner-210});
- label(String(index+1).padStart(2,'0')+' / '+String(count).padStart(2,'0'),W-margin,footerY-11,{size:17,bold:true,color:muted,width:180,align:'right'});
- box(0,footerY,W,pageHeight-footerY,navy);polygon([[0,footerY],[65,footerY],[0,footerY+65]],'#44182b');
- box(72,footerY+23,84,84,red,'',14);
- const wx=114,wy=footerY+65;
- circle(wx,wy-2,24,'','#ffffff');polygon([[wx-20,wy+11],[wx-26,wy+29],[wx-7,wy+23]],'#ffffff');
- path([['M',wx-11,wy-14],['C',wx-20,wy-8,wx-1,wy+18,wx+11,wy+11],['L',wx+15,wy+4],['L',wx+5,wy],['L',wx+1,wy+5],['C',wx-5,wy+2,wx-9,wy-3,wx-9,wy-7],['L',wx-5,wy-10],['Z']],'#ffffff');
- box(188,footerY+28,1,pageHeight-footerY-56,'#c6d3df');
- label('HABLEMOS POR WHATSAPP',220,footerY+46,{size:18,bold:true,color:'#d6e0eb',width:680});
- label(formatted,220,footerY+96,{size:43,bold:true,color:'#ffffff',width:680,fit:true});
- box(968,footerY+28,1,H-footerY-56,'#c6d3df');circle(1038,footerY+66,34,red);
- path([['M',1038,footerY+87],['C',1026,footerY+70,1024,footerY+66,1024,footerY+59],['C',1024,footerY+41,1052,footerY+41,1052,footerY+59],['C',1052,footerY+66,1050,footerY+70,1038,footerY+87],['Z']],'#ffffff');circle(1038,footerY+59,5,red);
- label('Comayagua, Honduras',1092,footerY+55,{size:23,bold:true,color:'#ffffff',width:W-1126,fit:true});
- label('Envíos a toda Honduras',1092,footerY+89,{size:20,color:'#d6e0eb',width:W-1126,fit:true});
- link(72,footerY+15,W-144,pageHeight-footerY-30,'https://wa.me/'+phone);
+ const footerY=pageHeight-78,phone=String(settings.whatsapp||'50431517755').replace(/\D/g,''),formatted=phone.replace(/^(504)(\d{4})(\d{4})$/,'+$1 $2-$3');
+ box(0,footerY,W,pageHeight-footerY,'#f7fafc');box(0,footerY,W,2,'#e0e8f0');
+ box(34,footerY+18,5,43,red,'',2);
+ label('PEDIDOS POR WHATSAPP',51,footerY+29,{size:14,bold:true,color:muted,width:430});
+ label(formatted,51,footerY+57,{size:28,bold:true,color:navy,width:440,fit:true});
+ label('Comayagua · Envíos a toda Honduras',W-170,footerY+30,{size:17,color:muted,width:580,align:'right',fit:true});
+ label('Precios y existencias sujetos a confirmación',W-170,footerY+56,{size:14,color:muted,width:580,align:'right',fit:true});
+ label(String(index+1).padStart(2,'0')+' / '+String(count).padStart(2,'0'),W-38,footerY+46,{size:19,bold:true,color:navy,width:112,align:'right'});
+ link(40,footerY+9,470,64,'https://wa.me/'+phone);
  return page;
 }
 const blob=canvas=>new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(Error('El navegador no pudo crear el archivo.')),'image/png'));
