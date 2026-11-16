@@ -171,26 +171,46 @@
   if(!items.length)return [[]];
   const measure=document.createElement('canvas').getContext('2d');
   const heights=items.map(item=>productHeight(measure,item));
+  const prefix=[0];heights.forEach(height=>prefix.push(prefix.at(-1)+height));
   const lastReserve=9+(32+deliveryLines(measure).length*14)+9+(data.compareAll?39:108)
    +(data.compareAll?13+43+170:data.base.mode==='cod'?56:0);
   const tableStart=202+34,limit=H-92-14,continuationReserve=34;
-  // Ajustar por altura real: priorizar una hoja cuando contiene el pedido completo.
-  // Cuando hacen falta varias hojas, repartir los artículos de forma equilibrada
-  // y reservar entrega, subtotal y métodos de pago para la hoja final.
-  for(let count=1;count<=items.length;count++){
-   const groups=[];let offset=0,valid=true;
-   for(let index=0;index<count;index++){
-    const size=Math.ceil((items.length-offset)/(count-index));
-    const end=offset+size;
-    const used=heights.slice(offset,end).reduce((sum,h)=>sum+h,0);
-    const reserve=index===count-1?lastReserve:continuationReserve;
-    if(tableStart+used+reserve>limit){valid=false;break;}
-    groups.push(items.slice(offset,end));
-    offset=end;
-   }
-   if(valid&&offset===items.length)return groups;
+  const used=(start,end,final)=>tableStart+prefix[end]-prefix[start]+(final?lastReserve:continuationReserve);
+  // Cuántas hojas se necesitan como mínimo: llenar desde la última, porque
+  // solamente esa página lleva las tarjetas de pago y la información de entrega.
+  let index=items.length,pageCount=0;
+  while(index>0){
+   const final=pageCount===0,end=index;
+   while(index>0&&used(index-1,end,final)<=limit)index--;
+   if(index===end){index--;}// Siempre permitir al menos un artículo por página.
+   pageCount++;
   }
-  // Fallback excepcional para nombres/direcciones extremadamente largos.
+  // De las posibles divisiones con ese número mínimo de páginas, elegir la
+  // que deja el contenido mejor repartido verticalmente. Así no hay hojas
+  // medio vacías antes de una hoja final saturada.
+  const n=items.length,dp=Array.from({length:pageCount+1},()=>Array(n+1).fill(Infinity));
+  const back=Array.from({length:pageCount+1},()=>Array(n+1).fill(-1));
+  dp[0][0]=0;
+  for(let page=1;page<=pageCount;page++){
+   const final=page===pageCount;
+   for(let end=page;end<=n-(pageCount-page);end++){
+    for(let start=page-1;start<end;start++){
+     if(!Number.isFinite(dp[page-1][start]))continue;
+     const height=used(start,end,final);
+     if(height>limit)continue;
+     const slack=limit-height,cost=dp[page-1][start]+slack*slack;
+     if(cost<dp[page][end]){dp[page][end]=cost;back[page][end]=start;}
+    }
+   }
+  }
+  if(Number.isFinite(dp[pageCount][n])){
+   const groups=[];let end=n;
+   for(let page=pageCount;page>=1;page--){
+    const start=back[page][end];groups.unshift(items.slice(start,end));end=start;
+   }
+   if(end===0&&groups.every(group=>group.length))return groups;
+  }
+  // Un caso extremadamente raro: conservar todos los artículos sin perder datos.
   return items.map(item=>[item]);
  }
  async function renderPages(){
@@ -286,7 +306,7 @@
  }
  pdfButton.addEventListener('click',()=>onExport('pdf'));
  pngButton.addEventListener('click',()=>onExport('png'));
- targetWindow.GC_CART_QUOTE_DOWNLOAD={renderPages,exportPdf,exportImage};
+ targetWindow.GC_CART_QUOTE_DOWNLOAD={renderPages,exportPdf,exportImage,splitItems};
  }
  window.GC_CART_QUOTE_DOWNLOAD_SETUP=setup;
  if(document.getElementById('gcQuoteDownloadData'))setup(window);
