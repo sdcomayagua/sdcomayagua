@@ -284,17 +284,19 @@ function draw(context,products,loaded,index,count,logo){
   if(!name.drawn)name=block(product.name,tx,titleTop,{...titleOptions,minSize:10});
   const extra=productInfo(context,product),extraTop=name.bottom+(dense?12:compact?14:18),extraHeight=bandY-extraTop-(dense?7:10);
   if(extra){const rendered=block(extra,tx,extraTop,{width:tw,height:extraHeight,size:dense?15:compact?19:22,minSize:dense?12:compact?15:17,color:muted});if(!rendered.drawn)context.omittedText++;}
-  // Precio tipográfico y datos alineados: dos áreas, sin bloques de color pesados.
-  box(tx,bandY,tw,1,'#e1e7ee');
-  const stockW=Math.round(Math.min(dense?170:300,tw*(dense ? .51 : .48))),stockX=tx+tw-stockW,priceW=stockX-tx-(dense?12:22);
-  const overlineY=bandY+(dense?16:compact?19:23);
-  label(promo&&context.prices?'OFERTA':'PRECIO',tx,overlineY,{size:dense?10:compact?12:13,bold:true,color:available?'#b51d32':muted,width:priceW,fit:true});
-  if(promo&&context.prices){const offset=dense?48:68;label('Antes '+C.money(product.price),tx+offset,overlineY,{size:dense?11:compact?11:13,color:muted,width:priceW-offset,fit:true});}
-  label(context.prices&&price>0?C.money(price):'Consultar',tx,bandY+(dense?50:compact?62:73),{size:feature?35:dense?30:compact?38:46,bold:true,color:available?'#162d45':'#718091',width:priceW,fit:true});
-  const pillY=bandY+(dense?8:compact?10:15),pillH=dense?22:compact?29:34;
-  box(stockX,pillY,stockW,pillH,available?'#e8f4ee':'#edf0f4','',dense?5:7);
-  label(status,stockX+stockW/2,pillY+pillH*.72,{size:feature?15:dense?14:compact?16:19,bold:true,color:available?'#087451':'#6a7888',width:stockW-12,align:'center',fit:true});
-  label('Cód. '+(product.code||product.id),tx+tw,bandY+(dense?53:compact?63:74),{size:dense?12:compact?15:17,color:muted,width:stockW,align:'right',fit:true});
+  // Precio con más presencia visual y disponibilidad en un bloque compacto.
+  if(!wide)box(x+12,bandY-8,w-24,y+h-bandY-4,'#f1f6fa','',10);
+  else box(tx-12,bandY-8,tw+24,116,'#f1f6fa','',10);
+  const stockW=Math.round(Math.min(dense?150:255,tw*(dense?.42:.43))),stockX=tx+tw-stockW,priceW=stockX-tx-(dense?12:20);
+  const overlineY=bandY+(dense?26:compact?30:34);
+  label(promo&&context.prices?'OFERTA':'PRECIO',tx,overlineY,{size:dense?12:compact?13:14,bold:true,color:available?'#bd2340':muted,width:priceW,fit:true});
+  if(promo&&context.prices){const offset=dense?59:75;label('Antes '+C.money(product.price),tx+offset,overlineY,{size:dense?11:compact?12:13,color:muted,width:Math.max(0,priceW-offset),fit:true});}
+  const amountY=bandY+(dense?91:compact?101:112);
+  label(context.prices&&price>0?C.money(price):'Consultar',tx,amountY,{size:feature?39:dense?39:compact?44:49,bold:true,color:available?'#e32648':'#718091',width:Math.max(65,priceW),fit:true});
+  const pillY=bandY+(dense?16:compact?17:19),pillH=dense?28:compact?30:34;
+  box(stockX,pillY,stockW,pillH,available?'#e0f3e9':'#edf0f4','',7);
+  label(status,stockX+stockW/2,pillY+pillH*.72,{size:feature?15:dense?14:compact?16:18,bold:true,color:available?'#0d7750':'#6a7888',width:stockW-12,align:'center',fit:true});
+  label('Cód. '+(product.code||product.id),tx+tw,amountY,{size:dense?12:compact?14:16,color:muted,width:stockW,align:'right',fit:true});
   link(x,img?y:photoY+photoH,w,img?h:y+h-photoY-photoH,productUrl(context,product));
  });
  // En páginas Premium con ocho productos, la novena tarjeta invita a consultar.
