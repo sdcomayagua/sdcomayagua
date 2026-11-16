@@ -1683,6 +1683,36 @@
   },
   {
     "bestSeller": false,
+    "createdAt": "2026-11-16T16:48:40.969Z",
+    "catalogOrder": 89,
+    "id": "cb83a4d8-4b3c-4dbd-a91f-24c230803d89",
+    "code": "Celular-001",
+    "name": "Celular Samsung A07 4GB RAM + 128GB Negro",
+    "category": "Celular",
+    "price": 4500,
+    "stock": 2,
+    "image": "https://drive.google.com/thumbnail?id=1ih3gtVVQWKlrfDrkYAX8NE4NfEN-69tQ&sz=w1200",
+    "gallery": "",
+    "description": "",
+    "discounts": "",
+    "codAllowed": false,
+    "active": true,
+    "colors": "",
+    "promoPrice": 3950,
+    "promoText": "",
+    "details": {
+      "size": "de Pantalla (Pulgadas)   6.7",
+      "model": "A07   Color   Negro",
+      "references": [
+        {
+          "url": "https://www.elgallomasgallo.com.hn/celular-4g-samsung-galaxy-a07-negro-4gb-ram-128gb-198831",
+          "title": "Celular 4G Samsung Galaxy A07 Negro 4GB RAM 128GB"
+        }
+      ]
+    }
+  },
+  {
+    "bestSeller": false,
     "createdAt": "",
     "catalogOrder": 32,
     "id": "SDC-002",
