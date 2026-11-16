@@ -46,7 +46,7 @@ function formField(form,name){
 }
 function validApi(){return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(cfg.apiUrl||'')}
 function armSession(){clearTimeout(sessionTimer);const saved=session.read();if(saved)sessionTimer=setTimeout(checkSession,Math.max(1,saved.expiresAt-Date.now()));}
-function lockSession(message='Tu sesión venció después de 10 minutos sin actividad. Ingresá tu PIN para continuar.'){
+function lockSession(message='Tu sesión venció o se cerró. Ingresá tu PIN para continuar.'){
  token='';session.clear();clearTimeout(sessionTimer);$('secret').value='';
  $('adminPanel').classList.add('hidden');$('logout').classList.add('hidden');$('loginPanel').classList.remove('hidden');
  document.querySelectorAll('.overlay').forEach(el=>el.hidden=true);document.body.style.overflow='';
@@ -236,9 +236,9 @@ function applyFeatures(verification){
  bestSellersSupported=serverFeatures.bestSellers===true;imageImportSupported=serverFeatures.researchImageImport===true;imageSearchSupported=serverFeatures.researchPhotos===true;
  $('bestSellersPublishNotice').hidden=!bestSellersSupported||serverFeatures.publicCatalogMetadata===true;
 }
-function refreshFeatures(){
+function refreshFeatures(options={}){
  if(checkingFeatures)return checkingFeatures;
- checkingFeatures=request('verify').then(verification=>{const next=String(verification.sessionToken||'');if(/^gc_[0-9a-f]{64}$/i.test(next))lastVerifiedSessionToken=next;applyFeatures(verification);return serverFeatures;}).finally(()=>{checkingFeatures=null;});
+ checkingFeatures=request('verify',options).then(verification=>{const next=String(verification.sessionToken||'');if(/^gc_[0-9a-f]{64}$/i.test(next))lastVerifiedSessionToken=next;applyFeatures(verification);return serverFeatures;}).finally(()=>{checkingFeatures=null;});
  return checkingFeatures;
 }
 function invalidAdminCredential(error){
@@ -246,7 +246,8 @@ function invalidAdminCredential(error){
 }
 async function logIn(e,restore=false){
  if(e)e.preventDefault();
- const candidate=restore?session.read()?.token||'':$('secret').value.trim();
+ const stored=restore?session.read():null,rememberRequested=!restore&&$('rememberBrowser')?.checked===true;
+ const candidate=restore?stored?.token||'':$('secret').value.trim();
  if(!(restore?window.GC_ADMIN_SESSION.validToken(candidate):/^\d{6}$/.test(candidate))){
   if(restore){lockSession();return;}
   toast('Ingresá tu PIN de seis dígitos.');return;
@@ -258,16 +259,20 @@ async function logIn(e,restore=false){
  try{
   // Revalidamos siempre contra Google antes de mostrar información privada.
   // Una falla de conexión al volver no debe borrar un PIN aún vigente.
-  try{await refreshFeatures();}
+  try{await refreshFeatures(rememberRequested?{rememberDevice:true}:{})}
   catch(error){
    if(!restore||invalidAdminCredential(error)||!session.read())throw error;
    await new Promise(resolve=>setTimeout(resolve,750));
-   await refreshFeatures();
+   await refreshFeatures(rememberRequested?{rememberDevice:true}:{});
   }
   // El vencimiento se renueva solo después de la comprobación del servidor.
   if(restore&&!session.read())throw Error('La sesión ya venció. Ingresá nuevamente tu PIN.');
   if(lastVerifiedSessionToken)token=lastVerifiedSessionToken;
-  if(!session.start(token))throw Error('Google devolvió una sesión inválida.');
+  const canRemember=serverFeatures.rememberDevice===true;
+  const remembered=restore?stored?.remember===true:rememberRequested&&canRemember;
+  if(!session.start(token,{remember:remembered}))throw Error('Google devolvió una sesión inválida.');
+  if($('rememberStatus'))$('rememberStatus').textContent=remembered?'Acceso recordado en este navegador. Se revoca al cerrar sesión.':rememberRequested&&!canRemember?'Para activar el acceso recordado falta publicar la nueva versión privada de Apps Script. Por ahora se mantiene la sesión de 10 minutos.':'Acceso temporal. Se cerrará tras 10 minutos de inactividad.';
+  document.dispatchEvent(new CustomEvent('gc:admin-session',{detail:{remembered}}));
   lastSessionPing=Date.now();armSession();$('secret').value='';
   $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('logout').classList.remove('hidden');
   if(!session.persisted())console.warn('No fue posible guardar la sesión entre visitas: almacenamiento del navegador bloqueado.');
