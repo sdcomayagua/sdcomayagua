@@ -22,11 +22,15 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.equal(await page.locator('#mgViewInventory').isVisible(),false);
   await page.locator('.app-bottom-nav [data-app-section="inventory"]').click();
   assert.equal(await page.locator('#mgViewInventory').isVisible(),true);
-  assert.ok(await page.locator('#adminRows .app-product-prices').count()>0,'Cada ficha ofrece precios de depósito, Tigo y contraentrega');
+  assert.ok(await page.locator('#adminRows .app-payment-details').count()>0,'Los precios por método están organizados dentro de Ver precios');
+  await page.locator('#adminRows .app-payment-details summary').first().click();
+  assert.equal(await page.locator('#adminRows .app-product-prices').first().isVisible(),true,'Los precios pueden consultarse bajo demanda');
   assert.ok((await page.locator('#adminRows .app-product-prices').first().innerText()).includes('Tigo Money'));
   assert.ok((await page.locator('#adminRows .app-share-quote').count())>0);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Sin desbordamiento horizontal en móvil');
   await page.screenshot({path:path.join(artifacts,'admin-app-mobile.png')});
+  assert.equal(await page.locator('#appKit').isVisible(),false,'Armar kit no ocupa espacio hasta abrir Más acciones');
+  await page.locator('#appQuickExtras summary').click();
   assert.equal(await page.locator('#appKit').isVisible(),true);
   assert.equal(await page.locator('#appPhotos').isVisible(),true);
   await page.locator('#appKit').click();
@@ -63,6 +67,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#closeForm').click();
   await page.setViewportSize({width:1440,height:900});
   assert.equal(await page.locator('#appMainNav').isVisible(),true);
+  assert.equal(await page.locator('#appAdvancedNav').isVisible(),false,'Herramientas secundarias ocultas inicialmente');
+  await page.locator('#appAdvancedToggle').click();
+  assert.equal(await page.locator('#appAdvancedNav').isVisible(),true,'Todas las herramientas siguen disponibles');
   assert.equal(await page.locator('#appBottomNav').isVisible(),false);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.screenshot({path:path.join(artifacts,'admin-app-desktop.png')});

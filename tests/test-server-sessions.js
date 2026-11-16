@@ -16,7 +16,7 @@ const ctx={
   getUuid:()=>crypto.randomUUID()
  },
  CacheService:{getScriptCache:()=>cache},
- PropertiesService:{getScriptProperties:()=>({getProperty:key=>properties.get(key)||''})},
+ PropertiesService:{getScriptProperties:()=>({getProperty:key=>properties.get(key)||'',setProperty:(k,v)=>properties.set(k,v),deleteProperty:k=>properties.delete(k)})},
  assertAdmin_:candidate=>{pinCalls++;if(candidate!=='123456')throw Error('Clave de administración incorrecta.');},
  Error,RegExp,Date,String
 };
@@ -34,6 +34,17 @@ assert.equal(ctx.gcSessionAuthorize_('123456','verify'),false,'El PIN sigue perm
 assert.equal(ctx.gcSessionAuthorize_(token,'saveProduct'),true,'Un token válido permite acciones');
 const logout=ctx.gcSessionClose_(token);assert.equal(logout.ok,true);
 assert.throws(()=>ctx.gcSessionAuthorize_(token,'adminCatalog'),/venci[oó]|cerr[oó]/i,'Cerrar sesión revoca token');
+const remembered=ctx.gcSessionOpen_(true);
+assert.equal(ctx.gcSessionAuthorize_(remembered,'adminCatalog'),true,'Acceso recordado autorizado sin PIN');
+assert.equal(entries.has(ctx.gcSessionKey_(remembered)),false,'No guardar acceso recordado en caché de diez minutos');
+const remoteKey=ctx.gcSessionKey_(remembered),remoteValue=properties.get(remoteKey);
+assert.ok(remoteValue&&JSON.parse(remoteValue).expiresAt>Date.now()+70*24*60*60*1000,'Token recordado por 90 días');
+assert.equal(properties.has('gc_'+remembered),false,'El servidor guarda solamente un hash');
+ctx.gcSessionClose_(remembered);
+assert.equal(properties.has(remoteKey),false,'Cerrar sesión revoca el token recordado');
+assert.throws(()=>ctx.gcSessionAuthorize_(remembered,'verify'),/venci[oó]|cerr[oó]/i,'La sesión recordada revocada no funciona');
+const oldRemember=ctx.gcSessionOpen_(true);
 const rotated=ctx.gcSessionOpen_();properties.set('ADMIN_PIN','654321');
+assert.throws(()=>ctx.gcSessionAuthorize_(oldRemember,'adminCatalog'),/venci[oó]|revoc[oó]/i,'Cambiar el PIN invalida accesos recordados');
 assert.throws(()=>ctx.gcSessionAuthorize_(rotated,'adminCatalog'),/venci[oó]|cerr[oó]/i,'Cambiar PIN invalida las sesiones anteriores');
-console.log('PASS sesiones Apps Script: token aleatorio, caducidad de caché, revocación, PIN nuevo y modo estricto.');
+console.log('PASS sesiones Apps Script: token recordado opaco, expiración renovable, revocación, PIN nuevo y modo estricto.');

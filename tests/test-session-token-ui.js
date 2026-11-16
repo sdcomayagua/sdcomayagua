@@ -18,7 +18,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   if(req.action==='verify'){
    if(req.token!=='123456'&&req.token!==secret)return {ok:false,error:'Tu sesión venció.'};
    const response=env.post('verify',{...req,token:'123456'});
-   return {...response,features:{...response.features,sessionTokens:true},sessionToken:secret};
+   return {...response,features:{...response.features,sessionTokens:true,rememberDevice:true},sessionToken:secret};
   }
   if(req.action==='sessionLogout')return {ok:req.token===secret};
   if(req.action==='sessionPing')return {ok:req.token===secret};
@@ -32,6 +32,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   const stored=await page.evaluate(()=>localStorage.getItem('gc_admin_session_v1'));
   assert.ok(stored.includes(secret),'Sesión del servidor guardada');
   assert.equal(stored.includes('123456'),false,'PIN no guardado en localStorage');
+  assert.equal(JSON.parse(stored).remember,true,'Este navegador queda recordado si se marcó la casilla');
+  assert.ok(calls.some(c=>c.action==='verify'&&c.token==='123456'),'La primera validación utiliza PIN');
   await page.goto(base+'/productos.html');await page.goto(base+'/admin.html');
   await page.locator('#adminPanel:not(.hidden)').waitFor();
   assert.ok(calls.some(c=>c.action==='verify'&&c.token===secret),'El regreso utiliza token, no PIN');
