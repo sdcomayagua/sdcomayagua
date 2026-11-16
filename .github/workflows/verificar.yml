@@ -71,6 +71,7 @@ jobs:
           node tests/test-admin-app-ui.js
           node tests/test-product-search-ui.js
           node tests/test-shipping-ui.js
+          node tests/test-quote-download-ui.js
           node tests/test-category-export-ui.js
           node tests/test-offers-ui.js
           node tests/test-finance-ui.js
