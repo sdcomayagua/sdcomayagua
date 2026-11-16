@@ -33,9 +33,11 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  const bankLabels=await page.locator('.bank-card .bank-copy-row small').allTextContents();
  assert.deepEqual(bankLabels,['Nombre del titular','Número de identidad','Número de cuenta'],'Identidad debajo del titular y cuenta al final');
  assert.equal(await page.locator('.bank-card .bank-account-primary strong').innerText(),'0012');
- assert.equal(await page.locator('header .nav a[href="index.html"]').count(),1,'Inicio aparece en la navegación de Cuentas');
+ assert.equal(await page.locator('header .nav a[href="index.html"]').count(),0,'Inicio ya no aparece en Cuentas');
+ assert.equal(await page.locator('header .nav a[href="productos.html"]').count(),1,'Productos sustituye a Inicio en PC');
  await page.setViewportSize({width:390,height:844});
- assert.equal(await page.locator('.mobile-nav a[href="index.html"]').isVisible(),true,'Inicio disponible en navegación móvil de Cuentas');
+ assert.equal(await page.locator('.mobile-nav a[href="productos.html"]').isVisible(),true,'Productos disponible en móvil de Cuentas');
+ assert.equal(await page.locator('.mobile-nav > a, .mobile-nav > button').count(),4,'Cuatro accesos en el móvil de Cuentas');
  await page.setViewportSize({width:1280,height:900});
 
  await page.getByRole('button',{name:'Copiar todos los datos',exact:true}).click();const copiedBank=await page.evaluate(()=>window.__copied);assert.match(copiedBank,/\*GAMER COMAYAGUA\*/);assert.match(copiedBank,/\*Banco de prueba\*/);assert.match(copiedBank,/Titular: Gabriel de prueba/);assert.match(copiedBank,/Identidad: 0000/);assert.match(copiedBank,/Número de cuenta: 0012/);assert.match(copiedBank,/Enviá el comprobante/);
