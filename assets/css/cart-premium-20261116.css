@@ -400,10 +400,10 @@ body[data-page] #cartOverlay .gc-quote-download-grid>#printQuoteAll{
  margin:0!important;padding:10px 6px!important;display:flex!important;
  flex-direction:column!important;align-items:center!important;justify-content:center!important;
  gap:5px!important;text-align:center!important;white-space:normal!important;
- border:1px solid #c91d3c!important;border-radius:13px!important;
- background:linear-gradient(150deg,#ed3150,#cf1b3c)!important;color:#fff!important;
+ border:1px solid #135da5!important;border-radius:13px!important;
+ background:linear-gradient(150deg,#287aca,#135eaa)!important;color:#fff!important;
  font-size:11px!important;font-weight:850!important;line-height:1.25!important;
- box-shadow:0 5px 15px rgba(190,28,58,.14)!important;
+ box-shadow:0 5px 15px rgba(21,98,163,.16)!important;
  text-decoration:none!important;overflow-wrap:anywhere!important;touch-action:manipulation;
 }
 body[data-page] #cartOverlay .gc-quote-download-grid .gc-quote-action-icon{
@@ -436,3 +436,5 @@ body[data-page] #cartOverlay .gc-quote-download-grid>.btn:disabled{
 @media(prefers-reduced-motion:reduce){
  body[data-page] #cartOverlay .gc-quote-download-grid>.btn:hover:not(:disabled){transform:none}
 }
+
+body[data-page] #cartOverlay .gc-quote-download-grid>#printQuoteAll{background:linear-gradient(150deg,#166f9e,#0e527e)!important;border-color:#12557e!important}
