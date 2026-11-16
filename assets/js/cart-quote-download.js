@@ -82,40 +82,45 @@
   text(ctx,'GAMER COMAYAGUA · Gracias por elegirnos',MARGIN,H-41,11,true,blue);
  }
  function drawTableHead(ctx,y){
-  rounded(ctx,MARGIN,y,W-2*MARGIN,34,6,'#eaf2fb');
-  text(ctx,'PRODUCTO',MARGIN+12,y+10,11,true,ink);
-  text(ctx,'CANT.',MARGIN+487,y+10,11,true,ink,'right');
-  text(ctx,'PRECIO UNIT.',MARGIN+607,y+10,11,true,ink,'right');
-  text(ctx,'SUBTOTAL',W-MARGIN-12,y+10,11,true,ink,'right');
-  return y+36;
+  rounded(ctx,MARGIN,y,W-2*MARGIN,32,6,'#eaf2fb');
+  text(ctx,'PRODUCTO',MARGIN+12,y+9,11,true,ink);
+  text(ctx,'CANT.',MARGIN+487,y+9,11,true,ink,'right');
+  text(ctx,'PRECIO UNIT.',MARGIN+607,y+9,11,true,ink,'right');
+  text(ctx,'SUBTOTAL',W-MARGIN-12,y+9,11,true,ink,'right');
+  return y+34;
+ }
+ function productHeight(ctx,item){
+  return Math.max(35,15*wrap(ctx,item.name,430,12.5,false,2).length+13);
  }
  function drawProduct(ctx,item,i,y){
-  const rowLines=wrap(ctx,item.name,430,13,false,2);
-  const h=Math.max(42,17*rowLines.length+15);
-  text(ctx,pad(i+1),MARGIN+11,y+10,10,false,'#8093a7');
-  rowLines.forEach((name,k)=>text(ctx,name,MARGIN+40,y+8+17*k,13,false,ink));
-  text(ctx,item.qty,MARGIN+487,y+10,12,true,ink,'right');
-  text(ctx,currency(item.unit),MARGIN+607,y+10,12,false,ink,'right');
-  text(ctx,currency(item.subtotal),W-MARGIN-12,y+10,12,true,ink,'right');
+  const rowLines=wrap(ctx,item.name,430,12.5,false,2);
+  const h=productHeight(ctx,item);
+  text(ctx,pad(i+1),MARGIN+11,y+9,10,false,'#8093a7');
+  rowLines.forEach((name,k)=>text(ctx,name,MARGIN+40,y+7+15*k,12.5,false,ink));
+  text(ctx,item.qty,MARGIN+487,y+9,12,true,ink,'right');
+  text(ctx,currency(item.unit),MARGIN+607,y+9,12,false,ink,'right');
+  text(ctx,currency(item.subtotal),W-MARGIN-12,y+9,12,true,ink,'right');
   ctx.fillStyle=line;ctx.fillRect(MARGIN,y+h-1,W-2*MARGIN,1);
   return y+h;
  }
- function drawDelivery(ctx,y){
+ function deliveryLines(ctx){
   const entries=[];
   entries.push('Modalidad: '+clean(data.delivery.label));
   if(data.delivery.note)entries.push('Nota: '+clean(data.delivery.note));
   if(data.delivery.name)entries.push('Cliente: '+clean(data.delivery.name));
   if(data.delivery.city||data.delivery.department)entries.push('Destino: '+[data.delivery.city,data.delivery.department].filter(Boolean).join(', '));
   if(data.delivery.address)entries.push('Dirección: '+clean(data.delivery.address));
-  const lines=entries.flatMap(x=>wrap(ctx,x,W-2*MARGIN-26,11,false,2));
-  const height=35+lines.length*15;
+  return entries.flatMap(x=>wrap(ctx,x,W-2*MARGIN-26,10.5,false,2));
+ }
+ function drawDelivery(ctx,y){
+  const lines=deliveryLines(ctx),height=32+lines.length*14;
   rounded(ctx,MARGIN,y,W-2*MARGIN,height,9,'#f7faff',line);
-  text(ctx,'ENTREGA DEL PEDIDO',MARGIN+13,y+10,12,true,ink);
-  lines.forEach((l,i)=>text(ctx,l,MARGIN+13,y+29+i*15,11,false,muted));
+  text(ctx,'ENTREGA DEL PEDIDO',MARGIN+13,y+9,11.5,true,ink);
+  lines.forEach((entry,i)=>text(ctx,entry,MARGIN+13,y+27+i*14,10.5,false,muted));
   return y+height;
  }
  function drawBase(ctx,y){
-  rounded(ctx,MARGIN,y,W-2*MARGIN,data.compareAll?44:108,10,'#f5f9fd',line);
+  rounded(ctx,MARGIN,y,W-2*MARGIN,data.compareAll?39:108,10,'#f5f9fd',line);
   text(ctx,'Subtotal de productos',MARGIN+16,y+13,13,true,ink);
   text(ctx,currency(data.base.subtotal),W-MARGIN-16,y+13,14,true,ink,'right');
   if(!data.compareAll){
@@ -124,30 +129,30 @@
    text(ctx,'TOTAL A PAGAR',MARGIN+16,y+73,14,true,blue);
    text(ctx,currency(data.base.total),W-MARGIN-16,y+69,22,true,red,'right');
   }
-  return y+(data.compareAll?44:108);
+  return y+(data.compareAll?39:108);
  }
  function drawComparison(ctx,y){
-  text(ctx,'Comparativo de las 3 formas de pago',MARGIN,y,19,true,ink);
-  text(ctx,'Cada opción incluye productos, envío y la comisión correspondiente.',MARGIN,y+29,11,false,muted);
-  const start=y+50,gap=10,width=(W-2*MARGIN-gap*2)/3,cardH=220;
+  text(ctx,'Comparativo de las 3 formas de pago',MARGIN,y,17,true,ink);
+  text(ctx,'Productos, envío y comisión incluidos en cada total.',MARGIN,y+24,10.5,false,muted);
+  const start=y+43,gap=10,width=(W-2*MARGIN-gap*2)/3,cardH=170;
   for(const [i,mode] of ['transfer','tigo','cod'].entries()){
    const x=MARGIN+i*(width+gap),q=data.payments[mode],disabled=mode==='cod'&&!q.allowed;
    rounded(ctx,x,start,width,cardH,12,disabled?'#f4f5f7':'#f8fbff',disabled?'#cbd4df':line);
-   text(ctx,labelPay[mode],x+12,start+14,12,true,disabled?'#738093':ink);
+   text(ctx,labelPay[mode],x+11,start+10,11.5,true,disabled?'#738093':ink);
    if(disabled){
-    rounded(ctx,x+11,start+45,width-22,66,9,'#e7ebef');
-    text(ctx,'NO DISPONIBLE',x+width/2,start+64,16,true,'#68798c','center');
-    multiline(ctx,(q.reasons||[]).join(' '),x+12,start+124,width-24,10,'#707d8c',false,7,13);
+    rounded(ctx,x+10,start+35,width-20,52,9,'#e7ebef');
+    text(ctx,'NO DISPONIBLE',x+width/2,start+51,15.5,true,'#68798c','center');
+    multiline(ctx,(q.reasons||[]).join(' '),x+11,start+94,width-22,9.2,'#707d8c',false,6,11);
     continue;
    }
-   text(ctx,currency(q.total),x+12,start+48,29,true,red);
-   ctx.fillStyle=line;ctx.fillRect(x+12,start+88,width-24,1);
-   text(ctx,'Productos: '+currency(q.subtotal),x+12,start+102,11,false,muted);
-   text(ctx,'Envío: '+currency(q.shipping),x+12,start+123,11,false,muted);
-   text(ctx,mode==='transfer'?'Sin comisión':'Comisión '+Math.round(q.rate*100)+'%: '+currency(q.fee),x+12,start+144,11,false,muted);
+   text(ctx,currency(q.total),x+11,start+34,26,true,red);
+   ctx.fillStyle=line;ctx.fillRect(x+11,start+67,width-22,1);
+   text(ctx,'Productos: '+currency(q.subtotal),x+11,start+79,10.5,false,muted);
+   text(ctx,'Envío: '+currency(q.shipping),x+11,start+99,10.5,false,muted);
+   text(ctx,mode==='transfer'?'Sin comisión':'Comisión '+Math.round(q.rate*100)+'%: '+currency(q.fee),x+11,start+119,10.5,false,muted);
    if(mode==='cod'){
-    text(ctx,'Anticipo: '+currency(q.deposit),x+12,start+176,11,true,ink);
-    text(ctx,'Al recibir: '+currency(q.balance),x+12,start+195,11,true,ink);
+    text(ctx,'Anticipo: '+currency(q.deposit),x+11,start+140,10.5,true,ink);
+    text(ctx,'Al recibir: '+currency(q.balance),x+11,start+155,10.5,true,ink);
    }
   }
   return start+cardH;
@@ -162,15 +167,31 @@
   });
  }
  function splitItems(){
-  const items=data.items||[],lastCapacity=data.compareAll?6:10,otherCapacity=12;
-  if(items.length<=lastCapacity)return [items];
-  const pages=[];
-  let remaining=items.length,offset=0;
-  while(remaining>lastCapacity){
-   const amount=Math.min(otherCapacity,remaining-lastCapacity);
-   pages.push(items.slice(offset,offset+amount));offset+=amount;remaining-=amount;
+  const items=data.items||[];
+  if(!items.length)return [[]];
+  const measure=document.createElement('canvas').getContext('2d');
+  const heights=items.map(item=>productHeight(measure,item));
+  const lastReserve=9+(32+deliveryLines(measure).length*14)+9+(data.compareAll?39:108)
+   +(data.compareAll?13+43+170:data.base.mode==='cod'?56:0);
+  const tableStart=202+34,limit=H-92-14,continuationReserve=34;
+  // Ajustar por altura real: priorizar una hoja cuando contiene el pedido completo.
+  // Cuando hacen falta varias hojas, repartir los artículos de forma equilibrada
+  // y reservar entrega, subtotal y métodos de pago para la hoja final.
+  for(let count=1;count<=items.length;count++){
+   const groups=[];let offset=0,valid=true;
+   for(let index=0;index<count;index++){
+    const size=Math.ceil((items.length-offset)/(count-index));
+    const end=offset+size;
+    const used=heights.slice(offset,end).reduce((sum,h)=>sum+h,0);
+    const reserve=index===count-1?lastReserve:continuationReserve;
+    if(tableStart+used+reserve>limit){valid=false;break;}
+    groups.push(items.slice(offset,end));
+    offset=end;
+   }
+   if(valid&&offset===items.length)return groups;
   }
-  pages.push(items.slice(offset));return pages;
+  // Fallback excepcional para nombres/direcciones extremadamente largos.
+  return items.map(item=>[item]);
  }
  async function renderPages(){
   const groups=splitItems(),logo=await loadLogo(),pages=[];
@@ -182,9 +203,9 @@
    for(let i=0;i<group.length;i++)y=drawProduct(ctx,group[i],first+i,y);
    first+=group.length;
    if(k===groups.length-1){
-    y=drawDelivery(ctx,y+11);
-    y=drawBase(ctx,y+11);
-    if(data.compareAll)y=drawComparison(ctx,y+17);
+    y=drawDelivery(ctx,y+9);
+    y=drawBase(ctx,y+9);
+    if(data.compareAll)y=drawComparison(ctx,y+13);
     else if(data.base.mode==='cod'){
      text(ctx,'ANTICIPO A DEPOSITAR: '+currency(data.base.deposit),MARGIN+8,y+16,12,true,ink);
      text(ctx,'SALDO AL RECIBIR: '+currency(data.base.balance),MARGIN+8,y+38,12,true,ink);
